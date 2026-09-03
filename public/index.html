@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wizard Online</title>
+  <style>
+    :root {
+      --bg-color: #0f141c;
+      --table-felt: radial-gradient(ellipse at center, #1b5e20 0%, #0d3b14 70%, #07220b 100%);
+      --wood-rim: #3a1e0b;
+      --gold-accent: #f1c40f;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-color);
+      color: #f8fafc;
+      text-align: center;
+      margin: 0;
+      padding: 10px;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    #game-screen { display: none; }
+
+    input, button {
+      padding: 9px 16px;
+      margin: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.18);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.35);
+    }
+
+    /* Badges */
+    .host-badge {
+      background: linear-gradient(135deg, #f39c12, #d35400);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      margin-left: 4px;
+      display: inline-block;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .dealer-badge {
+      background: linear-gradient(135deg, #e67e22, #c0392b);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      margin-left: 4px;
+      display: inline-block;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* LOBBY SCREEN */
+    #lobby-screen {
+      background: url('/images/lobby_bg.svg') center center / cover no-repeat;
+      min-height: 80vh;
+      max-width: 920px;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 24px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.75);
+      padding: 30px 20px;
+      border: 1px solid rgba(241, 196, 15, 0.25);
+      box-sizing: border-box;
+    }
+
+    /* OBERE INFOBAR */
+    .top-nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 920px;
+      margin: 0 auto 12px;
+      padding: 10px 18px;
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }
+
+    .room-round-info {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-align: left;
+    }
+
+    #status-message {
+      color: var(--gold-accent);
+      font-weight: bold;
+      font-size: 15px;
+      margin: 0 10px;
+      flex-grow: 1;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+
+    .btn-score-toggle {
+      background: linear-gradient(135deg, #8e44ad, #6c3483);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 13px;
+      padding: 7px 14px;
+      margin: 0;
+    }
+
+    /* RECHTER SLIDE-OUT: BLOCK DER WAHRHEIT */
+    #score-board-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 390px;
+      max-width: 88vw;
+      height: 100vh;
+      background: #182232;
+      border-left: 2px solid var(--gold-accent);
+      box-shadow: -10px 0 35px rgba(0,0,0,0.8);
+      z-index: 1000;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #score-board-drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      background: #0d1522;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2b394f;
+    }
+
+    .drawer-close-btn {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 0 6px;
+      font-weight: bold;
+    }
+    .drawer-close-btn:hover { color: #fff; }
+
+    .drawer-scroll {
+      flex-grow: 1;
+      overflow-y: auto;
+      overflow-x: auto;
+      padding: 12px;
+    }
+
+    #drawer-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(2px);
+      z-index: 999;
+      display: none;
+    }
+    #drawer-backdrop.open { display: block; }
+
+    /* TABELLE */
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .score-table th, .score-table td {
+      border: 1px solid #2b394f;
+      padding: 8px;
+    }
+
+    .score-table th {
+      background: #0d1522;
+      color: #f1c40f;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .active-turn {
+      background: rgba(241, 196, 15, 0.22) !important;
+      border: 2px solid #f1c40f !important;
+      box-shadow: inset 0 0 10px rgba(241, 196, 15, 0.45);
+      color: #fff !important;
+    }
+
+    .score-table tr.current-round-row {
+      background: rgba(52, 152, 219, 0.14);
+      font-weight: bold;
+    }
+
+    .score-positive { color: #2ecc71; font-weight: bold; }
+    .score-negative { color: #e74c3c; font-weight: bold; }
+
+    /* FILZTISCH */
+    .poker-table {
+      background-color: #0d3813;
+      background-image: 
+        radial-gradient(ellipse at center, rgba(27, 94, 32, 0.4) 0%, rgba(7, 34, 11, 0.92) 100%),
+        url('/images/table_felt.svg');
+      background-repeat: repeat;
+      background-size: auto, 180px 180px;
+      border: 9px solid var(--wood-rim);
+      outline: 2px solid rgba(241, 196, 15, 0.3);
+      border-radius: 32px;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 20px 14px 14px;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.85), 0 12px 30px rgba(0,0,0,0.65);
+      position: relative;
+    }
+
+    /* TIPP-OVERLAY */
+    #bid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(4, 9, 6, 0.8);
+      backdrop-filter: blur(2px);
+      z-index: 30;
+      border-radius: 22px;
+      display: none;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 25px;
+      box-sizing: border-box;
+    }
+
+    #bid-box {
+      background: #182333;
+      border: 1px solid var(--gold-accent);
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.85);
+      text-align: center;
+      width: auto;
+      min-width: 250px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .bid-btn {
+      background: linear-gradient(135deg, #2980b9, #1f618d);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.25);
+      font-size: 16px;
+      width: 42px;
+      height: 42px;
+      margin: 3px;
+      border-radius: 8px;
+    }
+    .bid-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      border-color: var(--gold-accent);
+    }
+
+    .cards-container {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 8px 0;
+    }
+
+    .trump-section-wrapper {
+      position: relative;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hand-section {
+      position: relative;
+      z-index: 40;
+    }
+
+    /* KARTENDESIGN (OHNE EMOJIS) */
+    .card {
+      width: 74px;
+      height: 112px;
+      border-radius: 8px;
+      position: relative;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, filter 0.2s ease;
+      cursor: default;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      right: 3px;
+      bottom: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 5px;
+      pointer-events: none;
+    }
+
+    .card-corner {
+      position: absolute;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .card-corner.top-left { top: 6px; left: 7px; }
+    .card-corner.bottom-right { bottom: 6px; right: 7px; transform: rotate(180deg); }
+
+    .card-center {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .card-red {
+      background: linear-gradient(145deg, #e74c3c, #b03a2e);
+      color: #ffffff;
+    }
+
+    .card-blue {
+      background: linear-gradient(145deg, #3498db, #1f618d);
+      color: #ffffff;
+    }
+
+    .card-green {
+      background: linear-gradient(145deg, #2ecc71, #1e8449);
+      color: #ffffff;
+    }
+
+    .card-yellow {
+      background: linear-gradient(145deg, #f1c40f, #d4ac0d);
+      color: #1a1a1a;
+      border-color: rgba(0, 0, 0, 0.35);
+    }
+    .card-yellow::before {
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .card-wizard {
+      background: linear-gradient(145deg, #9b59b6, #5b2c6f);
+      color: #f1c40f;
+      border-color: #f1c40f;
+      box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
+    }
+
+    .card-jester {
+      background: linear-gradient(145deg, #bdc3c7, #7f8c8d);
+      color: #1a1a1a;
+      border-color: #4a5568;
+    }
+    .card-jester::before {
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    @keyframes tossCardAnim {
+      0% { transform: scale(0.6) translateY(45px) rotate(15deg); opacity: 0; }
+      100% { transform: scale(1) translateY(0) rotate(var(--rand-rot, 0deg)); opacity: 1; }
+    }
+    .card-played {
+      animation: tossCardAnim 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    }
+
+    #hand-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      min-height: 140px;
+      margin: 8px auto 0;
+      padding: 5px;
+      max-width: 900px;
+    }
+
+    @keyframes dealIn {
+      from { transform: translateY(60px) scale(0.8); opacity: 0; }
+      to { opacity: 1; }
+    }
+    .card-dealing {
+      animation: dealIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    }
+
+    .card-playable { cursor: pointer !important; }
+    .card-playable:hover {
+      transform: translateY(-26px) scale(1.16) rotate(0deg) !important;
+      box-shadow: 0 14px 28px rgba(0,0,0,0.65), 0 0 14px rgba(255,255,255,0.85) !important;
+      z-index: 99 !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOBBY SCREEN -->
+  <div id="lobby-screen">
+    <h1 style="color: #f1c40f; text-shadow: 0 2px 12px rgba(0,0,0,0.6); font-size: 34px;">Wizard Online</h1>
+    <input type="text" id="playerName" placeholder="Dein Name" />
+    <input type="text" id="roomCode" placeholder="Raum-Code (z.B. 1234)" />
+    <br>
+    <button id="joinBtn" style="background: linear-gradient(135deg, #27ae60, #1e8449); color: white; padding: 11px 22px;">Beitreten</button>
+  </div>
+
+  <!-- SPIELTISCH SCREEN -->
+  <div id="game-screen">
+    
+    <div class="top-nav-bar">
+      <div class="room-round-info">
+        Raum: <b id="displayRoomCode" style="color: #f1c40f;">-</b> | Runde: <b id="displayRound" style="color: #f1c40f;">-</b>
+      </div>
+      <div id="status-message">Warte auf Spielstart...</div>
+      <button id="score-drawer-toggle" class="btn-score-toggle">Block der Wahrheit</button>
+    </div>
+
+    <button id="startBtn" style="display: none; background: linear-gradient(135deg, #27ae60, #1e8449); color: white; font-size: 16px; margin: 15px auto 20px;">Spiel starten (Runde 1)</button>
+
+    <!-- SLIDE-OUT RECHTS -->
+    <div id="score-board-drawer">
+      <div class="drawer-header">
+        <h3 style="margin: 0; color: #f1c40f; font-size: 16px;">Block der Wahrheit</h3>
+        <button id="score-drawer-close" class="drawer-close-btn">&times;</button>
+      </div>
+      <div class="drawer-scroll">
+        <table class="score-table" id="score-table">
+          <thead id="score-table-head"></thead>
+          <tbody id="score-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="drawer-backdrop"></div>
+
+    <!-- DER FILZTISCH -->
+    <div id="table-area" class="poker-table" style="display: none;">
+      
+      <!-- TIPP-OVERLAY -->
+      <div id="bid-overlay">
+        <div id="bid-box">
+          <h4 style="margin: 0 0 10px; color: #f1c40f; font-size: 16px;">Wie viele Stiche machst du?</h4>
+          <div id="bid-buttons"></div>
+        </div>
+      </div>
+
+      <!-- TRUMPFWAL GEBER -->
+      <div id="trump-selection-area" style="display: none; margin-bottom: 15px; padding: 14px; background: rgba(0,0,0,0.7); border-radius: 12px; border: 1px solid #f1c40f; z-index: 70; position: relative;">
+        <h4 style="margin-top: 0; color: #f1c40f;">Du bist der Kartengeber! Wähle die Trumpffarbe:</h4>
+        <button class="trump-btn" style="background: #e74c3c;" data-suit="red">Rot</button>
+        <button class="trump-btn" style="background: #3498db;" data-suit="blue">Blau</button>
+        <button class="trump-btn" style="background: #2ecc71;" data-suit="green">Grün</button>
+        <button class="trump-btn" style="background: #f1c40f; color: black;" data-suit="yellow">Gelb</button>
+      </div>
+
+      <!-- TISCHMITTE -->
+      <div style="display: flex; justify-content: space-around; align-items: flex-start; flex-wrap: wrap;">
+        
+        <div class="trump-section-wrapper" id="trump-wrapper">
+          <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 4px;">Trumpf</div>
+          <div class="cards-container" id="trump-container"></div>
+        </div>
+
+        <div style="flex-grow: 1; max-width: 500px;">
+          <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: rgba(255,255,255,0.75); margin-bottom: 4px;">Karten im Stich</div>
+          <div class="cards-container" id="trick-container" style="min-height: 118px;"></div>
+        </div>
+      </div>
+
+      <div style="border-top: 1px dashed rgba(255,255,255,0.2); margin: 15px 0 8px;"></div>
+
+      <div class="hand-section">
+        <div style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: rgba(255,255,255,0.8);">Deine Handkarten</div>
+        <div id="hand-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIEGEREHRUNG -->
+  <div id="game-over-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div style="background: #1e293b; border: 2px solid #f1c40f; border-radius: 18px; padding: 28px; max-width: 440px; width: 90%; color: white; text-align: center; box-shadow: 0 0 35px rgba(241,196,15,0.4);">
+      <h1 style="color: #f1c40f; margin-top: 0; font-size: 30px;">Siegerehrung</h1>
+      <p style="color: #94a3b8;">Das Spiel ist beendet! Hier ist das Endergebnis:</p>
+      <div id="podium-list" style="margin: 20px 0; text-align: left;"></div>
+      <button id="resetGameBtn" style="display: none; background: linear-gradient(135deg, #27ae60, #1e8449); color: white; font-weight: bold; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
+        Neues Spiel starten
+      </button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
