@@ -155,28 +155,57 @@ function calculatePoints(bid, tricksWon) {
   }
 }
 
-// Sortiert Handkarten: Narren -> Farben (Gelb, Rot, Grün, Blau aufsteigend) -> Zauberer
-function sortCards(cards) {
-  const suitOrder = { yellow: 1, red: 2, green: 3, blue: 4, none: 5 };
+// Berechnet die maximale Rundenanzahl für eine gegebene Spieleranzahl (3 bis 6)
+function getMaxRounds(playerCount) {
+  if (!playerCount || playerCount < 1) return 20;
+  return Math.floor(60 / playerCount);
+}
 
-  return cards.sort((a, b) => {
+// Prüft, ob ein Gebot für den Geber (letzter Spieler) nach der Plus/Minus-Eins-Regel verboten ist
+function isForbiddenBid(bid, currentRound, totalBidsSoFar, isLastPlayer) {
+  if (!isLastPlayer) return false;
+  const forbiddenBid = currentRound - totalBidsSoFar;
+  return forbiddenBid >= 0 && bid === forbiddenBid;
+}
+
+// Sortiert Handkarten:
+// 1. Narren ganz links
+// 2. Reguläre Farben: Gelb -> Rot -> Grün -> Blau (aufsteigend nach Wert)
+// 3. Trumpf-Farbkarten (aufsteigend nach Wert)
+// 4. Zauberer ganz rechts
+function sortCards(cards, trumpSuit = 'none') {
+  if (!cards || !Array.isArray(cards)) return [];
+  const colorOrder = { yellow: 1, red: 2, green: 3, blue: 4 };
+
+  return [...cards].sort((a, b) => {
     // 1. Narren ganz nach links
     if (a.type === 'jester' && b.type !== 'jester') return -1;
     if (b.type === 'jester' && a.type !== 'jester') return 1;
+    if (a.type === 'jester' && b.type === 'jester') return 0;
 
     // 2. Zauberer ganz nach rechts
     if (a.type === 'wizard' && b.type !== 'wizard') return 1;
     if (b.type === 'wizard' && a.type !== 'wizard') return -1;
+    if (a.type === 'wizard' && b.type === 'wizard') return 0;
 
-    // 3. Wenn beide Karten Farbkarten sind: Nach Farbe gruppieren, dann nach Wert
-    if (a.type === 'color' && b.type === 'color') {
-      if (a.suit !== b.suit) {
-        return suitOrder[a.suit] - suitOrder[b.suit];
-      }
+    // Beide Karten sind reguläre Farbkarten:
+    const aIsTrump = (trumpSuit && trumpSuit !== 'none' && a.suit === trumpSuit);
+    const bIsTrump = (trumpSuit && trumpSuit !== 'none' && b.suit === trumpSuit);
+
+    // 3. Trumpf kommt hinter alle regulären Farben, aber vor die Zauberer
+    if (!aIsTrump && bIsTrump) return -1;
+    if (aIsTrump && !bIsTrump) return 1;
+
+    // 4. Wenn beide Trumpf sind: nach Kartenwert aufsteigend
+    if (aIsTrump && bIsTrump) {
       return a.value - b.value;
     }
 
-    return 0;
+    // 5. Beide sind reguläre Fehlfarben: Gelb -> Rot -> Grün -> Blau, dann nach Wert
+    if (a.suit !== b.suit) {
+      return (colorOrder[a.suit] || 5) - (colorOrder[b.suit] || 5);
+    }
+    return a.value - b.value;
   });
 }
 
@@ -186,5 +215,7 @@ module.exports = {
   evaluateTrick,
   isValidMove,
   calculatePoints,
-  sortCards
+  sortCards,
+  isForbiddenBid,
+  getMaxRounds
 };
