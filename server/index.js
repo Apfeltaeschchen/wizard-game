@@ -6,6 +6,7 @@ const {
   createDeck,
   shuffle,
   evaluateTrick,
+  evaluateTrickDetails,
   isValidMove,
   calculatePoints,
   sortCards,
@@ -92,6 +93,7 @@ function createNewRoomState(hostSessionId = null) {
   return {
     players: [],
     gameState: 'lobby',
+    edition: 'classic', // 'classic' oder 'anniversary_30'
     round: 1,
     trumpCard: null,
     currentTurnIndex: 0,
@@ -141,7 +143,8 @@ io.on('connection', (socket) => {
     socket.emit('syncGameState', {
       roomCode: code,
       round: 1,
-      maxRounds: getMaxRounds(1),
+      maxRounds: getMaxRounds(1, room.edition || 'classic'),
+      edition: room.edition || 'classic',
       gameState: 'lobby',
       trumpCard: null,
       hand: [],
@@ -225,13 +228,14 @@ io.on('connection', (socket) => {
         if (forbiddenBid < 0) forbiddenBid = null;
       }
 
-      const maxRounds = getMaxRounds(room.players.length);
+      const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
       const isGameOver = room.gameState === 'round_over' && room.round >= maxRounds;
 
       socket.emit('syncGameState', {
         roomCode: normalizedCode,
         round: room.round,
         maxRounds: maxRounds,
+        edition: room.edition || 'classic',
         gameState: room.gameState,
         trumpCard: room.trumpCard,
         hand: existingPlayer.hand || [],
@@ -286,7 +290,58 @@ io.on('connection', (socket) => {
     };
     room.players.push(newPlayer);
 
+    const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
+    socket.emit('syncGameState', {
+      roomCode: normalizedCode,
+      round: room.round,
+      maxRounds: maxRounds,
+      edition: room.edition || 'classic',
+      gameState: room.gameState,
+      trumpCard: room.trumpCard,
+      hand: [],
+      currentTrick: room.currentTrick,
+      players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId),
+      activePlayerSessionId: null,
+      dealerSessionId: room.players[room.dealerIndex] ? room.players[room.dealerIndex].sessionId : null,
+      scoreHistory: room.scoreHistory,
+      hostSessionId: room.hostSessionId,
+      forbiddenBid: null,
+      isPaused: room.isPaused,
+      pausedReason: room.pausedReason,
+      isGameOver: false
+    });
+
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
+  });
+
+  // Host ändert die gespielte Edition (classic vs. anniversary_30)
+  socket.on('setEdition', ({ roomCode, edition }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Die Edition kann nur im Warteraum vor Spielbeginn geändert werden!' });
+      return;
+    }
+
+    if (!room.hostSessionId && room.players.length > 0) {
+      room.hostSessionId = room.players[0].sessionId;
+    }
+
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der Host darf die Edition ändern!' });
+      return;
+    }
+
+    if (!['classic', 'anniversary_30'].includes(edition)) {
+      socket.emit('actionError', { message: 'Ungültige Edition.' });
+      return;
+    }
+
+    room.edition = edition;
+    io.to(normalizedCode).emit('editionChanged', { edition: room.edition });
   });
 
   // Spiel starten (aus der Lobby)
@@ -322,7 +377,7 @@ io.on('connection', (socket) => {
 
     dealRound(room, 1);
 
-    const maxRounds = getMaxRounds(room.players.length);
+    const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
     io.to(normalizedCode).emit('gameStarted', {
       round: room.round,
       maxRounds: maxRounds,
@@ -335,8 +390,8 @@ io.on('connection', (socket) => {
 
   // Teilt Karten für eine Runde aus und sortiert sie
   function dealRound(room, roundNum) {
-    const deck = shuffle(createDeck());
-    const maxRounds = getMaxRounds(room.players.length);
+    const deck = shuffle(createDeck(room.edition || 'classic'));
+    const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
 
     let trumpCard = null;
     let trumpSuit = 'none';
@@ -350,10 +405,11 @@ io.on('connection', (socket) => {
       if (trumpCard.type === 'color') {
         trumpSuit = trumpCard.suit;
         room.gameState = 'bidding';
-      } else if (trumpCard.type === 'wizard') {
+      } else if (trumpCard.type === 'wizard' || trumpCard.type === 'dragon') {
+        // Zauberer oder Drache als Trumpf -> Geber darf Farbe wählen!
         room.gameState = 'choose_trump';
       } else {
-        // Narr als Trumpf -> Kein Trumpf
+        // Narr, Fee oder Bombe als Trumpf -> Kein Trumpf in dieser Runde
         trumpSuit = 'none';
         room.gameState = 'bidding';
       }
@@ -379,7 +435,7 @@ io.on('connection', (socket) => {
     if (!room) return;
 
     room.round++;
-    const maxRounds = getMaxRounds(room.players.length);
+    const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
     if (room.round > maxRounds) return;
 
     // Geber für die neue Runde weiterrücken
@@ -416,7 +472,7 @@ io.on('connection', (socket) => {
 
     dealRound(room, room.round);
 
-    const maxRounds = getMaxRounds(room.players.length);
+    const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
     io.to(roomCode).emit('roundReDealt', {
       message: reasonMessage,
       round: room.round,
@@ -610,16 +666,34 @@ io.on('connection', (socket) => {
     if (room.currentTrick.length === room.players.length) {
       room.gameState = 'evaluating_trick';
 
-      const winnerSessionId = evaluateTrick(
+      const trickResult = evaluateTrickDetails(
         room.currentTrick.map(t => ({ playerId: t.playerSessionId, card: t.card })),
         room.trumpCard
       );
-      const winner = room.players.find(p => p.sessionId === winnerSessionId);
+
+      const isBombed = trickResult.isBombed;
+      const winnerSessionId = trickResult.winnerPlayerId;
+      const nextLeadSessionId = trickResult.nextLeadPlayerId;
+
+      const winner = winnerSessionId ? room.players.find(p => p.sessionId === winnerSessionId) : null;
+      const nextLeadPlayer = nextLeadSessionId ? room.players.find(p => p.sessionId === nextLeadSessionId) : null;
 
       if (winner) {
         winner.tricksWon += 1;
-        io.to(normalizedCode).emit('trickWinner', { winnerName: winner.name, winnerSessionId: winner.sessionId });
+        io.to(normalizedCode).emit('trickWinner', {
+          winnerName: winner.name,
+          winnerSessionId: winner.sessionId,
+          isBombed: false
+        });
         io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
+      } else if (isBombed) {
+        io.to(normalizedCode).emit('trickWinner', {
+          winnerName: null,
+          winnerSessionId: null,
+          isBombed: true,
+          nextLeadName: nextLeadPlayer ? nextLeadPlayer.name : null,
+          nextLeadSessionId: nextLeadSessionId
+        });
       }
 
       setRoomTimeout(room, () => {
@@ -652,7 +726,7 @@ io.on('connection', (socket) => {
             entries: roundEntries
           });
 
-          const maxRounds = getMaxRounds(room.players.length);
+          const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
           const isGameOver = room.round >= maxRounds;
 
           io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
@@ -670,7 +744,7 @@ io.on('connection', (socket) => {
           }
         } else {
           room.gameState = 'playing_tricks';
-          const nextIndex = room.players.findIndex(p => p.sessionId === winnerSessionId);
+          const nextIndex = room.players.findIndex(p => p.sessionId === nextLeadSessionId);
           room.currentTurnIndex = nextIndex !== -1 ? nextIndex : 0;
           io.to(normalizedCode).emit('trickUpdated', room.currentTrick);
           notifyTurn(normalizedCode);

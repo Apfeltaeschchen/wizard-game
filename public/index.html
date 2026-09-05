@@ -1029,6 +1029,75 @@
       text-shadow: 0 2px 4px rgba(0,0,0,0.9);
     }
 
+    /* SONDERKARTE: DRACHE (30 JAHRE EDITION) */
+    .card-dragon {
+      background: radial-gradient(circle at 50% 35%, #7f1d1d 0%, #450a0a 65%, #1a0303 100%) !important;
+      color: #fef08a !important;
+      border-color: #f59e0b !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+    }
+    .card-dragon::before {
+      background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.25) 0%, transparent 80%) !important;
+    }
+    .card-dragon::after {
+      border-color: #f59e0b !important;
+      outline-color: #78350f !important;
+    }
+    .card-dragon .card-val {
+      color: #fef08a;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-dragon .card-center-val {
+      color: #fef08a;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* SONDERKARTE: FEE (30 JAHRE EDITION) */
+    .card-fairy {
+      background: radial-gradient(circle at 50% 35%, #0369a1 0%, #1e1b4b 65%, #080718 100%) !important;
+      color: #e0f2fe !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+    }
+    .card-fairy::before {
+      background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.25) 0%, transparent 80%) !important;
+    }
+    .card-fairy::after {
+      border-color: #38bdf8 !important;
+      outline-color: #0284c7 !important;
+    }
+    .card-fairy .card-val {
+      color: #e0f2fe;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-fairy .card-center-val {
+      color: #e0f2fe;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* SONDERKARTE: BOMBE (30 JAHRE EDITION) */
+    .card-bomb {
+      background: radial-gradient(circle at 50% 35%, #334155 0%, #1e293b 65%, #090d14 100%) !important;
+      color: #fdba74 !important;
+      border-color: #f97316 !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+    }
+    .card-bomb::before {
+      background: radial-gradient(ellipse at center, rgba(249, 115, 22, 0.22) 0%, transparent 80%) !important;
+    }
+    .card-bomb::after {
+      border-color: #f97316 !important;
+      outline-color: #7c2d12 !important;
+    }
+    .card-bomb .card-val {
+      color: #fdba74;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-bomb .card-center-val {
+      color: #fdba74;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
     /* HOVER-LIFT (OHNE GLOW) */
     .card-playable {
       cursor: pointer !important;
@@ -1294,6 +1363,20 @@
           <button id="btnCopyWaitingCode" class="btn-copy" type="button" title="Code in Zwischenablage kopieren">
             Kopieren 📋
           </button>
+        </div>
+      </div>
+
+      <!-- Edition / Regelwerk Auswahl -->
+      <div id="edition-selector-container" style="margin: 8px 0 12px; padding: 10px 12px; background: rgba(14, 9, 5, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 8px; text-align: left;">
+        <div style="font-size: 11px; color: #d6be90; font-family: var(--font-subheading); letter-spacing: 0.8px; margin-bottom: 5px;">SPIEL-EDITION</div>
+        <div id="host-edition-controls" style="display: none;">
+          <select id="editionSelect" style="width: 100%; padding: 7px 10px; background: #1a1009; color: var(--gold-bright); border: 1px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; cursor: pointer; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);">
+            <option value="classic">Standard Wizard (60 Karten)</option>
+            <option value="anniversary_30">30 Jahre Jubiläumsedition (63 Karten: +Drache, +Fee, +Bombe)</option>
+          </select>
+        </div>
+        <div id="guest-edition-display" style="display: block; font-size: 13px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-subheading);">
+          Standard Wizard (60 Karten)
         </div>
       </div>
 

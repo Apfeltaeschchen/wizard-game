@@ -25,6 +25,9 @@ const waitingRoomCount = document.getElementById('waitingRoomCount');
 const waitingRoomPlayersList = document.getElementById('waitingRoomPlayersList');
 const waitingRoomStartBtn = document.getElementById('waitingRoomStartBtn');
 const waitingRoomLeaveBtn = document.getElementById('waitingRoomLeaveBtn');
+const hostEditionControls = document.getElementById('host-edition-controls');
+const guestEditionDisplay = document.getElementById('guest-edition-display');
+const editionSelect = document.getElementById('editionSelect');
 
 // Screen 3: Spieltisch
 const btnLeaveGame = document.getElementById('btnLeaveGame');
@@ -67,6 +70,7 @@ const resetGameBtn = document.getElementById('resetGameBtn');
 let currentRoomCode = '';
 let currentRound = 1;
 let maxRounds = 20;
+let currentEdition = 'classic';
 let myCurrentHand = [];
 let currentTrick = [];
 let isMyTurn = false;
@@ -242,6 +246,24 @@ waitingRoomStartBtn.addEventListener('click', () => {
   socket.emit('startGame', { roomCode: currentRoomCode });
 });
 
+if (editionSelect) {
+  editionSelect.addEventListener('change', (e) => {
+    const selected = e.target.value;
+    currentEdition = selected;
+    socket.emit('setEdition', { roomCode: currentRoomCode, edition: selected });
+  });
+}
+
+socket.on('editionChanged', ({ edition }) => {
+  currentEdition = edition;
+  if (editionSelect) editionSelect.value = edition;
+  if (guestEditionDisplay) {
+    guestEditionDisplay.innerText = (edition === 'anniversary_30')
+      ? '30 Jahre Jubiläumsedition (63 Karten: +Drache, +Fee, +Bombe)'
+      : 'Standard Wizard (60 Karten)';
+  }
+});
+
 function confirmAndLeaveRoom() {
   if (confirm('Möchtest du den Raum wirklich verlassen?')) {
     socket.emit('leaveRoom', { roomCode: currentRoomCode });
@@ -319,6 +341,21 @@ function updateWaitingRoomView(amIHost) {
     waitingRoomPlayersList.appendChild(item);
   });
 
+  // Edition-Auswahl für Host bzw. Anzeige für Gäste aktualisieren
+  if (hostEditionControls && guestEditionDisplay) {
+    if (amIHost) {
+      hostEditionControls.style.display = 'block';
+      guestEditionDisplay.style.display = 'none';
+      if (editionSelect) editionSelect.value = currentEdition;
+    } else {
+      hostEditionControls.style.display = 'none';
+      guestEditionDisplay.style.display = 'block';
+      guestEditionDisplay.innerText = (currentEdition === 'anniversary_30')
+        ? '30 Jahre Jubiläumsedition (63 Karten: +Drache, +Fee, +Bombe)'
+        : 'Standard Wizard (60 Karten)';
+    }
+  }
+
   const connectedCount = cachedPlayers.filter(p => p.connected).length;
   if (amIHost) {
     waitingRoomStartBtn.style.display = 'inline-block';
@@ -337,6 +374,15 @@ socket.on('syncGameState', (state) => {
   currentRoomCode = state.roomCode;
   currentRound = state.round;
   maxRounds = state.maxRounds || Math.floor(60 / (state.players ? state.players.length : 3));
+  if (state.edition) {
+    currentEdition = state.edition;
+    if (editionSelect) editionSelect.value = state.edition;
+    if (guestEditionDisplay) {
+      guestEditionDisplay.innerText = (state.edition === 'anniversary_30')
+        ? '30 Jahre Jubiläumsedition (63 Karten: +Drache, +Fee, +Bombe)'
+        : 'Standard Wizard (60 Karten)';
+    }
+  }
   currentGameState = state.gameState;
   myCurrentHand = state.hand || [];
   currentTrick = state.currentTrick || [];
@@ -523,8 +569,12 @@ socket.on('trickUpdated', (trickCards) => {
   renderOpponents();
 });
 
-socket.on('trickWinner', ({ winnerName, winnerSessionId }) => {
-  statusMessage.innerText = `${escapeHtml(winnerName)} gewinnt den Stich!`;
+socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName }) => {
+  if (isBombed) {
+    statusMessage.innerText = `💥 Die Bombe hat den Stich neutralisiert! ${escapeHtml(nextLeadName || 'Nächster Spieler')} eröffnet den nächsten Stich.`;
+  } else {
+    statusMessage.innerText = `${escapeHtml(winnerName)} gewinnt den Stich!`;
+  }
 
   setTimeout(() => {
     const trickItems = document.querySelectorAll('#trick-container .trick-card-item');
@@ -754,7 +804,7 @@ function renderTrumpCard(trumpCard) {
   subText.style.marginTop = '4px';
   subText.style.fontFamily = 'var(--font-subheading)';
 
-  if (trumpCard.type === 'wizard') {
+  if (trumpCard.type === 'wizard' || trumpCard.type === 'dragon') {
     if (trumpCard.chosenSuit) {
       subText.style.color = 'var(--gold-bright)';
       subText.innerText = `Trumpf: ${suitNames[trumpCard.chosenSuit] || trumpCard.chosenSuit}`;
@@ -762,7 +812,7 @@ function renderTrumpCard(trumpCard) {
       subText.style.color = '#c084fc';
       subText.innerText = 'Geber wählt...';
     }
-  } else if (trumpCard.type === 'jester') {
+  } else if (trumpCard.type === 'jester' || trumpCard.type === 'fairy' || trumpCard.type === 'bomb') {
     subText.style.color = '#d6be90';
     subText.innerText = 'Kein Trumpf';
   } else if (trumpCard.type === 'color') {
@@ -800,7 +850,7 @@ function renderBidButtons(maxBid, forbiddenBid) {
 
 // --- REGEL-PRÜFUNG: IST KARTE SPIELBAR? ---
 function isCardPlayable(cardToPlay, hand, trick) {
-  if (cardToPlay.type === 'wizard' || cardToPlay.type === 'jester') {
+  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb'].includes(cardToPlay.type)) {
     return true;
   }
   if (!trick || trick.length === 0) {
@@ -809,7 +859,7 @@ function isCardPlayable(cardToPlay, hand, trick) {
   let leadSuit = 'none';
   for (let i = 0; i < trick.length; i++) {
     const trickCard = trick[i].card;
-    if (trickCard.type === 'wizard') break;
+    if (trickCard.type === 'wizard' || trickCard.type === 'dragon') break;
     if (trickCard.type === 'color') {
       leadSuit = trickCard.suit;
       break;
@@ -944,6 +994,36 @@ const MEDIEVAL_ICONS = {
     <circle cx="10" cy="32" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
     <circle cx="38" cy="32" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
     <circle cx="24" cy="10" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
+  </svg>`,
+
+  dragon: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 4 C27 9 32 10 38 9 C35 15 32 20 37 25 C31 23 26 26 24 33 C22 26 17 23 11 25 C16 20 13 15 10 9 C16 10 21 9 24 4 Z" fill="url(#dragonGrad)" stroke="#78350f" stroke-width="1.2"/>
+    <path d="M24 16 L28 22 L24 28 L20 22 Z" fill="#f59e0b" stroke="#451a03" stroke-width="0.8"/>
+    <circle cx="21" cy="12" r="1.5" fill="#fef08a"/>
+    <circle cx="27" cy="12" r="1.5" fill="#fef08a"/>
+    <path d="M18 36 L24 44 L30 36 L24 39 Z" fill="#b91c1c" stroke="#450a0a" stroke-width="1"/>
+    <defs><linearGradient id="dragonGrad" x1="24" y1="4" x2="24" y2="33" gradientUnits="userSpaceOnUse"><stop stop-color="#dc2626"/><stop offset="1" stop-color="#450a0a"/></linearGradient></defs>
+  </svg>`,
+
+  fairy: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="16" cy="18" rx="10" ry="6" transform="rotate(-30 16 18)" fill="url(#fairyWingGrad)" stroke="#38bdf8" stroke-width="1.2"/>
+    <ellipse cx="32" cy="18" rx="10" ry="6" transform="rotate(30 32 18)" fill="url(#fairyWingGrad)" stroke="#38bdf8" stroke-width="1.2"/>
+    <ellipse cx="18" cy="28" rx="7" ry="4" transform="rotate(20 18 28)" fill="url(#fairyWingGrad)" stroke="#0284c7" stroke-width="1"/>
+    <ellipse cx="30" cy="28" rx="7" ry="4" transform="rotate(-20 30 28)" fill="url(#fairyWingGrad)" stroke="#0284c7" stroke-width="1"/>
+    <path d="M24 10 C25.5 10 26.5 12 26.5 14 C26.5 16 25 18 24 24 C23 18 21.5 16 21.5 14 C21.5 12 22.5 10 24 10 Z" fill="#f0fdf4" stroke="#bae6fd" stroke-width="0.8"/>
+    <polygon points="24,30 26,38 24,44 22,38" fill="#e0f2fe"/>
+    <circle cx="24" cy="13" r="2.5" fill="#fef08a"/>
+    <polygon points="36,8 37.5,12 41,13.5 37.5,15 36,19 34.5,15 31,13.5 34.5,12" fill="#fef08a"/>
+    <defs><linearGradient id="fairyWingGrad" x1="16" y1="12" x2="32" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#7dd3fc" stop-opacity="0.8"/><stop offset="1" stop-color="#0284c7" stop-opacity="0.4"/></linearGradient></defs>
+  </svg>`,
+
+  bomb: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="22" cy="27" r="14" fill="url(#bombGrad)" stroke="#0f172a" stroke-width="1.5"/>
+    <rect x="23" y="10" width="6" height="4" rx="1" fill="#475569" stroke="#1e293b" stroke-width="1" transform="rotate(25 23 10)"/>
+    <path d="M28 11 C31 8 36 7 38 10" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <polygon points="38,10 42,8 40,12 44,13 40,15 41,19 37,16 35,19 36,14 32,12 36,11" fill="#ea580c" stroke="#fef08a" stroke-width="0.8"/>
+    <ellipse cx="17" cy="22" rx="4" ry="2" transform="rotate(-30 17 22)" fill="white" fill-opacity="0.3"/>
+    <defs><linearGradient id="bombGrad" x1="16" y1="16" x2="28" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#475569"/><stop offset="1" stop-color="#090d14"/></linearGradient></defs>
   </svg>`
 };
 
@@ -982,6 +1062,54 @@ function renderCard(card) {
       <div class="card-corner bottom-right">
         <span class="card-val">N</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.jester}</div>
+      </div>
+    `;
+  } else if (card.type === 'dragon') {
+    div.classList.add('card-dragon');
+    div.innerHTML = `
+      <div class="card-corner top-left">
+        <span class="card-val">D</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.dragon}</div>
+      </div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.dragon}</div>
+        <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">D</div>
+      </div>
+      <div class="card-corner bottom-right">
+        <span class="card-val">D</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.dragon}</div>
+      </div>
+    `;
+  } else if (card.type === 'fairy') {
+    div.classList.add('card-fairy');
+    div.innerHTML = `
+      <div class="card-corner top-left">
+        <span class="card-val">F</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.fairy}</div>
+      </div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.fairy}</div>
+        <div class="card-center-val" style="font-size: 26px; color: #e0f2fe; margin-top: 2px;">F</div>
+      </div>
+      <div class="card-corner bottom-right">
+        <span class="card-val">F</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.fairy}</div>
+      </div>
+    `;
+  } else if (card.type === 'bomb') {
+    div.classList.add('card-bomb');
+    div.innerHTML = `
+      <div class="card-corner top-left">
+        <span class="card-val">B</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.bomb}</div>
+      </div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.bomb}</div>
+        <div class="card-center-val" style="font-size: 26px; color: #fdba74; margin-top: 2px;">B</div>
+      </div>
+      <div class="card-corner bottom-right">
+        <span class="card-val">B</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.bomb}</div>
       </div>
     `;
   } else {
