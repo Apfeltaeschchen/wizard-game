@@ -1098,6 +1098,75 @@
       text-shadow: 0 2px 4px rgba(0,0,0,0.9);
     }
 
+    /* SONDERKARTE: GESTALTENWANDLER (30 JAHRE EDITION) */
+    .card-shapeshifter {
+      background: radial-gradient(circle at 50% 35%, #065f46 0%, #064e3b 65%, #022c22 100%) !important;
+      color: #a7f3d0 !important;
+      border-color: #34d399 !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+    }
+    .card-shapeshifter::before {
+      background: radial-gradient(ellipse at center, rgba(52, 211, 153, 0.25) 0%, transparent 80%) !important;
+    }
+    .card-shapeshifter::after {
+      border-color: #34d399 !important;
+      outline-color: #065f46 !important;
+    }
+    .card-shapeshifter .card-val {
+      color: #a7f3d0;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-shapeshifter .card-center-val {
+      color: #a7f3d0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* SONDERKARTE: VAMPIR (30 JAHRE EDITION) */
+    .card-vampire {
+      background: radial-gradient(circle at 50% 35%, #450a0a 0%, #2b0606 65%, #120202 100%) !important;
+      color: #fca5a5 !important;
+      border-color: #ef4444 !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+    }
+    .card-vampire::before {
+      background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.25) 0%, transparent 80%) !important;
+    }
+    .card-vampire::after {
+      border-color: #ef4444 !important;
+      outline-color: #7f1d1d !important;
+    }
+    .card-vampire .card-val {
+      color: #fca5a5;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-vampire .card-center-val {
+      color: #fca5a5;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* SONDERKARTE: WOLKE (30 JAHRE EDITION) */
+    .card-cloud {
+      background: radial-gradient(circle at 50% 35%, #334155 0%, #1e293b 65%, #0f172a 100%) !important;
+      color: #f1f5f9 !important;
+      border-color: #94a3b8 !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+    }
+    .card-cloud::before {
+      background: radial-gradient(ellipse at center, rgba(148, 163, 184, 0.22) 0%, transparent 80%) !important;
+    }
+    .card-cloud::after {
+      border-color: #94a3b8 !important;
+      outline-color: #475569 !important;
+    }
+    .card-cloud .card-val {
+      color: #f1f5f9;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-cloud .card-center-val {
+      color: #f1f5f9;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
     /* HOVER-LIFT (OHNE GLOW) */
     .card-playable {
       cursor: pointer !important;
@@ -1372,7 +1441,7 @@
         <div id="host-edition-controls" style="display: none;">
           <select id="editionSelect" style="width: 100%; padding: 7px 10px; background: #1a1009; color: var(--gold-bright); border: 1px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; cursor: pointer; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);">
             <option value="classic">Standard Wizard (60 Karten)</option>
-            <option value="anniversary_30">30 Jahre Jubiläumsedition (63 Karten: +Drache, +Fee, +Bombe)</option>
+            <option value="anniversary_30">30 Jahre Jubiläumsedition</option>
           </select>
         </div>
         <div id="guest-edition-display" style="display: block; font-size: 13px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-subheading);">
@@ -1465,6 +1534,33 @@
         </div>
       </div>
 
+      <!-- GESTALTENWANDLER WAHL -->
+      <div id="shapeshifter-modal" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 14px 18px; background: rgba(14, 9, 5, 0.96); border-radius: 12px; border: 2px solid var(--gold-bright); z-index: 130; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 10px 32px rgba(0,0,0,0.95);">
+        <h4 style="margin: 0 0 10px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 14px;">Gestaltenwandler Gestalt wählen:</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button id="btnShapeshifterWizard" type="button" style="background: linear-gradient(180deg, #581c87, #2e0847); color: var(--gold-bright); border-color: var(--gold-bright); padding: 10px; font-weight: bold;">
+            🧙 Als Zauberer spielen (Z)
+          </button>
+          <button id="btnShapeshifterJester" type="button" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border-color: #94a3b8; padding: 10px; font-weight: bold;">
+            🃏 Als Narr spielen (N)
+          </button>
+          <button id="btnShapeshifterCancel" type="button" class="btn-leave" style="margin-top: 4px; padding: 6px;">Abbrechen</button>
+        </div>
+      </div>
+
+      <!-- WOLKE FARBWAHL -->
+      <div id="cloud-suit-modal" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 14px 18px; background: rgba(14, 9, 5, 0.96); border-radius: 12px; border: 2px solid var(--gold-bright); z-index: 130; max-width: 360px; width: 90%; text-align: center; box-shadow: 0 10px 32px rgba(0,0,0,0.95);">
+        <h4 style="margin: 0 0 6px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 14px;">Wolke (Wert 9 ¾) Farbe wählen:</h4>
+        <p style="font-size: 11px; color: #d6be90; margin: 0 0 10px; font-style: italic;">Die Wolke nimmt diese Farbe für den Stich an.</p>
+        <div style="display: flex; justify-content: center; gap: 6px; flex-wrap: wrap;">
+          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border-color: #fca5a5;" data-suit="red">Rot</button>
+          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border-color: #bae6fd;" data-suit="blue">Blau</button>
+          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border-color: #86efac;" data-suit="green">Grün</button>
+          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border-color: #fef08a; font-weight: 900;" data-suit="yellow">Gelb</button>
+        </div>
+        <button id="btnCloudCancel" type="button" class="btn-leave" style="margin-top: 10px; padding: 6px 14px;">Abbrechen</button>
+      </div>
+
       <!-- ASTROLABIUM BIET-PANEL IN DER TISCHMITTE -->
       <div id="bid-overlay">
         <div id="bid-box">
@@ -1495,6 +1591,25 @@
         <button id="btnHostAbortToWaiting" style="background: rgba(200, 154, 56, 0.15); border: 1.5px solid var(--gold-antique); color: var(--gold-bright); width: 100%; margin: 4px 0; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer;">Partie abbrechen &amp; zurück in die Ratskammer</button>
       </div>
       <button id="btnPauseLeaveGame" class="btn-leave" style="width: 100%; margin-top: 10px; padding: 10px;">Bund verlassen</button>
+    </div>
+  </div>
+
+  <!-- WOLKE TIPP-ANPASSUNG AM RUNDENENDE -->
+  <div id="cloud-bid-adjustment-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.9); z-index: 1500; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div style="background: linear-gradient(180deg, #24140b 0%, #120904 100%); border: 2px solid var(--gold-bright); border-radius: 14px; padding: 22px; max-width: 380px; width: 90%; color: #f7eedb; text-align: center; box-shadow: 0 12px 36px rgba(0,0,0,0.95);">
+      <div style="font-size: 32px; margin-bottom: 6px;">☁️⚡</div>
+      <h3 style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 18px;">Wolken-Prophezeiung!</h3>
+      <p style="color: #ebd7af; font-size: 13px; margin: 0 0 14px;">
+        Du hast die Wolke gewonnen! Du <b>musst</b> deine Stichvorhersage für diese Runde um <b>+1</b> oder <b>-1</b> anpassen:
+      </p>
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button id="btnCloudMinus" type="button" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border: 1.5px solid #94a3b8; font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; flex: 1;">
+          -1
+        </button>
+        <button id="btnCloudPlus" type="button" style="background: linear-gradient(180deg, #3d2a13, #1f1408); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; flex: 1;">
+          +1
+        </button>
+      </div>
     </div>
   </div>
 

@@ -19,13 +19,16 @@ assert.strictEqual(classicDeck.filter(c => c.type === 'bomb').length, 0);
 console.log('✓ createDeck(classic): 60 Karten ohne Sonderkarten');
 
 const annivDeck = createDeck('anniversary_30');
-assert.strictEqual(annivDeck.length, 63, '30-Jahre-Deck muss 63 Karten enthalten (60 + 3 Sonderkarten)');
+assert.strictEqual(annivDeck.length, 66, '30-Jahre-Deck muss 66 Karten enthalten (60 + 6 Sonderkarten)');
 assert.strictEqual(annivDeck.filter(c => c.type === 'dragon').length, 1, 'Muss genau 1 Drachen enthalten');
 assert.strictEqual(annivDeck.filter(c => c.type === 'fairy').length, 1, 'Muss genau 1 Fee enthalten');
 assert.strictEqual(annivDeck.filter(c => c.type === 'bomb').length, 1, 'Muss genau 1 Bombe enthalten');
+assert.strictEqual(annivDeck.filter(c => c.type === 'shapeshifter').length, 1, 'Muss genau 1 Gestaltenwandler enthalten');
+assert.strictEqual(annivDeck.filter(c => c.type === 'vampire').length, 1, 'Muss genau 1 Vampir enthalten');
+assert.strictEqual(annivDeck.filter(c => c.type === 'cloud').length, 1, 'Muss genau 1 Wolke enthalten');
 assert.strictEqual(annivDeck.filter(c => c.type === 'wizard').length, 4, 'Muss weiterhin 4 Zauberer enthalten');
 assert.strictEqual(annivDeck.filter(c => c.type === 'jester').length, 4, 'Muss weiterhin 4 Narren enthalten');
-console.log('✓ createDeck(anniversary_30): 63 Karten inkl. Drache, Fee, Bombe');
+console.log('✓ createDeck(anniversary_30): 66 Karten inkl. aller 6 Sonderkarten');
 
 // 2. Rundenberechnung (getMaxRounds)
 assert.strictEqual(getMaxRounds(3, 'classic'), 20);
@@ -33,10 +36,10 @@ assert.strictEqual(getMaxRounds(4, 'classic'), 15);
 assert.strictEqual(getMaxRounds(5, 'classic'), 12);
 assert.strictEqual(getMaxRounds(6, 'classic'), 10);
 
-assert.strictEqual(getMaxRounds(3, 'anniversary_30'), 21, '3 Spieler haben 21 Runden (63 / 3)');
-assert.strictEqual(getMaxRounds(4, 'anniversary_30'), 15, '4 Spieler haben 15 Runden (63 / 4 = 15)');
-assert.strictEqual(getMaxRounds(5, 'anniversary_30'), 12, '5 Spieler haben 12 Runden (63 / 5 = 12)');
-assert.strictEqual(getMaxRounds(6, 'anniversary_30'), 10, '6 Spieler haben 10 Runden (63 / 6 = 10)');
+assert.strictEqual(getMaxRounds(3, 'anniversary_30'), 22, '3 Spieler haben 22 Runden (66 / 3)');
+assert.strictEqual(getMaxRounds(4, 'anniversary_30'), 16, '4 Spieler haben 16 Runden (66 / 4 = 16)');
+assert.strictEqual(getMaxRounds(5, 'anniversary_30'), 13, '5 Spieler haben 13 Runden (66 / 5 = 13)');
+assert.strictEqual(getMaxRounds(6, 'anniversary_30'), 11, '6 Spieler haben 11 Runden (66 / 6 = 11)');
 console.log('✓ getMaxRounds für alle Spieleranzahlen validiert');
 
 // 3. Handkarten-Sortierung

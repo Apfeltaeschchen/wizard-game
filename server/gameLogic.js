@@ -21,9 +21,41 @@ function createDeck(edition = 'classic') {
     deck.push({ type: 'dragon', suit: 'none', value: 15 });
     deck.push({ type: 'fairy', suit: 'none', value: -1 });
     deck.push({ type: 'bomb', suit: 'none', value: -99 });
+    deck.push({ type: 'shapeshifter', suit: 'none', value: 0 });
+    deck.push({ type: 'vampire', suit: 'none', value: 0 });
+    deck.push({ type: 'cloud', suit: 'none', value: 9.75 });
   }
 
   return deck;
+}
+
+// Ermittelt die effektive Identität einer Karte (unter Berücksichtigung von Gestaltenwandler, Wolke, Vampir)
+function getEffectiveCard(card) {
+  if (!card) return card;
+
+  // Gestaltenwandler: wird als Zauberer oder Narr gewertet
+  if (card.type === 'shapeshifter') {
+    if (card.chosenRole === 'wizard') {
+      return { ...card, type: 'wizard', value: 14, suit: 'none' };
+    }
+    return { ...card, type: 'jester', value: 0, suit: 'none' };
+  }
+
+  // Wolke: nimmt die gewählte Farbe mit Wert 9.75 an
+  if (card.type === 'cloud') {
+    return { ...card, type: 'color', suit: card.chosenSuit || 'none', value: 9.75 };
+  }
+
+  // Vampir: übernimmt die Identität der kopierten Trumpfkarte
+  if (card.type === 'vampire') {
+    if (card.copiedCard) {
+      return getEffectiveCard(card.copiedCard);
+    }
+    // Falls keine Trumpfkarte aufgedeckt wurde (oder Narr): gilt als Narr
+    return { ...card, type: 'jester', value: 0, suit: 'none' };
+  }
+
+  return card;
 }
 
 // Fisher-Yates Shuffle für echtes, faires Durchmischen
@@ -42,20 +74,27 @@ function evaluateTrickDetails(trickCards, trumpCard) {
     return { winnerPlayerId: null, nextLeadPlayerId: null, isBombed: false };
   }
 
-  // 1. Trumpffarbe ermitteln (auch wenn Zauberer oder Drache aufgedeckt wurde)
+  // 1. Trumpffarbe ermitteln (auch wenn Zauberer, Drache, Gestaltenwandler, Wolke, Vampir aufgedeckt wurde)
   let trumpSuit = 'none';
   if (trumpCard) {
     if (trumpCard.type === 'color') {
       trumpSuit = trumpCard.suit;
-    } else if ((trumpCard.type === 'wizard' || trumpCard.type === 'dragon') && trumpCard.chosenSuit) {
+    } else if (['wizard', 'dragon', 'shapeshifter', 'cloud', 'vampire'].includes(trumpCard.type) && trumpCard.chosenSuit) {
       trumpSuit = trumpCard.chosenSuit; // Berücksichtigt die Wahl des Gebers
     }
   }
 
-  // 2. Bedienfarbe (erste gespielte reguläre Farbkarte) ermitteln
+  // Karten mit ihren effektiven Rollen/Farben mappen
+  const effEntries = trickCards.map(t => ({
+    playerId: t.playerId,
+    card: getEffectiveCard(t.card),
+    originalCard: t.card
+  }));
+
+  // 2. Bedienfarbe (erste gespielte reguläre Farbkarte oder angenommene Farbe) ermitteln
   let leadSuit = 'none';
-  for (let i = 0; i < trickCards.length; i++) {
-    const card = trickCards[i].card;
+  for (let i = 0; i < effEntries.length; i++) {
+    const card = effEntries[i].card;
     if (card.type === 'wizard' || card.type === 'dragon') {
       break; // Zauberer oder Drache eröffnen -> keine Bedienfarbe für nachfolgende Spieler
     }
@@ -65,8 +104,8 @@ function evaluateTrickDetails(trickCards, trumpCard) {
     }
   }
 
-  // 3. Prüfen, ob eine Bombe im Stich liegt
-  const hasBomb = trickCards.some(t => t.card.type === 'bomb');
+  // 3. Prüfen, ob eine Bombe im Stich liegt (auch wenn Vampir die Bombe kopiert)
+  const hasBomb = effEntries.some(t => t.card.type === 'bomb');
 
   // Interne Ermittlung der höchsten Karte (ohne Bomben-Neutralisierung)
   function getHighestEntry(entries) {
@@ -86,7 +125,7 @@ function evaluateTrickDetails(trickCards, trumpCard) {
     // REGEL 3: Liegt ein Zauberer im Stich? (ohne Drache) -> Erster Zauberer gewinnt!
     const firstWizard = entries.find(t => t.card.type === 'wizard');
     if (firstWizard) {
-      return firstWizard;
+      return entries.find(t => t.card.type === 'wizard');
     }
 
     // REGEL 4: Liegt ein Trumpf im Stich?
@@ -108,12 +147,12 @@ function evaluateTrickDetails(trickCards, trumpCard) {
     // REGEL 6: Keine Trümpfe, keine Bedienfarbe (z. B. nur Narren oder nur Fee)
     const firstJester = entries.find(t => t.card.type === 'jester');
     if (firstJester) {
-      return firstJester;
+      return entries.find(t => t.card.type === 'jester');
     }
 
     const firstFairy = entries.find(t => t.card.type === 'fairy');
     if (firstFairy) {
-      return firstFairy;
+      return entries.find(t => t.card.type === 'fairy');
     }
 
     return entries[0];
@@ -121,12 +160,12 @@ function evaluateTrickDetails(trickCards, trumpCard) {
 
   if (hasBomb) {
     // Stich ist durch die Bombe zerstört/neutralisiert (kein Stichgewinner!)
-    const nonBombEntries = trickCards.filter(t => t.card.type !== 'bomb');
+    const nonBombEntries = effEntries.filter(t => t.card.type !== 'bomb');
     let nextLeadPlayerId;
     if (nonBombEntries.length > 0) {
       nextLeadPlayerId = getHighestEntry(nonBombEntries).playerId;
     } else {
-      nextLeadPlayerId = trickCards[0].playerId;
+      nextLeadPlayerId = effEntries[0].playerId;
     }
 
     return {
@@ -136,7 +175,7 @@ function evaluateTrickDetails(trickCards, trumpCard) {
     };
   }
 
-  const winningEntry = getHighestEntry(trickCards);
+  const winningEntry = getHighestEntry(effEntries);
   return {
     winnerPlayerId: winningEntry.playerId,
     nextLeadPlayerId: winningEntry.playerId,
@@ -152,8 +191,8 @@ function evaluateTrick(trickCards, trumpCard) {
 
 // Prüft, ob ein Zug den offiziellen Regeln entspricht
 function isValidMove(cardToPlay, hand, currentTrick) {
-  // 1. Zauberer, Narren, Drache, Fee und Bombe dürfen IMMER gespielt werden.
-  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb'].includes(cardToPlay.type)) {
+  // 1. Sonderkarten dürfen IMMER gespielt werden.
+  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb', 'shapeshifter', 'cloud', 'vampire'].includes(cardToPlay.type)) {
     return true;
   }
 
@@ -166,15 +205,16 @@ function isValidMove(cardToPlay, hand, currentTrick) {
   let leadSuit = 'none';
   for (let i = 0; i < currentTrick.length; i++) {
     const trickCard = currentTrick[i].card;
+    const effCard = getEffectiveCard(trickCard);
 
-    if (trickCard.type === 'wizard' || trickCard.type === 'dragon') {
+    if (effCard.type === 'wizard' || effCard.type === 'dragon') {
       // Wurde der Stich mit Zauberer oder Drache eröffnet, gibt es keine Bedienpflicht für nachfolgende Spieler.
       break;
     }
 
-    if (trickCard.type === 'color') {
+    if (effCard.type === 'color') {
       // Die erste gespielte Farbkarte bestimmt die Bedienfarbe. Vorausgegangene Narren, Feen und Bomben werden ignoriert.
-      leadSuit = trickCard.suit;
+      leadSuit = effCard.suit;
       break;
     }
   }
@@ -213,7 +253,7 @@ function calculatePoints(bid, tricksWon) {
 
 // Berechnet die maximale Rundenanzahl für eine gegebene Spieleranzahl (3 bis 6) und Edition
 function getMaxRounds(playerCount, edition = 'classic') {
-  const deckSize = (edition === 'anniversary_30') ? 63 : 60;
+  const deckSize = (edition === 'anniversary_30') ? 66 : 60;
   if (!playerCount || playerCount < 1) return Math.floor(deckSize / 3);
   return Math.floor(deckSize / playerCount);
 }
@@ -229,10 +269,11 @@ function isForbiddenBid(bid, currentRound, totalBidsSoFar, isLastPlayer) {
 // 1. Fee (-2)
 // 2. Narren (-1)
 // 3. Bombe (0)
-// 4. Reguläre Farben: Gelb -> Rot -> Grün -> Blau (aufsteigend nach Wert 1-13)
-// 5. Trumpf-Farbkarten (aufsteigend nach Wert 1-13)
-// 6. Zauberer (14)
-// 7. Drache (15)
+// 4. Gestaltenwandler (0.1), Wolke (0.2), Vampir (0.3)
+// 5. Reguläre Farben: Gelb -> Rot -> Grün -> Blau (aufsteigend nach Wert 1-13)
+// 6. Trumpf-Farbkarten (aufsteigend nach Wert 1-13)
+// 7. Zauberer (14)
+// 8. Drache (15)
 function sortCards(cards, trumpSuit = 'none') {
   if (!cards || !Array.isArray(cards)) return [];
   const colorOrder = { yellow: 1, red: 2, green: 3, blue: 4 };
@@ -241,6 +282,9 @@ function sortCards(cards, trumpSuit = 'none') {
     fairy: -2,
     jester: -1,
     bomb: 0,
+    shapeshifter: 0.1,
+    cloud: 0.2,
+    vampire: 0.3,
     wizard: 14,
     dragon: 15
   };
@@ -254,9 +298,9 @@ function sortCards(cards, trumpSuit = 'none') {
       return aSpecial - bSpecial;
     }
 
-    // Eine ist linke Sonderkarte (Fee, Narr, Bombe <= 0)
-    if (aSpecial !== undefined && aSpecial <= 0) return -1;
-    if (bSpecial !== undefined && bSpecial <= 0) return 1;
+    // Eine ist linke Sonderkarte (Fee, Narr, Bombe, Gestaltenwandler, Wolke, Vampir <= 1)
+    if (aSpecial !== undefined && aSpecial <= 1) return -1;
+    if (bSpecial !== undefined && bSpecial <= 1) return 1;
 
     // Eine ist rechte Sonderkarte (Zauberer, Drache >= 14)
     if (aSpecial !== undefined && aSpecial >= 14) return 1;
@@ -286,6 +330,7 @@ function sortCards(cards, trumpSuit = 'none') {
 module.exports = {
   createDeck,
   shuffle,
+  getEffectiveCard,
   evaluateTrick,
   evaluateTrickDetails,
   isValidMove,

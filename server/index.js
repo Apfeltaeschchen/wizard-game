@@ -96,6 +96,8 @@ function createNewRoomState(hostSessionId = null) {
     edition: 'classic', // 'classic' oder 'anniversary_30'
     round: 1,
     trumpCard: null,
+    vampireCopiedCard: null,
+    cloudWinnerSessionId: null,
     currentTurnIndex: 0,
     dealerIndex: 0,
     currentTrick: [],
@@ -248,8 +250,14 @@ io.on('connection', (socket) => {
         forbiddenBid: forbiddenBid,
         isPaused: room.isPaused,
         pausedReason: room.pausedReason,
-        isGameOver: isGameOver
+        isGameOver: isGameOver,
+        vampireCopiedCard: room.vampireCopiedCard,
+        cloudWinnerSessionId: room.cloudWinnerSessionId
       });
+
+      if (room.gameState === 'cloud_adjust_bid' && room.cloudWinnerSessionId === existingPlayer.sessionId) {
+        socket.emit('cloudBidAdjustmentPrompt', { currentBid: existingPlayer.bid !== null ? existingPlayer.bid : 0 });
+      }
 
       io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
       return;
@@ -405,8 +413,8 @@ io.on('connection', (socket) => {
       if (trumpCard.type === 'color') {
         trumpSuit = trumpCard.suit;
         room.gameState = 'bidding';
-      } else if (trumpCard.type === 'wizard' || trumpCard.type === 'dragon') {
-        // Zauberer oder Drache als Trumpf -> Geber darf Farbe wählen!
+      } else if (['wizard', 'dragon', 'shapeshifter', 'cloud', 'vampire'].includes(trumpCard.type)) {
+        // Zauberer, Drache, Gestaltenwandler, Wolke oder Vampir als Trumpf -> Geber darf Farbe wählen!
         room.gameState = 'choose_trump';
       } else {
         // Narr, Fee oder Bombe als Trumpf -> Kein Trumpf in dieser Runde
@@ -416,11 +424,18 @@ io.on('connection', (socket) => {
     }
 
     room.trumpCard = trumpCard;
+    room.vampireCopiedCard = trumpCard ? { ...trumpCard } : null;
+    room.cloudWinnerSessionId = null;
 
     room.players.forEach(player => {
       player.hand = [];
+      player.wonCards = [];
       for (let i = 0; i < roundNum; i++) {
-        player.hand.push(deck.pop());
+        const c = deck.pop();
+        if (c.type === 'vampire' && room.vampireCopiedCard) {
+          c.copiedCard = { ...room.vampireCopiedCard };
+        }
+        player.hand.push(c);
       }
       player.hand = sortCards(player.hand, trumpSuit);
       player.bid = null;
@@ -577,9 +592,17 @@ io.on('connection', (socket) => {
     if (!['red', 'blue', 'green', 'yellow'].includes(suit)) return;
 
     room.trumpCard.chosenSuit = suit;
+    if (room.vampireCopiedCard) {
+      room.vampireCopiedCard.chosenSuit = suit;
+    }
 
     // Handkarten aller Spieler mit dem neuen Trumpf nachsortieren
     room.players.forEach(p => {
+      p.hand.forEach(c => {
+        if (c.type === 'vampire' && room.vampireCopiedCard) {
+          c.copiedCard = { ...room.vampireCopiedCard };
+        }
+      });
       p.hand = sortCards(p.hand, suit);
       io.to(p.socketId).emit('handDealt', p.hand);
     });
@@ -631,8 +654,55 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Beendet die Rundenwertung und berechnet Punkte
+  function finishRoundScoring(roomCode) {
+    const room = rooms[roomCode];
+    if (!room) return;
+
+    room.gameState = 'round_over';
+    io.to(roomCode).emit('trickUpdated', room.currentTrick);
+
+    if (!room.scoreHistory) room.scoreHistory = [];
+
+    const roundEntries = room.players.map(p => {
+      const roundPoints = calculatePoints(p.bid !== null ? p.bid : 0, p.tricksWon);
+      p.totalScore += roundPoints;
+      p.wonCards = [];
+      return {
+        sessionId: p.sessionId,
+        name: p.name,
+        bid: p.bid,
+        tricksWon: p.tricksWon,
+        roundPoints: roundPoints,
+        totalScore: p.totalScore
+      };
+    });
+
+    room.scoreHistory.push({
+      round: room.round,
+      entries: roundEntries
+    });
+
+    const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
+    const isGameOver = room.round >= maxRounds;
+
+    io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
+    io.to(roomCode).emit('roundFinished', {
+      isGameOver,
+      scoreHistory: room.scoreHistory,
+      round: room.round
+    });
+    io.to(roomCode).emit('turnChanged', { activePlayerSessionId: null, gameState: 'round_over' });
+
+    if (!isGameOver) {
+      setRoomTimeout(room, () => {
+        proceedToNextRound(roomCode);
+      }, 4000);
+    }
+  }
+
   // Spieler spielt eine Karte aus
-  socket.on('playCard', ({ roomCode, cardIndex }) => {
+  socket.on('playCard', ({ roomCode, cardIndex, chosenRole, chosenSuit }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'playing_tricks' || room.isPaused) return;
@@ -642,6 +712,21 @@ io.on('connection', (socket) => {
 
     const cardToPlay = currentPlayer.hand[cardIndex];
     if (!cardToPlay) return;
+
+    // Gestaltenwandler: Rolle setzen
+    if (cardToPlay.type === 'shapeshifter') {
+      cardToPlay.chosenRole = (chosenRole === 'jester') ? 'jester' : 'wizard';
+    }
+
+    // Wolke: Farbe setzen
+    if (cardToPlay.type === 'cloud') {
+      cardToPlay.chosenSuit = ['red', 'blue', 'green', 'yellow'].includes(chosenSuit) ? chosenSuit : 'red';
+    }
+
+    // Vampir: sicherstellen, dass die kopierte Trumpfkarte gesetzt ist
+    if (cardToPlay.type === 'vampire' && room.vampireCopiedCard) {
+      cardToPlay.copiedCard = { ...room.vampireCopiedCard };
+    }
 
     if (!isValidMove(cardToPlay, currentPlayer.hand, room.currentTrick)) {
       socket.emit('invalidMove', { message: 'Du musst die angespielte Farbe bedienen!' });
@@ -680,6 +765,9 @@ io.on('connection', (socket) => {
 
       if (winner) {
         winner.tricksWon += 1;
+        if (!winner.wonCards) winner.wonCards = [];
+        winner.wonCards.push(...room.currentTrick.map(t => t.card));
+
         io.to(normalizedCode).emit('trickWinner', {
           winnerName: winner.name,
           winnerSessionId: winner.sessionId,
@@ -703,45 +791,30 @@ io.on('connection', (socket) => {
         const roundFinished = room.players.every(p => !p.hand || p.hand.length === 0);
 
         if (roundFinished) {
-          room.gameState = 'round_over';
-          io.to(normalizedCode).emit('trickUpdated', room.currentTrick);
+          // Prüfen, ob die Wolke im Spiel war und von einem Spieler gewonnen wurde
+          const cloudWinner = room.players.find(p => p.wonCards && p.wonCards.some(c => c.type === 'cloud'));
 
-          if (!room.scoreHistory) room.scoreHistory = [];
+          if (cloudWinner) {
+            room.gameState = 'cloud_adjust_bid';
+            room.cloudWinnerSessionId = cloudWinner.sessionId;
 
-          const roundEntries = room.players.map(p => {
-            const roundPoints = calculatePoints(p.bid !== null ? p.bid : 0, p.tricksWon);
-            p.totalScore += roundPoints;
-            return {
-              sessionId: p.sessionId,
-              name: p.name,
-              bid: p.bid,
-              tricksWon: p.tricksWon,
-              roundPoints: roundPoints,
-              totalScore: p.totalScore
-            };
-          });
+            io.to(normalizedCode).emit('cloudBidAdjustmentPending', {
+              playerName: cloudWinner.name,
+              playerSessionId: cloudWinner.sessionId
+            });
 
-          room.scoreHistory.push({
-            round: room.round,
-            entries: roundEntries
-          });
+            io.to(cloudWinner.socketId).emit('cloudBidAdjustmentPrompt', {
+              currentBid: cloudWinner.bid !== null ? cloudWinner.bid : 0
+            });
 
-          const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
-          const isGameOver = room.round >= maxRounds;
-
-          io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
-          io.to(normalizedCode).emit('roundFinished', {
-            isGameOver,
-            scoreHistory: room.scoreHistory,
-            round: room.round
-          });
-          io.to(normalizedCode).emit('turnChanged', { activePlayerSessionId: null, gameState: 'round_over' });
-
-          if (!isGameOver) {
-            setRoomTimeout(room, () => {
-              proceedToNextRound(normalizedCode);
-            }, 4000);
+            io.to(normalizedCode).emit('turnChanged', {
+              activePlayerSessionId: cloudWinner.sessionId,
+              gameState: 'cloud_adjust_bid'
+            });
+            return;
           }
+
+          finishRoundScoring(normalizedCode);
         } else {
           room.gameState = 'playing_tricks';
           const nextIndex = room.players.findIndex(p => p.sessionId === nextLeadSessionId);
@@ -755,6 +828,32 @@ io.on('connection', (socket) => {
     } else {
       notifyTurn(normalizedCode);
     }
+  });
+
+  // Spieler, der die Wolke gewonnen hat, passt seine Stichvorhersage um +1 oder -1 an
+  socket.on('submitCloudBidAdjustment', ({ roomCode, adjustment }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room || room.gameState !== 'cloud_adjust_bid' || room.isPaused) return;
+
+    const player = room.players.find(p => p.sessionId === room.cloudWinnerSessionId);
+    if (!player || socket.id !== player.socketId) return;
+
+    const delta = parseInt(adjustment, 10);
+    if (delta !== 1 && delta !== -1) return;
+
+    const oldBid = player.bid !== null ? player.bid : 0;
+    const newBid = Math.max(0, oldBid + delta);
+    player.bid = newBid;
+
+    io.to(normalizedCode).emit('cloudBidAdjusted', {
+      playerName: player.name,
+      oldBid: oldBid,
+      newBid: newBid
+    });
+
+    room.cloudWinnerSessionId = null;
+    finishRoundScoring(normalizedCode);
   });
 
   // Spieler verlässt den Raum freiwillig (Leave-Button)

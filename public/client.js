@@ -66,6 +66,21 @@ const gameOverModal = document.getElementById('game-over-modal');
 const podiumList = document.getElementById('podium-list');
 const resetGameBtn = document.getElementById('resetGameBtn');
 
+// Modals: 30 Jahre Jubiläumsedition Phase 2
+const shapeshifterModal = document.getElementById('shapeshifter-modal');
+const btnShapeshifterWizard = document.getElementById('btnShapeshifterWizard');
+const btnShapeshifterJester = document.getElementById('btnShapeshifterJester');
+const btnShapeshifterCancel = document.getElementById('btnShapeshifterCancel');
+
+const cloudSuitModal = document.getElementById('cloud-suit-modal');
+const btnCloudCancel = document.getElementById('btnCloudCancel');
+
+const cloudBidAdjustmentModal = document.getElementById('cloud-bid-adjustment-modal');
+const btnCloudMinus = document.getElementById('btnCloudMinus');
+const btnCloudPlus = document.getElementById('btnCloudPlus');
+
+let pendingCardPlayIndex = null;
+
 // Spielzustand
 let currentRoomCode = '';
 let currentRound = 1;
@@ -93,6 +108,13 @@ function switchScreen(screenName) {
   lobbyScreen.style.display = (screenName === 'lobby') ? 'flex' : 'none';
   waitingRoomScreen.style.display = (screenName === 'waiting') ? 'flex' : 'none';
   gameScreen.style.display = (screenName === 'game') ? 'block' : 'none';
+
+  if (screenName !== 'game') {
+    if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+    if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+    if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
+    pendingCardPlayIndex = null;
+  }
 }
 
 // Gespeicherte Formulardaten vorausfüllen
@@ -259,7 +281,7 @@ socket.on('editionChanged', ({ edition }) => {
   if (editionSelect) editionSelect.value = edition;
   if (guestEditionDisplay) {
     guestEditionDisplay.innerText = (edition === 'anniversary_30')
-      ? '30 Jahre Jubiläumsedition (63 Karten: +Drache, +Fee, +Bombe)'
+      ? '30 Jahre Jubiläumsedition (66 Karten: +Drache, Fee, Bombe, Gestaltenwandler, Vampir, Wolke)'
       : 'Standard Wizard (60 Karten)';
   }
 });
@@ -379,7 +401,7 @@ socket.on('syncGameState', (state) => {
     if (editionSelect) editionSelect.value = state.edition;
     if (guestEditionDisplay) {
       guestEditionDisplay.innerText = (state.edition === 'anniversary_30')
-        ? '30 Jahre Jubiläumsedition (63 Karten: +Drache, +Fee, +Bombe)'
+        ? '30 Jahre Jubiläumsedition (66 Karten: +Drache, Fee, Bombe, Gestaltenwandler, Vampir, Wolke)'
         : 'Standard Wizard (60 Karten)';
     }
   }
@@ -522,9 +544,26 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   } else if (gameState === 'evaluating_trick') {
     bidOverlay.style.display = 'none';
     trumpSelectionArea.style.display = 'none';
+    if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+    if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+  } else if (gameState === 'cloud_adjust_bid') {
+    bidOverlay.style.display = 'none';
+    trumpSelectionArea.style.display = 'none';
+    if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+    if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+    if (isMyTurn) {
+      statusMessage.innerText = 'Wolken-Prophezeiung! Passe deinen Tipp um +1 oder -1 an.';
+      if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'flex';
+    } else {
+      statusMessage.innerText = `${activePlayerName} passt durch die Wolke den Tipp an...`;
+      if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
+    }
   } else if (gameState === 'round_over') {
     bidOverlay.style.display = 'none';
     trumpSelectionArea.style.display = 'none';
+    if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+    if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+    if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
     statusMessage.innerText = 'Runde beendet!';
   }
 }
@@ -536,12 +575,111 @@ socket.on('handDealt', (hand) => {
 });
 
 // Trumpfwahl-Buttons (Geber)
-document.querySelectorAll('.trump-btn').forEach(btn => {
+document.querySelectorAll('#trump-selection-area .trump-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     const suit = e.target.getAttribute('data-suit');
     socket.emit('selectTrumpSuit', { roomCode: currentRoomCode, suit });
     trumpSelectionArea.style.display = 'none';
   });
+});
+
+// Gestaltenwandler-Wahl (Zauberer oder Narr)
+if (btnShapeshifterWizard) {
+  btnShapeshifterWizard.addEventListener('click', () => {
+    if (pendingCardPlayIndex !== null) {
+      socket.emit('playCard', {
+        roomCode: currentRoomCode,
+        cardIndex: pendingCardPlayIndex,
+        chosenRole: 'wizard'
+      });
+      pendingCardPlayIndex = null;
+      if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+      isMyTurn = false;
+      inspectedCardIndex = null;
+      renderHand();
+    }
+  });
+}
+
+if (btnShapeshifterJester) {
+  btnShapeshifterJester.addEventListener('click', () => {
+    if (pendingCardPlayIndex !== null) {
+      socket.emit('playCard', {
+        roomCode: currentRoomCode,
+        cardIndex: pendingCardPlayIndex,
+        chosenRole: 'jester'
+      });
+      pendingCardPlayIndex = null;
+      if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+      isMyTurn = false;
+      inspectedCardIndex = null;
+      renderHand();
+    }
+  });
+}
+
+if (btnShapeshifterCancel) {
+  btnShapeshifterCancel.addEventListener('click', () => {
+    pendingCardPlayIndex = null;
+    if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+  });
+}
+
+// Wolke-Farbauswahl
+document.querySelectorAll('#cloud-suit-modal .cloud-suit-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const suit = e.target.getAttribute('data-suit');
+    if (pendingCardPlayIndex !== null && suit) {
+      socket.emit('playCard', {
+        roomCode: currentRoomCode,
+        cardIndex: pendingCardPlayIndex,
+        chosenSuit: suit
+      });
+      pendingCardPlayIndex = null;
+      if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+      isMyTurn = false;
+      inspectedCardIndex = null;
+      renderHand();
+    }
+  });
+});
+
+if (btnCloudCancel) {
+  btnCloudCancel.addEventListener('click', () => {
+    pendingCardPlayIndex = null;
+    if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+  });
+}
+
+// Wolke: Tipp-Anpassung (+1 / -1)
+socket.on('cloudBidAdjustmentPending', ({ playerName, playerSessionId }) => {
+  if (playerSessionId !== mySessionId) {
+    statusMessage.innerText = `☁️ ${escapeHtml(playerName)} hat die Wolke gewonnen und passt den Tipp an...`;
+  }
+});
+
+socket.on('cloudBidAdjustmentPrompt', ({ currentBid }) => {
+  statusMessage.innerText = `☁️ Wolken-Prophezeiung! Passe deinen Tipp (${currentBid}) um +1 oder -1 an.`;
+  if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'flex';
+});
+
+if (btnCloudMinus) {
+  btnCloudMinus.addEventListener('click', () => {
+    socket.emit('submitCloudBidAdjustment', { roomCode: currentRoomCode, adjustment: -1 });
+    if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
+  });
+}
+
+if (btnCloudPlus) {
+  btnCloudPlus.addEventListener('click', () => {
+    socket.emit('submitCloudBidAdjustment', { roomCode: currentRoomCode, adjustment: 1 });
+    if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
+  });
+}
+
+socket.on('cloudBidAdjusted', ({ playerName, oldBid, newBid }) => {
+  if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
+  statusMessage.innerText = `☁️ ${escapeHtml(playerName)} hat den Tipp von ${oldBid} auf ${newBid} korrigiert!`;
 });
 
 socket.on('trumpSuitChosen', ({ suit, trumpCard }) => {
@@ -588,6 +726,10 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName 
 socket.on('roundFinished', ({ isGameOver, scoreHistory, round }) => {
   currentTrick = [];
   trickContainer.innerHTML = '';
+  if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+  if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+  if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
+  pendingCardPlayIndex = null;
 
   if (scoreHistory) {
     cachedScoreHistory = scoreHistory;
@@ -631,6 +773,10 @@ socket.on('roundReDealt', ({ message, round, maxRounds: mr, trumpCard, gameState
   cachedTrumpCard = trumpCard;
   currentTrick = [];
   trickContainer.innerHTML = '';
+  if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+  if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+  if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
+  pendingCardPlayIndex = null;
 
   displayRound.innerText = currentRound;
   displayMaxRounds.innerText = maxRounds;
@@ -804,7 +950,7 @@ function renderTrumpCard(trumpCard) {
   subText.style.marginTop = '4px';
   subText.style.fontFamily = 'var(--font-subheading)';
 
-  if (trumpCard.type === 'wizard' || trumpCard.type === 'dragon') {
+  if (['wizard', 'dragon', 'shapeshifter', 'cloud', 'vampire'].includes(trumpCard.type)) {
     if (trumpCard.chosenSuit) {
       subText.style.color = 'var(--gold-bright)';
       subText.innerText = `Trumpf: ${suitNames[trumpCard.chosenSuit] || trumpCard.chosenSuit}`;
@@ -848,9 +994,30 @@ function renderBidButtons(maxBid, forbiddenBid) {
   }
 }
 
+// --- EFFEKTIVE KARTE ERMITTELN (FÜR BEDIENTESTS) ---
+function getEffectiveCard(card) {
+  if (!card) return card;
+  if (card.type === 'shapeshifter') {
+    return { type: card.chosenRole || 'wizard' };
+  }
+  if (card.type === 'cloud') {
+    return { type: 'color', suit: card.chosenSuit || 'none', value: 9.75 };
+  }
+  if (card.type === 'vampire') {
+    if (card.copiedCard) {
+      if (card.copiedCard.type === 'color' && card.copiedCard.chosenSuit) {
+        return { type: 'color', suit: card.copiedCard.chosenSuit, value: card.copiedCard.value || 14 };
+      }
+      return card.copiedCard;
+    }
+    return { type: 'wizard' };
+  }
+  return card;
+}
+
 // --- REGEL-PRÜFUNG: IST KARTE SPIELBAR? ---
 function isCardPlayable(cardToPlay, hand, trick) {
-  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb'].includes(cardToPlay.type)) {
+  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb', 'shapeshifter', 'cloud', 'vampire'].includes(cardToPlay.type)) {
     return true;
   }
   if (!trick || trick.length === 0) {
@@ -859,9 +1026,10 @@ function isCardPlayable(cardToPlay, hand, trick) {
   let leadSuit = 'none';
   for (let i = 0; i < trick.length; i++) {
     const trickCard = trick[i].card;
-    if (trickCard.type === 'wizard' || trickCard.type === 'dragon') break;
-    if (trickCard.type === 'color') {
-      leadSuit = trickCard.suit;
+    const effCard = getEffectiveCard(trickCard);
+    if (effCard.type === 'wizard' || effCard.type === 'dragon') break;
+    if (effCard.type === 'color') {
+      leadSuit = effCard.suit;
       break;
     }
   }
@@ -924,6 +1092,17 @@ function renderHand(isNewDeal = false) {
           inspectedCardIndex = index;
           renderHand();
         } else {
+          if (card.type === 'shapeshifter') {
+            pendingCardPlayIndex = index;
+            if (shapeshifterModal) shapeshifterModal.style.display = 'block';
+            return;
+          }
+          if (card.type === 'cloud') {
+            pendingCardPlayIndex = index;
+            if (cloudSuitModal) cloudSuitModal.style.display = 'block';
+            return;
+          }
+
           socket.emit('playCard', { roomCode: currentRoomCode, cardIndex: index });
           isMyTurn = false;
           inspectedCardIndex = null;
@@ -1024,6 +1203,31 @@ const MEDIEVAL_ICONS = {
     <polygon points="38,10 42,8 40,12 44,13 40,15 41,19 37,16 35,19 36,14 32,12 36,11" fill="#ea580c" stroke="#fef08a" stroke-width="0.8"/>
     <ellipse cx="17" cy="22" rx="4" ry="2" transform="rotate(-30 17 22)" fill="white" fill-opacity="0.3"/>
     <defs><linearGradient id="bombGrad" x1="16" y1="16" x2="28" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#475569"/><stop offset="1" stop-color="#090d14"/></linearGradient></defs>
+  </svg>`,
+
+  shapeshifter: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 14 C12 6 24 6 24 6 C24 6 36 6 36 14 C36 28 24 40 24 40 C24 40 12 28 12 14 Z" fill="url(#maskGrad)" stroke="#34d399" stroke-width="1.2"/>
+    <path d="M24 6 V40" stroke="#064e3b" stroke-width="1" stroke-dasharray="2 2"/>
+    <path d="M16 18 Q20 15 22 19 Q19 22 16 18 Z" fill="#022c22" stroke="#6ee7b7" stroke-width="0.8"/>
+    <path d="M26 19 Q28 15 32 18 Q29 22 26 19 Z" fill="#451a03" stroke="#fef08a" stroke-width="0.8"/>
+    <path d="M18 29 Q24 33 30 29" stroke="#34d399" stroke-width="1.2" fill="none"/>
+    <circle cx="24" cy="10" r="2" fill="#fef08a"/>
+    <defs><linearGradient id="maskGrad" x1="12" y1="10" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#059669"/><stop offset="0.5" stop-color="#047857"/><stop offset="1" stop-color="#064e3b"/></linearGradient></defs>
+  </svg>`,
+
+  vampire: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 14 C27 8 30 8 32 12 C36 10 42 14 44 22 C39 20 35 24 33 30 C30 25 27 27 24 34 C21 27 18 25 15 30 C13 24 9 20 4 22 C6 14 12 10 16 12 C18 8 21 8 24 14 Z" fill="url(#vampGrad)" stroke="#ef4444" stroke-width="1.2"/>
+    <polygon points="21,24 22,28 23,24" fill="#ffffff"/>
+    <polygon points="25,24 26,28 27,24" fill="#ffffff"/>
+    <circle cx="20" cy="18" r="1.5" fill="#f87171"/>
+    <circle cx="28" cy="18" r="1.5" fill="#f87171"/>
+    <defs><linearGradient id="vampGrad" x1="24" y1="8" x2="24" y2="34" gradientUnits="userSpaceOnUse"><stop stop-color="#7f1d1d"/><stop offset="1" stop-color="#180303"/></linearGradient></defs>
+  </svg>`,
+
+  cloud: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 32 C12 32 9 29 9 25 C9 21.5 11.5 18.5 15 18 C16.5 13 21 9 26 9 C31.5 9 36 13 36.5 18.5 C39.5 19.5 42 22 42 25.5 C42 29 39 32 35 32 Z" fill="url(#cloudGrad)" stroke="#94a3b8" stroke-width="1.3"/>
+    <polygon points="25,21 21,29 26,29 23,37 30,27 25,27" fill="#fef08a" stroke="#ca8a04" stroke-width="0.8"/>
+    <defs><linearGradient id="cloudGrad" x1="24" y1="9" x2="24" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#64748b"/><stop offset="1" stop-color="#1e293b"/></linearGradient></defs>
   </svg>`
 };
 
@@ -1110,6 +1314,73 @@ function renderCard(card) {
       <div class="card-corner bottom-right">
         <span class="card-val">B</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.bomb}</div>
+      </div>
+    `;
+  } else if (card.type === 'shapeshifter') {
+    div.classList.add('card-shapeshifter');
+    const roleSub = card.chosenRole === 'wizard' ? ' (Z)' : (card.chosenRole === 'jester' ? ' (N)' : '');
+    div.innerHTML = `
+      <div class="card-corner top-left">
+        <span class="card-val">G</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.shapeshifter}</div>
+      </div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.shapeshifter}</div>
+        <div class="card-center-val" style="font-size: 26px; color: #a7f3d0; margin-top: 2px;">G${roleSub}</div>
+      </div>
+      <div class="card-corner bottom-right">
+        <span class="card-val">G</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.shapeshifter}</div>
+      </div>
+    `;
+  } else if (card.type === 'vampire') {
+    div.classList.add('card-vampire');
+    let copyLabel = '';
+    if (card.copiedCard) {
+      if (card.copiedCard.type === 'wizard') copyLabel = '<div style="font-size: 9px; color: #fef08a; margin-top: 1px;">Kopie: Zauberer</div>';
+      else if (card.copiedCard.type === 'jester') copyLabel = '<div style="font-size: 9px; color: #cbd5e1; margin-top: 1px;">Kopie: Narr</div>';
+      else if (card.copiedCard.type === 'dragon') copyLabel = '<div style="font-size: 9px; color: #fef08a; margin-top: 1px;">Kopie: Drache</div>';
+      else if (card.copiedCard.type === 'fairy') copyLabel = '<div style="font-size: 9px; color: #bae6fd; margin-top: 1px;">Kopie: Fee</div>';
+      else if (card.copiedCard.type === 'bomb') copyLabel = '<div style="font-size: 9px; color: #fdba74; margin-top: 1px;">Kopie: Bombe</div>';
+      else if (card.copiedCard.type === 'color') {
+        const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+        const sName = suitNames[card.copiedCard.suit] || card.copiedCard.suit;
+        const valStr = card.copiedCard.value ? ` ${card.copiedCard.value}` : '';
+        copyLabel = `<div style="font-size: 9px; color: #fca5a5; margin-top: 1px;">Kopie: ${sName}${valStr}</div>`;
+      }
+    }
+    div.innerHTML = `
+      <div class="card-corner top-left">
+        <span class="card-val">V</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.vampire}</div>
+      </div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.vampire}</div>
+        <div class="card-center-val" style="font-size: 26px; color: #fca5a5; margin-top: 2px;">V</div>
+        ${copyLabel}
+      </div>
+      <div class="card-corner bottom-right">
+        <span class="card-val">V</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.vampire}</div>
+      </div>
+    `;
+  } else if (card.type === 'cloud') {
+    div.classList.add('card-cloud');
+    const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+    const suitSub = card.chosenSuit ? `<div style="font-size: 9px; color: #93c5fd; margin-top: 1px;">${suitNames[card.chosenSuit] || card.chosenSuit}</div>` : '';
+    div.innerHTML = `
+      <div class="card-corner top-left">
+        <span class="card-val" style="font-size: 13px;">9¾</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.cloud}</div>
+      </div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.cloud}</div>
+        <div class="card-center-val" style="font-size: 20px; color: #f1f5f9; margin-top: 2px;">9 ¾</div>
+        ${suitSub}
+      </div>
+      <div class="card-corner bottom-right">
+        <span class="card-val" style="font-size: 13px;">9¾</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.cloud}</div>
       </div>
     `;
   } else {
