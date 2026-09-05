@@ -1,24 +1,101 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
   <defs>
-    <!-- Rauschfilter für echte Stoff-/Filzfasern -->
-    <filter id="feltNoise" x="0%" y="0%" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" result="noise" />
-      <feColorMatrix type="matrix" values="0 0 0 0 0.1   0 0 0 0 0.35   0 0 0 0 0.15  0 0 0 0.28 0" />
+    <!-- Rauschfilter für echte horizontale Eichenholzfasern und Poren -->
+    <filter id="woodFibersH" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.35 0.04" numOctaves="4" result="noise" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.22   0 0 0 0 0.12   0 0 0 0 0.05  0 0 0 0.38 0" />
     </filter>
-    
-    <!-- Feines diagonales Webmuster -->
-    <pattern id="weave" width="8" height="8" patternUnits="userSpaceOnUse">
-      <path d="M0 4 L4 0 L8 4 L4 8 Z" fill="#134719" opacity="0.45" />
-      <path d="M4 4 L8 0 L8 8 Z" fill="#0b2e10" opacity="0.3" />
-    </pattern>
+
+    <!-- Holzplanken-Schattenverlauf für räumliche Wölbung jeder horizontalen Bohle -->
+    <linearGradient id="plankShadingH" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#100602" stop-opacity="0.6" />
+      <stop offset="10%" stop-color="#3b2010" stop-opacity="0.08" />
+      <stop offset="90%" stop-color="#4a2a16" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#0e0501" stop-opacity="0.6" />
+    </linearGradient>
+
+    <!-- Warmes, dezentes Kerzenlicht im Zentrum des Tisches -->
+    <radialGradient id="tableCandlelightH" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.18" />
+      <stop offset="45%" stop-color="#b45309" stop-opacity="0.08" />
+      <stop offset="85%" stop-color="#000000" stop-opacity="0.22" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.45" />
+    </radialGradient>
   </defs>
 
-  <!-- Grundfarbe Tischfilz -->
-  <rect width="300" height="300" fill="#14521c" />
-  
-  <!-- Gewebte Struktur -->
-  <rect width="300" height="300" fill="url(#weave)" />
-  
-  <!-- Faserrauschen -->
-  <rect width="300" height="300" filter="url(#feltNoise)" style="mix-blend-mode: overlay;" />
+  <!-- HINTERGRUND-GRUNDIERUNG -->
+  <rect width="600" height="600" fill="#201107" />
+
+  <!-- 5 DEUTLICH SICHTBARE HORIZONTALE HOLZPLATTEN / BOHLEN -->
+  <!-- Bohle 1 (0 - 120px): Obere Rand-Eiche -->
+  <rect x="0" y="0" width="600" height="118" fill="#2a1509" />
+  <rect x="0" y="0" width="600" height="118" fill="url(#plankShadingH)" />
+
+  <!-- Bohle 2 (120 - 240px): Warme Bernsteineiche -->
+  <rect x="0" y="120" width="600" height="118" fill="#361e0e" />
+  <rect x="0" y="120" width="600" height="118" fill="url(#plankShadingH)" />
+
+  <!-- Bohle 3 (240 - 360px): Zentrale Eiche -->
+  <rect x="0" y="240" width="600" height="118" fill="#3d2211" />
+  <rect x="0" y="240" width="600" height="118" fill="url(#plankShadingH)" />
+
+  <!-- Bohle 4 (360 - 480px): Kräftige Walnusseiche -->
+  <rect x="0" y="360" width="600" height="118" fill="#341c0d" />
+  <rect x="0" y="360" width="600" height="118" fill="url(#plankShadingH)" />
+
+  <!-- Bohle 5 (480 - 600px): Untere Rand-Eiche -->
+  <rect x="0" y="480" width="600" height="120" fill="#2b160a" />
+  <rect x="0" y="480" width="600" height="120" fill="url(#plankShadingH)" />
+
+  <!-- HORIZONTALE EICHEN-HOLZFASER-STRUKTUR -->
+  <rect width="600" height="600" filter="url(#woodFibersH)" style="mix-blend-mode: overlay;" />
+
+  <!-- TIEFE HORIZONTALE FUGEN ZWISCHEN DEN BOHLEN MIT LICHTKANTE -->
+  <!-- Fuge 1 -->
+  <line x1="0" y1="119" x2="600" y2="119" stroke="#080301" stroke-width="3" />
+  <line x1="0" y1="121" x2="600" y2="121" stroke="#63391b" stroke-width="1.2" opacity="0.6" />
+
+  <!-- Fuge 2 -->
+  <line x1="0" y1="239" x2="600" y2="239" stroke="#080301" stroke-width="3" />
+  <line x1="0" y1="241" x2="600" y2="241" stroke="#6e4020" stroke-width="1.2" opacity="0.6" />
+
+  <!-- Fuge 3 -->
+  <line x1="0" y1="359" x2="600" y2="359" stroke="#080301" stroke-width="3" />
+  <line x1="0" y1="361" x2="600" y2="361" stroke="#6e4020" stroke-width="1.2" opacity="0.6" />
+
+  <!-- Fuge 4 -->
+  <line x1="0" y1="479" x2="600" y2="479" stroke="#080301" stroke-width="3" />
+  <line x1="0" y1="481" x2="600" y2="481" stroke="#63391b" stroke-width="1.2" opacity="0.6" />
+
+  <!-- RUSTIKALE HOLZNÄGEL / DÜBEL AN DEN BOHLEN-ENDEN -->
+  <g fill="#180e07" stroke="#4a2a16" stroke-width="1.2">
+    <!-- Links -->
+    <circle cx="24" cy="60" r="4.5" />
+    <circle cx="24" cy="180" r="4.5" />
+    <circle cx="24" cy="300" r="4.5" />
+    <circle cx="24" cy="420" r="4.5" />
+    <circle cx="24" cy="540" r="4.5" />
+    <!-- Mitte -->
+    <circle cx="300" cy="60" r="4" opacity="0.75" />
+    <circle cx="300" cy="180" r="4" opacity="0.75" />
+    <circle cx="300" cy="300" r="4" opacity="0.75" />
+    <circle cx="300" cy="420" r="4" opacity="0.75" />
+    <circle cx="300" cy="540" r="4" opacity="0.75" />
+    <!-- Rechts -->
+    <circle cx="576" cy="60" r="4.5" />
+    <circle cx="576" cy="180" r="4.5" />
+    <circle cx="576" cy="300" r="4.5" />
+    <circle cx="576" cy="420" r="4.5" />
+    <circle cx="576" cy="540" r="4.5" />
+  </g>
+
+  <!-- FEINE HORIZONTALE ASTLOCH-MASERUNG -->
+  <g stroke="#1a0c05" stroke-width="1" fill="none" opacity="0.35">
+    <path d="M140,50 Q150,60 160,50" />
+    <path d="M440,290 Q455,310 470,295" />
+    <path d="M210,410 Q220,425 230,415" />
+  </g>
+
+  <!-- DEZENTER KERZENSCHEIN ÜBER DEM TISCH -->
+  <rect width="600" height="600" fill="url(#tableCandlelightH)" />
 </svg>

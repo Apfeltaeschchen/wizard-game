@@ -1,102 +1,80 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
   <defs>
-    <!-- Tiefer Raum-Gradient -->
-    <radialGradient id="spaceGaze" cx="50%" cy="50%" r="70%">
-      <stop offset="0%" stop-color="#111827" />
-      <stop offset="50%" stop-color="#0b0f19" />
-      <stop offset="100%" stop-color="#030712" />
+    <!-- Tiefer Raumgradient der Ratskammer -->
+    <radialGradient id="chamberGaze" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1e130a" stop-opacity="0.9" />
+      <stop offset="45%" stop-color="#100b14" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#050308" stop-opacity="1" />
     </radialGradient>
 
-    <!-- Zentraler Schein -->
-    <radialGradient id="coreLight" cx="50%" cy="50%" r="45%">
-      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15" />
-      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+    <!-- Zentraler Kerzenschein des Ratsrunds -->
+    <radialGradient id="councilFire" cx="50%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.28" />
+      <stop offset="60%" stop-color="#b45309" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
     </radialGradient>
 
-    <!-- Leuchteffekte für die 4 Element-Sphären -->
-    <radialGradient id="glowRed" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
+    <!-- Die 4 Elementar-Edelstein-Nischen -->
+    <radialGradient id="gemRed" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#7f1d1d" stop-opacity="0" />
     </radialGradient>
-    <radialGradient id="glowBlue" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+    <radialGradient id="gemBlue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#0c4a6e" stop-opacity="0" />
     </radialGradient>
-    <radialGradient id="glowGreen" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#10b981" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+    <radialGradient id="gemGreen" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#14532d" stop-opacity="0" />
     </radialGradient>
-    <radialGradient id="glowYellow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
+    <radialGradient id="gemYellow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fde047" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#a16207" stop-opacity="0" />
     </radialGradient>
-
-    <filter id="blurShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" />
-    </filter>
   </defs>
 
-  <!-- Basis-Hintergrund -->
-  <rect width="1920" height="1080" fill="url(#spaceGaze)" />
+  <!-- Basis & Raumatmosphäre -->
+  <rect width="1920" height="1080" fill="url(#chamberGaze)" />
+  <circle cx="960" cy="540" r="650" fill="url(#councilFire)" />
 
-  <!-- Zentrierter Lichteinfall -->
-  <circle cx="960" cy="540" r="600" fill="url(#coreLight)" />
+  <!-- 4 Elementar-Edelsteine in den Wandnischen -->
+  <!-- Oben Links: Feuer/Rubin -->
+  <circle cx="320" cy="220" r="160" fill="url(#gemRed)" />
+  <circle cx="320" cy="220" r="12" fill="#ef4444" stroke="#fca5a5" stroke-width="2" />
 
-  <!-- Mystischer Ritualkreis / Warte-Siegel -->
-  <g transform="translate(960, 540)" stroke="#64748b" stroke-opacity="0.18" fill="none" stroke-width="1.5">
-    <circle r="440" stroke-dasharray="6 8" stroke-width="2" />
-    <circle r="400" />
-    <circle r="360" stroke-dasharray="16 8" />
-    <circle r="260" stroke-width="1" />
-    <circle r="140" stroke-dasharray="4 6" />
+  <!-- Oben Rechts: Saphir/Wasser -->
+  <circle cx="1600" cy="220" r="160" fill="url(#gemBlue)" />
+  <circle cx="1600" cy="220" r="12" fill="#38bdf8" stroke="#bae6fd" stroke-width="2" />
 
-    <!-- Verbindungs-Achsen -->
-    <line x1="-400" y1="0" x2="400" y2="0" stroke-dasharray="5 5" />
-    <line x1="0" y1="-400" x2="0" y2="400" stroke-dasharray="5 5" />
-    <line x1="-282" y1="-282" x2="282" y2="282" stroke-dasharray="3 7" />
-    <line x1="-282" y1="282" x2="282" y2="-282" stroke-dasharray="3 7" />
+  <!-- Unten Links: Smaragd/Erde -->
+  <circle cx="320" cy="860" r="160" fill="url(#gemGreen)" />
+  <circle cx="320" cy="860" r="12" fill="#22c55e" stroke="#86efac" stroke-width="2" />
 
-    <!-- 6 Knotenpunkte für Spielerplätze am Tischrand -->
-    <g fill="#0f172a" stroke="#f1c40f" stroke-width="1.5" stroke-opacity="0.4">
-      <circle cx="0" cy="-400" r="14" />
-      <circle cx="346" cy="-200" r="14" />
-      <circle cx="346" cy="200" r="14" />
-      <circle cx="0" cy="400" r="14" />
-      <circle cx="-346" cy="200" r="14" />
-      <circle cx="-346" cy="-200" r="14" />
+  <!-- Unten Rechts: Topas/Sonne -->
+  <circle cx="1600" cy="860" r="160" fill="url(#gemYellow)" />
+  <circle cx="1600" cy="860" r="12" fill="#fde047" stroke="#fef08a" stroke-width="2" />
+
+  <!-- Mystischer Ratssiegel-Kreis im Steinboden -->
+  <g transform="translate(960, 540)" stroke="#c89a38" stroke-opacity="0.2" fill="none" stroke-width="1.8">
+    <circle r="460" stroke-dasharray="8 8" stroke-width="2.5" />
+    <circle r="420" />
+    <circle r="380" stroke-dasharray="16 8" />
+    <circle r="280" stroke-width="1.5" />
+    <circle r="150" stroke-dasharray="6 6" />
+
+    <!-- Verbindungsachsen der 6 Ratsstühle -->
+    <line x1="-420" y1="0" x2="420" y2="0" stroke-dasharray="6 6" />
+    <line x1="-210" y1="-363" x2="210" y2="363" stroke-dasharray="6 6" />
+    <line x1="-210" y1="363" x2="210" y2="-363" stroke-dasharray="6 6" />
+
+    <!-- 6 Ratsherren-Siegelpositionen -->
+    <g fill="#1f140b" stroke="#f0c355" stroke-width="2" stroke-opacity="0.45">
+      <circle cx="-420" cy="0" r="22" />
+      <circle cx="420" cy="0" r="22" />
+      <circle cx="-210" cy="-363" r="22" />
+      <circle cx="210" cy="-363" r="22" />
+      <circle cx="-210" cy="363" r="22" />
+      <circle cx="210" cy="363" r="22" />
     </g>
-  </g>
-
-  <!-- Die 4 Wizard-Farben als leuchtende Sphären am Rand -->
-  <!-- ROT (Oben) -->
-  <circle cx="960" cy="140" r="70" fill="url(#glowRed)" />
-  <circle cx="960" cy="140" r="9" fill="#ef4444" opacity="0.85" />
-  <text x="960" y="175" fill="#ef4444" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="12" letter-spacing="2" text-anchor="middle" opacity="0.6">ROT</text>
-
-  <!-- BLAU (Rechts) -->
-  <circle cx="1360" cy="540" r="70" fill="url(#glowBlue)" />
-  <circle cx="1360" cy="540" r="9" fill="#3b82f6" opacity="0.85" />
-  <text x="1360" y="575" fill="#3b82f6" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="12" letter-spacing="2" text-anchor="middle" opacity="0.6">BLAU</text>
-
-  <!-- GRÜN (Unten) -->
-  <circle cx="960" cy="940" r="70" fill="url(#glowGreen)" />
-  <circle cx="960" cy="940" r="9" fill="#10b981" opacity="0.85" />
-  <text x="960" y="975" fill="#10b981" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="12" letter-spacing="2" text-anchor="middle" opacity="0.6">GRÜN</text>
-
-  <!-- GELB (Links) -->
-  <circle cx="560" cy="540" r="70" fill="url(#glowYellow)" />
-  <circle cx="560" cy="540" r="9" fill="#f59e0b" opacity="0.85" />
-  <text x="560" y="575" fill="#f59e0b" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="12" letter-spacing="2" text-anchor="middle" opacity="0.6">GELB</text>
-
-  <!-- Schwebende Partikel & Lichtstaub -->
-  <g fill="#cbd5e1" opacity="0.3">
-    <circle cx="680" cy="320" r="2" />
-    <circle cx="790" cy="210" r="1.5" />
-    <circle cx="1140" cy="280" r="2" />
-    <circle cx="1250" cy="360" r="3" />
-    <circle cx="700" cy="760" r="2.5" />
-    <circle cx="1200" cy="740" r="1.5" />
-    <circle cx="1290" cy="650" r="2" />
-    <circle cx="620" cy="440" r="2" />
   </g>
 </svg>

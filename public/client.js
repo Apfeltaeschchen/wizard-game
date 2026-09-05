@@ -113,7 +113,7 @@ socket.on('connect', () => {
   }
 });
 
-// --- DRAWER-STEUERUNG (BLOCK DER WAHRHEIT) ---
+// --- DRAWER-STEUERUNG (BUCH DER WAHRHEIT) ---
 function openScoreDrawer() {
   scoreDrawer.classList.add('open');
   drawerBackdrop.classList.add('open');
@@ -727,15 +727,16 @@ function renderTrumpCard(trumpCard) {
   if (!trumpCard) {
     const emptyCard = document.createElement('div');
     emptyCard.classList.add('card');
-    emptyCard.style.background = 'rgba(255,255,255,0.06)';
-    emptyCard.style.borderColor = 'rgba(255,255,255,0.2)';
-    emptyCard.innerHTML = '<span style="font-size: 20px; color: #94a3b8;">-</span>';
+    emptyCard.style.background = 'rgba(24, 14, 8, 0.7)';
+    emptyCard.style.borderColor = '#5a371c';
+    emptyCard.innerHTML = '<span style="font-size: 20px; color: var(--gold-antique); font-family: var(--font-medieval);">-</span>';
 
     const subText = document.createElement('div');
     subText.style.fontStyle = 'italic';
     subText.style.fontSize = '11px';
-    subText.style.color = '#94a3b8';
+    subText.style.color = '#d6be90';
     subText.style.marginTop = '4px';
+    subText.style.fontFamily = 'var(--font-subheading)';
     subText.innerText = 'Kein Trumpf';
 
     wrap.appendChild(emptyCard);
@@ -751,20 +752,21 @@ function renderTrumpCard(trumpCard) {
   subText.style.fontWeight = 'bold';
   subText.style.fontSize = '11px';
   subText.style.marginTop = '4px';
+  subText.style.fontFamily = 'var(--font-subheading)';
 
   if (trumpCard.type === 'wizard') {
     if (trumpCard.chosenSuit) {
-      subText.style.color = '#f1c40f';
+      subText.style.color = 'var(--gold-bright)';
       subText.innerText = `Trumpf: ${suitNames[trumpCard.chosenSuit] || trumpCard.chosenSuit}`;
     } else {
-      subText.style.color = '#9b59b6';
+      subText.style.color = '#c084fc';
       subText.innerText = 'Geber wählt...';
     }
   } else if (trumpCard.type === 'jester') {
-    subText.style.color = '#94a3b8';
+    subText.style.color = '#d6be90';
     subText.innerText = 'Kein Trumpf';
   } else if (trumpCard.type === 'color') {
-    subText.style.color = '#cbd5e1';
+    subText.style.color = '#f7eedb';
     subText.innerText = `Trumpf: ${suitNames[trumpCard.suit] || trumpCard.suit}`;
   }
 
@@ -902,51 +904,101 @@ document.addEventListener('click', () => {
   }
 });
 
-// Karten-Renderer
+// --- HERALDISCHE WAPPEN-SVGS FÜR KARTEN ---
+const MEDIEVAL_ICONS = {
+  red: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 3L23 15H31L25 21L28 33L20 26L12 33L15 21L9 15H17L20 3Z" fill="url(#fireGrad)" stroke="#550c0f" stroke-width="1.2"/>
+    <circle cx="20" cy="20" r="4.5" fill="#f87171" stroke="#fef08a" stroke-width="1"/>
+    <defs><linearGradient id="fireGrad" x1="20" y1="3" x2="20" y2="33" gradientUnits="userSpaceOnUse"><stop stop-color="#ef4444"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient></defs>
+  </svg>`,
+
+  blue: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 4 C14 14 10 20 10 26 C10 32 14.5 36 20 36 C25.5 36 30 32 30 26 C30 20 26 14 20 4 Z" fill="url(#waterGrad)" stroke="#091d3e" stroke-width="1.2"/>
+    <path d="M16 25 Q20 20 24 25" stroke="#bae6fd" stroke-width="1.5" fill="none"/>
+    <defs><linearGradient id="waterGrad" x1="20" y1="4" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#0c4a6e"/></linearGradient></defs>
+  </svg>`,
+
+  green: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 4 C11 15 11 27 20 36 C29 27 29 15 20 4 Z" fill="url(#earthGrad)" stroke="#092612" stroke-width="1.2"/>
+    <path d="M20 8 V32 M15 18 L20 24 L25 18" stroke="#86efac" stroke-width="1.4" fill="none"/>
+    <defs><linearGradient id="earthGrad" x1="20" y1="4" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#14532d"/></linearGradient></defs>
+  </svg>`,
+
+  yellow: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="20" r="8" fill="url(#sunGrad)" stroke="#5e3902" stroke-width="1.2"/>
+    <path d="M20 3 V9 M20 31 V37 M3 20 H9 M31 20 H37 M8 8 L13 13 M27 27 L32 32 M8 32 L13 27 M27 13 L32 8" stroke="#d97706" stroke-width="2" stroke-linecap="round"/>
+    <defs><linearGradient id="sunGrad" x1="20" y1="12" x2="20" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#fde047"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs>
+  </svg>`,
+
+  wizard: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="21" stroke="#f0c355" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <polygon points="24,6 38,36 10,36" stroke="#f0c355" stroke-width="1.2" fill="none"/>
+    <polygon points="24,42 38,12 10,12" stroke="#f0c355" stroke-width="1.2" fill="none"/>
+    <circle cx="24" cy="24" r="6" fill="#f0c355" stroke="#765615" stroke-width="1"/>
+    <path d="M20 24 Q24 20 28 24 Q24 28 20 24 Z" fill="#371252"/>
+  </svg>`,
+
+  jester: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 28 C12 16 16 12 24 10 C32 12 36 16 36 28 C36 34 30 38 24 38 C18 38 12 34 12 28 Z" fill="#52525b" stroke="#18181b" stroke-width="1.2"/>
+    <path d="M12 20 Q6 24 10 32 M36 20 Q42 24 38 32" stroke="#d4d4d8" stroke-width="2" fill="none"/>
+    <circle cx="10" cy="32" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
+    <circle cx="38" cy="32" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
+    <circle cx="24" cy="10" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
+  </svg>`
+};
+
+// Karten-Renderer (Old Medieval Fantasy Style)
 function renderCard(card) {
   const div = document.createElement('div');
   div.classList.add('card');
-
-  const suitShort = { red: 'ROT', blue: 'BLAU', green: 'GRÜN', yellow: 'GELB' };
 
   if (card.type === 'wizard') {
     div.classList.add('card-wizard');
     div.innerHTML = `
       <div class="card-corner top-left">
-        <span>Z</span>
-        <span class="card-suit-label">WIZ</span>
+        <span class="card-val">Z</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.wizard}</div>
       </div>
-      <div class="card-center">Z</div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.wizard}</div>
+        <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">Z</div>
+      </div>
       <div class="card-corner bottom-right">
-        <span>Z</span>
-        <span class="card-suit-label">WIZ</span>
+        <span class="card-val">Z</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.wizard}</div>
       </div>
     `;
   } else if (card.type === 'jester') {
     div.classList.add('card-jester');
     div.innerHTML = `
       <div class="card-corner top-left">
-        <span>N</span>
-        <span class="card-suit-label">NAR</span>
+        <span class="card-val">N</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.jester}</div>
       </div>
-      <div class="card-center">N</div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.jester}</div>
+        <div class="card-center-val" style="font-size: 26px; color: #f8fafc; margin-top: 2px;">N</div>
+      </div>
       <div class="card-corner bottom-right">
-        <span>N</span>
-        <span class="card-suit-label">NAR</span>
+        <span class="card-val">N</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.jester}</div>
       </div>
     `;
   } else {
     div.classList.add(`card-${card.suit}`);
-    const label = suitShort[card.suit] || '';
+    const iconSvg = MEDIEVAL_ICONS[card.suit] || '';
     div.innerHTML = `
       <div class="card-corner top-left">
-        <span>${card.value}</span>
-        <span class="card-suit-label">${label}</span>
+        <span class="card-val">${card.value}</span>
+        <div class="card-mini-icon">${iconSvg}</div>
       </div>
-      <div class="card-center">${card.value}</div>
+      <div class="card-center">
+        <div class="card-center-val">${card.value}</div>
+        <div class="card-center-crest">${iconSvg}</div>
+      </div>
       <div class="card-corner bottom-right">
-        <span>${card.value}</span>
-        <span class="card-suit-label">${label}</span>
+        <span class="card-val">${card.value}</span>
+        <div class="card-mini-icon">${iconSvg}</div>
       </div>
     `;
   }
@@ -954,7 +1006,7 @@ function renderCard(card) {
   return div;
 }
 
-// --- DER BLOCK DER WAHRHEIT (TABELLE) ---
+// --- DAS BUCH DER WAHRHEIT (TABELLE) ---
 function renderScoreBoard() {
   scoreTableHead.innerHTML = '';
   scoreTableBody.innerHTML = '';
@@ -973,10 +1025,6 @@ function renderScoreBoard() {
     const hostBadge = player.isHost ? '<span class="host-badge">Host</span>' : '';
     const dealerBadge = player.isDealer ? '<span class="dealer-badge">Geber</span>' : '';
     const disconnected = !player.connected ? ' (Getrennt)' : '';
-
-    if (player.sessionId === currentActiveSessionId) {
-      th.classList.add('active-turn');
-    }
 
     th.innerHTML = `
       <div>${escapeHtml(player.name)} ${isMe ? '<b>(Du)</b>' : ''}${disconnected}</div>
@@ -1022,7 +1070,7 @@ function renderScoreBoard() {
     liveRow.classList.add('current-round-row');
 
     const tdLiveRound = document.createElement('td');
-    tdLiveRound.innerHTML = `<b>${currentRound}</b><br><span style="font-size: 10px; color: #3498db;">(aktiv)</span>`;
+    tdLiveRound.innerHTML = `<b>${currentRound}</b><br><span style="font-size: 10px; color: #92400e; font-weight: bold;">(aktiv)</span>`;
     liveRow.appendChild(tdLiveRound);
 
     cachedPlayers.forEach(player => {

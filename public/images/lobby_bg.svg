@@ -1,49 +1,83 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
   <defs>
-    <!-- Atmosphärischer Raum-Gradient -->
-    <radialGradient id="bgGaze" cx="50%" cy="45%" r="65%">
-      <stop offset="0%" stop-color="#1e1b4b" />
-      <stop offset="45%" stop-color="#0f172a" />
-      <stop offset="100%" stop-color="#020617" />
+    <!-- Flackernde Wandfackeln links und rechts -->
+    <radialGradient id="torchLeft" cx="18%" cy="38%" r="48%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.45" />
+      <stop offset="25%" stop-color="#d97706" stop-opacity="0.25" />
+      <stop offset="60%" stop-color="#78350f" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#070a12" stop-opacity="0" />
     </radialGradient>
-    
-    <!-- Magischer Lichtschein im Zentrum -->
-    <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32" />
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
+    <radialGradient id="torchRight" cx="82%" cy="38%" r="48%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.45" />
+      <stop offset="25%" stop-color="#d97706" stop-opacity="0.25" />
+      <stop offset="60%" stop-color="#78350f" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#070a12" stop-opacity="0" />
     </radialGradient>
+
+    <!-- Warmes Zentrum für das Dialogfeld -->
+    <radialGradient id="centerAltar" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#3d2110" stop-opacity="0.3" />
+      <stop offset="50%" stop-color="#141926" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#05070c" stop-opacity="0.95" />
+    </radialGradient>
+
+    <!-- Gotisches Steinmauerwerk -->
+    <pattern id="gothicBricks" width="180" height="90" patternUnits="userSpaceOnUse">
+      <rect width="180" height="90" fill="#0d111a" />
+      <line x1="0" y1="45" x2="180" y2="45" stroke="#04060a" stroke-width="3" />
+      <line x1="0" y1="90" x2="180" y2="90" stroke="#04060a" stroke-width="3" />
+      <line x1="90" y1="0" x2="90" y2="45" stroke="#04060a" stroke-width="3" />
+      <line x1="0" y1="45" x2="0" y2="90" stroke="#04060a" stroke-width="3" />
+      <line x1="180" y1="45" x2="180" y2="90" stroke="#04060a" stroke-width="3" />
+      <!-- Riss-Details im Stein -->
+      <path d="M40,15 L55,22 L50,35" stroke="#161e2e" stroke-width="1.2" fill="none" opacity="0.6"/>
+      <path d="M130,60 L145,68 L140,80" stroke="#161e2e" stroke-width="1.2" fill="none" opacity="0.6"/>
+    </pattern>
   </defs>
 
-  <!-- Dunkler Hintergrund -->
-  <rect width="1920" height="1080" fill="url(#bgGaze)" />
+  <!-- Mauerwerksbasis -->
+  <rect width="1920" height="1080" fill="url(#gothicBricks)" />
+  <rect width="1920" height="1080" fill="url(#centerAltar)" />
 
-  <!-- Mystischer Lichtschein im Zentrum -->
-  <circle cx="960" cy="500" r="550" fill="url(#goldGlow)" />
+  <!-- Fackellichter links und rechts -->
+  <rect width="1920" height="1080" fill="url(#torchLeft)" />
+  <rect width="1920" height="1080" fill="url(#torchRight)" />
 
-  <!-- Magisches Runen-Siegel -->
-  <g transform="translate(960, 500)" stroke="#f59e0b" stroke-opacity="0.25" fill="none" stroke-width="2">
-    <circle r="340" stroke-dasharray="8 6" />
-    <circle r="300" stroke-width="1.5" />
-    <circle r="220" />
-    
-    <!-- Stern-Geometrie -->
-    <polygon points="0,-220 190.5,110 -190.5,110" />
-    <polygon points="0,220 190.5,-110 -190.5,-110" />
+  <!-- Wandhalterung / Schmiedeeiserne Fackel-Silhouetten -->
+  <g stroke="#1a1e28" stroke-width="6" stroke-linecap="round">
+    <line x1="340" y1="480" x2="340" y2="390" />
+    <path d="M320,440 Q340,460 360,440" fill="none" />
+    <circle cx="340" cy="380" r="14" fill="#f59e0b" opacity="0.7" filter="drop-shadow(0 0 12px #f59e0b)"/>
 
-    <circle r="120" stroke-dasharray="4 8" stroke-width="3" />
+    <line x1="1580" y1="480" x2="1580" y2="390" />
+    <path d="M1560,440 Q1580,460 1600,440" fill="none" />
+    <circle cx="1580" cy="380" r="14" fill="#f59e0b" opacity="0.7" filter="drop-shadow(0 0 12px #f59e0b)"/>
   </g>
 
-  <!-- Schwebende magische Funken -->
-  <g fill="#fde68a" opacity="0.4">
-    <circle cx="560" cy="270" r="2.5" />
-    <circle cx="640" cy="340" r="1.5" />
-    <circle cx="820" cy="190" r="3" />
-    <circle cx="1120" cy="230" r="2" />
-    <circle cx="1280" cy="310" r="3.5" />
-    <circle cx="1380" cy="210" r="1.5" />
-    <circle cx="750" cy="740" r="2" />
-    <circle cx="1180" cy="720" r="2.5" />
-    <circle cx="450" cy="520" r="2" />
-    <circle cx="1470" cy="480" r="2" />
+  <!-- Zentraler gotischer Spitzbogen & Arkaden -->
+  <g transform="translate(960, 540)" stroke="#c89a38" stroke-opacity="0.22" fill="none" stroke-width="3">
+    <!-- Äußerer Spitzbogen -->
+    <path d="M-360,540 V-120 Q-360,-480 0,-540 Q360,-480 360,-120 V540" />
+    <!-- Innerer Zierbogen -->
+    <path d="M-310,540 V-100 Q-310,-420 0,-470 Q310,-420 310,-100 V540" stroke-dasharray="10 8" stroke-width="2" />
+    <!-- Dreipass / Rosetten-Ornamentik im Bogenfeld -->
+    <circle cx="0" cy="-340" r="50" stroke-width="2" />
+    <circle cx="-55" cy="-285" r="40" stroke-width="1.5" />
+    <circle cx="55" cy="-285" r="40" stroke-width="1.5" />
+  </g>
+
+  <!-- Magisch schwebende Goldfunken & Rußpartikel -->
+  <g fill="#fde68a" opacity="0.5">
+    <circle cx="330" cy="320" r="2.5" />
+    <circle cx="360" cy="280" r="1.5" />
+    <circle cx="315" cy="230" r="3" />
+    <circle cx="380" cy="350" r="2" />
+    <circle cx="1590" cy="320" r="2.5" />
+    <circle cx="1560" cy="270" r="1.5" />
+    <circle cx="1610" cy="240" r="3" />
+    <circle cx="1550" cy="350" r="2" />
+    <circle cx="900" cy="210" r="2" />
+    <circle cx="1020" cy="180" r="2.5" />
+    <circle cx="960" cy="260" r="1.5" />
   </g>
 </svg>
