@@ -265,6 +265,18 @@ btnHostReDeal.addEventListener('click', () => {
   socket.emit('hostReDealRound', { roomCode: currentRoomCode });
 });
 
+const btnHostAbortToWaiting = document.getElementById('btnHostAbortToWaiting');
+if (btnHostAbortToWaiting) {
+  btnHostAbortToWaiting.addEventListener('click', () => {
+    socket.emit('abortGameToWaitingRoom', { roomCode: currentRoomCode });
+  });
+}
+
+const btnPauseLeaveGame = document.getElementById('btnPauseLeaveGame');
+if (btnPauseLeaveGame) {
+  btnPauseLeaveGame.addEventListener('click', confirmAndLeaveRoom);
+}
+
 socket.on('lobbyError', ({ message }) => {
   alert(message);
   sessionStorage.removeItem('wizard_last_room');
@@ -579,11 +591,16 @@ socket.on('roundReDealt', ({ message, round, maxRounds: mr, trumpCard, gameState
   renderScoreBoard();
 });
 
-socket.on('gameResetToLobby', ({ message, players }) => {
+socket.on('gameResetToLobby', ({ message, players, roomCode }) => {
   alert(message || 'Zurück zur Lobby!');
   gameOverModal.style.display = 'none';
   pauseOverlay.style.display = 'none';
   tableArea.style.display = 'none';
+
+  if (roomCode) {
+    currentRoomCode = roomCode;
+    sessionStorage.setItem('wizard_last_room', roomCode);
+  }
 
   currentGameState = 'lobby';
   myCurrentHand = [];

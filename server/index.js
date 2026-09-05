@@ -444,6 +444,14 @@ io.on('connection', (socket) => {
     room.isPaused = false;
     room.pausedReason = null;
 
+    // Getrennte Spieler bereinigen, damit der Warteraum nur aktive Spieler enthält
+    room.players = room.players.filter(p => p.connected);
+
+    // Sicherstellen, dass ein verbleibender Spieler Host ist
+    if (!room.players.some(p => p.sessionId === room.hostSessionId) && room.players.length > 0) {
+      room.hostSessionId = room.players[0].sessionId;
+    }
+
     room.players.forEach(p => {
       p.hand = [];
       p.bid = null;
@@ -453,6 +461,7 @@ io.on('connection', (socket) => {
 
     io.to(roomCode).emit('gameResetToLobby', {
       message: message || 'Zurück zur Lobby.',
+      roomCode: roomCode,
       players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId)
     });
   }
@@ -467,6 +476,18 @@ io.on('connection', (socket) => {
     if (!hostPlayer || socket.id !== hostPlayer.socketId) return;
 
     resetRoomToLobby(normalizedCode, 'Spiel wurde vom Host zurückgesetzt.');
+  });
+
+  // Host bricht das pausierte Spiel ab und kehrt in den Warteraum zurück
+  socket.on('abortGameToWaitingRoom', ({ roomCode }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room || room.gameState === 'lobby') return;
+
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) return;
+
+    resetRoomToLobby(normalizedCode, 'Spiel wurde vom Host abgebrochen. Zurück im Warteraum.');
   });
 
   // Host verteilt Runde neu, wenn ein Spieler getrennt ist
@@ -712,9 +733,9 @@ io.on('connection', (socket) => {
       if (player) {
         player.connected = false;
 
-        // Host in Lobby migrieren, falls disconnected
-        if (room.gameState === 'lobby' && room.hostSessionId === player.sessionId) {
-          const nextHost = room.players.find(p => p.connected);
+        // Host migrieren, falls der scheidende Spieler Host war
+        if (room.hostSessionId === player.sessionId) {
+          const nextHost = room.players.find(p => p.connected && p.sessionId !== player.sessionId);
           if (nextHost) room.hostSessionId = nextHost.sessionId;
         }
 
