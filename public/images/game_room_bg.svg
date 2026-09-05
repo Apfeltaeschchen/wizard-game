@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
+  <defs>
+    <!-- Tiefer Außen-zu-Innen-Schatten -->
+    <radialGradient id="vortexGaze" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#020408" stop-opacity="0" />
+      <stop offset="60%" stop-color="#020408" stop-opacity="0.65" />
+      <stop offset="100%" stop-color="#010204" stop-opacity="0.95" />
+    </radialGradient>
+
+    <!-- Warmes Zentrum für den Tischbereich -->
+    <radialGradient id="centerCore" cx="50%" cy="50%" r="48%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.16" />
+      <stop offset="45%" stop-color="#3b82f6" stop-opacity="0.08" />
+      <stop offset="85%" stop-color="#0f172a" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Strahl-Gradienten von den Ecken zur Tischmitte -->
+    <linearGradient id="rayTopLeft" x1="0%" y1="0%" x2="50%" y2="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25" />
+      <stop offset="40%" stop-color="#3b82f6" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="rayTopRight" x1="100%" y1="0%" x2="50%" y2="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25" />
+      <stop offset="40%" stop-color="#3b82f6" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="rayBottomLeft" x1="0%" y1="100%" x2="50%" y2="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.2" />
+      <stop offset="40%" stop-color="#3b82f6" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="rayBottomRight" x1="100%" y1="100%" x2="50%" y2="50%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.2" />
+      <stop offset="40%" stop-color="#3b82f6" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Grundfläche: Dunkles Schieferblau -->
+  <rect width="1920" height="1080" fill="#080d16" />
+
+  <!-- 1. NACH INNEN LAUFENDE PERSPEKTIV-LINIEN -->
+  <g stroke-width="1.5" opacity="0.65">
+    <!-- Hauptdiagonalen aus den 4 Ecken -->
+    <line x1="0" y1="0" x2="960" y2="540" stroke="url(#rayTopLeft)" />
+    <line x1="1920" y1="0" x2="960" y2="540" stroke="url(#rayTopRight)" />
+    <line x1="0" y1="1080" x2="960" y2="540" stroke="url(#rayBottomLeft)" />
+    <line x1="1920" y1="1080" x2="960" y2="540" stroke="url(#rayBottomRight)" />
+
+    <!-- Zusätzliche Führungslinien von den Kanten -->
+    <line x1="480" y1="0" x2="960" y2="540" stroke="url(#rayTopLeft)" stroke-dasharray="8 6" opacity="0.4" />
+    <line x1="1440" y1="0" x2="960" y2="540" stroke="url(#rayTopRight)" stroke-dasharray="8 6" opacity="0.4" />
+    <line x1="0" y1="360" x2="960" y2="540" stroke="url(#rayTopLeft)" stroke-dasharray="6 8" opacity="0.35" />
+    <line x1="1920" y1="360" x2="960" y2="540" stroke="url(#rayTopRight)" stroke-dasharray="6 8" opacity="0.35" />
+    <line x1="0" y1="720" x2="960" y2="540" stroke="url(#rayBottomLeft)" stroke-dasharray="6 8" opacity="0.35" />
+    <line x1="1920" y1="720" x2="960" y2="540" stroke="url(#rayBottomRight)" stroke-dasharray="6 8" opacity="0.35" />
+    <line x1="480" y1="1080" x2="960" y2="540" stroke="url(#rayBottomLeft)" stroke-dasharray="8 6" opacity="0.4" />
+    <line x1="1440" y1="1080" x2="960" y2="540" stroke="url(#rayBottomRight)" stroke-dasharray="8 6" opacity="0.4" />
+  </g>
+
+  <!-- 2. NACH INNEN KONZENTRISCHE RINGE & CHEVRONS (PFEILE) -->
+  <g transform="translate(960, 540)" fill="none" stroke="#64748b">
+    <!-- Äußerster Ring -->
+    <circle r="720" stroke-opacity="0.12" stroke-width="1.5" stroke-dasharray="14 10" />
+    <circle r="600" stroke-opacity="0.18" stroke-width="2" />
+
+    <!-- Mittlerer Ring -->
+    <circle r="480" stroke="#f59e0b" stroke-opacity="0.18" stroke-width="1.5" stroke-dasharray="8 12" />
+    <circle r="380" stroke-opacity="0.15" stroke-width="1" />
+
+    <!-- Innerer Fokus-Ring rund um den Tisch -->
+    <circle r="260" stroke="#f59e0b" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="4 6" />
+
+    <!-- Inward-Pointer (Winkelmarker, die direkt zum Zentrum weisen) -->
+    <g stroke="#f59e0b" stroke-width="2" stroke-opacity="0.4" stroke-linecap="round">
+      <!-- Oben -->
+      <path d="M-18 -520 L0 -500 L18 -520" />
+      <path d="M-12 -420 L0 -405 L12 -420" />
+      <!-- Unten -->
+      <path d="M-18 520 L0 500 L18 520" />
+      <path d="M-12 420 L0 405 L12 420" />
+      <!-- Links -->
+      <path d="M-720 -18 L-700 0 L-720 18" />
+      <path d="M-560 -12 L-545 0 L-560 12" />
+      <!-- Rechts -->
+      <path d="M720 -18 L700 0 L720 18" />
+      <path d="M560 -12 L545 0 L560 12" />
+    </g>
+  </g>
+
+  <!-- 3. ZENTRALES GLOW-FELD -->
+  <circle cx="960" cy="540" r="540" fill="url(#centerCore)" />
+
+  <!-- 4. VIGNETTE-SCHLEIER: DUNKELT DIE RÄNDER AB, HÄLT DAS ZENTRUM FREI -->
+  <rect width="1920" height="1080" fill="url(#vortexGaze)" />
+
+  <!-- 5. SCHWEBENDE LICHTPARTIKEL ENTLANG DER ZUGBAHNEN -->
+  <g fill="#fde68a" opacity="0.32">
+    <circle cx="280" cy="180" r="2.5" />
+    <circle cx="560" cy="330" r="1.8" />
+    <circle cx="760" cy="435" r="1.2" />
+
+    <circle cx="1640" cy="180" r="2.5" />
+    <circle cx="1360" cy="330" r="1.8" />
+    <circle cx="1160" cy="435" r="1.2" />
+
+    <circle cx="280" cy="900" r="2.5" />
+    <circle cx="560" cy="750" r="1.8" />
+    <circle cx="760" cy="645" r="1.2" />
+
+    <circle cx="1640" cy="900" r="2.5" />
+    <circle cx="1360" cy="750" r="1.8" />
+    <circle cx="1160" cy="645" r="1.2" />
+  </g>
+</svg>

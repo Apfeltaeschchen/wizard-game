@@ -191,7 +191,12 @@ io.on('connection', (socket) => {
     if (existingPlayer) {
       existingPlayer.socketId = socket.id;
       existingPlayer.connected = true;
-      if (cleanName) existingPlayer.name = cleanName;
+      if (cleanName && cleanName !== existingPlayer.name) {
+        const nameTaken = room.players.some(p => p.sessionId !== sessionId && p.name.trim().toLowerCase() === cleanName.toLowerCase());
+        if (!nameTaken) {
+          existingPlayer.name = cleanName;
+        }
+      }
       socket.join(normalizedCode);
 
       if (!room.hostSessionId && room.players.length > 0) {
@@ -253,6 +258,13 @@ io.on('connection', (socket) => {
 
     if (room.gameState !== 'lobby') {
       socket.emit('lobbyError', { message: 'Das Spiel läuft bereits.' });
+      return;
+    }
+
+    // Namens-Duplikat-Prüfung: Kein doppelter Name im selben Raum
+    const nameTaken = room.players.some(p => p.name.trim().toLowerCase() === cleanName.toLowerCase());
+    if (nameTaken) {
+      socket.emit('lobbyError', { message: `Der Name "${cleanName}" ist in diesem Raum bereits vergeben. Bitte wähle einen anderen Spielernamen.` });
       return;
     }
 
@@ -597,6 +609,7 @@ io.on('connection', (socket) => {
 
         if (roundFinished) {
           room.gameState = 'round_over';
+          io.to(normalizedCode).emit('trickUpdated', room.currentTrick);
 
           if (!room.scoreHistory) room.scoreHistory = [];
 
@@ -660,6 +673,12 @@ io.on('connection', (socket) => {
 
     const leavingPlayer = room.players.splice(playerIndex, 1)[0];
     socket.leave(normalizedCode);
+
+    if (playerIndex < room.dealerIndex) {
+      room.dealerIndex--;
+    } else if (room.dealerIndex >= room.players.length && room.players.length > 0) {
+      room.dealerIndex = 0;
+    }
 
     // Host migrieren, falls der scheidende Spieler Host war
     if (room.hostSessionId === leavingPlayer.sessionId && room.players.length > 0) {

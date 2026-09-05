@@ -22,7 +22,7 @@
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg-color);
+      background: #080b12 url('/images/game_room_bg.svg') center center / cover no-repeat fixed;
       color: #f8fafc;
       margin: 0;
       padding: 0;
@@ -96,7 +96,6 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: url('/images/lobby_bg.svg') center center / cover no-repeat;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -104,6 +103,14 @@
       padding: 20px;
       z-index: 100;
       overflow-y: auto;
+    }
+
+    #lobby-screen {
+      background: url('/images/lobby_bg.svg') center center / cover no-repeat;
+    }
+
+    #waiting-room-screen {
+      background: url('/images/waiting_bg.svg') center center / cover no-repeat;
     }
 
     .glass-card {
@@ -314,6 +321,13 @@
       white-space: nowrap;
     }
 
+    .score-toggle-text {
+      display: inline;
+    }
+    .score-toggle-icon {
+      display: none;
+    }
+
     /* RECHTER SLIDE-OUT: BLOCK DER WAHRHEIT */
     #score-board-drawer {
       position: fixed;
@@ -509,6 +523,13 @@
       line-height: 1.2;
     }
 
+    .seat-name-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
     .seat-name {
       font-size: 12px;
       font-weight: bold;
@@ -523,21 +544,6 @@
       font-size: 11px;
       color: #cbd5e1;
       margin-top: 2px;
-    }
-
-    /* Verdeckter Kartenrücken-Fächer für Mitspieler */
-    .seat-cards-badge {
-      background: linear-gradient(135deg, #1e3a8a, #172554);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: var(--gold-accent);
-      border-radius: 6px;
-      padding: 3px 6px;
-      font-size: 11px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
     }
 
     /* TISCHMITTE */
@@ -605,30 +611,38 @@
     }
 
     #bid-buttons {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
-      gap: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
       max-height: 180px;
       overflow-y: auto;
-      padding: 4px;
+      padding: 6px;
+      margin: 0 auto;
     }
 
     .bid-btn {
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       color: white;
       border: 1px solid rgba(255,255,255,0.25);
-      font-size: 15px;
-      min-height: 42px;
+      font-size: 16px;
+      font-weight: bold;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
       margin: 0;
-      border-radius: 8px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
+      text-align: center;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     }
     .bid-btn:hover:not(:disabled) {
       background: linear-gradient(135deg, #3b82f6, #2563eb);
       border-color: var(--gold-accent);
-      transform: scale(1.08);
+      transform: scale(1.1);
     }
 
     /* HANDKARTEN-FOKUS */
@@ -781,30 +795,92 @@
       outline: 2px solid var(--gold-accent);
     }
 
-    /* FLUG-ANIMATION */
-    @keyframes flyCardFromSeat {
+    /* AAA 3D-KARTEN-FLUG & FLIP-ANIMATION (HEARTHSTONE-STYLE) */
+    .trick-area-center {
+      perspective: 1200px;
+    }
+
+    .card-3d-wrapper {
+      position: relative;
+      width: var(--card-w);
+      height: var(--card-h);
+      transform-style: preserve-3d;
+      perspective: 1000px;
+      flex-shrink: 0;
+    }
+
+    .card-3d-face {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 8px;
+    }
+
+    .card-3d-front {
+      transform: rotateY(0deg);
+      z-index: 2;
+    }
+
+    .card-3d-back {
+      transform: rotateY(180deg);
+      background: linear-gradient(145deg, #1e1b4b, #0f172a);
+      border: 2px solid #f1c40f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+      z-index: 1;
+    }
+    .card-3d-back::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      right: 3px;
+      bottom: 3px;
+      border: 1px dashed rgba(241, 196, 15, 0.45);
+      border-radius: 5px;
+    }
+    .card-3d-back-symbol {
+      font-size: 24px;
+      color: #f1c40f;
+      text-shadow: 0 0 10px rgba(241, 196, 15, 0.7);
+    }
+
+    @keyframes flyAndFlipCard {
       0% {
-        transform: translate(var(--origin-x, 0px), var(--origin-y, 40px)) scale(0.65) rotate(var(--origin-rot, 15deg));
-        opacity: 0.3;
+        transform: translate3d(var(--origin-x, 0px), var(--origin-y, 40px), 0) scale(0.4) rotateY(180deg) rotate(var(--origin-rot, 15deg));
+        opacity: 0.7;
+      }
+      50% {
+        transform: translate3d(calc(var(--origin-x, 0px) * 0.45), calc(var(--origin-y, 40px) * 0.45), 90px) scale(1.12) rotateY(90deg) rotate(calc(var(--rand-rot, 0deg) * 0.5));
+        opacity: 1;
       }
       100% {
-        transform: translate(0, 0) scale(1) rotate(var(--rand-rot, 0deg));
+        transform: translate3d(0, 0, 0) scale(1) rotateY(0deg) rotate(var(--rand-rot, 0deg));
         opacity: 1;
       }
     }
 
     .card-played-animated {
-      animation: flyCardFromSeat 0.38s cubic-bezier(0.18, 0.89, 0.32, 1.22) forwards;
+      animation: flyAndFlipCard 0.48s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
 
     /* ABRÄUM-ANIMATION */
     @keyframes trickClearingAnim {
       0% { transform: scale(1) translateY(0); opacity: 1; }
-      100% { transform: scale(0.65) translateY(-40px) rotate(15deg); opacity: 0; }
+      100% { transform: scale(0.6) translateY(-40px) rotate(12deg); opacity: 0; }
     }
 
+    .trick-card-item.trick-clearing,
     .card.trick-clearing {
-      animation: trickClearingAnim 0.45s ease-in forwards !important;
+      animation: trickClearingAnim 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      pointer-events: none;
     }
 
     /* PAUSEN-OVERLAY */
@@ -844,21 +920,64 @@
       .poker-table {
         border-width: 6px;
         border-radius: 24px;
-        padding: 10px 6px 6px;
-        min-height: 520px;
+        padding: 8px 4px 4px;
+        min-height: 500px;
       }
       .card-center { font-size: 24px; }
       .card-corner { font-size: 9px; }
-      .top-nav-bar { padding: 6px 10px; }
+      .top-nav-bar { padding: 5px 8px; gap: 6px; }
       .room-round-info { font-size: 11px; }
       #status-message { font-size: 12px; }
+
+      /* Kompakter Block-der-Wahrheit Button auf Mobile */
+      .score-toggle-text { display: none; }
+      .score-toggle-icon { display: inline-block; font-size: 16px; line-height: 1; }
+      .btn-score-toggle { padding: 6px 10px; font-size: 14px; margin: 0; }
+      .btn-leave { padding: 5px 8px; font-size: 11px; }
+
       #opponents-container { gap: 6px; }
-      .player-seat { padding: 4px 6px; gap: 5px; }
+      .player-seat { padding: 4px 6px; gap: 4px; }
       .seat-avatar { width: 26px; height: 26px; font-size: 11px; }
-      .seat-name { font-size: 11px; max-width: 70px; }
+      .seat-name { font-size: 11px; max-width: 65px; }
       .seat-stats { font-size: 10px; }
-      #score-board-drawer { width: 95vw; max-width: 95vw; }
-      #bid-overlay { width: 95%; max-width: 360px; }
+
+      /* Schlanker Block der Wahrheit Drawer auf Mobile */
+      #score-board-drawer {
+        width: 82vw;
+        max-width: 320px;
+      }
+      .drawer-header { padding: 10px 14px; }
+      .drawer-scroll { padding: 8px; }
+      .score-table th, .score-table td {
+        padding: 5px 3px;
+        font-size: 11px;
+      }
+
+      /* Biet-Overlay verdeckt nicht die Trumpfkarte */
+      .trump-section-fixed {
+        z-index: 120 !important;
+      }
+      #bid-overlay {
+        width: 92%;
+        max-width: 320px;
+        top: 54%;
+        z-index: 110;
+      }
+      #bid-box {
+        padding: 10px 12px;
+      }
+      #bid-buttons {
+        max-height: 140px;
+        gap: 6px;
+      }
+      .bid-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        font-size: 14px;
+        border-radius: 8px;
+        padding: 0;
+      }
     }
   </style>
 </head>
@@ -934,7 +1053,10 @@
       </div>
 
       <div class="top-nav-right">
-        <button id="score-drawer-toggle" class="btn-score-toggle">Block der Wahrheit</button>
+        <button id="score-drawer-toggle" class="btn-score-toggle" title="Block der Wahrheit">
+          <span class="score-toggle-text">Block der Wahrheit</span>
+          <span class="score-toggle-icon">📜</span>
+        </button>
       </div>
     </div>
 
@@ -989,7 +1111,9 @@
       <!-- ZENTRIERTES BIET-PANEL IN DER TISCHMITTE -->
       <div id="bid-overlay">
         <div id="bid-box">
-          <div style="margin-bottom: 6px; color: #f1c40f; font-size: 14px; font-weight: bold;">Wie viele Stiche machst du?</div>
+          <div style="color: #f1c40f; font-size: 15px; font-weight: bold; margin-bottom: 10px; text-align: center;">
+            Wie viele Stiche machst du?
+          </div>
           <div id="bid-buttons"></div>
         </div>
       </div>

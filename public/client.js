@@ -103,7 +103,8 @@ if (sessionStorage.getItem('wizard_last_room')) {
 socket.on('connect', () => {
   const savedRoom = sessionStorage.getItem('wizard_last_room');
   const savedName = sessionStorage.getItem('wizard_last_name');
-  if (savedRoom && savedName && currentRoomCode) {
+  if (savedRoom && savedName) {
+    currentRoomCode = savedRoom;
     socket.emit('joinRoom', {
       playerName: savedName,
       roomCode: savedRoom,
@@ -266,6 +267,8 @@ btnHostReDeal.addEventListener('click', () => {
 
 socket.on('lobbyError', ({ message }) => {
   alert(message);
+  sessionStorage.removeItem('wizard_last_room');
+  currentRoomCode = '';
   if (createGameBtn) createGameBtn.disabled = false;
   switchScreen('lobby');
 });
@@ -510,14 +513,20 @@ socket.on('trickUpdated', (trickCards) => {
 
 socket.on('trickWinner', ({ winnerName, winnerSessionId }) => {
   statusMessage.innerText = `${escapeHtml(winnerName)} gewinnt den Stich!`;
-  const middleCards = document.querySelectorAll('#trick-container .card');
 
   setTimeout(() => {
-    middleCards.forEach(card => card.classList.add('trick-clearing'));
-  }, 2200);
+    const trickItems = document.querySelectorAll('#trick-container .trick-card-item');
+    trickItems.forEach(item => item.classList.add('trick-clearing'));
+    setTimeout(() => {
+      trickContainer.innerHTML = '';
+    }, 450);
+  }, 1800);
 });
 
 socket.on('roundFinished', ({ isGameOver, scoreHistory, round }) => {
+  currentTrick = [];
+  trickContainer.innerHTML = '';
+
   if (scoreHistory) {
     cachedScoreHistory = scoreHistory;
     renderScoreBoard();
@@ -606,16 +615,15 @@ function renderOpponents() {
 
     const bidText = p.bid !== null ? p.bid : '-';
     const wonText = p.tricksWon !== undefined ? p.tricksWon : 0;
-    const handCount = p.handCount !== undefined ? p.handCount : '-';
 
     seatEl.innerHTML = `
       <div class="seat-avatar ${disconnectedClass}">${initial}</div>
       <div class="seat-details">
-        <div class="seat-name">${escapeHtml(p.name)} ${hostBadge}${dealerBadge}</div>
+        <div class="seat-name-row">
+          <span class="seat-name">${escapeHtml(p.name)}</span>
+          ${hostBadge}${dealerBadge}
+        </div>
         <div class="seat-stats">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>
-      </div>
-      <div class="seat-cards-badge" title="Restkarten auf der Hand">
-        <span>🃏</span> ${handCount}
       </div>
     `;
 
@@ -623,14 +631,15 @@ function renderOpponents() {
   });
 }
 
-// --- FLUG-ANIMATION DER GESPIELTEN KARTEN ---
+// --- AAA 3D-FLUG- & FLIP-ANIMATION DER GESPIELTEN KARTEN ---
 function renderTrickCards(trickCards, animateLast = true) {
   trickContainer.innerHTML = '';
-  const tableRect = tableArea.getBoundingClientRect();
+  const trickContainerRect = trickContainer.getBoundingClientRect();
 
   trickCards.forEach((item, idx) => {
     const isLastCard = (idx === trickCards.length - 1);
     const wrap = document.createElement('div');
+    wrap.classList.add('trick-card-item');
     wrap.style.textAlign = 'center';
 
     const nameLabel = document.createElement('div');
@@ -640,37 +649,49 @@ function renderTrickCards(trickCards, animateLast = true) {
     nameLabel.style.marginBottom = '3px';
     nameLabel.style.textShadow = '0 1px 3px rgba(0,0,0,0.8)';
 
-    const cardEl = renderCard(item.card);
+    // 3D-Card Wrapper mit Vorder- und Rückseite
+    const cardWrapper = document.createElement('div');
+    cardWrapper.classList.add('card-3d-wrapper');
+
+    const frontFace = renderCard(item.card);
+    frontFace.classList.add('card-3d-face', 'card-3d-front');
+
+    const backFace = document.createElement('div');
+    backFace.classList.add('card-3d-face', 'card-3d-back');
+    backFace.innerHTML = '<span class="card-3d-back-symbol">✦</span>';
+
+    cardWrapper.appendChild(frontFace);
+    cardWrapper.appendChild(backFace);
 
     const rot = ((idx % 4) - 1.5) * 6;
-    cardEl.style.setProperty('--rand-rot', `${rot}deg`);
+    cardWrapper.style.setProperty('--rand-rot', `${rot}deg`);
 
     if (animateLast && isLastCard) {
-      cardEl.classList.add('card-played-animated');
+      cardWrapper.classList.add('card-played-animated');
 
       let originX = 0;
-      let originY = 60;
+      let originY = 80;
 
       if (item.playerSessionId === mySessionId) {
         originX = 0;
-        originY = 120;
+        originY = 160;
       } else {
         const seatEl = document.getElementById(`seat-${item.playerSessionId}`);
-        if (seatEl) {
+        if (seatEl && trickContainerRect.width > 0) {
           const seatRect = seatEl.getBoundingClientRect();
-          originX = (seatRect.left + seatRect.width / 2) - (tableRect.left + tableRect.width / 2);
-          originY = (seatRect.top + seatRect.height / 2) - (tableRect.top + tableRect.height / 2);
+          originX = (seatRect.left + seatRect.width / 2) - (trickContainerRect.left + trickContainerRect.width / 2);
+          originY = (seatRect.top + seatRect.height / 2) - (trickContainerRect.top + trickContainerRect.height / 2);
         }
       }
 
-      cardEl.style.setProperty('--origin-x', `${originX}px`);
-      cardEl.style.setProperty('--origin-y', `${originY}px`);
+      cardWrapper.style.setProperty('--origin-x', `${originX}px`);
+      cardWrapper.style.setProperty('--origin-y', `${originY}px`);
     } else {
-      cardEl.style.transform = `rotate(${rot}deg)`;
+      cardWrapper.style.transform = `rotate(${rot}deg)`;
     }
 
     wrap.appendChild(nameLabel);
-    wrap.appendChild(cardEl);
+    wrap.appendChild(cardWrapper);
     trickContainer.appendChild(wrap);
   });
 }
@@ -683,6 +704,8 @@ function renderTrumpCard(trumpCard) {
   wrap.style.display = 'flex';
   wrap.style.flexDirection = 'column';
   wrap.style.alignItems = 'center';
+
+  const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
 
   if (!trumpCard) {
     const emptyCard = document.createElement('div');
@@ -711,8 +734,6 @@ function renderTrumpCard(trumpCard) {
   subText.style.fontWeight = 'bold';
   subText.style.fontSize = '11px';
   subText.style.marginTop = '4px';
-
-  const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
 
   if (trumpCard.type === 'wizard') {
     if (trumpCard.chosenSuit) {
