@@ -50,15 +50,15 @@ async function run() {
     p3Client.emit('joinRoom', { playerName: 'Waldlaeufer', roomCode, sessionId: p3SessionId });
     await wait(300);
 
-    // 4. Spiel starten (Runde 1) -> 22 Runden bei 3 Spielern
+    // 4. Spiel starten (Runde 1) -> 23 Runden bei 3 Spielern
     let startedMaxRounds = null;
     p1Client.on('gameStarted', (data) => {
       startedMaxRounds = data.maxRounds;
     });
     p1Client.emit('startGame', { roomCode });
     await wait(400);
-    assert.strictEqual(startedMaxRounds, 22, '3 Spieler haben 22 Runden bei 66 Karten');
-    console.log('✓ Spiel gestartet mit 22 Runden');
+    assert.strictEqual(startedMaxRounds, 23, '3 Spieler haben 23 Runden bei 69 Karten');
+    console.log('✓ Spiel gestartet mit 23 Runden');
 
     // 5. Test von submitCloudBidAdjustment
     // Wir simulieren ein cloudBidAdjustmentPrompt Event

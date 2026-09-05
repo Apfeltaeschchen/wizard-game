@@ -446,19 +446,19 @@
       white-space: nowrap;
     }
 
-    .score-toggle-text {
+    .score-toggle-text, .rules-toggle-text {
       display: inline;
     }
-    .score-toggle-icon {
+    .score-toggle-icon, .rules-toggle-icon {
       display: none;
     }
 
-    /* RECHTER SLIDE-OUT: "BUCH DER WAHRHEIT" */
-    #score-board-drawer {
+    /* RECHTER SLIDE-OUT: "BUCH DER WAHRHEIT" & "GRIMOIRE DER REGELN" */
+    #score-board-drawer, #rules-drawer {
       position: fixed;
       top: 0;
       right: 0;
-      width: 440px;
+      width: 460px;
       max-width: 95vw;
       height: 100vh;
       background: linear-gradient(180deg, #1b0f06 0%, #ecd9b3 5%, #ecd9b3 95%, #1b0f06 100%);
@@ -473,7 +473,68 @@
       font-family: var(--font-text);
     }
 
-    #score-board-drawer.open { transform: translateX(0); }
+    #score-board-drawer.open, #rules-drawer.open { transform: translateX(0); }
+
+    .rules-card-entry {
+      background: rgba(44, 25, 12, 0.08);
+      border: 1px solid rgba(120, 53, 15, 0.3);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .rules-card-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 52px;
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-medieval);
+      font-weight: bold;
+      border: 1.5px solid;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .rules-card-title {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: 700;
+      color: #3f1a04;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .rules-card-badge {
+      font-size: 9.5px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: var(--font-subheading);
+      font-weight: bold;
+    }
+    .rules-card-desc {
+      font-size: 11.5px;
+      line-height: 1.4;
+      color: #2e1a0b;
+      margin: 0;
+    }
+    .rules-section-title {
+      font-family: var(--font-heading);
+      color: #4a2810;
+      font-size: 14px;
+      border-bottom: 2px dashed #996515;
+      padding-bottom: 4px;
+      margin: 16px 0 10px 0;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
     .drawer-header {
       background: #1e1107;
@@ -846,11 +907,105 @@
 
     #hand-container.swipeable {
       overflow-x: auto;
-      justify-content: flex-start;
+      justify-content: center;
       scroll-snap-type: x mandatory;
-      padding-left: 20px;
-      padding-right: 20px;
+      padding-left: 12px;
+      padding-right: 12px;
       -webkit-overflow-scrolling: touch;
+    }
+
+    /* BLIND-KARTE (STIRN-WIZARD RUNDE 1) */
+    .card-blind {
+      background: radial-gradient(circle at 50% 35%, #2c1810 0%, #150904 70%, #0a0402 100%) !important;
+      color: var(--gold-bright) !important;
+      border-color: var(--gold-bright) !important;
+      box-shadow: 0 0 16px rgba(240, 195, 85, 0.4), 0 6px 20px rgba(0, 0, 0, 0.9) !important;
+    }
+    .card-blind::before {
+      background: radial-gradient(ellipse at center, rgba(240, 195, 85, 0.2) 0%, transparent 75%) !important;
+    }
+    .card-blind::after {
+      border-color: var(--gold-antique) !important;
+      outline-color: #3f2210 !important;
+    }
+    .card-blind .card-val {
+      color: var(--gold-bright);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      font-size: 16px;
+    }
+    .card-blind .card-center-val {
+      color: var(--gold-bright);
+      font-size: 32px;
+      text-shadow: 0 0 12px rgba(240, 195, 85, 0.7);
+    }
+    .card-blind .card-name-label {
+      color: #ebd7af;
+      font-size: 9px;
+    }
+
+    /* MINI-KARTEN AUF DEN STIRNEN / SITZEN DER MITSPIELER */
+    .forehead-badge {
+      position: absolute;
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+      background: rgba(18, 9, 4, 0.95);
+      border: 1.5px solid var(--gold-antique);
+      border-radius: 6px;
+      padding: 3px 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 10px rgba(240, 195, 85, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      animation: foreheadPulse 2s ease-in-out infinite alternate;
+    }
+    @keyframes foreheadPulse {
+      0% { transform: translateX(-50%) translateY(0); box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 8px rgba(240, 195, 85, 0.3); }
+      100% { transform: translateX(-50%) translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.95), 0 0 14px rgba(240, 195, 85, 0.6); }
+    }
+    .forehead-badge-label {
+      font-size: 9px;
+      font-family: var(--font-subheading);
+      color: #d6be90;
+      font-weight: bold;
+    }
+    .forehead-card-pill {
+      font-family: var(--font-heading);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid;
+    }
+
+    /* HUD: EIGENE STICHE & ANSAGE */
+    .my-stats-hud {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 12, 6, 0.92);
+      border: 1.5px solid var(--gold-antique);
+      border-radius: 20px;
+      padding: 3px 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.7);
+      font-family: var(--font-heading);
+    }
+    .my-stats-hud .hud-label {
+      font-size: 10.5px;
+      color: #d6be90;
+      letter-spacing: 0.4px;
+    }
+    .my-stats-hud .hud-value {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--gold-bright);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    }
+    .my-stats-hud .hud-divider {
+      color: rgba(240, 195, 85, 0.4);
+      font-size: 11px;
     }
 
     /* KARTENDESIGN: PERGAMENT & HERALDIK */
@@ -951,6 +1106,24 @@
     .crest-svg {
       width: 100%;
       height: 100%;
+    }
+
+    /* DEZENTE KURSIVE KARTENNAMEN UNTER DEM ZENTRUM */
+    .card-name-label {
+      font-family: var(--font-medieval), 'Cinzel', Georgia, serif;
+      font-style: italic;
+      font-size: 9.5px;
+      letter-spacing: 0.3px;
+      text-align: center;
+      margin-top: 1px;
+      line-height: 1.1;
+      pointer-events: none;
+      opacity: 0.92;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+      white-space: nowrap;
+    }
+    .card-name-label em {
+      font-style: italic;
     }
 
     /* HERALDISCHE FARBEN (SATTE, UNVERWECHSELBARE JUWELENTÖNE - MATT & KONTRASTREICH) */
@@ -1167,6 +1340,136 @@
       text-shadow: 0 2px 4px rgba(0,0,0,0.9);
     }
 
+    /* SONDERKARTE: WERWOLF (30 JAHRE EDITION) */
+    .card-werewolf {
+      background: radial-gradient(circle at 50% 35%, #292524 0%, #1c1917 65%, #0c0a09 100%) !important;
+      color: #fef08a !important;
+      border-color: #f59e0b !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.9);
+    }
+    .card-werewolf::before {
+      background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.2) 0%, transparent 80%) !important;
+    }
+    .card-werewolf::after {
+      border-color: #f59e0b !important;
+      outline-color: #78350f !important;
+    }
+    .card-werewolf .card-val {
+      color: #fef08a;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-werewolf .card-center-val {
+      color: #fde047;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* DEDIZIERTE SONDERKARTE: WERWOLF-TRUMPF (LIEGT IM TRUMPFFELD WENN WERWOLF DIE FARBE WÄHLT) */
+    .card-werewolf-trump {
+      background: radial-gradient(circle at 50% 35%, #292524 0%, #1c1917 65%, #0c0a09 100%) !important;
+      color: #fef08a !important;
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.4), 0 6px 18px rgba(0, 0, 0, 0.9);
+    }
+    .card-werewolf-trump::before {
+      background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.25) 0%, transparent 80%) !important;
+    }
+    .card-werewolf-trump::after {
+      border-color: #f59e0b !important;
+      outline-color: #78350f !important;
+    }
+    .card-werewolf-trump .card-val {
+      color: #fef08a;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-werewolf-trump .card-center-val {
+      color: #fde047;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+    .card-werewolf-trump-red {
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.5), 0 6px 18px rgba(0, 0, 0, 0.9) !important;
+    }
+    .card-werewolf-trump-red::after {
+      border-color: #ef4444 !important;
+    }
+    .card-werewolf-trump-blue {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.5), 0 6px 18px rgba(0, 0, 0, 0.9) !important;
+    }
+    .card-werewolf-trump-blue::after {
+      border-color: #38bdf8 !important;
+    }
+    .card-werewolf-trump-green {
+      border-color: #4ade80 !important;
+      box-shadow: 0 0 18px rgba(74, 222, 128, 0.5), 0 6px 18px rgba(0, 0, 0, 0.9) !important;
+    }
+    .card-werewolf-trump-green::after {
+      border-color: #4ade80 !important;
+    }
+    .card-werewolf-trump-yellow {
+      border-color: #facc15 !important;
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.5), 0 6px 18px rgba(0, 0, 0, 0.9) !important;
+    }
+    .card-werewolf-trump-yellow::after {
+      border-color: #facc15 !important;
+    }
+
+    /* SONDERKARTE: HEXE (30 JAHRE EDITION) */
+    .card-witch {
+      background: radial-gradient(circle at 50% 35%, #2e1065 0%, #1e1b4b 65%, #09090b 100%) !important;
+      color: #d8b4fe !important;
+      border-color: #a855f7 !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.9);
+    }
+    .card-witch::before {
+      background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.25) 0%, transparent 80%) !important;
+    }
+    .card-witch::after {
+      border-color: #a855f7 !important;
+      outline-color: #581c87 !important;
+    }
+    .card-witch .card-val {
+      color: #d8b4fe;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-witch .card-center-val {
+      color: #c084fc;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* SONDERKARTE: JONGLEUR (30 JAHRE EDITION - TÜRKIS / BRONZE) */
+    .card-juggler {
+      background: radial-gradient(circle at 50% 35%, #0891b2 0%, #0e7490 60%, #083344 100%) !important;
+      color: #cffafe !important;
+      border-color: #06b6d4 !important;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.88);
+    }
+    .card-juggler::before {
+      background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.28) 0%, transparent 80%) !important;
+    }
+    .card-juggler::after {
+      border-color: #d97706 !important;
+      outline-color: #083344 !important;
+    }
+    .card-juggler .card-val {
+      color: #fef08a;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+    }
+    .card-juggler .card-center-val {
+      color: #fef08a;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    }
+
+    /* WECHSEL-ANIMATIONEN */
+    @keyframes werewolfCardSlide {
+      0% { transform: scale(0.6) rotateY(180deg) translateY(60px); opacity: 0; }
+      50% { transform: scale(1.1) rotateY(90deg) translateY(-10px); opacity: 0.8; }
+      100% { transform: scale(1) rotateY(0deg) translateY(0); opacity: 1; }
+    }
+    .werewolf-swap-anim {
+      animation: werewolfCardSlide 0.85s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+    }
+
     /* HOVER-LIFT (OHNE GLOW) */
     .card-playable {
       cursor: pointer !important;
@@ -1295,6 +1598,15 @@
       box-shadow: 0 12px 36px rgba(0,0,0,0.95);
     }
 
+    /* DESKTOP TRUMPF- & SONDERKARTEN-BUTTONS-GRID */
+    .trump-buttons-grid,
+    .suit-buttons-grid {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     /* RESPONSIVE DESIGN (MOBILE-FIRST) */
     @media (max-width: 768px) {
       :root {
@@ -1305,19 +1617,14 @@
       .fullscreen-screen {
         padding: 12px 8px;
       }
-      .glass-card {
-        padding: 18px 12px;
-        max-width: 96vw;
+      .fullscreen-card {
+        padding: 18px 14px;
       }
-      .room-code-badge-container {
-        padding: 8px 10px;
-        margin: 8px auto 12px;
-        max-width: 100%;
+      .fullscreen-title {
+        font-size: 20px;
+        letter-spacing: 1px;
       }
-      .room-code-row {
-        gap: 6px;
-      }
-      .room-code-digits {
+      .room-code-display {
         font-size: 20px;
         letter-spacing: 2px;
       }
@@ -1341,8 +1648,8 @@
       .room-round-info { font-size: 11px; }
       #status-message { display: none !important; }
 
-      .score-toggle-text { display: none; }
-      .score-toggle-icon { display: inline-block; font-size: 16px; line-height: 1; }
+      .score-toggle-text, .rules-toggle-text { display: none; }
+      .score-toggle-icon, .rules-toggle-icon { display: inline-block; font-size: 16px; line-height: 1; }
       .btn-score-toggle { padding: 6px 10px; font-size: 14px; margin: 0; }
       .btn-leave { padding: 5px 8px; font-size: 11px; }
 
@@ -1352,15 +1659,44 @@
       .seat-name { font-size: 11px; max-width: 65px; }
       .seat-stats { font-size: 10px; }
 
-      #score-board-drawer {
-        width: 84vw;
-        max-width: 320px;
+      #score-board-drawer, #rules-drawer {
+        width: 86vw;
+        max-width: 330px;
       }
       .drawer-header { padding: 10px 14px; }
       .drawer-scroll { padding: 8px; }
       .score-table th, .score-table td {
         padding: 5px 3px;
         font-size: 11px;
+      }
+      .card-name-label {
+        font-size: 8px !important;
+        letter-spacing: 0px !important;
+      }
+
+      /* VERSCHLANKTES MOBILE TRUMPFWAL- & SONDERKARTEN-OVERLAY MIT 2x2 RASTER */
+      #trump-selection-area,
+      #juggler-modal,
+      #cloud-suit-modal {
+        max-width: 240px !important;
+        width: 85% !important;
+        padding: 10px 12px !important;
+      }
+      .trump-buttons-grid,
+      .suit-buttons-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      .trump-buttons-grid .trump-btn,
+      .suit-buttons-grid .trump-btn,
+      .suit-buttons-grid .juggler-suit-btn,
+      .suit-buttons-grid .cloud-suit-btn {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 8px 4px !important;
+        font-size: 0.85rem !important;
       }
 
       .trump-section-fixed {
@@ -1440,12 +1776,12 @@
         <div style="font-size: 11px; color: #d6be90; font-family: var(--font-subheading); letter-spacing: 0.8px; margin-bottom: 5px;">SPIEL-EDITION</div>
         <div id="host-edition-controls" style="display: none;">
           <select id="editionSelect" style="width: 100%; padding: 7px 10px; background: #1a1009; color: var(--gold-bright); border: 1px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; cursor: pointer; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);">
-            <option value="classic">Standard Wizard (60 Karten)</option>
+            <option value="classic">Standard Wizard</option>
             <option value="anniversary_30">30 Jahre Jubiläumsedition</option>
           </select>
         </div>
         <div id="guest-edition-display" style="display: block; font-size: 13px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-subheading);">
-          Standard Wizard (60 Karten)
+          Standard Wizard
         </div>
       </div>
 
@@ -1478,7 +1814,11 @@
         <div id="status-message">Warte auf Spielstart...</div>
       </div>
 
-      <div class="top-nav-right">
+      <div class="top-nav-right" style="display: flex; gap: 6px; align-items: center;">
+        <button id="rules-drawer-toggle" class="btn-score-toggle" title="Grimoire der Regeln &amp; Karten">
+          <span class="rules-toggle-text">Regelwerk</span>
+          <span class="rules-toggle-icon">📜</span>
+        </button>
         <button id="score-drawer-toggle" class="btn-score-toggle" title="Buch der Wahrheit">
           <span class="score-toggle-text">Buch der Wahrheit</span>
           <span class="score-toggle-icon">📖</span>
@@ -1497,6 +1837,159 @@
           <thead id="score-table-head"></thead>
           <tbody id="score-table-body"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- SLIDE-OUT RECHTS (REGELWERK & KARTENLEXIKON) -->
+    <div id="rules-drawer">
+      <div class="drawer-header">
+        <h3 style="margin: 0; color: var(--gold-bright); font-size: 16px;">📜 Grimoire der Regeln &amp; Karten</h3>
+        <button id="rules-drawer-close" class="drawer-close-btn">&times;</button>
+      </div>
+      <div class="drawer-scroll">
+        <div class="rules-section-title">🔮 Sonderkarten (30 Jahre Jubiläumsedition)</div>
+        
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #7f1d1d, #450a0a); border-color: #f59e0b; color: #fef08a;">
+            <span>D</span>
+            <span style="font-size: 8px;">15</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Drache <span class="rules-card-badge" style="background: #7f1d1d; color: #fef08a; border: 1px solid #f59e0b;">Wert 15</span></div>
+            <p class="rules-card-desc">Die stärkste Karte im Spiel! Schlägt selbst Zauberer. Wird er als Trumpf aufgedeckt, wählt der Geber die Trumpffarbe.</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #0284c7, #082f49); border-color: #38bdf8; color: #e0f2fe;">
+            <span>F</span>
+            <span style="font-size: 8px;">-1</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Fee <span class="rules-card-badge" style="background: #0369a1; color: #e0f2fe; border: 1px solid #38bdf8;">Wert -1</span></div>
+            <p class="rules-card-desc">Unterliegt regulär allen Karten. <b>Drachentöterin</b>: Liegen Drache und Fee im selben Stich, gewinnt immer die Fee (selbst wenn Zauberer im Stich liegen!). Als Trumpf aufgedeckt: kein Trumpf.</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #ea580c, #431407); border-color: #fb923c; color: #fdba74;">
+            <span>B</span>
+            <span style="font-size: 8px;">💥</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Bombe <span class="rules-card-badge" style="background: #c2410c; color: #fdba74; border: 1px solid #fb923c;">Neutralisator</span></div>
+            <p class="rules-card-desc">Neutralisiert den aktuellen Stich vollständig! Niemand erhält den Stich oder Punkte. Die höchste reguläre Karte bestimmt den nächsten Aufspieler. Als Trumpf aufgedeckt: kein Trumpf.</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #059669, #022c22); border-color: #34d399; color: #a7f3d0;">
+            <span>G</span>
+            <span style="font-size: 8px;">Z/N</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Gestaltenwandler <span class="rules-card-badge" style="background: #047857; color: #a7f3d0; border: 1px solid #34d399;">Z oder N</span></div>
+            <p class="rules-card-desc">Wähle beim Ausspielen, ob er als Zauberer (Z, Wert 14) oder als Narr (N, Wert 0) gespielt wird. Als Trumpf aufgedeckt: Geber wählt die Trumpffarbe.</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #831843, #4c0519); border-color: #f43f5e; color: #fecdd3;">
+            <span>V</span>
+            <span style="font-size: 8px;">Kopie</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Vampir <span class="rules-card-badge" style="background: #9f1239; color: #fecdd3; border: 1px solid #f43f5e;">Mimikry</span></div>
+            <p class="rules-card-desc">Kopiert die aufgedeckte Trumpfkarte 1:1 mit allen Werten, Farben und Fähigkeiten! Liegt kein Trumpf aus, agiert der Vampir wie ein Narr (Wert 0).</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #475569, #0f172a); border-color: #94a3b8; color: #f1f5f9;">
+            <span style="font-size: 11px;">9¾</span>
+            <span style="font-size: 8px;">☁️</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Wolke <span class="rules-card-badge" style="background: #334155; color: #f1f5f9; border: 1px solid #94a3b8;">Wert 9 ¾</span></div>
+            <p class="rules-card-desc">Beim Ausspielen wählst du ihre Farbe. Wert 9,75 (höher als 9, schwächer als 10). <b>Fluch</b>: Wer die Wolke ausspielt, muss nach Beenden des Stichs seine Vorhersage um genau +1 oder -1 korrigieren!</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #292524, #0c0a09); border-color: #f59e0b; color: #fef08a;">
+            <span>W</span>
+            <span style="font-size: 8px;">🐺</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Werwolf <span class="rules-card-badge" style="background: #78350f; color: #fef08a; border: 1px solid #f59e0b;">Trumpfmeister</span></div>
+            <p class="rules-card-desc">Hältst du den Werwolf auf der Hand, nimmst du die aufgedeckte Trumpfkarte auf und <b>bestimmst selbst die neue Trumpffarbe!</b> Im Trumpffeld leuchtet die Werwolf-Trumpfkarte. Im Stich gespielt zählt er wie ein Narr (Wert 0).</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #2e1065, #09090b); border-color: #a855f7; color: #d8b4fe;">
+            <span>H</span>
+            <span style="font-size: 8px;">🧙‍♀️</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Hexe <span class="rules-card-badge" style="background: #581c87; color: #d8b4fe; border: 1px solid #a855f7;">Stichtausch</span></div>
+            <p class="rules-card-desc">Zählt im Stich wie ein Narr (Wert 0). <b>Stichtausch nach Stich-Ende:</b> Sobald der Stich beendet und ausgewertet ist, nimmst du 1 beliebige Karte (außer der Hexe) aus dem Stich auf die Hand und legst 1 Handkarte in den Stich! Der bereits ermittelte Stichgewinner bleibt unverändert.</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #0891b2, #083344); border-color: #06b6d4; color: #cffafe;">
+            <span style="font-size: 11px;">7½</span>
+            <span style="font-size: 8px;">🤹</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Jongleur <span class="rules-card-badge" style="background: #0e7490; color: #cffafe; border: 1px solid #06b6d4;">Wert 7 ½</span></div>
+            <p class="rules-card-desc">Beim Ausspielen wählst du die Farbe (Wert 7,5). Nach Ende des Stichs müssen <b>alle Spieler geheim eine Handkarte wählen</b> und verdeckt an ihren linken Nachbarn weitergeben!</p>
+          </div>
+        </div>
+
+        <div class="rules-section-title">👑 Klassische Karten</div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #3b0764, #1e0338); border-color: #a855f7; color: #fef08a;">
+            <span>Z</span>
+            <span style="font-size: 8px;">14</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Zauberer <span class="rules-card-badge" style="background: #581c87; color: #fef08a; border: 1px solid #a855f7;">Höchste Karte</span></div>
+            <p class="rules-card-desc">Schlägt alle Farbkarten und Narren. Der erste im Stich gespielte Zauberer gewinnt immer (außer Drache liegt im Stich).</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #334155, #0f172a); border-color: #94a3b8; color: #f8fafc;">
+            <span>N</span>
+            <span style="font-size: 8px;">0</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Narr <span class="rules-card-badge" style="background: #475569; color: #f8fafc; border: 1px solid #94a3b8;">Wert 0</span></div>
+            <p class="rules-card-desc">Verliert immer gegen jede andere Karte. Gibt keine Bedienfarbe vor. Besteht der Stich nur aus Narren, gewinnt der erste Narr.</p>
+          </div>
+        </div>
+
+        <div class="rules-card-entry">
+          <div class="rules-card-icon" style="background: radial-gradient(circle, #b91c1c, #4c080a); border-color: #fca5a5; color: #fff;">
+            <span>1-13</span>
+            <span style="font-size: 8px;">Farbe</span>
+          </div>
+          <div>
+            <div class="rules-card-title">Farbkarten (Rot, Blau, Grün, Gelb)</div>
+            <p class="rules-card-desc">Werte von 1 bis 13. Trumpffarbe sticht alle anderen Farben; ohne Trumpf gewinnt die höchste Karte der zuerst angespielten Farbe.</p>
+          </div>
+        </div>
+
+        <div class="rules-section-title">⚖️ Grundregeln</div>
+
+        <div style="background: rgba(44, 25, 12, 0.08); border: 1px solid rgba(120, 53, 15, 0.3); border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.5; color: #2e1a0b;">
+          <p style="margin: 0 0 8px;"><b>Bedienpflicht (Farbzwang):</b> Liegt eine Farbkarte an, muss jeder nachfolgende Spieler die Farbe bedienen, sofern er Karten dieser Farbe besitzt. Sonderkarten (Zauberer, Narr, Hexe, Drache, etc.) dürfen jederzeit straffrei abgeworfen werden.</p>
+          <p style="margin: 0 0 8px;"><b>Geber-Regel (+/- 1):</b> In jeder Runde darf die Summe aller Vorhersagen (Tipps) nicht exakt der Rundenzahl entsprechen. Der Geber als letzter Tipper darf daher die Summe nicht glatt aufgehen lassen.</p>
+          <p style="margin: 0;"><b>Punkteberechnung:</b> Exakt getroffener Tipp = <b>+20 Punkte</b> plus <b>+10 Punkte pro Stich</b>. Jede Abweichung nach oben oder unten = <b>-10 Punkte pro Stich</b> Differenz.</p>
+        </div>
       </div>
     </div>
     <div id="drawer-backdrop"></div>
@@ -1525,8 +2018,8 @@
 
       <!-- GEBER TRUMPFWAL -->
       <div id="trump-selection-area" style="display: none; margin: 4px auto; padding: 12px 16px; background: rgba(20, 11, 6, 0.95); border-radius: 12px; border: 2px solid var(--gold-bright); z-index: 80; max-width: 380px; box-shadow: 0 8px 30px rgba(0,0,0,0.9);">
-        <h4 style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 13px;">Du bist der Geber! Wähle die Trumpffarbe:</h4>
-        <div style="display: flex; justify-content: center; gap: 6px;">
+        <h4 id="trump-selection-title" style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 13px;">Du bist der Geber! Wähle die Trumpffarbe:</h4>
+        <div class="trump-buttons-grid">
           <button class="trump-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border-color: #fca5a5;" data-suit="red">Rot</button>
           <button class="trump-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border-color: #bae6fd;" data-suit="blue">Blau</button>
           <button class="trump-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border-color: #86efac;" data-suit="green">Grün</button>
@@ -1552,13 +2045,26 @@
       <div id="cloud-suit-modal" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 14px 18px; background: rgba(14, 9, 5, 0.96); border-radius: 12px; border: 2px solid var(--gold-bright); z-index: 130; max-width: 360px; width: 90%; text-align: center; box-shadow: 0 10px 32px rgba(0,0,0,0.95);">
         <h4 style="margin: 0 0 6px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 14px;">Wolke (Wert 9 ¾) Farbe wählen:</h4>
         <p style="font-size: 11px; color: #d6be90; margin: 0 0 10px; font-style: italic;">Die Wolke nimmt diese Farbe für den Stich an.</p>
-        <div style="display: flex; justify-content: center; gap: 6px; flex-wrap: wrap;">
+        <div class="suit-buttons-grid" style="margin-bottom: 6px;">
           <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border-color: #fca5a5;" data-suit="red">Rot</button>
           <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border-color: #bae6fd;" data-suit="blue">Blau</button>
           <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border-color: #86efac;" data-suit="green">Grün</button>
           <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border-color: #fef08a; font-weight: 900;" data-suit="yellow">Gelb</button>
         </div>
         <button id="btnCloudCancel" type="button" class="btn-leave" style="margin-top: 10px; padding: 6px 14px;">Abbrechen</button>
+      </div>
+
+      <!-- JONGLEUR FARBWAHL -->
+      <div id="juggler-modal" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 14px 18px; background: rgba(14, 9, 5, 0.96); border-radius: 12px; border: 2px solid #06b6d4; z-index: 130; max-width: 360px; width: 90%; text-align: center; box-shadow: 0 10px 32px rgba(0,0,0,0.95);">
+        <h4 style="margin: 0 0 6px; color: #cffafe; font-family: var(--font-heading); font-size: 14px;">Jongleur (Wert 7 ½) Farbe wählen:</h4>
+        <p style="font-size: 11px; color: #d6be90; margin: 0 0 10px; font-style: italic;">Der Jongleur nimmt diese Farbe für den Stich an.</p>
+        <div class="suit-buttons-grid" style="margin-bottom: 6px;">
+          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border: 1.5px solid #fca5a5; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="red">Rot</button>
+          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border: 1.5px solid #bae6fd; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="blue">Blau</button>
+          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border: 1.5px solid #86efac; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="green">Grün</button>
+          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border: 1.5px solid #fef08a; padding: 8px 14px; border-radius: 6px; font-weight: 900; cursor: pointer;" data-suit="yellow">Gelb</button>
+        </div>
+        <button id="btnJugglerCancel" type="button" class="btn-leave" style="margin-top: 10px; padding: 6px 14px;">Abbrechen</button>
       </div>
 
       <!-- ASTROLABIUM BIET-PANEL IN DER TISCHMITTE -->
@@ -1573,7 +2079,16 @@
 
       <!-- DEINE HANDKARTEN -->
       <div class="hand-section" id="my-hand-section">
-        <div style="font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-antique); margin-bottom: 2px;">Deine Handkarten</div>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 4px; flex-wrap: wrap;">
+          <div style="font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-antique);">Deine Handkarten</div>
+          <div class="my-stats-hud" id="my-stats-hud">
+            <span class="hud-label">Deine Vorhersage:</span>
+            <span class="hud-value hud-bid" id="my-hud-bid">-</span>
+            <span class="hud-divider">|</span>
+            <span class="hud-label">Erzielte Stiche:</span>
+            <span class="hud-value hud-tricks" id="my-hud-tricks">0</span>
+          </div>
+        </div>
         <div id="hand-container"></div>
       </div>
     </div>
@@ -1594,13 +2109,13 @@
     </div>
   </div>
 
-  <!-- WOLKE TIPP-ANPASSUNG AM RUNDENENDE -->
+  <!-- WOLKE TIPP-ANPASSUNG SOFORT NACH DEM STICH -->
   <div id="cloud-bid-adjustment-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.9); z-index: 1500; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
     <div style="background: linear-gradient(180deg, #24140b 0%, #120904 100%); border: 2px solid var(--gold-bright); border-radius: 14px; padding: 22px; max-width: 380px; width: 90%; color: #f7eedb; text-align: center; box-shadow: 0 12px 36px rgba(0,0,0,0.95);">
       <div style="font-size: 32px; margin-bottom: 6px;">☁️⚡</div>
-      <h3 style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 18px;">Wolken-Prophezeiung!</h3>
+      <h3 style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 18px;">Wolken-Fluch!</h3>
       <p style="color: #ebd7af; font-size: 13px; margin: 0 0 14px;">
-        Du hast die Wolke gewonnen! Du <b>musst</b> deine Stichvorhersage für diese Runde um <b>+1</b> oder <b>-1</b> anpassen:
+        Du hast die Wolke ausgespielt! Du <b>musst</b> deine Stichvorhersage jetzt zwingend um <b>+1</b> oder <b>-1</b> anpassen:
       </p>
       <div style="display: flex; justify-content: center; gap: 10px;">
         <button id="btnCloudMinus" type="button" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border: 1.5px solid #94a3b8; font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; flex: 1;">
@@ -1610,6 +2125,92 @@
           +1
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- WERWOLF KARTENTAUSCH POPUP & ANIMATION -->
+  <div id="werewolf-info-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.88); z-index: 1400; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div style="background: linear-gradient(180deg, #24140b 0%, #120904 100%); border: 2px solid var(--gold-bright); border-radius: 14px; padding: 22px; max-width: 440px; width: 90%; color: #f7eedb; text-align: center; box-shadow: 0 12px 36px rgba(0,0,0,0.95);">
+      <div style="font-size: 32px; margin-bottom: 6px;">🐺⚡</div>
+      <h3 id="werewolf-info-title" style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 18px;">Werwolf-Tausch!</h3>
+      <p id="werewolf-info-desc" style="color: #ebd7af; font-size: 13px; margin: 0 0 14px;"></p>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin: 12px 0;">
+        <div id="werewolf-taken-slot" style="display: flex; flex-direction: column; align-items: center;">
+          <div style="font-size: 10px; font-weight: bold; color: #fca5a5; margin-bottom: 4px;">Auf die Hand genommen:</div>
+          <div id="werewolf-taken-card-container"></div>
+        </div>
+        <div style="font-size: 24px; color: var(--gold-bright);">➔</div>
+        <div id="werewolf-new-slot" style="display: flex; flex-direction: column; align-items: center;">
+          <div style="font-size: 10px; font-weight: bold; color: #86efac; margin-bottom: 4px;">Neuer Trumpf aufgedeckt:</div>
+          <div id="werewolf-new-card-container" class="werewolf-swap-anim"></div>
+        </div>
+      </div>
+      <button id="btnWerewolfInfoClose" type="button" style="background: linear-gradient(180deg, #3d2a13, #1f1408); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 9px 22px; font-size: 13px; border-radius: 8px; cursor: pointer; margin-top: 10px;">Verstanden</button>
+    </div>
+  </div>
+
+  <!-- HEXE TAUSCH-MODAL -->
+  <div id="witch-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.88); z-index: 1400; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div style="background: linear-gradient(180deg, #2e1065 0%, #1e1b4b 100%); border: 2px solid #a855f7; border-radius: 14px; padding: 22px; max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto; color: #f3e8ff; text-align: center; box-shadow: 0 12px 36px rgba(0,0,0,0.95);">
+      <div style="font-size: 32px; margin-bottom: 6px;">🧙‍♀️🔮</div>
+      <h3 style="margin: 0 0 6px; color: #e9d5ff; font-family: var(--font-heading); font-size: 18px;">Hexe: Kartentausch mit dem Stich</h3>
+      <p style="color: #d8b4fe; font-size: 12px; margin: 0 0 12px;">
+        Wähle 1 Karte aus dem beendeten Stich und 1 Karte aus deiner Hand zum Austauschen:
+      </p>
+      <div style="text-align: left; font-size: 11px; font-weight: bold; color: #c084fc; margin-bottom: 4px;">1. Karte aus dem beendeten Stich wählen:</div>
+      <div id="witch-trick-cards" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;"></div>
+      <div style="text-align: left; font-size: 11px; font-weight: bold; color: #c084fc; margin-bottom: 4px;">2. Eigene Handkarte zum Hineinlegen wählen:</div>
+      <div id="witch-hand-cards" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; max-height: 180px; overflow-y: auto; padding: 4px;"></div>
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button id="btnWitchSwapExecute" type="button" disabled style="background: linear-gradient(180deg, #7e22ce, #581c87); color: #f3e8ff; border: 1.5px solid #c084fc; font-weight: bold; padding: 10px 24px; font-size: 13px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;">Tausch vollziehen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEXE SHOWCASE FÜR ALLE MITSPIELER (3.5 SEKUNDEN) -->
+  <div id="witch-swap-showcase" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.9); z-index: 1500; justify-content: center; align-items: center; backdrop-filter: blur(6px);">
+    <div style="background: linear-gradient(180deg, #2e1065 0%, #17092c 100%); border: 2px solid #a855f7; border-radius: 16px; padding: 24px; max-width: 460px; width: 90%; color: #f3e8ff; text-align: center; box-shadow: 0 16px 40px rgba(0,0,0,0.95);">
+      <div style="font-size: 36px; margin-bottom: 6px;">🧙‍♀️✨</div>
+      <h3 style="margin: 0 0 6px; color: #e9d5ff; font-family: var(--font-heading); font-size: 20px;">Hexe hat getauscht!</h3>
+      <p id="witch-showcase-msg" style="color: #d8b4fe; font-size: 13px; margin: 0 0 16px;"></p>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="font-size: 10px; font-weight: bold; color: #fca5a5; margin-bottom: 4px;">Aus Stich genommen:</div>
+          <div id="witch-showcase-taken"></div>
+        </div>
+        <div style="font-size: 24px; color: #c084fc;">⇄</div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div style="font-size: 10px; font-weight: bold; color: #86efac; margin-bottom: 4px;">In Stich gelegt:</div>
+          <div id="witch-showcase-given"></div>
+        </div>
+      </div>
+      <div style="margin-top: 14px; font-size: 11px; color: #cbd5e1; font-style: italic;">(Karten merken – Spiel geht in Kürze weiter...)</div>
+    </div>
+  </div>
+
+  <!-- JONGLEUR GEHEIMES WEITERGEBEN -->
+  <div id="juggler-pass-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.9); z-index: 1600; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border: 2px solid #06b6d4; border-radius: 14px; padding: 22px; max-width: 480px; width: 92%; max-height: 90vh; overflow-y: auto; color: #f8fafc; text-align: center; box-shadow: 0 12px 36px rgba(0,0,0,0.95);">
+      <div style="font-size: 32px; margin-bottom: 6px;">🤹🤫</div>
+      <h3 style="margin: 0 0 8px; color: #67e8f9; font-family: var(--font-heading); font-size: 18px;">Geheimes Weitergeben</h3>
+      <p style="color: #cbd5e1; font-size: 13px; margin: 0 0 14px;">
+        Wähle <b>1 Handkarte</b>, die du verdeckt an deinen linken Nachbarn weitergibst. Niemand erfährt, welche Karte du abgibst!
+      </p>
+      <div id="juggler-pass-hand" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; max-height: 240px; overflow-y: auto; padding: 4px;"></div>
+      <button id="btnJugglerPassConfirm" type="button" disabled style="background: linear-gradient(180deg, #0e7490, #083344); color: #cffafe; border: 1.5px solid #06b6d4; font-weight: bold; padding: 10px 24px; font-size: 14px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;">Karte verdeckt weitergeben</button>
+    </div>
+  </div>
+
+  <!-- JONGLEUR TRIBUT ERHALTEN (PRIVATES POPUP FÜR DEN EMPFÄNGER) -->
+  <div id="juggler-received-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.9); z-index: 1650; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); border: 2px solid #06b6d4; border-radius: 14px; padding: 22px; max-width: 400px; width: 90%; color: #f8fafc; text-align: center; box-shadow: 0 14px 40px rgba(0,0,0,0.95);">
+      <div style="font-size: 32px; margin-bottom: 6px;">🤹🎁</div>
+      <h3 style="margin: 0 0 8px; color: #67e8f9; font-family: var(--font-heading); font-size: 18px;">Neuer Tribut erhalten!</h3>
+      <p id="juggler-received-desc" style="color: #cbd5e1; font-size: 13px; margin: 0 0 14px;">
+        Du hast verdeckt eine neue Karte von deinem rechten Nachbarn erhalten:
+      </p>
+      <div id="juggler-received-card-container" style="display: flex; justify-content: center; margin-bottom: 16px;"></div>
+      <button id="btnJugglerReceivedClose" type="button" style="background: linear-gradient(180deg, #0e7490, #083344); color: #cffafe; border: 1.5px solid #06b6d4; font-weight: bold; padding: 10px 24px; font-size: 14px; border-radius: 8px; cursor: pointer;">In die Hand nehmen</button>
     </div>
   </div>
 

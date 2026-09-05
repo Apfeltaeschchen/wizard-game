@@ -15,21 +15,24 @@ const classicDeck = createDeck('classic');
 assert.strictEqual(classicDeck.length, 60, 'Klassisches Deck muss genau 60 Karten haben');
 
 const anniDeck = createDeck('anniversary_30');
-assert.strictEqual(anniDeck.length, 66, '30-Jahre Deck (Etappe 1) muss genau 66 Karten haben');
+assert.strictEqual(anniDeck.length, 69, '30-Jahre Deck muss genau 69 Karten haben');
 assert.strictEqual(anniDeck.filter(c => c.type === 'dragon').length, 1);
 assert.strictEqual(anniDeck.filter(c => c.type === 'fairy').length, 1);
 assert.strictEqual(anniDeck.filter(c => c.type === 'bomb').length, 1);
 assert.strictEqual(anniDeck.filter(c => c.type === 'shapeshifter').length, 1);
 assert.strictEqual(anniDeck.filter(c => c.type === 'vampire').length, 1);
 assert.strictEqual(anniDeck.filter(c => c.type === 'cloud').length, 1);
-console.log('✓ createDeck(anniversary_30): 66 Karten inkl. Drache, Fee, Bombe, Gestaltenwandler, Vampir, Wolke');
+assert.strictEqual(anniDeck.filter(c => c.type === 'werewolf').length, 1);
+assert.strictEqual(anniDeck.filter(c => c.type === 'witch').length, 1);
+assert.strictEqual(anniDeck.filter(c => c.type === 'juggler').length, 1);
+console.log('✓ createDeck(anniversary_30): 69 Karten inkl. aller 9 Sonderkarten');
 
 // 2. Rundenanzahl
-assert.strictEqual(getMaxRounds(3, 'anniversary_30'), 22, '3 Spieler: 22 Runden (66/3)');
-assert.strictEqual(getMaxRounds(4, 'anniversary_30'), 16, '4 Spieler: 16 Runden (64/4)');
+assert.strictEqual(getMaxRounds(3, 'anniversary_30'), 23, '3 Spieler: 23 Runden (69/3)');
+assert.strictEqual(getMaxRounds(4, 'anniversary_30'), 17, '4 Spieler: 17 Runden (68/4)');
 assert.strictEqual(getMaxRounds(5, 'anniversary_30'), 13, '5 Spieler: 13 Runden (65/5)');
 assert.strictEqual(getMaxRounds(6, 'anniversary_30'), 11, '6 Spieler: 11 Runden (66/6)');
-console.log('✓ getMaxRounds für alle Spieleranzahlen validiert (3->22, 4->16, 5->13, 6->11)');
+console.log('✓ getMaxRounds für alle Spieleranzahlen validiert (3->23, 4->17, 5->13, 6->11)');
 
 // 3. Sortierung der Handkarten
 const testHand = [

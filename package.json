@@ -5,7 +5,8 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "nodemon server/index.js"
+    "dev": "nodemon server/index.js",
+    "test": "node test/gameLogic.test.js && node test/werewolfTrumpCard.test.js && node test/anniversary30Logic.test.js && node test/anniversary30Phase2Logic.test.js && node test/anniversary30Phase2Etappe2Logic.test.js && node test/jugglerAndAnniversaryAuditFix.test.js && node test/uniqueRooms.test.js && node test/duplicateNames.test.js && node test/integration.test.js && node test/anniversary30Multiplayer.test.js && node test/anniversary30Phase2Multiplayer.test.js && node test/anniversary30Phase2Etappe2Multiplayer.test.js && node test/pauseAndReconnect.test.js && node test/roomCodePreserved.test.js && node test/jugglerPassingFix.test.js && node test/anniversary30Refinements.test.js && node test/witchPostTrickAndCloudPlayer.test.js"
   },
   "keywords": [],
   "author": "",

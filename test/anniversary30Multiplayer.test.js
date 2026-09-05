@@ -76,15 +76,15 @@ async function run() {
     assert.strictEqual(syncEdition, 'anniversary_30', 'Neuer Spieler synchronisiert mit anniversary_30');
     console.log('✓ Neuer Spieler empfängt anniversary_30 im GameState');
 
-    // 5. Host startet Spiel (3 Spieler -> maxRounds = 21 für 63 Karten)
+    // 5. Host startet Spiel (3 Spieler -> maxRounds = 23 für 69 Karten)
     let startedMaxRounds = null;
     hostClient.on('gameStarted', (data) => {
       startedMaxRounds = data.maxRounds;
     });
     hostClient.emit('startGame', { roomCode });
     await wait(400);
-    assert.strictEqual(startedMaxRounds, 22, '3 Spieler in 30-Jahre-Edition haben genau 22 Runden (66/3)');
-    console.log('✓ Spiel gestartet: Rundenanzahl ist 22 für 3 Spieler (66 Karten)');
+    assert.strictEqual(startedMaxRounds, 23, '3 Spieler in 30-Jahre-Edition haben genau 23 Runden (69/3)');
+    console.log('✓ Spiel gestartet: Rundenanzahl ist 23 für 3 Spieler (69 Karten)');
 
     console.log('\n=======================================');
     console.log('30-JAHRE MULTIPLAYER-TEST ERFOLGREICH!');

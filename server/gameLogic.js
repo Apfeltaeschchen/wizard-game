@@ -24,12 +24,15 @@ function createDeck(edition = 'classic') {
     deck.push({ type: 'shapeshifter', suit: 'none', value: 0 });
     deck.push({ type: 'vampire', suit: 'none', value: 0 });
     deck.push({ type: 'cloud', suit: 'none', value: 9.75 });
+    deck.push({ type: 'werewolf', suit: 'none', value: 0 });
+    deck.push({ type: 'witch', suit: 'none', value: 0 });
+    deck.push({ type: 'juggler', suit: 'none', value: 7.5 });
   }
 
   return deck;
 }
 
-// Ermittelt die effektive Identität einer Karte (unter Berücksichtigung von Gestaltenwandler, Wolke, Vampir)
+// Ermittelt die effektive Identität einer Karte (unter Berücksichtigung von Gestaltenwandler, Wolke, Vampir, Jongleur, Hexe, Werwolf)
 function getEffectiveCard(card) {
   if (!card) return card;
 
@@ -46,12 +49,32 @@ function getEffectiveCard(card) {
     return { ...card, type: 'color', suit: card.chosenSuit || 'none', value: 9.75 };
   }
 
+  // Jongleur: nimmt die gewählte Farbe mit Wert 7.5 an
+  if (card.type === 'juggler') {
+    return { ...card, type: 'color', suit: card.chosenSuit || 'none', value: 7.5 };
+  }
+
+  // Hexe: agiert im Stich wie ein Narr (Wert 0, kann nicht gewinnen)
+  if (card.type === 'witch') {
+    return { ...card, type: 'jester', value: 0, suit: 'none' };
+  }
+
+  // Werwolf: falls im Stich gespielt (z. B. letzte Runde): agiert wie ein Narr
+  if (card.type === 'werewolf') {
+    return { ...card, type: 'jester', value: 0, suit: 'none' };
+  }
+
+  // Werwolf-Trumpfkarte (liegt im Trumpffeld oder wird vom Vampir kopiert)
+  if (card.type === 'werewolf_trump') {
+    return { ...card, type: 'color', suit: card.suit || card.chosenSuit || 'none', value: 14 };
+  }
+
   // Vampir: übernimmt die Identität der kopierten Trumpfkarte
   if (card.type === 'vampire') {
-    if (card.copiedCard) {
+    if (card.copiedCard && card.copiedCard.type !== 'vampire') {
       return getEffectiveCard(card.copiedCard);
     }
-    // Falls keine Trumpfkarte aufgedeckt wurde (oder Narr): gilt als Narr
+    // Falls keine Trumpfkarte aufgedeckt wurde (oder Narr/Vampir): gilt als Narr
     return { ...card, type: 'jester', value: 0, suit: 'none' };
   }
 
@@ -74,11 +97,11 @@ function evaluateTrickDetails(trickCards, trumpCard) {
     return { winnerPlayerId: null, nextLeadPlayerId: null, isBombed: false };
   }
 
-  // 1. Trumpffarbe ermitteln (auch wenn Zauberer, Drache, Gestaltenwandler, Wolke, Vampir aufgedeckt wurde)
+  // 1. Trumpffarbe ermitteln (auch wenn Zauberer, Drache, Gestaltenwandler, Wolke, Vampir oder Werwolf-Trumpf aufgedeckt wurde)
   let trumpSuit = 'none';
   if (trumpCard) {
-    if (trumpCard.type === 'color') {
-      trumpSuit = trumpCard.suit;
+    if (trumpCard.type === 'color' || trumpCard.type === 'werewolf_trump') {
+      trumpSuit = trumpCard.suit || trumpCard.chosenSuit || 'none';
     } else if (['wizard', 'dragon', 'shapeshifter', 'cloud', 'vampire'].includes(trumpCard.type) && trumpCard.chosenSuit) {
       trumpSuit = trumpCard.chosenSuit; // Berücksichtigt die Wahl des Gebers
     }
@@ -192,7 +215,7 @@ function evaluateTrick(trickCards, trumpCard) {
 // Prüft, ob ein Zug den offiziellen Regeln entspricht
 function isValidMove(cardToPlay, hand, currentTrick) {
   // 1. Sonderkarten dürfen IMMER gespielt werden.
-  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb', 'shapeshifter', 'cloud', 'vampire'].includes(cardToPlay.type)) {
+  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb', 'shapeshifter', 'cloud', 'vampire', 'werewolf', 'witch', 'juggler'].includes(cardToPlay.type)) {
     return true;
   }
 
@@ -253,7 +276,7 @@ function calculatePoints(bid, tricksWon) {
 
 // Berechnet die maximale Rundenanzahl für eine gegebene Spieleranzahl (3 bis 6) und Edition
 function getMaxRounds(playerCount, edition = 'classic') {
-  const deckSize = (edition === 'anniversary_30') ? 66 : 60;
+  const deckSize = (edition === 'anniversary_30') ? 69 : 60;
   if (!playerCount || playerCount < 1) return Math.floor(deckSize / 3);
   return Math.floor(deckSize / playerCount);
 }
@@ -269,7 +292,7 @@ function isForbiddenBid(bid, currentRound, totalBidsSoFar, isLastPlayer) {
 // 1. Fee (-2)
 // 2. Narren (-1)
 // 3. Bombe (0)
-// 4. Gestaltenwandler (0.1), Wolke (0.2), Vampir (0.3)
+// 4. Gestaltenwandler (0.1), Wolke (0.2), Vampir (0.3), Werwolf (0.4), Hexe (0.5), Jongleur (0.6)
 // 5. Reguläre Farben: Gelb -> Rot -> Grün -> Blau (aufsteigend nach Wert 1-13)
 // 6. Trumpf-Farbkarten (aufsteigend nach Wert 1-13)
 // 7. Zauberer (14)
@@ -285,6 +308,9 @@ function sortCards(cards, trumpSuit = 'none') {
     shapeshifter: 0.1,
     cloud: 0.2,
     vampire: 0.3,
+    werewolf: 0.4,
+    witch: 0.5,
+    juggler: 0.6,
     wizard: 14,
     dragon: 15
   };
