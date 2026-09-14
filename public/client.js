@@ -201,16 +201,21 @@ const WizardAudio = (() => {
   }
 
   function applyVolumeSettings() {
-    if (!ctx) return;
-    const t = ctx.currentTime;
-    if (masterGain) {
-      masterGain.gain.setValueAtTime(settings.master, t);
+    if (ctx) {
+      const t = ctx.currentTime;
+      if (masterGain) {
+        masterGain.gain.setValueAtTime(settings.master, t);
+      }
+      if (sfxGain) {
+        sfxGain.gain.setValueAtTime(settings.sfxMuted ? 0 : settings.sfx, t);
+      }
+      if (musicGain) {
+        musicGain.gain.setValueAtTime(settings.musicMuted ? 0 : settings.music, t);
+      }
     }
-    if (sfxGain) {
-      sfxGain.gain.setValueAtTime(settings.sfxMuted ? 0 : settings.sfx, t);
-    }
-    if (musicGain) {
-      musicGain.gain.setValueAtTime(settings.musicMuted ? 0 : settings.music, t);
+    if (musicAudio && !musicSourceNode) {
+      const effective = (settings.musicMuted || settings.master <= 0) ? 0 : (settings.music * settings.master);
+      musicAudio.volume = Math.max(0, Math.min(1, effective));
     }
   }
 
@@ -220,81 +225,124 @@ const WizardAudio = (() => {
     } catch (e) {}
   }
 
-  // --- REALISTISCHER KARTENLEGE-SOUND (CRISP PAPER/CARD SLIDE & SNAP AUF FILZ) ---
+  // --- AUDIO-ASSETS: ECHTE STUDIOMUSTER (KENNEY CC0 CASINO & RANDOMMIND CC0 TAVERN) ---
+  const SOUND_URLS = {
+    cardPlace: [
+      '/audio/card-place-1.ogg',
+      '/audio/card-place-2.ogg',
+      '/audio/card-place-3.ogg',
+      '/audio/card-place-4.ogg'
+    ],
+    cardSlide: [
+      '/audio/card-slide-1.ogg',
+      '/audio/card-slide-2.ogg',
+      '/audio/card-slide-3.ogg',
+      '/audio/card-slide-4.ogg',
+      '/audio/card-slide-5.ogg',
+      '/audio/card-slide-6.ogg'
+    ],
+    cardShuffle: '/audio/card-shuffle.ogg'
+  };
+
+  const audioBuffers = {};
+  const loadingPromises = {};
+
+  async function loadBuffer(url) {
+    if (audioBuffers[url]) return audioBuffers[url];
+    if (loadingPromises[url]) return loadingPromises[url];
+
+    loadingPromises[url] = (async () => {
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) return null;
+        const arr = await resp.arrayBuffer();
+        const c = getContext();
+        if (!c) return null;
+        const buf = await c.decodeAudioData(arr);
+        audioBuffers[url] = buf;
+        return buf;
+      } catch (e) {
+        return null;
+      } finally {
+        delete loadingPromises[url];
+      }
+    })();
+
+    return loadingPromises[url];
+  }
+
+  function preloadAssets() {
+    const list = [...SOUND_URLS.cardPlace, ...SOUND_URLS.cardSlide, SOUND_URLS.cardShuffle];
+    list.forEach(url => {
+      loadBuffer(url).catch(() => {});
+    });
+  }
+
+  function playBufferNode(buf, volume = 0.95, pitchJitter = 0.08) {
+    const c = getContext();
+    if (!c || !buf || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+    try {
+      const src = c.createBufferSource();
+      src.buffer = buf;
+      // Natürliche mikro-tonale Variation für lebendiges Haptik-Gefühl
+      const rate = 1.0 + (Math.random() * pitchJitter * 2 - pitchJitter);
+      src.playbackRate.setValueAtTime(rate, c.currentTime);
+
+      const gain = c.createGain();
+      gain.gain.setValueAtTime(volume, c.currentTime);
+
+      src.connect(gain);
+      gain.connect(sfxGain);
+      src.start();
+    } catch (e) {
+      console.warn('playBufferNode error:', e);
+    }
+  }
+
+  // Echter Papier-/Kartenlege-Sound auf Spieltischfilz
   function playCardSnap() {
     try {
       const c = getContext();
       if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
-      const t = c.currentTime;
 
-      // 1. Karten-Friction (Kurzes Kartengleiten/Zischen aus gefiltertem Rauschen)
-      const noiseBuffer = c.createBuffer(1, Math.floor(c.sampleRate * 0.055), c.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < noiseBuffer.length; i++) {
-        output[i] = (Math.random() * 2 - 1);
+      const pool = SOUND_URLS.cardPlace;
+      const url = pool[Math.floor(Math.random() * pool.length)];
+      if (audioBuffers[url]) {
+        playBufferNode(audioBuffers[url], 0.95, 0.06);
+      } else {
+        loadBuffer(url).then(buf => {
+          if (buf) playBufferNode(buf, 0.95, 0.06);
+        });
       }
-
-      const noiseSrc = c.createBufferSource();
-      noiseSrc.buffer = noiseBuffer;
-
-      const bandpass = c.createBiquadFilter();
-      bandpass.type = 'bandpass';
-      bandpass.frequency.setValueAtTime(3100, t);
-      bandpass.Q.setValueAtTime(1.8, t);
-
-      const highpass = c.createBiquadFilter();
-      highpass.type = 'highpass';
-      highpass.frequency.setValueAtTime(1400, t);
-
-      const noiseGain = c.createGain();
-      noiseGain.gain.setValueAtTime(0.01, t);
-      noiseGain.gain.linearRampToValueAtTime(0.42, t + 0.005);
-      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-
-      noiseSrc.connect(bandpass);
-      bandpass.connect(highpass);
-      highpass.connect(noiseGain);
-      noiseGain.connect(sfxGain);
-
-      noiseSrc.start(t);
-
-      // 2. Transiente: Heller Papier-Snap beim Loslassen der Karte
-      const snapOsc = c.createOscillator();
-      const snapGain = c.createGain();
-      snapOsc.type = 'sine';
-      snapOsc.frequency.setValueAtTime(1450, t);
-      snapOsc.frequency.exponentialRampToValueAtTime(750, t + 0.015);
-
-      snapGain.gain.setValueAtTime(0.22, t);
-      snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.018);
-
-      snapOsc.connect(snapGain);
-      snapGain.connect(sfxGain);
-      snapOsc.start(t);
-      snapOsc.stop(t + 0.02);
-
-      // 3. Sanfte Filz-Dämpfung (sehr dezent, KEIN hölzernes Klopfen)
-      const feltOsc = c.createOscillator();
-      const feltGain = c.createGain();
-      feltOsc.type = 'triangle';
-      feltOsc.frequency.setValueAtTime(210, t);
-      feltOsc.frequency.exponentialRampToValueAtTime(110, t + 0.03);
-
-      feltGain.gain.setValueAtTime(0.12, t);
-      feltGain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
-
-      feltOsc.connect(feltGain);
-      feltGain.connect(sfxGain);
-      feltOsc.start(t);
-      feltOsc.stop(t + 0.04);
     } catch (e) {
-      console.warn('Audio playCardSnap error:', e);
+      console.warn('playCardSnap error:', e);
     }
   }
 
-  // Mystischer ätherischer Zweiklang beim Ausspielen eines Zauberers
+  // Echter Kartengleit-Sound (z. B. beim Austeilen der Handkarten)
+  function playCardDeal() {
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+
+      const pool = SOUND_URLS.cardSlide;
+      const url = pool[Math.floor(Math.random() * pool.length)];
+      if (audioBuffers[url]) {
+        playBufferNode(audioBuffers[url], 0.75, 0.08);
+      } else {
+        loadBuffer(url).then(buf => {
+          if (buf) playBufferNode(buf, 0.75, 0.08);
+        });
+      }
+    } catch (e) {
+      console.warn('playCardDeal error:', e);
+    }
+  }
+
+  // Mystischer ätherischer Zweiklang + echter Kartensound beim Ausspielen eines Zauberers
   function playWizardSound() {
     try {
+      playCardSnap();
       const c = getContext();
       if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
       const t = c.currentTime;
@@ -309,7 +357,7 @@ const WizardAudio = (() => {
       osc2.frequency.setValueAtTime(880.00, t); // A5
 
       gain.gain.setValueAtTime(0.01, t);
-      gain.gain.linearRampToValueAtTime(0.35, t + 0.04);
+      gain.gain.linearRampToValueAtTime(0.22, t + 0.04);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
 
       osc1.connect(gain);
@@ -325,9 +373,10 @@ const WizardAudio = (() => {
     }
   }
 
-  // Schelmischer, verspielter Klick-Boing beim Ausspielen eines Narren
+  // Schelmischer, verspielter Boing + echter Kartensound beim Ausspielen eines Narren
   function playJesterSound() {
     try {
+      playCardSnap();
       const c = getContext();
       if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
       const t = c.currentTime;
@@ -339,7 +388,7 @@ const WizardAudio = (() => {
       osc.frequency.setValueAtTime(430, t);
       osc.frequency.exponentialRampToValueAtTime(180, t + 0.16);
 
-      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.setValueAtTime(0.22, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
 
       osc.connect(gain);
@@ -363,121 +412,62 @@ const WizardAudio = (() => {
     }
   }
 
-  // --- HINTERGRUNDMUSIK-ENGINE (DORISCHE HARFE & AMBIENT PAD) ---
+  // --- HINTERGRUNDMUSIK-ENGINE (ECHTE TAVERNEN- UND LAUTENMUSIK: RANDOMMIND CC0) ---
+  let musicAudio = null;
+  let musicSourceNode = null;
   let isMusicPlaying = false;
-  let musicTimer = null;
-  let musicStep = 0;
-  let droneGain = null;
-  let droneOsc1 = null;
-  let droneOsc2 = null;
 
-  // Mittelalterliche Melodie-Sequenz (Harfe/Laute im D-Dorischen Modus)
-  const DORIAN_NOTES = [
-    293.66, 349.23, 440.00, 392.00, 349.23, 293.66, 261.63, 293.66,
-    440.00, 523.25, 440.00, 392.00, 349.23, 392.00, 440.00, 0,
-    349.23, 293.66, 261.63, 220.00, 261.63, 293.66, 349.23, 392.00,
-    440.00, 392.00, 349.23, 293.66, 261.63, 293.66, 0, 0
-  ];
+  function initMusicAudio() {
+    if (!musicAudio) {
+      musicAudio = new Audio('/audio/tavern_music.mp3');
+      musicAudio.loop = true;
+      musicAudio.preload = 'auto';
 
-  function playHarpNote(freq, dur = 1.1) {
-    if (!freq || !ctx || settings.musicMuted || settings.music <= 0 || settings.master <= 0) return;
-    try {
-      const t = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const filter = ctx.createBiquadFilter();
-      const noteGain = ctx.createGain();
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, t);
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(2200, t);
-      filter.frequency.exponentialRampToValueAtTime(450, t + dur);
-
-      noteGain.gain.setValueAtTime(0.001, t);
-      noteGain.gain.linearRampToValueAtTime(0.18, t + 0.015);
-      noteGain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-
-      osc.connect(filter);
-      filter.connect(noteGain);
-      noteGain.connect(musicGain);
-
-      osc.start(t);
-      osc.stop(t + dur + 0.05);
-    } catch (e) {}
-  }
-
-  function startDronePad() {
-    if (!ctx || droneGain) return;
-    try {
-      const t = ctx.currentTime;
-      droneGain = ctx.createGain();
-      droneGain.gain.setValueAtTime(0.001, t);
-      droneGain.gain.linearRampToValueAtTime(0.035, t + 2.0);
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(320, t);
-
-      droneOsc1 = ctx.createOscillator();
-      droneOsc1.type = 'sine';
-      droneOsc1.frequency.setValueAtTime(146.83, t); // D3
-
-      droneOsc2 = ctx.createOscillator();
-      droneOsc2.type = 'sine';
-      droneOsc2.frequency.setValueAtTime(220.00, t); // A3
-
-      droneOsc1.connect(filter);
-      droneOsc2.connect(filter);
-      filter.connect(droneGain);
-      droneGain.connect(musicGain);
-
-      droneOsc1.start(t);
-      droneOsc2.start(t);
-    } catch (e) {}
-  }
-
-  function stopDronePad() {
-    if (!droneGain || !ctx) return;
-    try {
-      const t = ctx.currentTime;
-      droneGain.gain.linearRampToValueAtTime(0.0001, t + 0.8);
-      setTimeout(() => {
-        if (droneOsc1) { try { droneOsc1.stop(); droneOsc1.disconnect(); } catch(e){} droneOsc1 = null; }
-        if (droneOsc2) { try { droneOsc2.stop(); droneOsc2.disconnect(); } catch(e){} droneOsc2 = null; }
-        if (droneGain) { try { droneGain.disconnect(); } catch(e){} droneGain = null; }
-      }, 900);
-    } catch (e) {}
+      const c = getContext();
+      if (c && !musicSourceNode) {
+        try {
+          musicSourceNode = c.createMediaElementSource(musicAudio);
+          musicSourceNode.connect(musicGain);
+        } catch (e) {
+          // Fallback, falls MediaElementSource nicht unterstützt wird
+        }
+      }
+    }
+    return musicAudio;
   }
 
   function startMusic() {
     const c = getContext();
-    if (!c) return;
-    if (isMusicPlaying) return;
-    isMusicPlaying = true;
-    startDronePad();
-
-    musicTimer = setInterval(() => {
-      if (!isMusicPlaying) return;
-      const freq = DORIAN_NOTES[musicStep];
-      if (freq) {
-        playHarpNote(freq, 1.2);
-      }
-      musicStep = (musicStep + 1) % DORIAN_NOTES.length;
-    }, 440);
+    if (c && c.state === 'suspended') {
+      c.resume().catch(() => {});
+    }
+    if (settings.musicMuted || settings.music <= 0 || settings.master <= 0) {
+      isMusicPlaying = false;
+      return;
+    }
+    const audio = initMusicAudio();
+    if (!audio) return;
+    applyVolumeSettings();
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        isMusicPlaying = true;
+      }).catch((err) => {
+        // Autoplay vom Browser verzögert bis zur ersten Benutzerinteraktion
+        console.log('Autoplay deferred until user interaction:', err);
+      });
+    }
   }
 
   function stopMusic() {
     isMusicPlaying = false;
-    if (musicTimer) {
-      clearInterval(musicTimer);
-      musicTimer = null;
+    if (musicAudio) {
+      musicAudio.pause();
     }
-    stopDronePad();
   }
 
   function toggleMusic() {
-    if (isMusicPlaying) {
+    if (musicAudio && !musicAudio.paused) {
       stopMusic();
       return false;
     } else {
@@ -486,11 +476,12 @@ const WizardAudio = (() => {
     }
   }
 
-  // Bei erstem User-Event AudioContext aufwecken und Musik starten
+  // Bei erstem User-Event AudioContext aufwecken, Assets cachen und Musik starten
   ['click', 'touchstart', 'keydown'].forEach(evt => {
     window.addEventListener(evt, () => {
       const c = getContext();
       if (c && c.state === 'suspended') c.resume().catch(() => {});
+      preloadAssets();
       if (!isMusicPlaying && !settings.musicMuted && settings.music > 0) {
         startMusic();
       }
@@ -500,13 +491,14 @@ const WizardAudio = (() => {
   return {
     getContext,
     playCardSnap,
+    playCardDeal,
     playWizardSound,
     playJesterSound,
     playForCard,
     startMusic,
     stopMusic,
     toggleMusic,
-    isMusicPlaying: () => isMusicPlaying,
+    isMusicPlaying: () => isMusicPlaying || !!(musicAudio && !musicAudio.paused && !settings.musicMuted && settings.music > 0),
     getSettings: () => ({ ...settings }),
     setMasterVolume: (val) => {
       settings.master = Math.max(0, Math.min(1, val));
@@ -522,6 +514,9 @@ const WizardAudio = (() => {
       settings.music = Math.max(0, Math.min(1, val));
       applyVolumeSettings();
       saveSettings();
+      if (settings.music > 0 && !settings.musicMuted && (!musicAudio || musicAudio.paused)) {
+        startMusic();
+      }
     },
     setSfxMuted: (muted) => {
       settings.sfxMuted = !!muted;
@@ -532,6 +527,11 @@ const WizardAudio = (() => {
       settings.musicMuted = !!muted;
       applyVolumeSettings();
       saveSettings();
+      if (!settings.musicMuted && settings.music > 0) {
+        startMusic();
+      } else if (settings.musicMuted) {
+        stopMusic();
+      }
     }
   };
 })();
@@ -1101,10 +1101,70 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   }
 }
 
+// --- AUSTEIL-ANIMATION ZU DEN MITSPIELERN ---
+function triggerDealAnimationToOpponents() {
+  const myIndex = cachedPlayers.findIndex(p => p.sessionId === mySessionId);
+  let opponents = [];
+  if (myIndex !== -1 && cachedPlayers.length > 1) {
+    for (let i = 1; i < cachedPlayers.length; i++) {
+      const nextIdx = (myIndex + i) % cachedPlayers.length;
+      opponents.push(cachedPlayers[nextIdx]);
+    }
+  } else {
+    opponents = cachedPlayers.filter(p => p.sessionId !== mySessionId);
+  }
+
+  if (opponents.length === 0) return;
+  const table = document.getElementById('table-area');
+  if (!table) return;
+
+  const tableRect = table.getBoundingClientRect();
+  const startX = tableRect.width / 2 - 25;
+  const startY = tableRect.height / 2 - 35;
+
+  opponents.forEach((p, idx) => {
+    const seat = document.getElementById(`seat-${p.sessionId}`);
+    if (!seat) return;
+    const seatRect = seat.getBoundingClientRect();
+    const targetX = (seatRect.left + seatRect.width / 2) - (tableRect.left + 25);
+    const targetY = (seatRect.top + seatRect.height / 2) - (tableRect.top + 35);
+
+    const flyingCard = document.createElement('div');
+    flyingCard.classList.add('deal-flying-card');
+    flyingCard.style.left = `${startX}px`;
+    flyingCard.style.top = `${startY}px`;
+    flyingCard.style.transform = `scale(0.5) rotate(0deg)`;
+    flyingCard.style.opacity = '0.9';
+    table.appendChild(flyingCard);
+
+    // Fliege zum Sitz des Mitspielers
+    setTimeout(() => {
+      flyingCard.style.left = `${targetX}px`;
+      flyingCard.style.top = `${targetY}px`;
+      flyingCard.style.transform = `scale(0.35) rotate(${((idx % 3) - 1) * 15}deg)`;
+      flyingCard.style.opacity = '0';
+    }, idx * 55 + 20);
+
+    // Aufräumen nach Flugende
+    setTimeout(() => {
+      flyingCard.remove();
+    }, idx * 55 + 460);
+  });
+}
+
 socket.on('handDealt', (hand) => {
   myCurrentHand = hand;
   inspectedCardIndex = null;
   renderHand(true);
+  triggerDealAnimationToOpponents();
+
+  // Zügige Karten-Slide Soundeffekte
+  const deals = Math.min(hand.length, 4);
+  for (let i = 0; i < deals; i++) {
+    setTimeout(() => {
+      WizardAudio.playCardDeal();
+    }, i * 75);
+  }
 });
 
 // Trumpfwahl-Buttons (Geber)
@@ -1726,10 +1786,19 @@ socket.on('gameResetToLobby', ({ message, players, roomCode }) => {
   updateWaitingRoomView(amIHost);
 });
 
-// --- VIRTUELLE MITSPIELER-SITZE RENDERN ---
+// --- VIRTUELLE MITSPIELER-SITZE RENDERN (RELATIVE UHRZEIGER-REIHENFOLGE) ---
 function renderOpponents() {
   opponentsContainer.innerHTML = '';
-  const opponents = cachedPlayers.filter(p => p.sessionId !== mySessionId);
+  const myIndex = cachedPlayers.findIndex(p => p.sessionId === mySessionId);
+  let opponents = [];
+  if (myIndex !== -1 && cachedPlayers.length > 1) {
+    for (let i = 1; i < cachedPlayers.length; i++) {
+      const nextIdx = (myIndex + i) % cachedPlayers.length;
+      opponents.push(cachedPlayers[nextIdx]);
+    }
+  } else {
+    opponents = cachedPlayers.filter(p => p.sessionId !== mySessionId);
+  }
 
   opponents.forEach(p => {
     const isHisTurn = (p.sessionId === currentActiveSessionId);
@@ -1813,14 +1882,8 @@ function renderTrickCards(trickCards, animateLast = true) {
       cardWrapper.style.transform = `rotate(${rot}deg)`;
     }
 
-    // Spielername dezent & edel als Plakette UNTER der Karte platziert
-    const nameBadge = document.createElement('div');
-    nameBadge.classList.add('trick-player-badge');
-    nameBadge.innerText = item.playerName;
-    nameBadge.title = `Gespielt von ${item.playerName}`;
-
+    wrap.title = `Gespielt von ${item.playerName}`;
     wrap.appendChild(cardWrapper);
-    wrap.appendChild(nameBadge);
     trickContainer.appendChild(wrap);
   });
 }
@@ -2001,8 +2064,8 @@ function renderHand(isNewDeal = false) {
     const isPlayingPhase = (currentGameState === 'playing_tricks');
     const playable = isMyTurn && isPlayingPhase && isCardPlayable(card, myCurrentHand, currentTrick);
 
-    const angle = (index - mid) * (total > 10 ? 2.2 : 3.5);
-    const offsetY = Math.abs(index - mid) * (total > 10 ? 2 : 3);
+    const angle = 0;
+    const offsetY = 0;
 
     cardElement.style.marginLeft = (index === 0) ? '0px' : dynamicMargin;
     cardElement.style.marginRight = '0px';
@@ -2012,9 +2075,21 @@ function renderHand(isNewDeal = false) {
       cardElement.classList.add('card-inspected');
     }
 
+    cardElement.style.setProperty('--target-y', `${offsetY}px`);
+    cardElement.style.setProperty('--target-rot', `${angle}deg`);
+
     if (playable) {
       cardElement.classList.add('card-playable');
-      if (inspectedCardIndex !== index) {
+      if (isNewDeal) {
+        cardElement.classList.add('card-dealing-in');
+        cardElement.style.animationDelay = `${index * 45}ms`;
+        setTimeout(() => {
+          cardElement.classList.remove('card-dealing-in');
+          if (inspectedCardIndex !== index) {
+            cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
+          }
+        }, index * 45 + 400);
+      } else if (inspectedCardIndex !== index) {
         cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
       }
 
@@ -2066,7 +2141,16 @@ function renderHand(isNewDeal = false) {
       });
     } else {
       cardElement.classList.remove('card-playable');
-      if (inspectedCardIndex !== index) {
+      if (isNewDeal) {
+        cardElement.classList.add('card-dealing-in');
+        cardElement.style.animationDelay = `${index * 45}ms`;
+        setTimeout(() => {
+          cardElement.classList.remove('card-dealing-in');
+          if (inspectedCardIndex !== index) {
+            cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
+          }
+        }, index * 45 + 400);
+      } else if (inspectedCardIndex !== index) {
         cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
       }
 
@@ -2677,7 +2761,7 @@ function setupAudioSettingsUI() {
     if (!musicStatus || !btnToggleMusic) return;
     const isPlaying = WizardAudio.isMusicPlaying();
     if (isPlaying) {
-      musicStatus.innerText = 'Aktiv (Harfe & Laute)';
+      musicStatus.innerText = 'Aktiv (Tavernenmusik & Laute)';
       musicStatus.style.color = '#86efac';
       btnToggleMusic.innerText = '⏸ Pause';
     } else {
