@@ -1,4 +1,11 @@
-const socket = io();
+const savedAuthToken = (function() {
+  try { return localStorage.getItem('wizard_auth_token'); } catch (e) { return null; }
+})();
+const socket = io({
+  auth: {
+    token: savedAuthToken || null
+  }
+});
 
 // Eindeutige Session-ID pro Browser-Tab
 let mySessionId = sessionStorage.getItem('wizard_session_id');
@@ -576,12 +583,677 @@ function triggerTurnPopup() {
   }, 1400);
 }
 
+// --- GLOBALER TOAST-BANNER (DARK FANTASY NOTIFICATION) ---
+function showToast(msg, duration = 2800) {
+  const toast = document.getElementById('global-toast');
+  if (!toast) return;
+  toast.innerText = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._toastTimer);
+  toast._toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, duration);
+}
+
 // XSS-Schutz
 function escapeHtml(text) {
   if (!text) return '';
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
   return String(text).replace(/[&<>"']/g, m => map[m]);
 }
+
+// --- WIZARD AUTH & PROFIL-MODUL ---
+const WizardAuth = (() => {
+  let currentUser = null;
+  let selectedRegisterAvatar = 'wizard_blue';
+  let activeAuthTab = 'login';
+
+  function getToken() {
+    try {
+      return localStorage.getItem('wizard_auth_token');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setToken(token) {
+    try {
+      if (token) {
+        localStorage.setItem('wizard_auth_token', token);
+      } else {
+        localStorage.removeItem('wizard_auth_token');
+      }
+    } catch (e) {}
+  }
+
+  async function checkSession() {
+    const token = getToken();
+    if (!token) {
+      currentUser = null;
+      renderLobbyBar();
+      return null;
+    }
+
+    try {
+      const resp = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!resp.ok) {
+        setToken(null);
+        currentUser = null;
+        renderLobbyBar();
+        return null;
+      }
+      const data = await resp.json();
+      if (data.success && data.user) {
+        currentUser = data.user;
+        if (socket) {
+          socket.auth = { token };
+        }
+        if (nameInput) {
+          nameInput.value = data.user.username;
+          sessionStorage.setItem('wizard_last_name', data.user.username);
+        }
+        renderLobbyBar();
+        return data.user;
+      } else {
+        setToken(null);
+        currentUser = null;
+        renderLobbyBar();
+        return null;
+      }
+    } catch (e) {
+      console.warn('Fehler bei auth/me:', e);
+      renderLobbyBar();
+      return null;
+    }
+  }
+
+  async function login(username, password) {
+    if (!username || !password) {
+      showAuthError('Bitte gib Benutzername und Passwort ein.');
+      return false;
+    }
+    try {
+      const resp = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await resp.json();
+      if (!data.success) {
+        showAuthError(data.error || 'Anmeldung fehlgeschlagen.');
+        return false;
+      }
+      setToken(data.token);
+      currentUser = data.user;
+      if (socket) {
+        socket.auth = { token: data.token };
+      }
+      if (nameInput) {
+        nameInput.value = data.user.username;
+        sessionStorage.setItem('wizard_last_name', data.user.username);
+      }
+      renderLobbyBar();
+      closeAuthModal();
+      showToast(`Willkommen zurück, ${data.user.username}!`);
+      return true;
+    } catch (e) {
+      showAuthError('Verbindungsfehler bei der Anmeldung.');
+      return false;
+    }
+  }
+
+  async function register(username, password, avatarId) {
+    if (!username || !password) {
+      showAuthError('Bitte gib alle erforderlichen Felder ein.');
+      return false;
+    }
+    try {
+      const resp = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, avatar_id: avatarId || 'wizard_blue' })
+      });
+      const data = await resp.json();
+      if (!data.success) {
+        showAuthError(data.error || 'Registrierung fehlgeschlagen.');
+        return false;
+      }
+      setToken(data.token);
+      currentUser = data.user;
+      if (socket) {
+        socket.auth = { token: data.token };
+      }
+      if (nameInput) {
+        nameInput.value = data.user.username;
+        sessionStorage.setItem('wizard_last_name', data.user.username);
+      }
+      renderLobbyBar();
+      closeAuthModal();
+      showToast(`Willkommen im Bunde, ${data.user.username}!`);
+      return true;
+    } catch (e) {
+      showAuthError('Verbindungsfehler bei der Registrierung.');
+      return false;
+    }
+  }
+
+  async function logout() {
+    const token = getToken();
+    if (token) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (e) {}
+    }
+    setToken(null);
+    currentUser = null;
+    if (socket) {
+      socket.auth = {};
+    }
+    renderLobbyBar();
+    closeProfileDrawer();
+    showToast('Erfolgreich abgemeldet.');
+  }
+
+  async function updateTitle(title) {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const resp = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title })
+      });
+      const data = await resp.json();
+      if (data.success && data.user) {
+        currentUser = data.user;
+        renderLobbyBar();
+        renderProfileData();
+        showToast(`Ehrentitel gewechselt zu "${title}"`);
+      }
+    } catch (e) {
+      console.warn('Fehler bei updateTitle:', e);
+    }
+  }
+
+  async function updateAvatar(avatarId) {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const resp = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ avatar_id: avatarId })
+      });
+      const data = await resp.json();
+      if (data.success && data.user) {
+        currentUser = data.user;
+        renderLobbyBar();
+        renderProfileData();
+        showToast('Magier-Gestalt aktualisiert!');
+      }
+    } catch (e) {
+      console.warn('Fehler bei updateAvatar:', e);
+    }
+  }
+
+  async function refreshUser() {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const resp = await fetch('/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.success && data.user) {
+          currentUser = data.user;
+          renderLobbyBar();
+          const profileDrawer = document.getElementById('profile-drawer');
+          if (profileDrawer && profileDrawer.classList.contains('open')) {
+            renderProfileData();
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  function renderLobbyBar() {
+    const guestGroup = document.getElementById('auth-guest-controls');
+    const userGroup = document.getElementById('auth-user-controls');
+    const userNameEl = document.getElementById('lobbyUserName');
+    const userTitleEl = document.getElementById('lobbyUserTitle');
+    const userAvatarEl = document.getElementById('lobbyUserAvatar');
+
+    if (currentUser) {
+      if (guestGroup) guestGroup.style.display = 'none';
+      if (userGroup) userGroup.style.display = 'flex';
+      if (userNameEl) userNameEl.innerText = currentUser.username;
+      if (userTitleEl) userTitleEl.innerText = currentUser.title || 'Zauberlehrling';
+      if (userAvatarEl) {
+        userAvatarEl.src = `/images/${currentUser.avatar_id || 'wizard_blue'}.png`;
+      }
+    } else {
+      if (guestGroup) guestGroup.style.display = 'flex';
+      if (userGroup) userGroup.style.display = 'none';
+    }
+  }
+
+  function showAuthError(msg) {
+    const banner = document.getElementById('authErrorBanner');
+    if (!banner) return;
+    banner.innerText = msg;
+    banner.style.display = 'block';
+  }
+
+  function clearAuthError() {
+    const banner = document.getElementById('authErrorBanner');
+    if (banner) {
+      banner.innerText = '';
+      banner.style.display = 'none';
+    }
+  }
+
+  function openAuthModal(tab = 'login') {
+    activeAuthTab = tab;
+    clearAuthError();
+    const modal = document.getElementById('auth-modal');
+    const tabLogin = document.getElementById('tabLoginBtn');
+    const tabReg = document.getElementById('tabRegisterBtn');
+    const avatarSec = document.getElementById('authAvatarSection');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const titleEl = document.getElementById('authModalTitle');
+
+    if (tab === 'register') {
+      if (tabLogin) tabLogin.classList.remove('active');
+      if (tabReg) tabReg.classList.add('active');
+      if (avatarSec) avatarSec.style.display = 'block';
+      if (submitBtn) submitBtn.innerText = 'Konto erschaffen';
+      if (titleEl) titleEl.innerText = 'Gilden-Aufnahme';
+    } else {
+      if (tabLogin) tabLogin.classList.add('active');
+      if (tabReg) tabReg.classList.remove('active');
+      if (avatarSec) avatarSec.style.display = 'none';
+      if (submitBtn) submitBtn.innerText = 'Einloggen';
+      if (titleEl) titleEl.innerText = 'Gilden-Register';
+    }
+
+    if (modal) modal.style.display = 'flex';
+    const uInput = document.getElementById('authUsernameInput');
+    if (uInput) setTimeout(() => uInput.focus(), 50);
+  }
+
+  function closeAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.style.display = 'none';
+    clearAuthError();
+  }
+
+  function openProfileDrawer() {
+    if (!currentUser) {
+      openAuthModal('login');
+      return;
+    }
+    // Andere Drawers schließen
+    if (typeof closeScoreDrawer === 'function') closeScoreDrawer();
+    if (typeof closeRulesDrawer === 'function') closeRulesDrawer();
+
+    const drawer = document.getElementById('profile-drawer');
+    const backdrop = document.getElementById('drawer-backdrop');
+    if (drawer) drawer.classList.add('open');
+    if (backdrop) backdrop.classList.add('open');
+
+    renderProfileData();
+    // Im Hintergrund frische Daten laden
+    refreshUser();
+  }
+
+  function closeProfileDrawer() {
+    const drawer = document.getElementById('profile-drawer');
+    const backdrop = document.getElementById('drawer-backdrop');
+    if (drawer) drawer.classList.remove('open');
+    const scoreDrawer = document.getElementById('score-board-drawer');
+    const rulesDrawer = document.getElementById('rules-drawer');
+    const scoreOpen = scoreDrawer && scoreDrawer.classList.contains('open');
+    const rulesOpen = rulesDrawer && rulesDrawer.classList.contains('open');
+    if (backdrop && !scoreOpen && !rulesOpen) {
+      backdrop.classList.remove('open');
+    }
+  }
+
+  function renderProfileData() {
+    if (!currentUser) return;
+
+    const u = currentUser;
+    const usernameEl = document.getElementById('profileUsername');
+    const titleBadgeEl = document.getElementById('profileTitleBadge');
+    const avatarImgEl = document.getElementById('profileAvatarImg');
+    const memberSinceEl = document.getElementById('profileMemberSince');
+
+    if (usernameEl) usernameEl.innerText = u.username;
+    if (titleBadgeEl) titleBadgeEl.innerText = u.title || 'Zauberlehrling';
+    if (avatarImgEl) avatarImgEl.src = `/images/${u.avatar_id || 'wizard_blue'}.png`;
+
+    if (memberSinceEl && u.created_at) {
+      try {
+        const d = new Date(u.created_at);
+        memberSinceEl.innerText = `Chronik begonnen: ${d.toLocaleDateString('de-DE')}`;
+      } catch (e) {}
+    }
+
+    // Avatar Switcher Selection
+    document.querySelectorAll('#profileAvatarSwitcher .profile-avatar-mini-opt').forEach(opt => {
+      const aId = opt.getAttribute('data-avatar');
+      opt.classList.toggle('selected', aId === (u.avatar_id || 'wizard_blue'));
+    });
+
+    // Alltime Win/Loss Banner (E-Sport Stil)
+    const gamesPlayed = u.games_played || 0;
+    const gamesWon = u.games_won || 0;
+    const gamesLost = u.games_lost || 0;
+    const winRate = gamesPlayed > 0 ? ((gamesWon / gamesPlayed) * 100).toFixed(1) : '0.0';
+
+    const totalGamesEl = document.getElementById('profileTotalGames');
+    const winsBadgeEl = document.getElementById('profileWinsBadge');
+    const lossesBadgeEl = document.getElementById('profileLossesBadge');
+    const winRateEl = document.getElementById('profileWinRate');
+    const winRateBarEl = document.getElementById('profileWinRateBar');
+    const currentStreakEl = document.getElementById('profileCurrentStreak');
+    const maxStreakEl = document.getElementById('profileMaxStreak');
+    const podiumCountEl = document.getElementById('profilePodiumCount');
+
+    if (totalGamesEl) totalGamesEl.innerText = `${gamesPlayed} ${gamesPlayed === 1 ? 'Partie' : 'Partien'}`;
+    if (winsBadgeEl) winsBadgeEl.innerText = `${gamesWon}W`;
+    if (lossesBadgeEl) lossesBadgeEl.innerText = `${gamesLost}L`;
+    if (winRateEl) winRateEl.innerText = `${winRate}%`;
+    if (winRateBarEl) winRateBarEl.style.width = `${Math.min(100, Math.max(0, parseFloat(winRate)))}%`;
+    if (currentStreakEl) currentStreakEl.innerText = u.current_streak || 0;
+    if (maxStreakEl) maxStreakEl.innerText = u.max_win_streak || 0;
+    if (podiumCountEl) podiumCountEl.innerText = u.podium_finishes || 0;
+
+    // Wizard Signatur-Statistiken
+    const bidsMade = u.bids_made || 0;
+    const bidsHit = u.bids_hit || 0;
+    const prophecyRate = bidsMade > 0 ? ((bidsHit / bidsMade) * 100).toFixed(1) : '0.0';
+
+    const prophecyRateEl = document.getElementById('profileProphecyRate');
+    const prophecyHitsEl = document.getElementById('profileProphecyHits');
+    const highestScoreEl = document.getElementById('profileHighestScore');
+    const totalPointsEl = document.getElementById('profileTotalPoints');
+    const wizardsPlayedEl = document.getElementById('profileWizardsPlayed');
+    const jestersPlayedEl = document.getElementById('profileJestersPlayed');
+    const avgPointsEl = document.getElementById('profileAvgPoints');
+
+    if (prophecyRateEl) prophecyRateEl.innerText = `${prophecyRate}%`;
+    if (prophecyHitsEl) prophecyHitsEl.innerText = `${bidsHit} / ${bidsMade} Treffer`;
+    if (highestScoreEl) highestScoreEl.innerText = (u.highest_score || 0).toLocaleString('de-DE');
+    if (totalPointsEl) totalPointsEl.innerText = (u.total_points || 0).toLocaleString('de-DE');
+    if (wizardsPlayedEl) wizardsPlayedEl.innerText = (u.wizards_played || 0).toLocaleString('de-DE');
+    if (jestersPlayedEl) jestersPlayedEl.innerText = (u.jesters_played || 0).toLocaleString('de-DE');
+    if (avgPointsEl) {
+      const avg = gamesPlayed > 0 ? ((u.total_points || 0) / gamesPlayed).toFixed(1) : '0.0';
+      avgPointsEl.innerText = avg;
+    }
+
+    // Titel-Auswahl Dropdown
+    renderTitleSelector();
+  }
+
+  function renderTitleSelector() {
+    if (!currentUser) return;
+    const select = document.getElementById('profileTitleSelect');
+    const desc = document.getElementById('profileTitleStatusDesc');
+    if (!select) return;
+
+    const u = currentUser;
+    const wins = u.games_won || 0;
+    const maxStreak = u.max_win_streak || 0;
+    const bidsMade = u.bids_made || 0;
+    const bidsHit = u.bids_hit || 0;
+    const pRate = bidsMade > 0 ? (bidsHit / bidsMade) : 0;
+
+    // Freischalt-Bedingungen (Standard: Zauberlehrling, Meister der Illusion, Seher von Stonehenge, Unbesiegbarer Magier, Großmagier)
+    const titleDefinitions = [
+      {
+        id: 'Zauberlehrling',
+        name: 'Zauberlehrling',
+        unlocked: true,
+        desc: 'Standard-Ehrentitel aller neuen Magier'
+      },
+      {
+        id: 'Meister der Illusion',
+        name: 'Meister der Illusion',
+        unlocked: true,
+        desc: 'Meisterhafte Täuschung – Sieg mit klugem Stichspiel'
+      },
+      {
+        id: 'Seher von Stonehenge',
+        name: 'Seher von Stonehenge',
+        unlocked: (bidsMade >= 20 && pRate >= 0.75) || (u.title === 'Seher von Stonehenge'),
+        desc: 'Erfordert mindestens 20 Vorhersagen mit ≥ 75% Trefferquote'
+      },
+      {
+        id: 'Unbesiegbarer Magier',
+        name: 'Unbesiegbarer Magier',
+        unlocked: (maxStreak >= 5) || (u.title === 'Unbesiegbarer Magier'),
+        desc: 'Erfordert eine Serie von mindestens 5 Siegen in Folge'
+      },
+      {
+        id: 'Großmagier',
+        name: 'Großmagier',
+        unlocked: (wins >= 25) || (u.title === 'Großmagier'),
+        desc: 'Erfordert mindestens 25 siegreiche Partien'
+      }
+    ];
+
+    select.innerHTML = '';
+    titleDefinitions.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.name;
+      opt.disabled = !t.unlocked;
+      opt.innerText = t.unlocked ? t.name : `${t.name} (Gesperrt: ${t.desc})`;
+      if (t.name === u.title) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
+
+    const activeDef = titleDefinitions.find(t => t.name === u.title) || titleDefinitions[0];
+    if (desc) {
+      desc.innerText = `Aktiver Titel: "${activeDef.name}" – ${activeDef.desc}`;
+    }
+  }
+
+  async function openLeaderboard() {
+    const modal = document.getElementById('leaderboard-modal');
+    if (modal) modal.style.display = 'flex';
+    await loadLeaderboard();
+  }
+
+  function closeLeaderboard() {
+    const modal = document.getElementById('leaderboard-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  async function loadLeaderboard() {
+    const tbody = document.getElementById('leaderboardTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #d6be90; font-style: italic;">Rufe Chronik der Großmagier ab...</td></tr>';
+
+    try {
+      const resp = await fetch('/api/leaderboard?limit=10');
+      const data = await resp.json();
+      if (!data.success || !Array.isArray(data.leaderboard) || data.leaderboard.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #d6be90; font-style: italic;">Noch keine Magier in der Ruhmeshalle verzeichnet. Bestreite das erste Duell!</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.leaderboard.forEach((entry, idx) => {
+        const row = document.createElement('tr');
+        const rank = idx + 1;
+        let rankClass = 'rank-other';
+        let rankLabel = rank;
+        if (rank === 1) { rankClass = 'rank-1'; rankLabel = '🥇'; }
+        else if (rank === 2) { rankClass = 'rank-2'; rankLabel = '🥈'; }
+        else if (rank === 3) { rankClass = 'rank-3'; rankLabel = '🥉'; }
+
+        const avatarSrc = entry.avatar_id ? `/images/${entry.avatar_id}.png` : '/images/wizard_blue.png';
+        const titleBadge = entry.title ? `<span class="lb-title-badge">${escapeHtml(entry.title)}</span>` : '<span style="color:#777;">-</span>';
+
+        row.innerHTML = `
+          <td style="text-align: center;">
+            <span class="rank-pill ${rankClass}">${rankLabel}</span>
+          </td>
+          <td>
+            <div class="lb-player-cell">
+              <img src="${avatarSrc}" alt="Avatar" class="lb-avatar-mini" onerror="this.src='/images/wizard_blue.png';" />
+              <span class="lb-player-name">${escapeHtml(entry.username)}</span>
+            </div>
+          </td>
+          <td>${titleBadge}</td>
+          <td style="text-align: center;">
+            <span style="color: #86efac; font-weight: bold;">${entry.games_won}W</span> - <span style="color: #fca5a5;">${entry.games_lost}L</span>
+          </td>
+          <td style="text-align: center; font-weight: bold; color: var(--gold-bright);">
+            ${entry.win_rate}%
+          </td>
+          <td style="text-align: center; color: #cbd5e1;">
+            ${entry.prophecy_rate}%
+          </td>
+          <td style="text-align: right; font-family: var(--font-medieval); font-weight: bold; color: #fde047;">
+            ${(entry.highest_score || 0).toLocaleString('de-DE')}
+          </td>
+          <td style="text-align: right; font-family: var(--font-medieval); font-weight: bold; color: var(--gold-bright);">
+            ${(entry.total_points || 0).toLocaleString('de-DE')}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (e) {
+      console.warn('Fehler beim Laden der Bestenliste:', e);
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #ef4444;">Verbindungsfehler beim Laden der Ruhmeshalle.</td></tr>';
+    }
+  }
+
+  function setupUIBindings() {
+    // Buttons in Haupt-Lobby
+    const btnOpenLogin = document.getElementById('btnOpenLogin');
+    const btnOpenRegister = document.getElementById('btnOpenRegister');
+    const btnOpenLeaderboardGuest = document.getElementById('btnOpenLeaderboardGuest');
+    const btnOpenLeaderboardUser = document.getElementById('btnOpenLeaderboardUser');
+    const btnOpenProfile = document.getElementById('btnOpenProfile');
+    const authUserPill = document.getElementById('authUserPill');
+    const btnLogout = document.getElementById('btnLogout');
+
+    if (btnOpenLogin) btnOpenLogin.addEventListener('click', () => openAuthModal('login'));
+    if (btnOpenRegister) btnOpenRegister.addEventListener('click', () => openAuthModal('register'));
+    if (btnOpenLeaderboardGuest) btnOpenLeaderboardGuest.addEventListener('click', openLeaderboard);
+    if (btnOpenLeaderboardUser) btnOpenLeaderboardUser.addEventListener('click', openLeaderboard);
+    if (btnOpenProfile) btnOpenProfile.addEventListener('click', openProfileDrawer);
+    if (authUserPill) authUserPill.addEventListener('click', openProfileDrawer);
+    if (btnLogout) btnLogout.addEventListener('click', logout);
+
+    // Auth-Modal Controls
+    const tabLoginBtn = document.getElementById('tabLoginBtn');
+    const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+    const authCloseBtn = document.getElementById('authModalClose');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const authGuestBtn = document.getElementById('authGuestBtn');
+    const uInput = document.getElementById('authUsernameInput');
+    const pInput = document.getElementById('authPasswordInput');
+
+    if (tabLoginBtn) tabLoginBtn.addEventListener('click', () => openAuthModal('login'));
+    if (tabRegisterBtn) tabRegisterBtn.addEventListener('click', () => openAuthModal('register'));
+    if (authCloseBtn) authCloseBtn.addEventListener('click', closeAuthModal);
+    if (authGuestBtn) authGuestBtn.addEventListener('click', closeAuthModal);
+
+    // Avatar Selection im Auth Modal
+    document.querySelectorAll('#authAvatarSection .auth-avatar-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('#authAvatarSection .auth-avatar-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        selectedRegisterAvatar = opt.getAttribute('data-avatar');
+      });
+    });
+
+    // Form Submit
+    function submitAuth() {
+      const u = uInput ? uInput.value.trim() : '';
+      const p = pInput ? pInput.value : '';
+      if (activeAuthTab === 'register') {
+        register(u, p, selectedRegisterAvatar);
+      } else {
+        login(u, p);
+      }
+    }
+
+    if (authSubmitBtn) authSubmitBtn.addEventListener('click', submitAuth);
+    if (uInput) uInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
+    if (pInput) pInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
+
+    // Profile-Drawer Controls
+    const profileCloseBtn = document.getElementById('profile-drawer-close');
+    if (profileCloseBtn) profileCloseBtn.addEventListener('click', closeProfileDrawer);
+
+    // Avatar Switcher im Profile Drawer
+    document.querySelectorAll('#profileAvatarSwitcher .profile-avatar-mini-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const aId = opt.getAttribute('data-avatar');
+        if (aId) updateAvatar(aId);
+      });
+    });
+
+    // Title Selector im Profile Drawer
+    const titleSelect = document.getElementById('profileTitleSelect');
+    if (titleSelect) {
+      titleSelect.addEventListener('change', (e) => {
+        const newTitle = e.target.value;
+        if (newTitle) updateTitle(newTitle);
+      });
+    }
+
+    // Leaderboard Controls
+    const lbCloseBtn = document.getElementById('leaderboardCloseBtn');
+    const btnRefreshLb = document.getElementById('btnRefreshLeaderboard');
+    if (lbCloseBtn) lbCloseBtn.addEventListener('click', closeLeaderboard);
+    if (btnRefreshLb) btnRefreshLb.addEventListener('click', loadLeaderboard);
+  }
+
+  return {
+    init: async () => {
+      setupUIBindings();
+      await checkSession();
+    },
+    getCurrentUser: () => currentUser,
+    getToken,
+    setToken,
+    login,
+    register,
+    logout,
+    openAuthModal,
+    closeAuthModal,
+    openProfileDrawer,
+    closeProfileDrawer,
+    openLeaderboard,
+    closeLeaderboard,
+    updateTitle,
+    updateAvatar,
+    refreshUser
+  };
+})();
 
 // Screen-Manager zur sauberen Umschaltung zwischen den 3 Screens
 function switchScreen(screenName) {
@@ -611,34 +1283,41 @@ socket.on('connect', () => {
     socket.emit('joinRoom', {
       playerName: savedName,
       roomCode: savedRoom,
-      sessionId: mySessionId
+      sessionId: mySessionId,
+      authToken: WizardAuth.getToken()
     });
   }
 });
 
-// --- DRAWER-STEUERUNG (BUCH DER WAHRHEIT & REGELWERK) ---
+// --- DRAWER-STEUERUNG (BUCH DER WAHRHEIT, REGELWERK & PROFIL) ---
 function openScoreDrawer() {
   closeRulesDrawer();
+  if (typeof WizardAuth !== 'undefined') WizardAuth.closeProfileDrawer();
   scoreDrawer.classList.add('open');
   drawerBackdrop.classList.add('open');
 }
 
 function closeScoreDrawer() {
   scoreDrawer.classList.remove('open');
-  if (!rulesDrawer || !rulesDrawer.classList.contains('open')) {
+  const profileDrawer = document.getElementById('profile-drawer');
+  const profileOpen = profileDrawer && profileDrawer.classList.contains('open');
+  if ((!rulesDrawer || !rulesDrawer.classList.contains('open')) && !profileOpen) {
     drawerBackdrop.classList.remove('open');
   }
 }
 
 function openRulesDrawer() {
   closeScoreDrawer();
+  if (typeof WizardAuth !== 'undefined') WizardAuth.closeProfileDrawer();
   if (rulesDrawer) rulesDrawer.classList.add('open');
   drawerBackdrop.classList.add('open');
 }
 
 function closeRulesDrawer() {
   if (rulesDrawer) rulesDrawer.classList.remove('open');
-  if (!scoreDrawer.classList.contains('open')) {
+  const profileDrawer = document.getElementById('profile-drawer');
+  const profileOpen = profileDrawer && profileDrawer.classList.contains('open');
+  if ((!scoreDrawer || !scoreDrawer.classList.contains('open')) && !profileOpen) {
     drawerBackdrop.classList.remove('open');
   }
 }
@@ -679,6 +1358,7 @@ document.querySelectorAll('.rules-tab-btn').forEach(btn => {
 drawerBackdrop.addEventListener('click', () => {
   closeScoreDrawer();
   closeRulesDrawer();
+  if (typeof WizardAuth !== 'undefined') WizardAuth.closeProfileDrawer();
 });
 
 // --- SCREEN 1: HAUPT-LOBBY ---
@@ -694,7 +1374,8 @@ function doCreateGame() {
   statusMessage.innerText = 'Erstelle neues Spiel...';
   socket.emit('createRoom', {
     playerName,
-    sessionId: mySessionId
+    sessionId: mySessionId,
+    authToken: WizardAuth.getToken()
   });
 }
 
@@ -720,7 +1401,8 @@ function doJoin() {
   socket.emit('joinRoom', {
     playerName,
     roomCode: currentRoomCode,
-    sessionId: mySessionId
+    sessionId: mySessionId,
+    authToken: WizardAuth.getToken()
   });
 
   statusMessage.innerText = 'Betrete Raum...';
@@ -881,8 +1563,17 @@ function updateWaitingRoomView(amIHost) {
       ? '<span style="color: #2ecc71; font-size: 12px; font-weight: bold;">● Bereit</span>'
       : '<span style="color: #e74c3c; font-size: 12px; font-weight: bold;">● Getrennt</span>';
 
+    const avatarSrc = p.avatarId ? `/images/${p.avatarId}.png` : '/images/wizard_blue.png';
+    const titleHtml = p.title ? `<div style="font-size: 11px; color: #d6be90; font-style: italic;">${escapeHtml(p.title)}</div>` : '';
+
     item.innerHTML = `
-      <div style="font-size: 15px;"><b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge}</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="${avatarSrc}" alt="Avatar" class="waiting-player-avatar" onerror="this.src='/images/wizard_blue.png';" />
+        <div>
+          <div style="font-size: 15px;"><b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge}</div>
+          ${titleHtml}
+        </div>
+      </div>
       <div>${statusText}</div>
     `;
     waitingRoomPlayersList.appendChild(item);
@@ -1851,13 +2542,19 @@ function renderOpponents() {
       `;
     }
 
+    const avatarHtml = p.avatarId
+      ? `<img src="/images/${p.avatarId}.png" alt="${escapeHtml(p.name)}" class="seat-avatar-img" onerror="this.style.display='none'; this.parentElement.innerText='${initial}';" />`
+      : initial;
+    const titleHtml = p.title ? `<div class="seat-title">${escapeHtml(p.title)}</div>` : '';
+
     seatEl.innerHTML = `
-      <div class="seat-avatar ${disconnectedClass}">${initial}</div>
+      <div class="seat-avatar ${disconnectedClass}">${avatarHtml}</div>
       <div class="seat-details">
         <div class="seat-name-row">
           <span class="seat-name">${escapeHtml(p.name)}</span>
           ${hostBadge}${dealerBadge}
         </div>
+        ${titleHtml}
         <div class="seat-stats">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>
       </div>
       ${foreheadCardHtml}
@@ -2738,6 +3435,11 @@ function showGameOverScreen(amIHost) {
     resetGameBtn.style.display = amIHost ? 'block' : 'none';
   }
 
+  // Profil-Statistiken im Hintergrund aktualisieren (neue Siege/Niederlagen/Punkte sofort wirksam)
+  if (typeof WizardAuth !== 'undefined' && WizardAuth.refreshUser) {
+    WizardAuth.refreshUser();
+  }
+
   gameOverModal.style.display = 'flex';
 }
 
@@ -2913,7 +3615,8 @@ function setupResizableDrawers() {
   });
 }
 
-// Initialer Zustand: Haupt-Lobby, Audio-Bindings & Drawer-Resizing einrichten
+// Initialer Zustand: Haupt-Lobby, Audio-Bindings, Auth & Drawer-Resizing einrichten
 setupAudioSettingsUI();
 setupResizableDrawers();
+WizardAuth.init();
 switchScreen('lobby');

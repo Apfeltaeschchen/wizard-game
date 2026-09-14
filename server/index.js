@@ -18,7 +18,76 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
+app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
+
+const dbModule = require('./database');
+
+// --- REST-API FÜR ACCOUNTS, STATISTIKEN & LEADERBOARDS ---
+app.post('/api/auth/register', (req, res) => {
+  const { username, password, avatar_id } = req.body || {};
+  const result = dbModule.registerUser(username, password, avatar_id);
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+  res.json(result);
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body || {};
+  const result = dbModule.loginUser(username, password);
+  if (!result.success) {
+    return res.status(401).json(result);
+  }
+  res.json(result);
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
+  dbModule.logoutUser(token);
+  res.json({ success: true });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '') || req.query.token;
+  const user = dbModule.getUserByToken(token);
+  if (!user) {
+    return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+  }
+  res.json({ success: true, user });
+});
+
+app.patch('/api/auth/profile', (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
+  const user = dbModule.getUserByToken(token);
+  if (!user) {
+    return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+  }
+  const { avatar_id, title } = req.body || {};
+  const updated = dbModule.updateUserProfile(user.id, { avatar_id, title });
+  res.json({ success: true, user: updated });
+});
+
+app.get('/api/leaderboard', (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const leaderboard = dbModule.getLeaderboard(limit);
+  res.json({ success: true, leaderboard });
+});
+
+// Socket.IO Handshake Authentifizierung
+io.use((socket, next) => {
+  const token = socket.handshake.auth && socket.handshake.auth.token;
+  if (token) {
+    const user = dbModule.getUserByToken(token);
+    if (user) {
+      socket.user = user;
+    }
+  }
+  next();
+});
 
 // In-Memory Speicher für alle aktiven Spielräume
 const rooms = {};
@@ -123,13 +192,18 @@ function createNewRoomState(hostSessionId = null, roomCode = '') {
 io.on('connection', (socket) => {
 
   // Neues Spiel erstellen mit garantiert einmaligem 6-stelligen Zahlencode
-  socket.on('createRoom', ({ playerName, sessionId, roomCode }) => {
+  socket.on('createRoom', ({ playerName, sessionId, roomCode, authToken }) => {
     if (!sessionId) {
       socket.emit('lobbyError', { message: 'Ungültige Session-Daten.' });
       return;
     }
 
-    const cleanName = sanitizeName(playerName);
+    let authUser = socket.user;
+    if (!authUser && authToken) {
+      authUser = dbModule.getUserByToken(authToken);
+    }
+
+    const cleanName = authUser ? authUser.username : sanitizeName(playerName);
     // Falls ein spezifischer Code angegeben wurde und frei ist (z.B. in Tests), sonst neuen Zahlencode generieren:
     const code = (roomCode && typeof roomCode === 'string' && !rooms[roomCode.trim().toUpperCase()])
       ? roomCode.trim().toUpperCase().substring(0, 10)
@@ -139,7 +213,10 @@ io.on('connection', (socket) => {
     const hostPlayer = {
       sessionId,
       socketId: socket.id,
+      userId: authUser ? authUser.id : null,
       name: cleanName,
+      avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
+      title: authUser ? authUser.title : null,
       hand: [],
       bid: null,
       tricksWon: 0,
@@ -176,14 +253,19 @@ io.on('connection', (socket) => {
   });
 
   // Spieler tritt einem Raum bei
-  socket.on('joinRoom', ({ playerName, roomCode, sessionId, createIfNotExists }) => {
+  socket.on('joinRoom', ({ playerName, roomCode, sessionId, createIfNotExists, authToken }) => {
     if (!roomCode || typeof roomCode !== 'string' || !sessionId) {
       socket.emit('lobbyError', { message: 'Ungültige Raum- oder Session-Daten.' });
       return;
     }
 
+    let authUser = socket.user;
+    if (!authUser && authToken) {
+      authUser = dbModule.getUserByToken(authToken);
+    }
+
     const normalizedCode = roomCode.trim().toUpperCase().substring(0, 10);
-    const cleanName = sanitizeName(playerName);
+    const cleanName = authUser ? authUser.username : sanitizeName(playerName);
 
     if (!rooms[normalizedCode]) {
       // Abwärtskompatibilität für bestehende automatisierte Tests
@@ -206,6 +288,11 @@ io.on('connection', (socket) => {
     if (existingPlayer) {
       existingPlayer.socketId = socket.id;
       existingPlayer.connected = true;
+      if (authUser) {
+        existingPlayer.userId = authUser.id;
+        existingPlayer.avatarId = authUser.avatar_id;
+        existingPlayer.title = authUser.title;
+      }
       if (cleanName && cleanName !== existingPlayer.name) {
         const nameTaken = room.players.some(p => p.sessionId !== sessionId && p.name.trim().toLowerCase() === cleanName.toLowerCase());
         if (!nameTaken) {
@@ -323,7 +410,10 @@ io.on('connection', (socket) => {
     const newPlayer = {
       sessionId,
       socketId: socket.id,
+      userId: authUser ? authUser.id : null,
       name: cleanName,
+      avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
+      title: authUser ? authUser.title : null,
       hand: [],
       bid: null,
       tricksWon: 0,
@@ -445,6 +535,8 @@ io.on('connection', (socket) => {
       }
       player.bid = null;
       player.tricksWon = 0;
+      player.heldWizardThisRound = player.hand.some(c => c && c.type === 'wizard');
+      player.attemptingZeroWizardRound = false;
     });
 
     // 2. Trumpfkarte aufdecken (falls nicht letzte Runde)
@@ -753,6 +845,9 @@ io.on('connection', (socket) => {
     }
 
     currentPlayer.bid = parsedBid;
+    if (currentPlayer.heldWizardThisRound && parsedBid === 0) {
+      currentPlayer.attemptingZeroWizardRound = true;
+    }
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
 
     const allBidsPlaced = room.players.every(p => p.bid !== null);
@@ -799,6 +894,39 @@ io.on('connection', (socket) => {
 
     const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
     const isGameOver = room.round >= maxRounds;
+
+    // Runden-Statistiken für angemeldete Spieler erfassen
+    room.players.forEach(p => {
+      if (p.userId) {
+        dbModule.recordRoundBid(p.userId, p.bid !== null ? p.bid : 0, p.tricksWon);
+      }
+      if (p.attemptingZeroWizardRound && p.tricksWon === 0) {
+        p.completedZeroWizardRound = true;
+      }
+    });
+
+    if (isGameOver) {
+      // Rangfolge berechnen und Alltime Win/Loss verbuchen
+      const sortedByScore = [...room.players].sort((a, b) => b.totalScore - a.totalScore);
+      const totalPlayers = room.players.length;
+
+      sortedByScore.forEach((p, index) => {
+        let rank = index + 1;
+        if (index > 0 && p.totalScore === sortedByScore[index - 1].totalScore) {
+          rank = sortedByScore[index - 1].calculatedRank || rank;
+        }
+        p.calculatedRank = rank;
+
+        if (p.userId) {
+          dbModule.recordGameFinished(p.userId, {
+            rank: rank,
+            totalPlayers: totalPlayers,
+            points: p.totalScore,
+            hadZeroWizardTrickWin: !!(rank === 1 && p.completedZeroWizardRound)
+          });
+        }
+      });
+    }
 
     io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
     io.to(roomCode).emit('roundFinished', {
@@ -914,6 +1042,9 @@ io.on('connection', (socket) => {
     }
 
     const playedCard = currentPlayer.hand.splice(cardIndex, 1)[0];
+    if (currentPlayer.userId && playedCard) {
+      dbModule.recordSpecialCard(currentPlayer.userId, playedCard.type);
+    }
 
     // Handkarten erst NACH dem Entfernen der gespielten Karte sortieren!
     let currentTrumpSuit = 'none';
@@ -1410,7 +1541,10 @@ io.on('connection', (socket) => {
         connected: p.connected,
         isDealer: idx === dealerIndex,
         isHost: p.sessionId === hostSessionId,
-        handCount: p.hand ? p.hand.length : 0
+        handCount: p.hand ? p.hand.length : 0,
+        userId: p.userId || null,
+        avatarId: p.avatarId || 'wizard_blue',
+        title: p.title || null
       };
       if (room && room.round === 1 && p.hand && p.hand[0]) {
         pData.round1Card = p.hand[0];
