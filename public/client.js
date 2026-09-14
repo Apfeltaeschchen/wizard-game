@@ -155,14 +155,44 @@ let cachedPlayers = [];
 let cachedTrumpCard = null;
 let inspectedCardIndex = null; // Für Touch "Tap to Inspect"
 
-// --- NATIVE WEB AUDIO API SOUND-ENGINE (OHNE EXTERNE DATEIEN) ---
+// --- NATIVE WEB AUDIO API SOUND- & MUSIK-ENGINE (OHNE EXTERNE DATEIEN) ---
 const WizardAudio = (() => {
   let ctx = null;
+  let masterGain = null;
+  let sfxGain = null;
+  let musicGain = null;
+
+  // Lade gespeicherte Audioeinstellungen oder Defaults
+  let settings = {
+    master: 0.8,
+    sfx: 0.9,
+    music: 0.5,
+    sfxMuted: false,
+    musicMuted: false
+  };
+
+  try {
+    const saved = localStorage.getItem('wizard_audio_settings');
+    if (saved) {
+      settings = Object.assign(settings, JSON.parse(saved));
+    }
+  } catch (e) {}
 
   function getContext() {
     if (!ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) ctx = new AudioCtx();
+      if (AudioCtx) {
+        ctx = new AudioCtx();
+        masterGain = ctx.createGain();
+        sfxGain = ctx.createGain();
+        musicGain = ctx.createGain();
+
+        sfxGain.connect(masterGain);
+        musicGain.connect(masterGain);
+        masterGain.connect(ctx.destination);
+
+        applyVolumeSettings();
+      }
     }
     if (ctx && ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
@@ -170,66 +200,103 @@ const WizardAudio = (() => {
     return ctx;
   }
 
-  // Bei erstem User-Event AudioContext aufwecken
-  ['click', 'touchstart', 'keydown'].forEach(evt => {
-    window.addEventListener(evt, () => {
-      const c = getContext();
-      if (c && c.state === 'suspended') c.resume().catch(() => {});
-    }, { once: true, passive: true });
-  });
+  function applyVolumeSettings() {
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    if (masterGain) {
+      masterGain.gain.setValueAtTime(settings.master, t);
+    }
+    if (sfxGain) {
+      sfxGain.gain.setValueAtTime(settings.sfxMuted ? 0 : settings.sfx, t);
+    }
+    if (musicGain) {
+      musicGain.gain.setValueAtTime(settings.musicMuted ? 0 : settings.music, t);
+    }
+  }
 
-  // Hölzernes, sattes Klick/Klack beim Ablegen einer Spielkarte
+  function saveSettings() {
+    try {
+      localStorage.setItem('wizard_audio_settings', JSON.stringify(settings));
+    } catch (e) {}
+  }
+
+  // --- REALISTISCHER KARTENLEGE-SOUND (CRISP PAPER/CARD SLIDE & SNAP AUF FILZ) ---
   function playCardSnap() {
     try {
       const c = getContext();
-      if (!c) return;
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
       const t = c.currentTime;
 
-      const osc = c.createOscillator();
-      const gain = c.createGain();
-      const filter = c.createBiquadFilter();
+      // 1. Karten-Friction (Kurzes Kartengleiten/Zischen aus gefiltertem Rauschen)
+      const noiseBuffer = c.createBuffer(1, Math.floor(c.sampleRate * 0.055), c.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseBuffer.length; i++) {
+        output[i] = (Math.random() * 2 - 1);
+      }
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(260, t);
-      osc.frequency.exponentialRampToValueAtTime(75, t + 0.05);
+      const noiseSrc = c.createBufferSource();
+      noiseSrc.buffer = noiseBuffer;
 
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(420, t);
-      filter.Q.setValueAtTime(2.2, t);
+      const bandpass = c.createBiquadFilter();
+      bandpass.type = 'bandpass';
+      bandpass.frequency.setValueAtTime(3100, t);
+      bandpass.Q.setValueAtTime(1.8, t);
 
-      gain.gain.setValueAtTime(0.4, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.065);
+      const highpass = c.createBiquadFilter();
+      highpass.type = 'highpass';
+      highpass.frequency.setValueAtTime(1400, t);
 
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(c.destination);
+      const noiseGain = c.createGain();
+      noiseGain.gain.setValueAtTime(0.01, t);
+      noiseGain.gain.linearRampToValueAtTime(0.42, t + 0.005);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
 
-      osc.start(t);
-      osc.stop(t + 0.07);
+      noiseSrc.connect(bandpass);
+      bandpass.connect(highpass);
+      highpass.connect(noiseGain);
+      noiseGain.connect(sfxGain);
 
-      // Knackige Snap-Transiente
+      noiseSrc.start(t);
+
+      // 2. Transiente: Heller Papier-Snap beim Loslassen der Karte
       const snapOsc = c.createOscillator();
       const snapGain = c.createGain();
       snapOsc.type = 'sine';
-      snapOsc.frequency.setValueAtTime(820, t);
-      snapOsc.frequency.exponentialRampToValueAtTime(220, t + 0.02);
-      snapGain.gain.setValueAtTime(0.28, t);
-      snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.028);
+      snapOsc.frequency.setValueAtTime(1450, t);
+      snapOsc.frequency.exponentialRampToValueAtTime(750, t + 0.015);
+
+      snapGain.gain.setValueAtTime(0.22, t);
+      snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.018);
 
       snapOsc.connect(snapGain);
-      snapGain.connect(c.destination);
+      snapGain.connect(sfxGain);
       snapOsc.start(t);
-      snapOsc.stop(t + 0.03);
+      snapOsc.stop(t + 0.02);
+
+      // 3. Sanfte Filz-Dämpfung (sehr dezent, KEIN hölzernes Klopfen)
+      const feltOsc = c.createOscillator();
+      const feltGain = c.createGain();
+      feltOsc.type = 'triangle';
+      feltOsc.frequency.setValueAtTime(210, t);
+      feltOsc.frequency.exponentialRampToValueAtTime(110, t + 0.03);
+
+      feltGain.gain.setValueAtTime(0.12, t);
+      feltGain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+
+      feltOsc.connect(feltGain);
+      feltGain.connect(sfxGain);
+      feltOsc.start(t);
+      feltOsc.stop(t + 0.04);
     } catch (e) {
       console.warn('Audio playCardSnap error:', e);
     }
   }
 
-  // Mystischer, ätherischer Zweiklang beim Ausspielen eines Zauberers
+  // Mystischer ätherischer Zweiklang beim Ausspielen eines Zauberers
   function playWizardSound() {
     try {
       const c = getContext();
-      if (!c) return;
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
       const t = c.currentTime;
 
       const osc1 = c.createOscillator();
@@ -247,7 +314,7 @@ const WizardAudio = (() => {
 
       osc1.connect(gain);
       osc2.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(sfxGain);
 
       osc1.start(t);
       osc2.start(t);
@@ -262,7 +329,7 @@ const WizardAudio = (() => {
   function playJesterSound() {
     try {
       const c = getContext();
-      if (!c) return;
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
       const t = c.currentTime;
 
       const osc = c.createOscillator();
@@ -276,7 +343,7 @@ const WizardAudio = (() => {
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
 
       osc.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(sfxGain);
 
       osc.start(t);
       osc.stop(t + 0.22);
@@ -296,11 +363,176 @@ const WizardAudio = (() => {
     }
   }
 
+  // --- HINTERGRUNDMUSIK-ENGINE (DORISCHE HARFE & AMBIENT PAD) ---
+  let isMusicPlaying = false;
+  let musicTimer = null;
+  let musicStep = 0;
+  let droneGain = null;
+  let droneOsc1 = null;
+  let droneOsc2 = null;
+
+  // Mittelalterliche Melodie-Sequenz (Harfe/Laute im D-Dorischen Modus)
+  const DORIAN_NOTES = [
+    293.66, 349.23, 440.00, 392.00, 349.23, 293.66, 261.63, 293.66,
+    440.00, 523.25, 440.00, 392.00, 349.23, 392.00, 440.00, 0,
+    349.23, 293.66, 261.63, 220.00, 261.63, 293.66, 349.23, 392.00,
+    440.00, 392.00, 349.23, 293.66, 261.63, 293.66, 0, 0
+  ];
+
+  function playHarpNote(freq, dur = 1.1) {
+    if (!freq || !ctx || settings.musicMuted || settings.music <= 0 || settings.master <= 0) return;
+    try {
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const noteGain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(2200, t);
+      filter.frequency.exponentialRampToValueAtTime(450, t + dur);
+
+      noteGain.gain.setValueAtTime(0.001, t);
+      noteGain.gain.linearRampToValueAtTime(0.18, t + 0.015);
+      noteGain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+      osc.connect(filter);
+      filter.connect(noteGain);
+      noteGain.connect(musicGain);
+
+      osc.start(t);
+      osc.stop(t + dur + 0.05);
+    } catch (e) {}
+  }
+
+  function startDronePad() {
+    if (!ctx || droneGain) return;
+    try {
+      const t = ctx.currentTime;
+      droneGain = ctx.createGain();
+      droneGain.gain.setValueAtTime(0.001, t);
+      droneGain.gain.linearRampToValueAtTime(0.035, t + 2.0);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(320, t);
+
+      droneOsc1 = ctx.createOscillator();
+      droneOsc1.type = 'sine';
+      droneOsc1.frequency.setValueAtTime(146.83, t); // D3
+
+      droneOsc2 = ctx.createOscillator();
+      droneOsc2.type = 'sine';
+      droneOsc2.frequency.setValueAtTime(220.00, t); // A3
+
+      droneOsc1.connect(filter);
+      droneOsc2.connect(filter);
+      filter.connect(droneGain);
+      droneGain.connect(musicGain);
+
+      droneOsc1.start(t);
+      droneOsc2.start(t);
+    } catch (e) {}
+  }
+
+  function stopDronePad() {
+    if (!droneGain || !ctx) return;
+    try {
+      const t = ctx.currentTime;
+      droneGain.gain.linearRampToValueAtTime(0.0001, t + 0.8);
+      setTimeout(() => {
+        if (droneOsc1) { try { droneOsc1.stop(); droneOsc1.disconnect(); } catch(e){} droneOsc1 = null; }
+        if (droneOsc2) { try { droneOsc2.stop(); droneOsc2.disconnect(); } catch(e){} droneOsc2 = null; }
+        if (droneGain) { try { droneGain.disconnect(); } catch(e){} droneGain = null; }
+      }, 900);
+    } catch (e) {}
+  }
+
+  function startMusic() {
+    const c = getContext();
+    if (!c) return;
+    if (isMusicPlaying) return;
+    isMusicPlaying = true;
+    startDronePad();
+
+    musicTimer = setInterval(() => {
+      if (!isMusicPlaying) return;
+      const freq = DORIAN_NOTES[musicStep];
+      if (freq) {
+        playHarpNote(freq, 1.2);
+      }
+      musicStep = (musicStep + 1) % DORIAN_NOTES.length;
+    }, 440);
+  }
+
+  function stopMusic() {
+    isMusicPlaying = false;
+    if (musicTimer) {
+      clearInterval(musicTimer);
+      musicTimer = null;
+    }
+    stopDronePad();
+  }
+
+  function toggleMusic() {
+    if (isMusicPlaying) {
+      stopMusic();
+      return false;
+    } else {
+      startMusic();
+      return true;
+    }
+  }
+
+  // Bei erstem User-Event AudioContext aufwecken und Musik starten
+  ['click', 'touchstart', 'keydown'].forEach(evt => {
+    window.addEventListener(evt, () => {
+      const c = getContext();
+      if (c && c.state === 'suspended') c.resume().catch(() => {});
+      if (!isMusicPlaying && !settings.musicMuted && settings.music > 0) {
+        startMusic();
+      }
+    }, { once: true, passive: true });
+  });
+
   return {
+    getContext,
     playCardSnap,
     playWizardSound,
     playJesterSound,
-    playForCard
+    playForCard,
+    startMusic,
+    stopMusic,
+    toggleMusic,
+    isMusicPlaying: () => isMusicPlaying,
+    getSettings: () => ({ ...settings }),
+    setMasterVolume: (val) => {
+      settings.master = Math.max(0, Math.min(1, val));
+      applyVolumeSettings();
+      saveSettings();
+    },
+    setSfxVolume: (val) => {
+      settings.sfx = Math.max(0, Math.min(1, val));
+      applyVolumeSettings();
+      saveSettings();
+    },
+    setMusicVolume: (val) => {
+      settings.music = Math.max(0, Math.min(1, val));
+      applyVolumeSettings();
+      saveSettings();
+    },
+    setSfxMuted: (muted) => {
+      settings.sfxMuted = !!muted;
+      applyVolumeSettings();
+      saveSettings();
+    },
+    setMusicMuted: (muted) => {
+      settings.musicMuted = !!muted;
+      applyVolumeSettings();
+      saveSettings();
+    }
   };
 })();
 
@@ -329,7 +561,7 @@ function escapeHtml(text) {
 function switchScreen(screenName) {
   lobbyScreen.style.display = (screenName === 'lobby') ? 'flex' : 'none';
   waitingRoomScreen.style.display = (screenName === 'waiting') ? 'flex' : 'none';
-  gameScreen.style.display = (screenName === 'game') ? 'block' : 'none';
+  gameScreen.style.display = (screenName === 'game') ? 'flex' : 'none';
 
   if (screenName !== 'game') {
     hideSpecialModals();
@@ -1531,9 +1763,9 @@ function renderOpponents() {
           <span class="seat-name">${escapeHtml(p.name)}</span>
           ${hostBadge}${dealerBadge}
         </div>
-        ${foreheadCardHtml}
         <div class="seat-stats">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>
       </div>
+      ${foreheadCardHtml}
     `;
 
     opponentsContainer.appendChild(seatEl);
@@ -1563,12 +1795,7 @@ function renderTrickCards(trickCards, animateLast = true) {
     wrap.classList.add('trick-card-item');
     wrap.style.textAlign = 'center';
 
-    // Spielername direkt über der Karte (>= 14px, fett, schattiert)
-    const nameLabel = document.createElement('div');
-    nameLabel.classList.add('trick-player-name');
-    nameLabel.innerText = item.playerName;
-
-    // Vollwertige Karte direkt unter dem Namen
+    // Vollwertige 3D-Karte (vollständig sichtbar, unbedeckt oben)
     const cardWrapper = document.createElement('div');
     cardWrapper.classList.add('card-3d-wrapper');
 
@@ -1586,8 +1813,14 @@ function renderTrickCards(trickCards, animateLast = true) {
       cardWrapper.style.transform = `rotate(${rot}deg)`;
     }
 
-    wrap.appendChild(nameLabel);
+    // Spielername dezent & edel als Plakette UNTER der Karte platziert
+    const nameBadge = document.createElement('div');
+    nameBadge.classList.add('trick-player-badge');
+    nameBadge.innerText = item.playerName;
+    nameBadge.title = `Gespielt von ${item.playerName}`;
+
     wrap.appendChild(cardWrapper);
+    wrap.appendChild(nameBadge);
     trickContainer.appendChild(wrap);
   });
 }
@@ -2398,5 +2631,122 @@ function showGameOverScreen(amIHost) {
   gameOverModal.style.display = 'flex';
 }
 
-// Initialer Zustand: Haupt-Lobby anzeigen
+// --- AUDIO- & SOUND-EINSTELLUNGEN UI CONTROLLER ---
+function setupAudioSettingsUI() {
+  const modal = document.getElementById('audio-settings-modal');
+  const btnClose = document.getElementById('btnAudioClose');
+  const btnSaveClose = document.getElementById('btnAudioSaveClose');
+
+  const masterSlider = document.getElementById('masterVolSlider');
+  const sfxSlider = document.getElementById('sfxVolSlider');
+  const musicSlider = document.getElementById('musicVolSlider');
+
+  const masterLabel = document.getElementById('masterVolLabel');
+  const sfxLabel = document.getElementById('sfxVolLabel');
+  const musicLabel = document.getElementById('musicVolLabel');
+
+  const sfxMute = document.getElementById('sfxMuteToggle');
+  const musicMute = document.getElementById('musicMuteToggle');
+
+  const btnTestCard = document.getElementById('btnTestCardSound');
+  const btnToggleMusic = document.getElementById('btnToggleMusicPlayback');
+  const musicStatus = document.getElementById('musicPlayingStatus');
+
+  function openAudioModal() {
+    const s = WizardAudio.getSettings();
+    if (masterSlider) masterSlider.value = Math.round(s.master * 100);
+    if (sfxSlider) sfxSlider.value = Math.round(s.sfx * 100);
+    if (musicSlider) musicSlider.value = Math.round(s.music * 100);
+
+    if (masterLabel) masterLabel.innerText = `${Math.round(s.master * 100)}%`;
+    if (sfxLabel) sfxLabel.innerText = `${Math.round(s.sfx * 100)}%`;
+    if (musicLabel) musicLabel.innerText = `${Math.round(s.music * 100)}%`;
+
+    if (sfxMute) sfxMute.checked = !!s.sfxMuted;
+    if (musicMute) musicMute.checked = !!s.musicMuted;
+
+    updateMusicUI();
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function closeAudioModal() {
+    if (modal) modal.style.display = 'none';
+  }
+
+  function updateMusicUI() {
+    if (!musicStatus || !btnToggleMusic) return;
+    const isPlaying = WizardAudio.isMusicPlaying();
+    if (isPlaying) {
+      musicStatus.innerText = 'Aktiv (Harfe & Laute)';
+      musicStatus.style.color = '#86efac';
+      btnToggleMusic.innerText = '⏸ Pause';
+    } else {
+      musicStatus.innerText = 'Pausiert';
+      musicStatus.style.color = '#cbd5e1';
+      btnToggleMusic.innerText = '▶ Abspielen';
+    }
+  }
+
+  // Toggles auf den Screens
+  ['audio-settings-toggle', 'lobby-audio-toggle', 'waiting-audio-toggle'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', openAudioModal);
+  });
+
+  if (btnClose) btnClose.addEventListener('click', closeAudioModal);
+  if (btnSaveClose) btnSaveClose.addEventListener('click', closeAudioModal);
+
+  if (masterSlider) {
+    masterSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10) / 100;
+      WizardAudio.setMasterVolume(val);
+      if (masterLabel) masterLabel.innerText = `${e.target.value}%`;
+    });
+  }
+
+  if (sfxSlider) {
+    sfxSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10) / 100;
+      WizardAudio.setSfxVolume(val);
+      if (sfxLabel) sfxLabel.innerText = `${e.target.value}%`;
+    });
+  }
+
+  if (musicSlider) {
+    musicSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value, 10) / 100;
+      WizardAudio.setMusicVolume(val);
+      if (musicLabel) musicLabel.innerText = `${e.target.value}%`;
+    });
+  }
+
+  if (sfxMute) {
+    sfxMute.addEventListener('change', (e) => {
+      WizardAudio.setSfxMuted(e.target.checked);
+    });
+  }
+
+  if (musicMute) {
+    musicMute.addEventListener('change', (e) => {
+      WizardAudio.setMusicMuted(e.target.checked);
+      updateMusicUI();
+    });
+  }
+
+  if (btnTestCard) {
+    btnTestCard.addEventListener('click', () => {
+      WizardAudio.playCardSnap();
+    });
+  }
+
+  if (btnToggleMusic) {
+    btnToggleMusic.addEventListener('click', () => {
+      WizardAudio.toggleMusic();
+      updateMusicUI();
+    });
+  }
+}
+
+// Initialer Zustand: Haupt-Lobby & Audio-Bindings einrichten
+setupAudioSettingsUI();
 switchScreen('lobby');

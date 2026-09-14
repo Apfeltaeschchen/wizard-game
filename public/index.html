@@ -62,9 +62,21 @@
       --suit-yellow-dark: #6e4404;
       --suit-yellow-base: #a66a0d;
 
-      /* --- KARTEN-DIMENSIONEN --- */
-      --card-w: 74px;
-      --card-h: 112px;
+      /* --- KARTEN-DIMENSIONEN (DYNAMISCH & VIEWPORT-ADAPTIV) --- */
+      --card-w: clamp(60px, 5.2vw, 80px);
+      --card-h: calc(var(--card-w) * 1.51);
+    }
+
+    /* WEICHE SKALIERUNG BEI KOMPAKTEN BILDSCHIRMHÖHEN (LAPTOPS / TABLETS) */
+    @media (max-height: 780px) {
+      :root {
+        --card-w: clamp(52px, 4.4vw, 68px);
+      }
+    }
+    @media (max-height: 660px) {
+      :root {
+        --card-w: clamp(44px, 3.8vw, 56px);
+      }
     }
 
     * {
@@ -80,7 +92,9 @@
       padding: 0;
       user-select: none;
       overflow-x: hidden;
-      min-height: 100vh;
+      min-height: 100dvh;
+      height: 100dvh;
+      max-height: 100dvh;
       display: flex;
       flex-direction: column;
     }
@@ -88,9 +102,14 @@
     #game-screen {
       display: none;
       width: 100%;
-      padding: 8px;
-      max-width: 1100px;
+      max-width: min(1200px, 98vw);
+      height: 100dvh;
+      max-height: 100dvh;
       margin: 0 auto;
+      padding: 6px 10px;
+      box-sizing: border-box;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* GESCHMIEDETE EISENKNÖPFE MIT MESSINGKANTEN */
@@ -369,15 +388,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      max-width: 980px;
-      margin: 0 auto 10px;
-      padding: 8px 16px;
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto 6px;
+      padding: 6px 14px;
       background: linear-gradient(180deg, #22140b 0%, #120904 100%);
       border-radius: 10px;
       border: 1.5px solid var(--gold-antique);
       box-shadow: 0 4px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12);
       gap: 12px;
       position: relative;
+      flex-shrink: 0;
     }
 
     .top-nav-left {
@@ -757,7 +778,7 @@
     .score-positive { color: #0f6828; font-weight: 900; }
     .score-negative { color: #9c1c1c; font-weight: 900; }
 
-    /* HORIZONTALER BOHLEN-EICHENTISCH (RAHMENLOS MIT SANFTER ABKANTUNG) */
+    /* HORIZONTALER BOHLEN-EICHENTISCH (DYNAMISCHES VIEWPORT-FITTING) */
     .poker-table {
       background-color: var(--wood-dark);
       background-image: url('/images/table_felt.svg');
@@ -765,19 +786,23 @@
       background-size: 500px 500px;
       border: none !important;
       outline: none !important;
-      border-radius: 8px;
-      max-width: 980px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 100%;
       margin: 0 auto;
-      padding: 16px 12px 10px;
+      padding: 8px 12px 6px;
       box-shadow: 
         inset 0 0 45px rgba(0,0,0,0.85), 
         0 14px 40px rgba(0,0,0,0.85);
       position: relative;
-      min-height: 590px;
+      flex: 1;
+      min-height: 0;
+      max-height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       transition: box-shadow 0.3s ease;
+      overflow: hidden;
     }
 
     /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (2s TIEFER ATEM) */
@@ -805,10 +830,11 @@
       justify-content: space-around;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
-      padding: 4px 6px;
-      margin-bottom: 8px;
+      gap: 8px;
+      padding: 2px 6px;
+      margin-bottom: 4px;
       z-index: 15;
+      flex-shrink: 0;
     }
 
     .player-seat {
@@ -907,9 +933,11 @@
       justify-content: space-between;
       align-items: center;
       width: 100%;
-      margin: 6px 0;
+      margin: 4px 0;
       position: relative;
       z-index: 20;
+      flex: 1;
+      min-height: 0;
     }
 
     .trump-section-fixed {
@@ -930,7 +958,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 130px;
+      min-height: calc(var(--card-h) + 24px);
       perspective: 1200px;
     }
 
@@ -1013,10 +1041,12 @@
       width: 100%;
       transition: all 0.25s ease;
       text-align: center;
+      flex-shrink: 0;
+      margin-top: auto;
     }
 
     .hand-section.hand-my-turn {
-      transform: translateY(-4px);
+      transform: translateY(-2px);
     }
 
     .hand-section.hand-waiting {
@@ -1028,10 +1058,10 @@
       display: flex;
       justify-content: center;
       align-items: flex-end;
-      min-height: 140px;
-      margin: 4px auto 0;
-      padding: 8px 6px;
-      max-width: 960px;
+      min-height: calc(var(--card-h) + 16px);
+      margin: 2px auto 0;
+      padding: 4px 6px;
+      max-width: 100%;
       width: 100%;
       overflow-x: visible;
       position: relative;
@@ -1696,26 +1726,38 @@
       animation: fastCardPlace 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* RUNDE 1 STICHKARTEN-FOKUS & SKALIERUNG (+35%) */
+    /* RUNDE 1 STICHKARTEN-FOKUS & SKALIERUNG */
     #trick-container.round-1-trick {
-      gap: 18px;
+      gap: 14px;
     }
     #trick-container.round-1-trick .trick-card-item {
-      transform: scale(1.35);
-      margin: 0 16px;
+      transform: scale(1.15);
+      margin: 0 8px;
       transform-origin: center center;
     }
 
+    /* EDLE NAMENSPLAKETTE UNTERHALB DER GESPIELTEN KARTE */
+    .trick-player-badge,
     .trick-player-name {
-      font-size: 14px !important;
-      font-weight: 800 !important;
-      color: #ffffff !important;
-      text-shadow: 0 2px 5px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.9) !important;
-      margin-bottom: 6px !important;
-      letter-spacing: 0.6px;
+      display: inline-block;
       font-family: var(--font-subheading);
-      display: block;
-      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #f7eedb;
+      background: linear-gradient(180deg, rgba(28, 16, 8, 0.92) 0%, rgba(14, 8, 4, 0.95) 100%);
+      border: 1px solid rgba(200, 154, 56, 0.45);
+      border-radius: 10px;
+      padding: 2px 8px;
+      margin-top: 5px;
+      margin-bottom: 0;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.85);
+      max-width: 86px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      letter-spacing: 0.4px;
+      line-height: 1.2;
     }
 
     /* STICH-GEWINNER HIGHLIGHT ("WOLKE") */
@@ -1743,18 +1785,32 @@
       pointer-events: none;
     }
 
-    /* RUNDE 1 STIRN-KARTE AUF DEN GEGNER-SITZEN */
+    /* RUNDE 1 STIRN-KARTE AUF DEN GEGNER-SITZEN (OHNE TEXT-ÜBERLAPPUNG) */
     .forehead-card-wrapper {
-      margin-top: 4px;
+      margin-top: 3px;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
     }
     .forehead-card-wrapper .card {
-      transform: scale(0.62);
-      transform-origin: top center;
-      margin-bottom: -36px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.9), 0 0 10px rgba(240, 195, 85, 0.4);
+      width: calc(var(--card-w) * 0.62) !important;
+      height: calc(var(--card-h) * 0.62) !important;
+      transform: none !important;
+      margin: 0 !important;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.85), 0 0 8px rgba(240, 195, 85, 0.35);
+    }
+    .forehead-card-wrapper .card .card-center-val {
+      font-size: 15px !important;
+    }
+    .forehead-card-wrapper .card .card-center-crest {
+      width: 18px !important;
+      height: 18px !important;
+    }
+    .forehead-card-wrapper .card .card-val {
+      font-size: 9px !important;
+    }
+    .forehead-card-wrapper .card .card-name-label {
+      display: none !important;
     }
 
     /* GENERAL TRICK-CLEARING FALLBACK */
@@ -1768,8 +1824,44 @@
       animation: trickClearingAnim 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
       pointer-events: none;
     }
-      animation: trickClearingAnim 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-      pointer-events: none;
+
+    /* MITTELALTERLICHE AUDIO-SLIDER (RANGE INPUTS) */
+    input[type="range"].medieval-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: #1e1208;
+      border: 1px solid var(--gold-antique);
+      outline: none;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    input[type="range"].medieval-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--gold-bright) 0%, var(--gold-antique) 70%, #543407 100%);
+      border: 1.5px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    input[type="range"].medieval-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    input[type="range"].medieval-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--gold-bright) 0%, var(--gold-antique) 70%, #543407 100%);
+      border: 1.5px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      cursor: pointer;
     }
 
     /* PAUSEN- & GAME OVER MODALS */
@@ -1812,8 +1904,8 @@
     /* RESPONSIVE DESIGN (MOBILE-FIRST) */
     @media (max-width: 768px) {
       :root {
-        --card-w: 58px;
-        --card-h: 88px;
+        --card-w: clamp(48px, 12vw, 62px);
+        --card-h: calc(var(--card-w) * 1.51);
       }
 
       .fullscreen-screen {
@@ -1838,9 +1930,10 @@
       .poker-table {
         border: none !important;
         outline: none !important;
-        border-radius: 6px;
-        padding: 8px 4px 4px;
-        min-height: 500px;
+        border-radius: 8px;
+        padding: 6px 4px 2px;
+        flex: 1;
+        min-height: 0;
       }
       .card-center-val { font-size: 22px; }
       .card-center-crest { width: 26px; height: 26px; }
@@ -1942,6 +2035,10 @@
 
   <!-- SCREEN 1: HAUPT-LOBBY (VOLLBILD) -->
   <div id="lobby-screen" class="fullscreen-screen">
+    <button id="lobby-audio-toggle" class="btn-score-toggle" style="position: absolute; top: 14px; right: 16px; margin: 0;" title="Klang &amp; Musik">
+      <span class="score-toggle-icon">🔊</span>
+      <span class="score-toggle-text">Klang</span>
+    </button>
     <div class="glass-card">
       <h1 style="color: var(--gold-bright); font-family: var(--font-heading); text-shadow: 0 2px 10px rgba(0,0,0,0.9); font-size: 32px; margin: 0 0 6px;">Wizard Online</h1>
       <p style="color: #d6be90; font-style: italic; font-size: 14px; margin: 0 0 18px;">Betrete die Gildenhalle oder stifte einen neuen Spielbund</p>
@@ -1967,6 +2064,10 @@
 
   <!-- SCREEN 2: SEPARATER WARTERAUM (VOLLBILD) -->
   <div id="waiting-room-screen" class="fullscreen-screen" style="display: none;">
+    <button id="waiting-audio-toggle" class="btn-score-toggle" style="position: absolute; top: 14px; right: 16px; margin: 0;" title="Klang &amp; Musik">
+      <span class="score-toggle-icon">🔊</span>
+      <span class="score-toggle-text">Klang</span>
+    </button>
     <div class="glass-card" style="max-width: 540px;">
       <div style="font-size: 13px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-bright); letter-spacing: 1.5px;">DIE RATSKAMMER</div>
       
@@ -2024,6 +2125,10 @@
       </div>
 
       <div class="top-nav-right" style="display: flex; gap: 6px; align-items: center;">
+        <button id="audio-settings-toggle" class="btn-score-toggle" title="Klang &amp; Musik">
+          <span class="score-toggle-text">Klang</span>
+          <span class="score-toggle-icon">🔊</span>
+        </button>
         <button id="rules-drawer-toggle" class="btn-score-toggle" title="Grimoire der Regeln &amp; Karten">
           <span class="rules-toggle-text">Regelwerk</span>
           <span class="rules-toggle-icon">📜</span>
@@ -2476,6 +2581,66 @@
       <div id="podium-list" style="margin: 16px 0; text-align: left;"></div>
       <button id="resetGameBtn" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 12px 24px; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 14px rgba(0,0,0,0.7);">
         Neuen Bund stiften &amp; erneut spielen
+      </button>
+    </div>
+  </div>
+
+  <!-- AUDIO- & KLANGEINSTELLUNGEN MODAL -->
+  <div id="audio-settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.88); z-index: 2200; justify-content: center; align-items: center; backdrop-filter: blur(6px);">
+    <div style="background: linear-gradient(180deg, #24140b 0%, #120904 100%); border: 2px solid var(--gold-bright); border-radius: 16px; padding: 22px 24px; max-width: 420px; width: 92%; color: #f7eedb; box-shadow: 0 16px 40px rgba(0,0,0,0.95); position: relative;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(200, 154, 56, 0.3); padding-bottom: 10px;">
+        <h3 style="margin: 0; color: var(--gold-bright); font-family: var(--font-heading); font-size: 18px; display: flex; align-items: center; gap: 8px;">
+          <span>🔊</span> <span>Klang &amp; Musik</span>
+        </h3>
+        <button id="btnAudioClose" class="drawer-close-btn" style="position: static; font-size: 20px;">&times;</button>
+      </div>
+
+      <!-- MASTER LAUTSTÄRKE -->
+      <div style="margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-family: var(--font-subheading); color: var(--gold-bright);">
+          <span>Gesamtlautstärke</span>
+          <span id="masterVolLabel">80%</span>
+        </div>
+        <input type="range" id="masterVolSlider" class="medieval-slider" min="0" max="100" value="80" />
+      </div>
+
+      <!-- SOUNDEFFEKTE -->
+      <div style="margin-bottom: 14px; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(200, 154, 56, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-family: var(--font-subheading); color: var(--gold-bright); margin-bottom: 4px;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" id="sfxMuteToggle" style="accent-color: var(--gold-bright); cursor: pointer;" />
+            <span>Soundeffekte (SFX)</span>
+          </label>
+          <span id="sfxVolLabel">90%</span>
+        </div>
+        <input type="range" id="sfxVolSlider" class="medieval-slider" min="0" max="100" value="90" />
+        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+          <button id="btnTestCardSound" type="button" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
+            🃏 Karten-Sound testen
+          </button>
+        </div>
+      </div>
+
+      <!-- HINTERGRUNDMUSIK -->
+      <div style="margin-bottom: 16px; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(200, 154, 56, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-family: var(--font-subheading); color: var(--gold-bright); margin-bottom: 4px;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" id="musicMuteToggle" style="accent-color: var(--gold-bright); cursor: pointer;" />
+            <span>Hintergrundmusik</span>
+          </label>
+          <span id="musicVolLabel">50%</span>
+        </div>
+        <input type="range" id="musicVolSlider" class="medieval-slider" min="0" max="100" value="50" />
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <span id="musicPlayingStatus" style="font-size: 11px; color: #d6be90; font-style: italic;">Aktiv (Harfe &amp; Laute)</span>
+          <button id="btnToggleMusicPlayback" type="button" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
+            ⏸ Pause
+          </button>
+        </div>
+      </div>
+
+      <button id="btnAudioSaveClose" type="button" style="background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 9px 22px; font-size: 13px; border-radius: 8px; cursor: pointer; width: 100%;">
+        Fertig
       </button>
     </div>
   </div>
