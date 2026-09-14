@@ -1,43 +1,124 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1600 1000" preserveAspectRatio="none">
   <defs>
-    <!-- Feine Holz- und Filztextur ohne periodische Kacheln -->
-    <filter id="tableTexture" x="0%" y="0%" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.08 0.02" numOctaves="4" result="noise" />
-      <feColorMatrix type="matrix" values="0 0 0 0 0.22   0 0 0 0 0.12   0 0 0 0 0.05  0 0 0 0.35 0" />
+    <!-- Feiner Holzfaser-Filter für natürliche Poren -->
+    <filter id="woodGrain" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.15 0.015" numOctaves="4" result="noise" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.26   0 0 0 0 0.14   0 0 0 0 0.06  0 0 0 0.35 0" />
     </filter>
 
-    <!-- Warmer, eleganter Grundverlauf für edles Dark-Fantasy-Holz -->
-    <linearGradient id="tableWoodGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#26150a" />
-      <stop offset="50%" stop-color="#361e0e" />
-      <stop offset="100%" stop-color="#26150a" />
+    <!-- Bohlen-Farbverläufe für natürliche Holzwölbung -->
+    <linearGradient id="plankGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2d170a" />
+      <stop offset="50%" stop-color="#3b2010" />
+      <stop offset="100%" stop-color="#261307" />
+    </linearGradient>
+    <linearGradient id="plankGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#321b0d" />
+      <stop offset="50%" stop-color="#412413" />
+      <stop offset="100%" stop-color="#2c160a" />
+    </linearGradient>
+    <linearGradient id="plankGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#381f10" />
+      <stop offset="50%" stop-color="#462715" />
+      <stop offset="100%" stop-color="#30190c" />
+    </linearGradient>
+    <linearGradient id="plankGrad4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#301a0c" />
+      <stop offset="50%" stop-color="#3e2211" />
+      <stop offset="100%" stop-color="#281408" />
+    </linearGradient>
+    <linearGradient id="plankGrad5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a1508" />
+      <stop offset="50%" stop-color="#381d0e" />
+      <stop offset="100%" stop-color="#231005" />
     </linearGradient>
 
-    <!-- Sanfte, subtile Raumbeleuchtung im Zentrum -->
-    <radialGradient id="tableCenterGaze" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#e29b38" stop-opacity="0.12" />
-      <stop offset="60%" stop-color="#a8591e" stop-opacity="0.04" />
+    <!-- Warmes sanftes Deckenlicht im Tischzentrum -->
+    <radialGradient id="tableCenterCandle" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.12" />
+      <stop offset="50%" stop-color="#b45309" stop-opacity="0.04" />
       <stop offset="100%" stop-color="#000000" stop-opacity="0" />
     </radialGradient>
 
-    <!-- Rand-Vignette: 0% bis 72% absolut transparent, erst ab 72% sanfte Abdunkelung zum Außenrand -->
-    <radialGradient id="tableEdgeVignette" cx="50%" cy="50%" r="50%">
+    <!-- Hauchzarte Rand-Vignette: Bleibt bis 84% komplett transparent (0%), dunkelt erst ganz außen dezent ab -->
+    <radialGradient id="tableEdgeVignette" cx="50%" cy="50%" r="52%">
       <stop offset="0%" stop-color="#050201" stop-opacity="0" />
-      <stop offset="72%" stop-color="#050201" stop-opacity="0" />
-      <stop offset="88%" stop-color="#050201" stop-opacity="0.35" />
-      <stop offset="100%" stop-color="#050201" stop-opacity="0.8" />
+      <stop offset="84%" stop-color="#050201" stop-opacity="0" />
+      <stop offset="94%" stop-color="#050201" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="#050201" stop-opacity="0.30" />
     </radialGradient>
   </defs>
 
-  <!-- Einheitliche Holzbasis -->
-  <rect width="1000" height="1000" fill="url(#tableWoodGradient)" />
+  <!-- HINTERGRUND-HOLZPLANKEN (5 breite horizontale Eichenbohlen über die gesamte Fläche) -->
+  <!-- Bohle 1 (0 - 200px) -->
+  <rect x="0" y="0" width="1600" height="198" fill="url(#plankGrad1)" />
 
-  <!-- Feiner Rausch- und Texturfilter -->
-  <rect width="1000" height="1000" filter="url(#tableTexture)" style="mix-blend-mode: overlay;" />
+  <!-- Bohle 2 (200 - 400px) -->
+  <rect x="0" y="200" width="1600" height="198" fill="url(#plankGrad2)" />
 
-  <!-- Zentriertes sanftes Licht -->
-  <rect width="1000" height="1000" fill="url(#tableCenterGaze)" />
+  <!-- Bohle 3 (400 - 600px - Zentrum) -->
+  <rect x="0" y="400" width="1600" height="198" fill="url(#plankGrad3)" />
 
-  <!-- Ausschließlich randständige Abdunkelung/Vignette -->
-  <rect width="1000" height="1000" fill="url(#tableEdgeVignette)" />
+  <!-- Bohle 4 (600 - 800px) -->
+  <rect x="0" y="600" width="1600" height="198" fill="url(#plankGrad4)" />
+
+  <!-- Bohle 5 (800 - 1000px) -->
+  <rect x="0" y="800" width="1600" height="200" fill="url(#plankGrad5)" />
+
+  <!-- HORIZONTALE HOLZFASERN -->
+  <rect width="1600" height="1000" filter="url(#woodGrain)" style="mix-blend-mode: overlay;" />
+
+  <!-- FEINE BOHLENFUGEN MIT ZARTER LICHTKANTE -->
+  <!-- Fuge 1 -->
+  <line x1="0" y1="199" x2="1600" y2="199" stroke="#100602" stroke-width="1.8" />
+  <line x1="0" y1="201" x2="1600" y2="201" stroke="#5a3116" stroke-width="0.8" opacity="0.35" />
+
+  <!-- Fuge 2 -->
+  <line x1="0" y1="399" x2="1600" y2="399" stroke="#100602" stroke-width="1.8" />
+  <line x1="0" y1="401" x2="1600" y2="401" stroke="#5a3116" stroke-width="0.8" opacity="0.35" />
+
+  <!-- Fuge 3 -->
+  <line x1="0" y1="599" x2="1600" y2="599" stroke="#100602" stroke-width="1.8" />
+  <line x1="0" y1="601" x2="1600" y2="601" stroke="#5a3116" stroke-width="0.8" opacity="0.35" />
+
+  <!-- Fuge 4 -->
+  <line x1="0" y1="799" x2="1600" y2="799" stroke="#100602" stroke-width="1.8" />
+  <line x1="0" y1="801" x2="1600" y2="801" stroke="#5a3116" stroke-width="0.8" opacity="0.35" />
+
+  <!-- RUSTIKALE EICHEN-HOLZNÄGEL AN DEN BOHLENENDEN -->
+  <g fill="#180c05" stroke="#482510" stroke-width="1.4">
+    <!-- Links (x = 55) -->
+    <g transform="translate(55, 100)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(55, 300)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(55, 500)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(55, 700)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(55, 900)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+
+    <!-- Mitte-Links (x = 480) -->
+    <g transform="translate(480, 100)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(480, 300)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(480, 500)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(480, 700)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(480, 900)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+
+    <!-- Mitte-Rechts (x = 1120) -->
+    <g transform="translate(1120, 100)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(1120, 300)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(1120, 500)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(1120, 700)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(1120, 900)" opacity="0.65"><circle r="5.5" /><circle cx="-1" cy="-1" r="1.8" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+
+    <!-- Rechts (x = 1545) -->
+    <g transform="translate(1545, 100)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(1545, 300)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(1545, 500)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(1545, 700)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+    <g transform="translate(1545, 900)"><circle r="6" /><circle cx="-1.5" cy="-1.5" r="2" fill="#6d3918" opacity="0.6" stroke="none" /></g>
+  </g>
+
+  <!-- SANFTES KERZENLICHT IM ZENTRUM -->
+  <rect width="1600" height="1000" fill="url(#tableCenterCandle)" />
+
+  <!-- HAUCHZARTE, MINIMALE RAND-VIGNETTE (NUR GANZ AUSSEN) -->
+  <rect width="1600" height="1000" fill="url(#tableEdgeVignette)" />
 </svg>

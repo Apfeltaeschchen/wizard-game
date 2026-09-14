@@ -496,6 +496,25 @@
 
     #score-board-drawer.open, #rules-drawer.open { transform: translateX(0); }
 
+    /* ZIEH-GRIFF ZUM VERGRÖSSERN DES DRAWERS */
+    .drawer-resize-handle {
+      position: absolute;
+      top: 0;
+      left: -9px;
+      width: 16px;
+      height: 100%;
+      cursor: ew-resize;
+      z-index: 2100;
+      background: transparent;
+      touch-action: none;
+      transition: background 0.15s ease;
+    }
+    .drawer-resize-handle:hover,
+    .drawer-resize-handle.resizing {
+      background: rgba(240, 195, 85, 0.45);
+      box-shadow: 0 0 10px rgba(240, 195, 85, 0.7);
+    }
+
     .rules-card-entry {
       background: rgba(44, 25, 12, 0.08);
       border: 1px solid rgba(120, 53, 15, 0.3);
@@ -665,12 +684,12 @@
       margin-bottom: 0;
     }
 
-    /* "DU BIST DRAN!" TOAST-BANNER (OBERTES BILDSCHIRMDRITTEL) */
+    /* "DU BIST DRAN!" TOAST-BANNER (MITTIG, DIREKT ÜBER DEM BIET-/STICHBEREICH) */
     #turn-popup-banner {
       position: fixed;
-      top: 13%;
+      top: 36%;
       left: 50%;
-      transform: translateX(-50%) scale(0.8);
+      transform: translate(-50%, -50%) scale(0.85);
       background: linear-gradient(180deg, rgba(38, 22, 12, 0.97) 0%, rgba(18, 10, 5, 0.98) 100%);
       border: 2px solid var(--gold-bright);
       border-radius: 14px;
@@ -686,7 +705,7 @@
     }
 
     #turn-popup-banner.show {
-      transform: translateX(-50%) scale(1);
+      transform: translate(-50%, -50%) scale(1);
       opacity: 1;
     }
 
@@ -792,7 +811,7 @@
       max-width: 100%;
       margin: 0 auto;
       padding: 8px 12px 6px;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 12px 35px rgba(0,0,0,0.85);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.22), 0 12px 35px rgba(0,0,0,0.85);
       position: relative;
       flex: 1;
       min-height: 0;
@@ -1863,6 +1882,8 @@
       outline: none;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
       margin: 8px 0;
+      padding: 0 !important;
+      box-sizing: border-box;
       cursor: pointer;
     }
     input[type="range"].medieval-slider::-webkit-slider-thumb {
@@ -1875,10 +1896,23 @@
       border: 1.5px solid #fff;
       box-shadow: 0 2px 6px rgba(0,0,0,0.8);
       cursor: pointer;
+      margin-top: -5px;
       transition: transform 0.15s ease;
     }
     input[type="range"].medieval-slider::-webkit-slider-thumb:hover {
       transform: scale(1.2);
+    }
+    input[type="range"].medieval-slider::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input[type="range"].medieval-slider::-moz-range-track {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      cursor: pointer;
     }
     input[type="range"].medieval-slider::-moz-range-thumb {
       width: 18px;
@@ -2168,6 +2202,7 @@
 
     <!-- SLIDE-OUT RECHTS (BUCH DER WAHRHEIT) -->
     <div id="score-board-drawer">
+      <div class="drawer-resize-handle" data-drawer="score-board-drawer" title="Ziehen zum Vergrößern"></div>
       <div class="drawer-header">
         <h3 style="margin: 0; color: var(--gold-bright); font-size: 16px;">📖 Buch der Wahrheit</h3>
         <button id="score-drawer-close" class="drawer-close-btn">&times;</button>
@@ -2182,6 +2217,7 @@
 
     <!-- SLIDE-OUT RECHTS (REGELWERK & KARTENLEXIKON) -->
     <div id="rules-drawer">
+      <div class="drawer-resize-handle" data-drawer="rules-drawer" title="Ziehen zum Vergrößern"></div>
       <div class="drawer-header">
         <h3 style="margin: 0; color: var(--gold-bright); font-size: 16px;">📜 Grimoire der Regeln &amp; Karten</h3>
         <button id="rules-drawer-close" class="drawer-close-btn">&times;</button>
@@ -2396,7 +2432,6 @@
 
         <!-- STICHKARTEN MITTE -->
         <div class="trick-area-center">
-          <div style="font-size: 10px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-antique); margin-bottom: 2px;">Aktueller Stich</div>
           <div id="trick-container" style="display: flex; gap: 8px; justify-content: center; align-items: center; min-height: 140px;"></div>
         </div>
       </div>
@@ -2657,11 +2692,16 @@
           <span id="musicVolLabel">50%</span>
         </div>
         <input type="range" id="musicVolSlider" class="medieval-slider" min="0" max="100" value="50" />
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-          <span id="musicPlayingStatus" style="font-size: 11px; color: #d6be90; font-style: italic;">Aktiv (Harfe &amp; Laute)</span>
-          <button id="btnToggleMusicPlayback" type="button" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
-            ⏸ Pause
-          </button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; gap: 8px;">
+          <span id="musicPlayingStatus" style="font-size: 11px; color: #d6be90; font-style: italic;">Aktiv</span>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button id="btnToggleMusicPlayback" type="button" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
+              ⏸ Pause
+            </button>
+            <button id="btnSkipMusicTrack" type="button" title="Nächsten Tavernentitel abspielen" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
+              ⏭ Weiter
+            </button>
+          </div>
         </div>
       </div>
 

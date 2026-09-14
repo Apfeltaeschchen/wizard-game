@@ -412,16 +412,38 @@ const WizardAudio = (() => {
     }
   }
 
-  // --- HINTERGRUNDMUSIK-ENGINE (ECHTE TAVERNEN- UND LAUTENMUSIK: RANDOMMIND CC0) ---
+  // --- HINTERGRUNDMUSIK-ENGINE (MEHRTEILIGE TAVERNEN-PLAYLIST: RANDOMMIND CC0) ---
+  const MUSIC_PLAYLIST = [
+    { title: 'The Old Tower Inn', url: '/audio/tavern_music.mp3' },
+    { title: "King's Feast", url: '/audio/Kings_Feast.mp3' },
+    { title: 'Market Day', url: '/audio/Market_Day.mp3' }
+  ];
+  let currentTrackIdx = 0;
   let musicAudio = null;
   let musicSourceNode = null;
   let isMusicPlaying = false;
 
+  function playNextTrack() {
+    currentTrackIdx = (currentTrackIdx + 1) % MUSIC_PLAYLIST.length;
+    if (musicAudio) {
+      musicAudio.src = MUSIC_PLAYLIST[currentTrackIdx].url;
+      musicAudio.load();
+      applyVolumeSettings();
+      if (isMusicPlaying && !settings.musicMuted && settings.music > 0) {
+        musicAudio.play().catch(() => {});
+      }
+    }
+  }
+
   function initMusicAudio() {
     if (!musicAudio) {
-      musicAudio = new Audio('/audio/tavern_music.mp3');
-      musicAudio.loop = true;
+      musicAudio = new Audio(MUSIC_PLAYLIST[currentTrackIdx].url);
+      musicAudio.loop = false;
       musicAudio.preload = 'auto';
+
+      musicAudio.addEventListener('ended', () => {
+        playNextTrack();
+      });
 
       const c = getContext();
       if (c && !musicSourceNode) {
@@ -498,6 +520,10 @@ const WizardAudio = (() => {
     startMusic,
     stopMusic,
     toggleMusic,
+    skipNextTrack: () => {
+      playNextTrack();
+    },
+    getCurrentTrackTitle: () => MUSIC_PLAYLIST[currentTrackIdx].title,
     isMusicPlaying: () => isMusicPlaying || !!(musicAudio && !musicAudio.paused && !settings.musicMuted && settings.music > 0),
     getSettings: () => ({ ...settings }),
     setMasterVolume: (val) => {
@@ -2761,7 +2787,7 @@ function setupAudioSettingsUI() {
     if (!musicStatus || !btnToggleMusic) return;
     const isPlaying = WizardAudio.isMusicPlaying();
     if (isPlaying) {
-      musicStatus.innerText = 'Aktiv (Tavernenmusik & Laute)';
+      musicStatus.innerText = `Aktiv: ${WizardAudio.getCurrentTrackTitle()}`;
       musicStatus.style.color = '#86efac';
       btnToggleMusic.innerText = '⏸ Pause';
     } else {
@@ -2829,8 +2855,65 @@ function setupAudioSettingsUI() {
       updateMusicUI();
     });
   }
+
+  const btnSkipMusic = document.getElementById('btnSkipMusicTrack');
+  if (btnSkipMusic) {
+    btnSkipMusic.addEventListener('click', () => {
+      WizardAudio.skipNextTrack();
+      updateMusicUI();
+    });
+  }
 }
 
-// Initialer Zustand: Haupt-Lobby & Audio-Bindings einrichten
+// --- RESIZABLE SEITENPANELS (BUCH DER WAHRHEIT & REGELWERK GRÖSSER ZIEHEN) ---
+function setupResizableDrawers() {
+  const handles = document.querySelectorAll('.drawer-resize-handle');
+  handles.forEach(handle => {
+    const drawerId = handle.getAttribute('data-drawer');
+    const drawer = document.getElementById(drawerId);
+    if (!drawer) return;
+
+    let isResizing = false;
+
+    function onPointerDown(e) {
+      e.preventDefault();
+      isResizing = true;
+      handle.classList.add('resizing');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ew-resize';
+
+      function onPointerMove(moveEvent) {
+        if (!isResizing) return;
+        const clientX = moveEvent.touches ? moveEvent.touches[0].clientX : moveEvent.clientX;
+        const newWidth = Math.max(340, Math.min(window.innerWidth * 0.94, window.innerWidth - clientX));
+        drawer.style.width = `${newWidth}px`;
+        drawer.style.maxWidth = '96vw';
+      }
+
+      function onPointerUp() {
+        if (!isResizing) return;
+        isResizing = false;
+        handle.classList.remove('resizing');
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        window.removeEventListener('mousemove', onPointerMove);
+        window.removeEventListener('mouseup', onPointerUp);
+        window.removeEventListener('touchmove', onPointerMove);
+        window.removeEventListener('touchend', onPointerUp);
+      }
+
+      window.addEventListener('mousemove', onPointerMove, { passive: false });
+      window.addEventListener('mouseup', onPointerUp);
+      window.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp);
+    }
+
+    handle.addEventListener('mousedown', onPointerDown);
+    handle.addEventListener('touchstart', onPointerDown, { passive: false });
+  });
+}
+
+// Initialer Zustand: Haupt-Lobby, Audio-Bindings & Drawer-Resizing einrichten
 setupAudioSettingsUI();
+setupResizableDrawers();
 switchScreen('lobby');
