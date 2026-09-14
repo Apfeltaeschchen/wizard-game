@@ -939,7 +939,7 @@ io.on('connection', (socket) => {
     if (!isGameOver) {
       setRoomTimeout(room, () => {
         proceedToNextRound(roomCode);
-      }, 4000);
+      }, 2000);
     }
   }
 
@@ -1213,7 +1213,7 @@ io.on('connection', (socket) => {
             });
           });
         });
-      }, 3000);
+      }, 1200);
 
       io.to(normalizedCode).emit('turnChanged', { activePlayerSessionId: null, gameState: 'evaluating_trick' });
     } else {
@@ -1310,7 +1310,7 @@ io.on('connection', (socket) => {
           notifyTurn(roomCode);
         }
       }
-    }, 2500);
+    }, 1000);
   }
 
   // Spieler, der die Wolke gespielt hat, passt seine Stichvorhersage um +1 oder -1 an
@@ -1402,6 +1402,7 @@ io.on('connection', (socket) => {
       playerSessionId: player.sessionId,
       takenCard,
       givenCard,
+      durationMs: 1500,
       updatedTrick: room.currentTrick
     });
 
@@ -1421,7 +1422,7 @@ io.on('connection', (socket) => {
           notifyTurn(normalizedCode);
         }
       }
-    }, 3000);
+    }, 1500);
   });
 
   // Spieler verlässt den Raum freiwillig (Leave-Button)

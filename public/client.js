@@ -167,6 +167,10 @@ let hasDealtThisRound = false;
 // --- ERKENNUNG STARKER KARTEN FÜR AUFPRALL & STAUBWOLKE ---
 function isStrongCard(card) {
   if (!card) return false;
+  // Vampir kopiert die Trumpfkarte: Falls die kopierte Karte stark ist
+  if (card.type === 'vampire' && card.copiedCard) {
+    return isStrongCard(card.copiedCard);
+  }
   // Karten unter oder gleich Null (Narr, Fee, Hexe, Werwolf) sind NIEMALS stark:
   if (card.type === 'jester' || card.type === 'fairy' || card.type === 'witch' || card.type === 'werewolf') {
     return false;
@@ -176,11 +180,11 @@ function isStrongCard(card) {
     return (card.selectedType === 'wizard' || card.chosenRole === 'wizard');
   }
   // Starke Sonderkarten (> Narr)
-  if (['wizard', 'dragon', 'bomb', 'juggler'].includes(card.type)) {
+  if (['wizard', 'dragon', 'bomb', 'juggler', 'werewolf_trump'].includes(card.type)) {
     return true;
   }
-  // Höchste Farbkarten (Wert 13)
-  if (card.type === 'color' && Number(card.value) === 13) {
+  // Höchste Farbkarten (Wert 13 oder 14)
+  if (card.type === 'color' && Number(card.value) >= 13) {
     return true;
   }
   return false;
@@ -615,7 +619,7 @@ function triggerTurnPopup() {
   banner.classList.add('show');
   turnPopupTimer = setTimeout(() => {
     banner.classList.remove('show');
-  }, 1400);
+  }, 850);
 }
 
 // --- GLOBALER TOAST-BANNER (DARK FANTASY NOTIFICATION) ---
@@ -1649,6 +1653,8 @@ socket.on('syncGameState', (state) => {
   } else {
     switchScreen('game');
     tableArea.style.display = 'flex';
+    hasDealtThisRound = true;
+    isDealingAnimationPending = false;
   }
 
   // Pausen-Zustand handhaben
@@ -1820,6 +1826,19 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
     if ((!jugglerPassModal || jugglerPassModal.style.display === 'none') && myCurrentHand.length > 0 && selectedJugglerPassCardIndex === null) {
       renderJugglerPassModal('Der Jongleur fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.');
     }
+  } else if (gameState === 'witch_swap') {
+    bidOverlay.style.display = 'none';
+    trumpSelectionArea.style.display = 'none';
+    if (shapeshifterModal) shapeshifterModal.style.display = 'none';
+    if (cloudSuitModal) cloudSuitModal.style.display = 'none';
+    if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
+    if (jugglerModal) jugglerModal.style.display = 'none';
+    if (isMyTurn) {
+      statusMessage.innerText = '🧙‍♀️ Hexen-Tausch! Wähle 1 Handkarte und 1 Karte aus dem Stich zum Tauschen.';
+    } else {
+      statusMessage.innerText = `🧙‍♀️ ${activePlayerName} vollzieht den Hexen-Tausch mit dem Stich...`;
+      if (witchModal) witchModal.style.display = 'none';
+    }
   } else if (gameState === 'round_over') {
     bidOverlay.style.display = 'none';
     trumpSelectionArea.style.display = 'none';
@@ -1847,8 +1866,8 @@ socket.on('handDealt', (hand) => {
   const isDrawerOpen = (scoreDrawer && scoreDrawer.classList.contains('open'));
   closeScoreDrawer();
 
-  // Wenn das Sidepanel verschwindet: 320ms Ausblendung + 500ms Pause (halbe Sekunde nichts) = 820ms; sonst 500ms Pause
-  const dealDelay = isDrawerOpen ? 820 : 500;
+  // Wenn das Sidepanel verschwindet: 320ms Ausblendung + 500ms Pause (halbe Sekunde nichts) = 820ms; sonst knackige 150ms
+  const dealDelay = isDrawerOpen ? 820 : 150;
   setTimeout(() => {
     isDealingAnimationPending = false;
     renderHand(true);
@@ -2289,7 +2308,7 @@ socket.on('witchSwapShowcase', (data) => {
 
   setTimeout(() => {
     if (witchSwapShowcase) witchSwapShowcase.style.display = 'none';
-  }, (data && data.durationMs) || 3500);
+  }, (data && data.durationMs) || 1500);
 });
 
 // Werwolf: Benachrichtigung & Animation beim Trumpftausch
@@ -2368,7 +2387,7 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName 
   // 1. Zuerst strahlendes Sieger-Highlight ("Wolke") auf den Stichkarten
   trickItems.forEach(item => item.classList.add('trick-winner-highlight'));
 
-  // 2. Danach zielgerichteter Einzug zum Gewinner
+  // 2. Danach zielgerichteter Einzug zum Gewinner (gestrafft auf 650ms Highlight + 350ms Einzug)
   setTimeout(() => {
     trickItems.forEach(item => {
       item.classList.remove('trick-winner-highlight');
@@ -2384,8 +2403,8 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName 
     setTimeout(() => {
       trickContainer.innerHTML = '';
       trickContainer.classList.remove('round-1-trick');
-    }, 460);
-  }, 1250);
+    }, 350);
+  }, 650);
 });
 
 socket.on('roundFinished', ({ isGameOver, scoreHistory, round }) => {
@@ -2449,6 +2468,8 @@ socket.on('roundReDealt', ({ message, round, maxRounds: mr, trumpCard, gameState
   displayRound.innerText = currentRound;
   displayMaxRounds.innerText = maxRounds;
   statusMessage.innerText = message || 'Runde neu ausgeteilt!';
+  hasDealtThisRound = false;
+  isDealingAnimationPending = true;
 
   renderTrumpCard(trumpCard);
   renderOpponents();
@@ -2785,16 +2806,20 @@ function renderHand(isNewDeal = false) {
 
     if (isNewDeal) {
       cardElement.classList.add('card-fly-up');
-      cardElement.style.animationDelay = `${index * 70}ms`;
+      const total = myCurrentHand.length;
+      const staggerMs = Math.min(35, Math.max(16, Math.floor(260 / Math.max(total, 1))));
+      cardElement.style.animationDelay = `${index * staggerMs}ms`;
       setTimeout(() => {
         cardElement.classList.remove('card-fly-up');
         if (inspectedCardIndex !== index) {
           cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
         }
-      }, index * 70 + 420);
+      }, index * staggerMs + 280);
       setTimeout(() => {
-        WizardAudio.playCardDeal();
-      }, index * 70);
+        if (staggerMs >= 24 || index % 2 === 0) {
+          WizardAudio.playCardDeal();
+        }
+      }, index * staggerMs);
     } else if (inspectedCardIndex !== index) {
       cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
     }

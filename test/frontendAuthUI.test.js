@@ -78,6 +78,8 @@ assert.strictEqual(isStrong({ type: 'wizard' }), true, 'Zauberer muss stark sein
 assert.strictEqual(isStrong({ type: 'dragon' }), true, 'Drache muss stark sein');
 assert.strictEqual(isStrong({ type: 'bomb' }), true, 'Bombe muss stark sein');
 assert.strictEqual(isStrong({ type: 'juggler' }), true, 'Jongleur muss stark sein');
+assert.strictEqual(isStrong({ type: 'werewolf_trump' }), true, 'Werwolf-Trumpf muss stark sein');
+assert.strictEqual(isStrong({ type: 'vampire', copiedCard: { type: 'wizard' } }), true, 'Vampir als Zauberer muss stark sein');
 assert.strictEqual(isStrong({ type: 'color', value: 13 }), true, 'Farbe 13 muss stark sein');
 assert.strictEqual(isStrong({ type: 'shapeshifter', selectedType: 'wizard' }), true, 'Gestaltenwandler als Zauberer muss stark sein');
 
@@ -86,6 +88,7 @@ assert.strictEqual(isStrong({ type: 'jester' }), false, 'Narr darf NICHT stark s
 assert.strictEqual(isStrong({ type: 'fairy' }), false, 'Fee darf NICHT stark sein');
 assert.strictEqual(isStrong({ type: 'witch' }), false, 'Hexe darf NICHT stark sein');
 assert.strictEqual(isStrong({ type: 'werewolf' }), false, 'Werwolf darf NICHT stark sein');
+assert.strictEqual(isStrong({ type: 'vampire', copiedCard: { type: 'jester' } }), false, 'Vampir als Narr darf NICHT stark sein');
 assert.strictEqual(isStrong({ type: 'shapeshifter', selectedType: 'jester' }), false, 'Gestaltenwandler als Narr darf NICHT stark sein');
 assert.strictEqual(isStrong({ type: 'color', value: 12 }), false, 'Farbe 12 darf NICHT stark sein');
 console.log('✓ 6. Tisch-Aufprall, Staubwolke & isStrongCard Regellogik verifiziert');

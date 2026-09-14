@@ -123,6 +123,10 @@
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    button, .bid-btn, .card, .trump-btn, .tab-btn, .rules-tab-btn {
+      touch-action: manipulation;
+    }
+
     button {
       font-family: var(--font-subheading);
       background: linear-gradient(180deg, #2c3442 0%, #151a22 100%);
@@ -1834,17 +1838,17 @@
       100% { filter: brightness(1.15) drop-shadow(0 0 22px rgba(240, 195, 85, 0.95)); }
     }
 
-    /* RICHTUNGSABHÄNGIGER STICH-EINZUG ZUM GEWINNER */
+    /* RICHTUNGSABHÄNGIGER STICH-EINZUG ZUM GEWINNER (GESTRAFFT AUF 0.32s) */
     .trick-card-item.trick-clearing-me {
       transform: translateY(60px) scale(0.8) !important;
       opacity: 0 !important;
-      transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transition: all 0.32s cubic-bezier(0.4, 0, 0.2, 1) !important;
       pointer-events: none;
     }
     .trick-card-item.trick-clearing-opponent {
       transform: translateY(-60px) scale(0.8) !important;
       opacity: 0 !important;
-      transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transition: all 0.32s cubic-bezier(0.4, 0, 0.2, 1) !important;
       pointer-events: none;
     }
 
@@ -1884,19 +1888,19 @@
 
     .trick-card-item.trick-clearing,
     .card.trick-clearing {
-      animation: trickClearingAnim 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      animation: trickClearingAnim 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
       pointer-events: none;
     }
 
-    /* AUSTEIL-ANIMATION (STAFFEL-AUFSTIEG DER HANDKARTEN VON LINKS NACH RECHTS) */
+    /* AUSTEIL-ANIMATION (STAFFEL-AUFSTIEG DER HANDKARTEN VON LINKS NACH RECHTS: 0.26s) */
     @keyframes cardFlyUpEntrance {
       0% {
         opacity: 0;
-        transform: translateY(110px) scale(0.85);
+        transform: translateY(90px) scale(0.88);
       }
       75% {
         opacity: 1;
-        transform: translateY(-6px) scale(1.02);
+        transform: translateY(-4px) scale(1.02);
       }
       100% {
         opacity: 1;
@@ -1905,7 +1909,16 @@
     }
 
     .card-fly-up {
-      animation: cardFlyUpEntrance 0.38s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+      animation: cardFlyUpEntrance 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .card-playable:active {
+      transform: scale(0.96) !important;
+      transition: transform 0.05s ease !important;
+    }
+    .bid-btn:active {
+      transform: scale(0.94) !important;
+      transition: transform 0.05s ease !important;
     }
 
     /* MITTELALTERLICHE AUDIO-SLIDER (RANGE INPUTS) */
