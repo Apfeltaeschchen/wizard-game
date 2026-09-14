@@ -577,6 +577,121 @@
       padding: 14px;
     }
 
+    /* REGELWERK TAB-NAVIGATION */
+    .rules-tab-bar {
+      display: flex;
+      background: #150c05;
+      border-bottom: 2px solid var(--gold-antique);
+      padding: 6px 10px 0;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .rules-tab-btn {
+      flex: 1;
+      background: #251409;
+      color: #d6be90;
+      border: 1px solid #5a371c;
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      padding: 8px 4px;
+      font-size: 11.5px;
+      font-weight: 700;
+      font-family: var(--font-subheading);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin: 0;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .rules-tab-btn:hover {
+      background: #3a2010;
+      color: var(--gold-bright);
+      transform: none;
+    }
+
+    .rules-tab-btn.active {
+      background: #ecd9b3;
+      color: #1a0e04;
+      border-color: var(--gold-antique);
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.3);
+    }
+
+    .rules-tab-content {
+      display: none;
+    }
+
+    .rules-tab-content.active {
+      display: block;
+    }
+
+    .rules-info-box {
+      background: rgba(44, 25, 12, 0.08);
+      border: 1px solid rgba(120, 53, 15, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #2e1a0b;
+    }
+
+    .rules-info-box p {
+      margin: 0 0 8px;
+    }
+
+    .rules-info-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* "DU BIST DRAN!" TOAST-BANNER (OBERTES BILDSCHIRMDRITTEL) */
+    #turn-popup-banner {
+      position: fixed;
+      top: 13%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      background: linear-gradient(180deg, rgba(38, 22, 12, 0.97) 0%, rgba(18, 10, 5, 0.98) 100%);
+      border: 2px solid var(--gold-bright);
+      border-radius: 14px;
+      padding: 10px 26px;
+      z-index: 3000;
+      pointer-events: none;
+      box-shadow: 0 0 30px rgba(241, 196, 15, 0.7), 0 10px 30px rgba(0, 0, 0, 0.92), inset 0 0 16px rgba(241, 196, 15, 0.25);
+      opacity: 0;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #turn-popup-banner.show {
+      transform: translateX(-50%) scale(1);
+      opacity: 1;
+    }
+
+    .turn-popup-text {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--gold-bright);
+      letter-spacing: 1.5px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 14px rgba(241, 196, 15, 0.8);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .turn-popup-sparkle {
+      font-size: 16px;
+      color: var(--gold-bright);
+      animation: turnSparkleRotate 2s linear infinite;
+    }
+
+    @keyframes turnSparkleRotate {
+      0% { transform: rotate(0deg) scale(1); opacity: 0.8; }
+      50% { transform: rotate(180deg) scale(1.25); opacity: 1; }
+      100% { transform: rotate(360deg) scale(1); opacity: 0.8; }
+    }
+
     #drawer-backdrop {
       position: fixed;
       top: 0;
@@ -665,21 +780,21 @@
       transition: box-shadow 0.3s ease;
     }
 
-    /* DEZENTE KERZENSCHEIN-AURA BEI EIGENEM ZUG (MATT & UNGELERNT) */
+    /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (2s TIEFER ATEM) */
     @keyframes medievalTurnPulse {
       0% {
-        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 14px 40px rgba(0, 0, 0, 0.85);
+        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(241, 196, 15, 0.35);
       }
       50% {
-        box-shadow: inset 0 0 45px rgba(240, 195, 85, 0.16), 0 14px 40px rgba(0, 0, 0, 0.9);
+        box-shadow: inset 0 0 45px rgba(240, 195, 85, 0.25), 0 0 35px rgba(241, 196, 15, 0.7), 0 0 60px rgba(241, 196, 15, 0.35);
       }
       100% {
-        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 14px 40px rgba(0, 0, 0, 0.85);
+        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(241, 196, 15, 0.35);
       }
     }
 
     .poker-table.my-turn-aura {
-      animation: medievalTurnPulse 3s ease-in-out infinite;
+      animation: medievalTurnPulse 2s ease-in-out infinite;
       border: none !important;
       outline: none !important;
     }
@@ -709,10 +824,27 @@
       position: relative;
     }
 
+    /* VERGRÖSSERTE PULS-AURA (2s TIEFER KRÄFTIGER ATMUNGSEFFEKT) */
+    @keyframes deepTurnBreath {
+      0% {
+        box-shadow: 0 0 16px rgba(241, 196, 15, 0.5), 0 0 30px rgba(241, 196, 15, 0.25);
+        border-color: var(--gold-antique);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(241, 196, 15, 0.85), 0 0 55px rgba(241, 196, 15, 0.45);
+        border-color: var(--gold-bright);
+      }
+      100% {
+        box-shadow: 0 0 16px rgba(241, 196, 15, 0.5), 0 0 30px rgba(241, 196, 15, 0.25);
+        border-color: var(--gold-antique);
+      }
+    }
+
     .player-seat.seat-active-turn {
       border-color: var(--gold-bright);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.8);
-      transform: scale(1.04);
+      animation: deepTurnBreath 2s ease-in-out infinite;
+      transform: scale(1.05);
+      z-index: 25;
     }
 
     /* WAPPENSCHILD-AVATAR VIA CLIP-PATH */
@@ -1470,17 +1602,26 @@
       animation: werewolfCardSlide 0.85s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
     }
 
-    /* HOVER-LIFT (OHNE GLOW) */
+    /* HOVER-LIFT FÜR ALLE HANDKARTEN (JEDERZEIT IN JEDER PHASE VERFÜGBAR) */
+    #hand-container .card {
+      cursor: pointer;
+    }
+    #hand-container .card:hover {
+      transform: translateY(-28px) scale(1.16) rotate(0deg) !important;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.9), 0 0 16px rgba(240, 195, 85, 0.35) !important;
+      z-index: 200 !important;
+    }
+
     .card-playable {
       cursor: pointer !important;
     }
     .card-playable:hover {
       transform: translateY(-32px) scale(1.18) rotate(0deg) !important;
-      box-shadow: 0 20px 36px rgba(0,0,0,0.85) !important;
+      box-shadow: 0 20px 36px rgba(0,0,0,0.85), 0 0 20px rgba(241, 196, 15, 0.45) !important;
       z-index: 200 !important;
     }
 
-    /* TOUCH TAP TO INSPECT (OHNE GLOW) */
+    /* TOUCH TAP TO INSPECT */
     .card.card-inspected {
       transform: translateY(-34px) scale(1.22) rotate(0deg) !important;
       box-shadow: 0 22px 40px rgba(0,0,0,0.95) !important;
@@ -1488,7 +1629,7 @@
       outline: 2px solid var(--gold-bright);
     }
 
-    /* 3D-KARTEN-FLUG & FLIP-ANIMATION */
+    /* 3D-KARTEN-WRAPPER */
     .card-3d-wrapper {
       position: relative;
       width: var(--card-w);
@@ -1539,26 +1680,84 @@
       font-family: var(--font-heading);
     }
 
-    @keyframes flyAndFlipCard {
+    /* REDUZIERTE, STABILE LEGE-ANIMATION */
+    @keyframes fastCardPlace {
       0% {
-        transform: translate3d(var(--origin-x, 0px), var(--origin-y, 40px), 0) scale(0.4) rotateY(180deg) rotate(var(--origin-rot, 15deg));
-        opacity: 0.7;
-      }
-      50% {
-        transform: translate3d(calc(var(--origin-x, 0px) * 0.45), calc(var(--origin-y, 40px) * 0.45), 90px) scale(1.12) rotateY(90deg) rotate(calc(var(--rand-rot, 0deg) * 0.5));
-        opacity: 1;
+        transform: scale(0.9) translateY(-10px);
+        opacity: 0.6;
       }
       100% {
-        transform: translate3d(0, 0, 0) scale(1) rotateY(0deg) rotate(var(--rand-rot, 0deg));
+        transform: scale(1) translateY(0) rotate(var(--rand-rot, 0deg));
         opacity: 1;
       }
     }
 
     .card-played-animated {
-      animation: flyAndFlipCard 0.48s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation: fastCardPlace 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* ABRÄUM-ANIMATION */
+    /* RUNDE 1 STICHKARTEN-FOKUS & SKALIERUNG (+35%) */
+    #trick-container.round-1-trick {
+      gap: 18px;
+    }
+    #trick-container.round-1-trick .trick-card-item {
+      transform: scale(1.35);
+      margin: 0 16px;
+      transform-origin: center center;
+    }
+
+    .trick-player-name {
+      font-size: 14px !important;
+      font-weight: 800 !important;
+      color: #ffffff !important;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.9) !important;
+      margin-bottom: 6px !important;
+      letter-spacing: 0.6px;
+      font-family: var(--font-subheading);
+      display: block;
+      text-align: center;
+    }
+
+    /* STICH-GEWINNER HIGHLIGHT ("WOLKE") */
+    .trick-card-item.trick-winner-highlight .card {
+      box-shadow: 0 0 28px #f0c355, 0 0 50px rgba(240, 195, 85, 0.75), 0 8px 24px rgba(0,0,0,0.9) !important;
+      border-color: var(--gold-bright) !important;
+      animation: winnerGlowPulse 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes winnerGlowPulse {
+      0% { filter: brightness(1) drop-shadow(0 0 8px rgba(240, 195, 85, 0.6)); }
+      100% { filter: brightness(1.15) drop-shadow(0 0 22px rgba(240, 195, 85, 0.95)); }
+    }
+
+    /* RICHTUNGSABHÄNGIGER STICH-EINZUG ZUM GEWINNER */
+    .trick-card-item.trick-clearing-me {
+      transform: translateY(60px) scale(0.8) !important;
+      opacity: 0 !important;
+      transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      pointer-events: none;
+    }
+    .trick-card-item.trick-clearing-opponent {
+      transform: translateY(-60px) scale(0.8) !important;
+      opacity: 0 !important;
+      transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      pointer-events: none;
+    }
+
+    /* RUNDE 1 STIRN-KARTE AUF DEN GEGNER-SITZEN */
+    .forehead-card-wrapper {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .forehead-card-wrapper .card {
+      transform: scale(0.62);
+      transform-origin: top center;
+      margin-bottom: -36px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.9), 0 0 10px rgba(240, 195, 85, 0.4);
+    }
+
+    /* GENERAL TRICK-CLEARING FALLBACK */
     @keyframes trickClearingAnim {
       0% { transform: scale(1) translateY(0); opacity: 1; }
       100% { transform: scale(0.6) translateY(-40px) rotate(12deg); opacity: 0; }
@@ -1566,6 +1765,9 @@
 
     .trick-card-item.trick-clearing,
     .card.trick-clearing {
+      animation: trickClearingAnim 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      pointer-events: none;
+    }
       animation: trickClearingAnim 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
       pointer-events: none;
     }
@@ -1731,6 +1933,13 @@
 </head>
 <body>
 
+  <!-- TOAST-BANNER: DU BIST DRAN (OBERTES DRITTEL) -->
+  <div id="turn-popup-banner" class="turn-popup-banner" aria-live="assertive">
+    <span class="turn-popup-sparkle">✦</span>
+    <span class="turn-popup-text">Du bist dran!</span>
+    <span class="turn-popup-sparkle">✦</span>
+  </div>
+
   <!-- SCREEN 1: HAUPT-LOBBY (VOLLBILD) -->
   <div id="lobby-screen" class="fullscreen-screen">
     <div class="glass-card">
@@ -1846,149 +2055,194 @@
         <h3 style="margin: 0; color: var(--gold-bright); font-size: 16px;">📜 Grimoire der Regeln &amp; Karten</h3>
         <button id="rules-drawer-close" class="drawer-close-btn">&times;</button>
       </div>
+
+      <!-- TAB-NAVIGATIONSLEISTE -->
+      <div class="rules-tab-bar">
+        <button class="rules-tab-btn active" data-tab="tab-rules-basic">⚖️ Grundregeln</button>
+        <button class="rules-tab-btn" data-tab="tab-rules-dealer">🛑 Geber (+/-1)</button>
+        <button class="rules-tab-btn" data-tab="tab-rules-special">🔮 Sonderkarten</button>
+      </div>
+
       <div class="drawer-scroll">
-        <div class="rules-section-title">🔮 Sonderkarten (30 Jahre Jubiläumsedition)</div>
-        
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #7f1d1d, #450a0a); border-color: #f59e0b; color: #fef08a;">
-            <span>D</span>
-            <span style="font-size: 8px;">15</span>
+        <!-- TAB 1: GRUNDREGELN -->
+        <div id="tab-rules-basic" class="rules-tab-content active">
+          <div class="rules-section-title">⚖️ Die Kernregeln von Wizard</div>
+          <div class="rules-info-box">
+            <p><b>Bedienpflicht (Farbzwang):</b> Liegt eine reguläre Farbkarte an, muss jeder nachfolgende Spieler dieselbe Farbe bedienen, sofern er Karten dieser Farbe besitzt. Wer die Farbe nicht hat, darf straffrei jede andere Farbe abwerfen oder mit Trumpf stechen.</p>
+            <p><b>Narrenfreiheit der Sonderkarten:</b> Zauberer, Narren und alle Jubiläumskarten (Drache, Fee, Bombe, Gestaltenwandler, Wolke, Werwolf, Hexe, Jongleur, Vampir) dürfen <i>jederzeit</i> straffrei ausgespielt werden – selbst wenn man die angespielte Farbe bedienen könnte!</p>
+            <p><b>Stichauswertung:</b>
+              <br>• Ein <b>Zauberer</b> schlägt alle Farbkarten und Narren. Der erste im Stich gespielte Zauberer gewinnt.
+              <br>• Liegt kein Zauberer, gewinnt die höchste <b>Trumpfkarte</b>.
+              <br>• Liegt kein Trumpf, gewinnt die höchste Karte der <b>zuerst angespielten Farbe</b>.
+              <br>• <b>Narren</b> können niemals gewinnen – außer der Stich besteht nur aus Narren; dann gewinnt der erste Narr.
+            </p>
+            <p><b>Punkteberechnung am Rundenende:</b>
+              <br>• <b>Exakt richtiger Tipp:</b> <span class="score-positive">+20 Punkte</span> Basis plus <span class="score-positive">+10 Punkte pro gewonnenem Stich</span>.
+              <br>• <b>Abweichung:</b> <span class="score-negative">-10 Punkte</span> für jeden Stich Differenz zwischen Ansage und tatsächlichem Ergebnis.
+            </p>
           </div>
-          <div>
-            <div class="rules-card-title">Drache <span class="rules-card-badge" style="background: #7f1d1d; color: #fef08a; border: 1px solid #f59e0b;">Wert 15</span></div>
-            <p class="rules-card-desc">Die stärkste Karte im Spiel! Schlägt selbst Zauberer. Wird er als Trumpf aufgedeckt, wählt der Geber die Trumpffarbe.</p>
+
+          <div class="rules-section-title" style="margin-top: 14px;">👑 Klassische Karten</div>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #3b0764, #1e0338); border-color: #a855f7; color: #fef08a;">
+              <span>Z</span>
+              <span style="font-size: 8px;">14</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Zauberer <span class="rules-card-badge" style="background: #581c87; color: #fef08a; border: 1px solid #a855f7;">Höchste Karte</span></div>
+              <p class="rules-card-desc">Schlägt alle Farbkarten und Narren. Der erste im Stich gespielte Zauberer gewinnt immer (außer der Drache liegt im Stich).</p>
+            </div>
+          </div>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #334155, #0f172a); border-color: #94a3b8; color: #f8fafc;">
+              <span>N</span>
+              <span style="font-size: 8px;">0</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Narr <span class="rules-card-badge" style="background: #475569; color: #f8fafc; border: 1px solid #94a3b8;">Wert 0</span></div>
+              <p class="rules-card-desc">Verliert gegen jede andere Karte und gibt keine Bedienfarbe vor. Besteht der Stich nur aus Narren, gewinnt der erste Narr.</p>
+            </div>
+          </div>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #b91c1c, #4c080a); border-color: #fca5a5; color: #fff;">
+              <span>1-13</span>
+              <span style="font-size: 8px;">Farbe</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Farbkarten (Rot, Blau, Grün, Gelb)</div>
+              <p class="rules-card-desc">Werte 1 bis 13. Die aufgedeckte Trumpffarbe sticht alle anderen Farben; ohne Trumpf gewinnt die höchste Karte der angespielten Farbe.</p>
+            </div>
           </div>
         </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #0284c7, #082f49); border-color: #38bdf8; color: #e0f2fe;">
-            <span>F</span>
-            <span style="font-size: 8px;">-1</span>
-          </div>
-          <div>
-            <div class="rules-card-title">Fee <span class="rules-card-badge" style="background: #0369a1; color: #e0f2fe; border: 1px solid #38bdf8;">Wert -1</span></div>
-            <p class="rules-card-desc">Unterliegt regulär allen Karten. <b>Drachentöterin</b>: Liegen Drache und Fee im selben Stich, gewinnt immer die Fee (selbst wenn Zauberer im Stich liegen!). Als Trumpf aufgedeckt: kein Trumpf.</p>
-          </div>
-        </div>
-
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #ea580c, #431407); border-color: #fb923c; color: #fdba74;">
-            <span>B</span>
-            <span style="font-size: 8px;">💥</span>
-          </div>
-          <div>
-            <div class="rules-card-title">Bombe <span class="rules-card-badge" style="background: #c2410c; color: #fdba74; border: 1px solid #fb923c;">Neutralisator</span></div>
-            <p class="rules-card-desc">Neutralisiert den aktuellen Stich vollständig! Niemand erhält den Stich oder Punkte. Die höchste reguläre Karte bestimmt den nächsten Aufspieler. Als Trumpf aufgedeckt: kein Trumpf.</p>
+        <!-- TAB 2: GEBER-REGEL (+/- 1) -->
+        <div id="tab-rules-dealer" class="rules-tab-content">
+          <div class="rules-section-title">🛑 Die Plus/Minus-Eins-Regel (Geber-Gesetz)</div>
+          <div class="rules-info-box">
+            <p><b>Das Schicksal des Gebers:</b> In jeder Runde tippt der Geber (Dealer) als allerletzter Spieler. Dabei gilt die eiserne Regel:</p>
+            <p style="font-size: 13px; font-weight: bold; color: #8f191c; text-align: center; margin: 10px 0; padding: 8px; background: rgba(143, 25, 28, 0.12); border: 1px solid #8f191c; border-radius: 6px;">
+              Die Summe aller Vorhersagen ALLER Spieler darf NIEMALS genau der Rundenzahl entsprechen!
+            </p>
+            <p><b>Beispiel Runde 4:</b>
+              <br>• Spieler 1 tippt 1 Stich.
+              <br>• Spieler 2 tippt 2 Stiche.
+              <br>• Zwischensumme: 3 Stiche.
+              <br>• Der Geber darf <b>NICHT 1 tippen</b> (denn 3 + 1 = 4, was der Rundenzahl entspricht).
+              <br>• Er muss 0, 2, 3 oder 4 tippen.
+            </p>
+            <p><b>Strategische Wirkung:</b> Die Runde kann mathematisch niemals für alle Spieler glatt aufgehen. Mindestens ein Spieler wird Minuspunkte erleiden!</p>
           </div>
         </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #059669, #022c22); border-color: #34d399; color: #a7f3d0;">
-            <span>G</span>
-            <span style="font-size: 8px;">Z/N</span>
-          </div>
-          <div>
-            <div class="rules-card-title">Gestaltenwandler <span class="rules-card-badge" style="background: #047857; color: #a7f3d0; border: 1px solid #34d399;">Z oder N</span></div>
-            <p class="rules-card-desc">Wähle beim Ausspielen, ob er als Zauberer (Z, Wert 14) oder als Narr (N, Wert 0) gespielt wird. Als Trumpf aufgedeckt: Geber wählt die Trumpffarbe.</p>
-          </div>
-        </div>
+        <!-- TAB 3: SONDERKARTEN & VAMPIR -->
+        <div id="tab-rules-special" class="rules-tab-content">
+          <div class="rules-section-title">🔮 30 Jahre Jubiläumsedition &amp; Sonderkarten</div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #831843, #4c0519); border-color: #f43f5e; color: #fecdd3;">
-            <span>V</span>
-            <span style="font-size: 8px;">Kopie</span>
+          <div class="rules-card-entry" style="border: 1.5px solid #f43f5e; background: rgba(131, 24, 67, 0.1);">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #831843, #4c0519); border-color: #f43f5e; color: #fecdd3;">
+              <span>V</span>
+              <span style="font-size: 8px;">Kopie</span>
+            </div>
+            <div>
+              <div class="rules-card-title" style="color: #9f1239;">Der Vampir <span class="rules-card-badge" style="background: #9f1239; color: #fecdd3; border: 1px solid #f43f5e;">Mimikry &amp; Trumpfsturz</span></div>
+              <p class="rules-card-desc">
+                <b>Spiegelt den Trumpf:</b> Der Vampir übernimmt 1:1 alle Werte, Farben und Sonderfähigkeiten der aktuell aufgedeckten Trumpfkarte. Ist Rot Trumpf, wird er zum roten Trumpf; ist ein Zauberer Trumpf, sticht er als Zauberer!
+                <br><br>
+                <b>Trumpfsturz bei Werwolf-Trumpf:</b> Liegt die Werwolf-Trumpfkarte aufgedeckt auf dem Tisch, löst das Ausspielen des Vampirs ein dramatisches Ereignis aus: <b>Es wird unmittelbar die nächste Karte des Nachziehstapels als neue Trumpfkarte aufgedeckt!</b>
+                <br>Dadurch wechselt die Trumpffarbe mitten im laufenden Stich, wodurch sich die Wertung und der Gewinner schlagartig ändern können!
+                <br><br>
+                <i>Liegt überhaupt kein Trumpf auf (z. B. durch Narr, Fee oder Bombe als Trumpf), agiert der Vampir als harmloser Narr (Wert 0).</i>
+              </p>
+            </div>
           </div>
-          <div>
-            <div class="rules-card-title">Vampir <span class="rules-card-badge" style="background: #9f1239; color: #fecdd3; border: 1px solid #f43f5e;">Mimikry</span></div>
-            <p class="rules-card-desc">Kopiert die aufgedeckte Trumpfkarte 1:1 mit allen Werten, Farben und Fähigkeiten! Liegt kein Trumpf aus, agiert der Vampir wie ein Narr (Wert 0).</p>
-          </div>
-        </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #475569, #0f172a); border-color: #94a3b8; color: #f1f5f9;">
-            <span style="font-size: 11px;">9¾</span>
-            <span style="font-size: 8px;">☁️</span>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #475569, #0f172a); border-color: #94a3b8; color: #f1f5f9;">
+              <span style="font-size: 11px;">9¾</span>
+              <span style="font-size: 8px;">☁️</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Wolke <span class="rules-card-badge" style="background: #334155; color: #f1f5f9; border: 1px solid #94a3b8;">Wert 9 ¾</span></div>
+              <p class="rules-card-desc">Beim Ausspielen wählst du ihre Farbe (Wert 9,75). <b>Fluch der Wolke:</b> Der Spieler, der den Stich gewinnt, in dem die Wolke liegt, muss seine Vorhersage unmittelbar nach Stich-Ende um genau <b>+1 oder -1 korrigieren</b> (bei Tipp 0 ist nur +1 möglich)!</p>
+            </div>
           </div>
-          <div>
-            <div class="rules-card-title">Wolke <span class="rules-card-badge" style="background: #334155; color: #f1f5f9; border: 1px solid #94a3b8;">Wert 9 ¾</span></div>
-            <p class="rules-card-desc">Beim Ausspielen wählst du ihre Farbe. Wert 9,75 (höher als 9, schwächer als 10). <b>Fluch</b>: Wer die Wolke ausspielt, muss nach Beenden des Stichs seine Vorhersage um genau +1 oder -1 korrigieren!</p>
-          </div>
-        </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #292524, #0c0a09); border-color: #f59e0b; color: #fef08a;">
-            <span>W</span>
-            <span style="font-size: 8px;">🐺</span>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #7f1d1d, #450a0a); border-color: #f59e0b; color: #fef08a;">
+              <span>D</span>
+              <span style="font-size: 8px;">15</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Drache <span class="rules-card-badge" style="background: #7f1d1d; color: #fef08a; border: 1px solid #f59e0b;">Wert 15</span></div>
+              <p class="rules-card-desc">Die mächtigste Karte im Spiel! Schlägt selbst Zauberer. Wird er als Trumpfkarte aufgedeckt, bestimmt der Geber die Trumpffarbe.</p>
+            </div>
           </div>
-          <div>
-            <div class="rules-card-title">Werwolf <span class="rules-card-badge" style="background: #78350f; color: #fef08a; border: 1px solid #f59e0b;">Trumpfmeister</span></div>
-            <p class="rules-card-desc">Hältst du den Werwolf auf der Hand, nimmst du die aufgedeckte Trumpfkarte auf und <b>bestimmst selbst die neue Trumpffarbe!</b> Im Trumpffeld leuchtet die Werwolf-Trumpfkarte. Im Stich gespielt zählt er wie ein Narr (Wert 0).</p>
-          </div>
-        </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #2e1065, #09090b); border-color: #a855f7; color: #d8b4fe;">
-            <span>H</span>
-            <span style="font-size: 8px;">🧙‍♀️</span>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #0284c7, #082f49); border-color: #38bdf8; color: #e0f2fe;">
+              <span>F</span>
+              <span style="font-size: 8px;">-1</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Fee <span class="rules-card-badge" style="background: #0369a1; color: #e0f2fe; border: 1px solid #38bdf8;">Wert -1</span></div>
+              <p class="rules-card-desc">Unterliegt regulär allen Karten. <b>Drachentöterin:</b> Liegen Drache und Fee im selben Stich, gewinnt immer die Fee – selbst wenn Zauberer im Stich liegen! Als Trumpf aufgedeckt: kein Trumpf.</p>
+            </div>
           </div>
-          <div>
-            <div class="rules-card-title">Hexe <span class="rules-card-badge" style="background: #581c87; color: #d8b4fe; border: 1px solid #a855f7;">Stichtausch</span></div>
-            <p class="rules-card-desc">Zählt im Stich wie ein Narr (Wert 0). <b>Stichtausch nach Stich-Ende:</b> Sobald der Stich beendet und ausgewertet ist, nimmst du 1 beliebige Karte (außer der Hexe) aus dem Stich auf die Hand und legst 1 Handkarte in den Stich! Der bereits ermittelte Stichgewinner bleibt unverändert.</p>
-          </div>
-        </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #0891b2, #083344); border-color: #06b6d4; color: #cffafe;">
-            <span style="font-size: 11px;">7½</span>
-            <span style="font-size: 8px;">🤹</span>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #ea580c, #431407); border-color: #fb923c; color: #fdba74;">
+              <span>B</span>
+              <span style="font-size: 8px;">💥</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Bombe <span class="rules-card-badge" style="background: #c2410c; color: #fdba74; border: 1px solid #fb923c;">Neutralisator</span></div>
+              <p class="rules-card-desc">Neutralisiert den aktuellen Stich vollständig! Niemand erhält den Stich oder Punkte. Die höchste reguläre Karte bestimmt den nächsten Aufspieler. Als Trumpf aufgedeckt: kein Trumpf.</p>
+            </div>
           </div>
-          <div>
-            <div class="rules-card-title">Jongleur <span class="rules-card-badge" style="background: #0e7490; color: #cffafe; border: 1px solid #06b6d4;">Wert 7 ½</span></div>
-            <p class="rules-card-desc">Beim Ausspielen wählst du die Farbe (Wert 7,5). Nach Ende des Stichs müssen <b>alle Spieler geheim eine Handkarte wählen</b> und verdeckt an ihren linken Nachbarn weitergeben!</p>
-          </div>
-        </div>
 
-        <div class="rules-section-title">👑 Klassische Karten</div>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #059669, #022c22); border-color: #34d399; color: #a7f3d0;">
+              <span>G</span>
+              <span style="font-size: 8px;">Z/N</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Gestaltenwandler <span class="rules-card-badge" style="background: #047857; color: #a7f3d0; border: 1px solid #34d399;">Z oder N</span></div>
+              <p class="rules-card-desc">Wähle beim Ausspielen, ob er als Zauberer (Z, Wert 14) oder als Narr (N, Wert 0) gespielt wird. Als Trumpf aufgedeckt: Geber wählt die Trumpffarbe.</p>
+            </div>
+          </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #3b0764, #1e0338); border-color: #a855f7; color: #fef08a;">
-            <span>Z</span>
-            <span style="font-size: 8px;">14</span>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #292524, #0c0a09); border-color: #f59e0b; color: #fef08a;">
+              <span>W</span>
+              <span style="font-size: 8px;">🐺</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Werwolf <span class="rules-card-badge" style="background: #78350f; color: #fef08a; border: 1px solid #f59e0b;">Trumpfmeister</span></div>
+              <p class="rules-card-desc">Hältst du den Werwolf auf der Hand, nimmst du die aufgedeckte Trumpfkarte auf und <b>bestimmst selbst die neue Trumpffarbe!</b> Im Stich gespielt zählt er wie ein Narr (Wert 0).</p>
+            </div>
           </div>
-          <div>
-            <div class="rules-card-title">Zauberer <span class="rules-card-badge" style="background: #581c87; color: #fef08a; border: 1px solid #a855f7;">Höchste Karte</span></div>
-            <p class="rules-card-desc">Schlägt alle Farbkarten und Narren. Der erste im Stich gespielte Zauberer gewinnt immer (außer Drache liegt im Stich).</p>
-          </div>
-        </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #334155, #0f172a); border-color: #94a3b8; color: #f8fafc;">
-            <span>N</span>
-            <span style="font-size: 8px;">0</span>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #2e1065, #09090b); border-color: #a855f7; color: #d8b4fe;">
+              <span>H</span>
+              <span style="font-size: 8px;">🧙‍♀️</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Hexe <span class="rules-card-badge" style="background: #581c87; color: #d8b4fe; border: 1px solid #a855f7;">Stichtausch</span></div>
+              <p class="rules-card-desc">Zählt im Stich wie ein Narr (Wert 0). <b>Stichtausch nach Stich-Ende:</b> Nimm 1 beliebige Karte (außer der Hexe) aus dem beendeten Stich auf die Hand und lege 1 Handkarte hinein! Der Stichgewinner bleibt unverändert.</p>
+            </div>
           </div>
-          <div>
-            <div class="rules-card-title">Narr <span class="rules-card-badge" style="background: #475569; color: #f8fafc; border: 1px solid #94a3b8;">Wert 0</span></div>
-            <p class="rules-card-desc">Verliert immer gegen jede andere Karte. Gibt keine Bedienfarbe vor. Besteht der Stich nur aus Narren, gewinnt der erste Narr.</p>
-          </div>
-        </div>
 
-        <div class="rules-card-entry">
-          <div class="rules-card-icon" style="background: radial-gradient(circle, #b91c1c, #4c080a); border-color: #fca5a5; color: #fff;">
-            <span>1-13</span>
-            <span style="font-size: 8px;">Farbe</span>
+          <div class="rules-card-entry">
+            <div class="rules-card-icon" style="background: radial-gradient(circle, #0891b2, #083344); border-color: #06b6d4; color: #cffafe;">
+              <span style="font-size: 11px;">7½</span>
+              <span style="font-size: 8px;">🤹</span>
+            </div>
+            <div>
+              <div class="rules-card-title">Jongleur <span class="rules-card-badge" style="background: #0e7490; color: #cffafe; border: 1px solid #06b6d4;">Wert 7 ½</span></div>
+              <p class="rules-card-desc">Wähle beim Ausspielen die Farbe (Wert 7,5). Nach dem Stich müssen <b>alle Spieler geheim 1 Handkarte wählen</b> und verdeckt an ihren linken Nachbarn weitergeben!</p>
+            </div>
           </div>
-          <div>
-            <div class="rules-card-title">Farbkarten (Rot, Blau, Grün, Gelb)</div>
-            <p class="rules-card-desc">Werte von 1 bis 13. Trumpffarbe sticht alle anderen Farben; ohne Trumpf gewinnt die höchste Karte der zuerst angespielten Farbe.</p>
-          </div>
-        </div>
-
-        <div class="rules-section-title">⚖️ Grundregeln</div>
-
-        <div style="background: rgba(44, 25, 12, 0.08); border: 1px solid rgba(120, 53, 15, 0.3); border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.5; color: #2e1a0b;">
-          <p style="margin: 0 0 8px;"><b>Bedienpflicht (Farbzwang):</b> Liegt eine Farbkarte an, muss jeder nachfolgende Spieler die Farbe bedienen, sofern er Karten dieser Farbe besitzt. Sonderkarten (Zauberer, Narr, Hexe, Drache, etc.) dürfen jederzeit straffrei abgeworfen werden.</p>
-          <p style="margin: 0 0 8px;"><b>Geber-Regel (+/- 1):</b> In jeder Runde darf die Summe aller Vorhersagen (Tipps) nicht exakt der Rundenzahl entsprechen. Der Geber als letzter Tipper darf daher die Summe nicht glatt aufgehen lassen.</p>
-          <p style="margin: 0;"><b>Punkteberechnung:</b> Exakt getroffener Tipp = <b>+20 Punkte</b> plus <b>+10 Punkte pro Stich</b>. Jede Abweichung nach oben oder unten = <b>-10 Punkte pro Stich</b> Differenz.</p>
         </div>
       </div>
     </div>

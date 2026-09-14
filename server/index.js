@@ -981,25 +981,25 @@ io.on('connection', (socket) => {
         // Pipeline: Wolke -> Hexe -> Jongleur -> Stich aufräumen & weiter
         function stepCloud(next) {
           if (!hadCloud) return next();
-          const cloudEntry = room.currentTrick.find(t => t.card && (t.card.type === 'cloud' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'cloud')));
-          const cloudPlayer = cloudEntry ? room.players.find(p => p.sessionId === cloudEntry.playerSessionId) : null;
-          if (!cloudPlayer || !cloudPlayer.connected) return next();
+          // Der Spieler, der den Stich gewinnt, in dem die Wolke liegt, muss seine Vorhersage um genau +1 oder -1 korrigieren!
+          const cloudWinner = room.players.find(p => p.sessionId === trickResult.winnerPlayerId);
+          if (!cloudWinner || !cloudWinner.connected) return next();
 
           room.gameState = 'cloud_adjust_bid';
-          room.cloudPlayerSessionId = cloudPlayer.sessionId;
+          room.cloudPlayerSessionId = cloudWinner.sessionId;
           room.cloudNextCallback = next;
 
           io.to(normalizedCode).emit('cloudBidAdjustmentPending', {
-            playerName: cloudPlayer.name,
-            playerSessionId: cloudPlayer.sessionId
+            playerName: cloudWinner.name,
+            playerSessionId: cloudWinner.sessionId
           });
 
-          io.to(cloudPlayer.socketId).emit('cloudBidAdjustmentPrompt', {
-            currentBid: cloudPlayer.bid !== null ? cloudPlayer.bid : 0
+          io.to(cloudWinner.socketId).emit('cloudBidAdjustmentPrompt', {
+            currentBid: cloudWinner.bid !== null ? cloudWinner.bid : 0
           });
 
           io.to(normalizedCode).emit('turnChanged', {
-            activePlayerSessionId: cloudPlayer.sessionId,
+            activePlayerSessionId: cloudWinner.sessionId,
             gameState: 'cloud_adjust_bid'
           });
         }

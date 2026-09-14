@@ -5,8 +5,8 @@ console.log('====================================================');
 console.log('TEST: HEXE NACH STICH-ENDE & WOLKEN-AUSPLAYER WAHL');
 console.log('====================================================\n');
 
-// 1. Test: Wolke - Der Ausspieler (nicht der Gewinner) entscheidet die Anpassung
-console.log('1. Test: Wolke - Der Ausspieler passt seinen eigenen Tipp an...');
+// 1. Test: Wolke - Der Gewinner des Stichs mit der Wolke passt seinen Tipp an
+console.log('1. Test: Wolke - Der Stichgewinner passt seinen Tipp an...');
 {
   const trick = [
     { playerId: 'p1_cloud_player', card: { type: 'cloud', chosenSuit: 'red' } },
@@ -22,21 +22,21 @@ console.log('1. Test: Wolke - Der Ausspieler passt seinen eigenen Tipp an...');
   const hadCloud = !res.isBombed && trick.some(t => t.card && (t.card.type === 'cloud' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'cloud')));
   assert.strictEqual(hadCloud, true, 'Wolke im Stich registriert');
 
-  // Der Spieler der Wolke wird anhand des Trick-Eintrags ermittelt
-  const cloudEntry = trick.find(t => t.card && (t.card.type === 'cloud' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'cloud')));
-  assert.strictEqual(cloudEntry.playerId, 'p1_cloud_player', 'Ausspieler der Wolke ist p1, NICHT der Stichgewinner p2!');
+  // Der Spieler, der den Tipp anpassen muss, ist der Gewinner des Stichs (res.winnerPlayerId)
+  const targetWinnerPlayerId = res.winnerPlayerId;
+  assert.strictEqual(targetWinnerPlayerId, 'p2_wizard_player', 'Stichgewinner p2 passt den Tipp an, da die Wolke im Stich lag');
 
-  // Anpassung für p1 testen (+1 oder -1)
-  let p1Bid = 2;
+  // Anpassung für p2 testen (+1 oder -1)
+  let p2Bid = 2;
   const deltaPlus = 1;
-  p1Bid += deltaPlus;
-  assert.strictEqual(p1Bid, 3, 'Tipp von p1 um +1 angepasst');
+  p2Bid += deltaPlus;
+  assert.strictEqual(p2Bid, 3, 'Tipp von p2 um +1 angepasst');
 
-  let p1BidZero = 0;
-  const canMinus = p1BidZero > 0;
+  let p2BidZero = 0;
+  const canMinus = p2BidZero > 0;
   assert.strictEqual(canMinus, false, 'Bei Tipp 0 ist -1 nicht erlaubt');
 
-  console.log('✓ Wolken-Ausspieler p1 wird korrekt ermittelt und passt seinen eigenen Tipp an');
+  console.log('✓ Wolken-Stichgewinner p2 wird korrekt ermittelt und passt seinen eigenen Tipp an');
 }
 
 // 2. Test: Wolke bei Bombe wird neutralisiert

@@ -155,6 +155,169 @@ let cachedPlayers = [];
 let cachedTrumpCard = null;
 let inspectedCardIndex = null; // Für Touch "Tap to Inspect"
 
+// --- NATIVE WEB AUDIO API SOUND-ENGINE (OHNE EXTERNE DATEIEN) ---
+const WizardAudio = (() => {
+  let ctx = null;
+
+  function getContext() {
+    if (!ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) ctx = new AudioCtx();
+    }
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    return ctx;
+  }
+
+  // Bei erstem User-Event AudioContext aufwecken
+  ['click', 'touchstart', 'keydown'].forEach(evt => {
+    window.addEventListener(evt, () => {
+      const c = getContext();
+      if (c && c.state === 'suspended') c.resume().catch(() => {});
+    }, { once: true, passive: true });
+  });
+
+  // Hölzernes, sattes Klick/Klack beim Ablegen einer Spielkarte
+  function playCardSnap() {
+    try {
+      const c = getContext();
+      if (!c) return;
+      const t = c.currentTime;
+
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      const filter = c.createBiquadFilter();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(260, t);
+      osc.frequency.exponentialRampToValueAtTime(75, t + 0.05);
+
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(420, t);
+      filter.Q.setValueAtTime(2.2, t);
+
+      gain.gain.setValueAtTime(0.4, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.065);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(c.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.07);
+
+      // Knackige Snap-Transiente
+      const snapOsc = c.createOscillator();
+      const snapGain = c.createGain();
+      snapOsc.type = 'sine';
+      snapOsc.frequency.setValueAtTime(820, t);
+      snapOsc.frequency.exponentialRampToValueAtTime(220, t + 0.02);
+      snapGain.gain.setValueAtTime(0.28, t);
+      snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.028);
+
+      snapOsc.connect(snapGain);
+      snapGain.connect(c.destination);
+      snapOsc.start(t);
+      snapOsc.stop(t + 0.03);
+    } catch (e) {
+      console.warn('Audio playCardSnap error:', e);
+    }
+  }
+
+  // Mystischer, ätherischer Zweiklang beim Ausspielen eines Zauberers
+  function playWizardSound() {
+    try {
+      const c = getContext();
+      if (!c) return;
+      const t = c.currentTime;
+
+      const osc1 = c.createOscillator();
+      const osc2 = c.createOscillator();
+      const gain = c.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'triangle';
+      osc1.frequency.setValueAtTime(587.33, t); // D5
+      osc2.frequency.setValueAtTime(880.00, t); // A5
+
+      gain.gain.setValueAtTime(0.01, t);
+      gain.gain.linearRampToValueAtTime(0.35, t + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(c.destination);
+
+      osc1.start(t);
+      osc2.start(t);
+      osc1.stop(t + 0.7);
+      osc2.stop(t + 0.7);
+    } catch (e) {
+      console.warn('Audio playWizardSound error:', e);
+    }
+  }
+
+  // Schelmischer, verspielter Klick-Boing beim Ausspielen eines Narren
+  function playJesterSound() {
+    try {
+      const c = getContext();
+      if (!c) return;
+      const t = c.currentTime;
+
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(430, t);
+      osc.frequency.exponentialRampToValueAtTime(180, t + 0.16);
+
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+
+      osc.connect(gain);
+      gain.connect(c.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.22);
+    } catch (e) {
+      console.warn('Audio playJesterSound error:', e);
+    }
+  }
+
+  function playForCard(card) {
+    if (!card) return playCardSnap();
+    if (card.type === 'wizard') {
+      playWizardSound();
+    } else if (card.type === 'jester') {
+      playJesterSound();
+    } else {
+      playCardSnap();
+    }
+  }
+
+  return {
+    playCardSnap,
+    playWizardSound,
+    playJesterSound,
+    playForCard
+  };
+})();
+
+// --- "DU BIST DRAN!" TOAST-POP-UP TRIGGER (1.4s AUTO-FADE) ---
+let turnPopupTimer = null;
+function triggerTurnPopup() {
+  const banner = document.getElementById('turn-popup-banner');
+  if (!banner) return;
+  clearTimeout(turnPopupTimer);
+  banner.classList.remove('show');
+  void banner.offsetWidth; // Force Reflow
+  banner.classList.add('show');
+  turnPopupTimer = setTimeout(() => {
+    banner.classList.remove('show');
+  }, 1400);
+}
+
 // XSS-Schutz
 function escapeHtml(text) {
   if (!text) return '';
@@ -243,6 +406,18 @@ if (rulesDrawerToggle) {
 scoreDrawerClose.addEventListener('click', closeScoreDrawer);
 if (rulesDrawerClose) rulesDrawerClose.addEventListener('click', closeRulesDrawer);
 
+// Tab-Umschaltung im Grimoire der Regeln
+document.querySelectorAll('.rules-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetTabId = btn.getAttribute('data-tab');
+    document.querySelectorAll('.rules-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.rules-tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    const targetContent = document.getElementById(targetTabId);
+    if (targetContent) targetContent.classList.add('active');
+  });
+});
+
 drawerBackdrop.addEventListener('click', () => {
   closeScoreDrawer();
   closeRulesDrawer();
@@ -329,13 +504,18 @@ async function copyRoomCode(btnElement) {
     }
 
     if (btnElement) {
-      const originalHtml = btnElement.innerHTML;
+      if (!btnElement.dataset.originalHtml) {
+        btnElement.dataset.originalHtml = btnElement.innerHTML;
+      }
+      const originalHtml = btnElement.dataset.originalHtml;
+      clearTimeout(btnElement._copyTimeout);
+
       btnElement.classList.add('copied');
       btnElement.innerHTML = btnElement.classList.contains('btn-copy-small') ? '✓' : 'Kopiert! ✓';
-      setTimeout(() => {
+      btnElement._copyTimeout = setTimeout(() => {
         btnElement.classList.remove('copied');
         btnElement.innerHTML = originalHtml;
-      }, 2000);
+      }, 1600);
     }
   } catch (err) {
     console.error('Fehler beim Kopieren des Codes:', err);
@@ -582,9 +762,15 @@ socket.on('turnChanged', ({ activePlayerSessionId, gameState, forbiddenBid }) =>
 });
 
 function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
+  const previouslyMyTurn = isMyTurn;
   currentActiveSessionId = activePlayerSessionId;
   isMyTurn = (mySessionId === activePlayerSessionId);
   currentGameState = gameState;
+
+  // ANIMIERTES "DU BIST DRAN!" POP-UP FEEDBACK
+  if (isMyTurn && (!previouslyMyTurn || gameState === 'playing_tricks' || gameState === 'bidding')) {
+    triggerTurnPopup();
+  }
 
   // SUBTILE TISCH-AURA & HANDKARTEN-FOKUS
   tableArea.classList.toggle('my-turn-aura', isMyTurn);
@@ -657,10 +843,10 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
     if (jugglerModal) jugglerModal.style.display = 'none';
     if (witchModal) witchModal.style.display = 'none';
     if (isMyTurn) {
-      statusMessage.innerText = 'Wolken-Prophezeiung! Passe deinen Tipp um +1 oder -1 an.';
+      statusMessage.innerText = '☁️ Wolken-Fluch! Du hast den Stich gewonnen und passt deinen Tipp um +1 oder -1 an.';
       if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'flex';
     } else {
-      statusMessage.innerText = `${activePlayerName} passt durch die Wolke den Tipp an...`;
+      statusMessage.innerText = `☁️ ${activePlayerName} hat den Stich mit der Wolke gewonnen und passt den Tipp an...`;
       if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
     }
   } else if (gameState === 'juggler_passing') {
@@ -1196,13 +1382,30 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName 
     statusMessage.innerText = `${escapeHtml(winnerName)} gewinnt den Stich!`;
   }
 
+  const isMe = (winnerSessionId === mySessionId);
+  const trickItems = document.querySelectorAll('#trick-container .trick-card-item');
+
+  // 1. Zuerst strahlendes Sieger-Highlight ("Wolke") auf den Stichkarten
+  trickItems.forEach(item => item.classList.add('trick-winner-highlight'));
+
+  // 2. Danach zielgerichteter Einzug zum Gewinner
   setTimeout(() => {
-    const trickItems = document.querySelectorAll('#trick-container .trick-card-item');
-    trickItems.forEach(item => item.classList.add('trick-clearing'));
+    trickItems.forEach(item => {
+      item.classList.remove('trick-winner-highlight');
+      if (isBombed) {
+        item.classList.add('trick-clearing');
+      } else if (isMe) {
+        item.classList.add('trick-clearing-me');
+      } else {
+        item.classList.add('trick-clearing-opponent');
+      }
+    });
+
     setTimeout(() => {
       trickContainer.innerHTML = '';
-    }, 450);
-  }, 1800);
+      trickContainer.classList.remove('round-1-trick');
+    }, 460);
+  }, 1250);
 });
 
 socket.on('roundFinished', ({ isGameOver, scoreHistory, round }) => {
@@ -1311,70 +1514,24 @@ function renderOpponents() {
     const bidText = p.bid !== null ? p.bid : '-';
     const wonText = p.tricksWon !== undefined ? p.tricksWon : 0;
 
-    let foreheadBadgeHtml = '';
+    let foreheadCardHtml = '';
     if (currentRound === 1 && p.round1Card) {
-      const effC = p.round1Card;
-      let cardDisplay = '';
-      let pillStyle = '';
-
-      if (effC.type === 'color') {
-        const suitColors = { red: '#ef4444', blue: '#38bdf8', green: '#4ade80', yellow: '#facc15' };
-        const suitBg = { red: 'rgba(239, 68, 68, 0.25)', blue: 'rgba(56, 189, 248, 0.25)', green: 'rgba(74, 222, 128, 0.25)', yellow: 'rgba(250, 204, 21, 0.25)' };
-        const col = suitColors[effC.suit] || '#fff';
-        const bg = suitBg[effC.suit] || 'transparent';
-        cardDisplay = `${effC.value}`;
-        pillStyle = `color: ${col}; background: ${bg}; border-color: ${col};`;
-      } else if (effC.type === 'wizard') {
-        cardDisplay = 'Zauberer (Z)';
-        pillStyle = 'color: #fef08a; background: rgba(168, 85, 247, 0.25); border-color: #a855f7;';
-      } else if (effC.type === 'jester') {
-        cardDisplay = 'Narr (N)';
-        pillStyle = 'color: #cbd5e1; background: rgba(71, 85, 105, 0.25); border-color: #94a3b8;';
-      } else if (effC.type === 'dragon') {
-        cardDisplay = 'Drache (D)';
-        pillStyle = 'color: #fca5a5; background: rgba(220, 38, 38, 0.25); border-color: #ef4444;';
-      } else if (effC.type === 'fairy') {
-        cardDisplay = 'Fee (F)';
-        pillStyle = 'color: #bae6fd; background: rgba(2, 132, 199, 0.25); border-color: #38bdf8;';
-      } else if (effC.type === 'bomb') {
-        cardDisplay = 'Bombe (B)';
-        pillStyle = 'color: #fdba74; background: rgba(234, 88, 12, 0.25); border-color: #f97316;';
-      } else if (effC.type === 'werewolf') {
-        cardDisplay = 'Werwolf (W)';
-        pillStyle = 'color: #fef08a; background: rgba(180, 83, 9, 0.25); border-color: #f59e0b;';
-      } else if (effC.type === 'cloud') {
-        cardDisplay = 'Wolke (9¾)';
-        pillStyle = 'color: #e0e7ff; background: rgba(71, 85, 105, 0.25); border-color: #818cf8;';
-      } else if (effC.type === 'witch') {
-        cardDisplay = 'Hexe (H)';
-        pillStyle = 'color: #e9d5ff; background: rgba(126, 34, 206, 0.25); border-color: #c084fc;';
-      } else if (effC.type === 'juggler') {
-        cardDisplay = 'Jongleur (7½)';
-        pillStyle = 'color: #cffafe; background: rgba(8, 145, 178, 0.25); border-color: #06b6d4;';
-      } else if (effC.type === 'vampire') {
-        cardDisplay = 'Vampir (V)';
-        pillStyle = 'color: #fecdd3; background: rgba(190, 18, 60, 0.25); border-color: #f43f5e;';
-      } else if (effC.type === 'shapeshifter') {
-        cardDisplay = 'Wandler (G)';
-        pillStyle = 'color: #a7f3d0; background: rgba(5, 150, 105, 0.25); border-color: #34d399;';
-      }
-
-      foreheadBadgeHtml = `
-        <div class="forehead-badge" title="Stirn-Karte dieses Spielers">
-          <span class="forehead-badge-label">Stirn:</span>
-          <span class="forehead-card-pill" style="${pillStyle}">${cardDisplay}</span>
+      const cardEl = renderCard(p.round1Card);
+      foreheadCardHtml = `
+        <div class="forehead-card-wrapper" title="Stirn-Karte von ${escapeHtml(p.name)}">
+          ${cardEl.outerHTML}
         </div>
       `;
     }
 
     seatEl.innerHTML = `
-      ${foreheadBadgeHtml}
       <div class="seat-avatar ${disconnectedClass}">${initial}</div>
       <div class="seat-details">
         <div class="seat-name-row">
           <span class="seat-name">${escapeHtml(p.name)}</span>
           ${hostBadge}${dealerBadge}
         </div>
+        ${foreheadCardHtml}
         <div class="seat-stats">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>
       </div>
     `;
@@ -1395,10 +1552,10 @@ function updateMyStatsHUD() {
   if (tricksEl) tricksEl.innerText = tricksVal;
 }
 
-// --- AAA 3D-FLUG- & FLIP-ANIMATION DER GESPIELTEN KARTEN ---
+// --- ZÜGIGES PLATZIEREN DER GESPIELTEN KARTEN MIT SOUNDEFFEKTEN & RUNDE 1 FOKUS ---
 function renderTrickCards(trickCards, animateLast = true) {
   trickContainer.innerHTML = '';
-  const trickContainerRect = trickContainer.getBoundingClientRect();
+  trickContainer.classList.toggle('round-1-trick', currentRound === 1);
 
   trickCards.forEach((item, idx) => {
     const isLastCard = (idx === trickCards.length - 1);
@@ -1406,50 +1563,25 @@ function renderTrickCards(trickCards, animateLast = true) {
     wrap.classList.add('trick-card-item');
     wrap.style.textAlign = 'center';
 
+    // Spielername direkt über der Karte (>= 14px, fett, schattiert)
     const nameLabel = document.createElement('div');
+    nameLabel.classList.add('trick-player-name');
     nameLabel.innerText = item.playerName;
-    nameLabel.style.fontSize = '11px';
-    nameLabel.style.fontWeight = 'bold';
-    nameLabel.style.marginBottom = '3px';
-    nameLabel.style.textShadow = '0 1px 3px rgba(0,0,0,0.8)';
 
-    // 3D-Card Wrapper mit Vorder- und Rückseite
+    // Vollwertige Karte direkt unter dem Namen
     const cardWrapper = document.createElement('div');
     cardWrapper.classList.add('card-3d-wrapper');
 
     const frontFace = renderCard(item.card);
     frontFace.classList.add('card-3d-face', 'card-3d-front');
-
-    const backFace = document.createElement('div');
-    backFace.classList.add('card-3d-face', 'card-3d-back');
-    backFace.innerHTML = '<span class="card-3d-back-symbol">✦</span>';
-
     cardWrapper.appendChild(frontFace);
-    cardWrapper.appendChild(backFace);
 
-    const rot = ((idx % 4) - 1.5) * 6;
+    const rot = ((idx % 4) - 1.5) * 4;
     cardWrapper.style.setProperty('--rand-rot', `${rot}deg`);
 
     if (animateLast && isLastCard) {
       cardWrapper.classList.add('card-played-animated');
-
-      let originX = 0;
-      let originY = 80;
-
-      if (item.playerSessionId === mySessionId) {
-        originX = 0;
-        originY = 160;
-      } else {
-        const seatEl = document.getElementById(`seat-${item.playerSessionId}`);
-        if (seatEl && trickContainerRect.width > 0) {
-          const seatRect = seatEl.getBoundingClientRect();
-          originX = (seatRect.left + seatRect.width / 2) - (trickContainerRect.left + trickContainerRect.width / 2);
-          originY = (seatRect.top + seatRect.height / 2) - (trickContainerRect.top + trickContainerRect.height / 2);
-        }
-      }
-
-      cardWrapper.style.setProperty('--origin-x', `${originX}px`);
-      cardWrapper.style.setProperty('--origin-y', `${originY}px`);
+      WizardAudio.playForCard(item.card);
     } else {
       cardWrapper.style.transform = `rotate(${rot}deg)`;
     }
@@ -1701,7 +1833,9 @@ function renderHand(isNewDeal = false) {
       });
     } else {
       cardElement.classList.remove('card-playable');
-      cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
+      if (inspectedCardIndex !== index) {
+        cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
+      }
 
       if (isMyTurn && isPlayingPhase) {
         cardElement.style.filter = 'brightness(0.35)';
@@ -1710,6 +1844,15 @@ function renderHand(isNewDeal = false) {
         cardElement.style.filter = 'brightness(1)';
         cardElement.style.opacity = '1';
       }
+
+      cardElement.addEventListener('click', (e) => {
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        if (isTouchDevice && inspectedCardIndex !== index) {
+          e.stopPropagation();
+          inspectedCardIndex = index;
+          renderHand();
+        }
+      });
     }
 
     handContainer.appendChild(cardElement);
