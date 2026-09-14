@@ -59,6 +59,36 @@ assert.ok(js.includes('card-fly-up'), 'card-fly-up wird in client.js angewendet'
 assert.ok(js.includes('p.title'), 'p.title wird in UI gerendert');
 console.log('✓ 5. WizardAuth Modul & Methoden in client.js verifiziert');
 
+// 6. Prüfe Tisch-Aufprall, Staubwolke & Kartenlogik
+assert.ok(html.includes('heavyCardSlam'), 'heavyCardSlam Keyframe vorhanden');
+assert.ok(html.includes('card-slam-heavy'), 'card-slam-heavy CSS-Klasse vorhanden');
+assert.ok(html.includes('card-dust-cloud'), 'card-dust-cloud CSS vorhanden');
+assert.ok(html.includes('dust-puff'), 'dust-puff CSS vorhanden');
+assert.ok(html.includes('dustPuffAnim'), 'dustPuffAnim Keyframe vorhanden');
+assert.ok(js.includes('isDealingAnimationPending'), 'isDealingAnimationPending Schutz vorhanden');
+assert.ok(js.includes('function isStrongCard'), 'isStrongCard Funktion definiert');
+assert.ok(js.includes('createDustCloudEffect'), 'createDustCloudEffect definiert');
+assert.ok(js.includes('playTableThump'), 'playTableThump definiert');
+
+// Validiere isStrongCard Heuristik
+const evalStrong = new Function(js.slice(js.indexOf('function isStrongCard'), js.indexOf('// --- WEISSE & GRAUE STAUBWOLKE')) + ' return isStrongCard;');
+const isStrong = evalStrong();
+assert.strictEqual(isStrong({ type: 'wizard' }), true, 'Zauberer muss stark sein');
+assert.strictEqual(isStrong({ type: 'dragon' }), true, 'Drache muss stark sein');
+assert.strictEqual(isStrong({ type: 'bomb' }), true, 'Bombe muss stark sein');
+assert.strictEqual(isStrong({ type: 'juggler' }), true, 'Jongleur muss stark sein');
+assert.strictEqual(isStrong({ type: 'color', value: 13 }), true, 'Farbe 13 muss stark sein');
+assert.strictEqual(isStrong({ type: 'shapeshifter', selectedType: 'wizard' }), true, 'Gestaltenwandler als Zauberer muss stark sein');
+
+// Karten unter oder gleich Null:
+assert.strictEqual(isStrong({ type: 'jester' }), false, 'Narr darf NICHT stark sein');
+assert.strictEqual(isStrong({ type: 'fairy' }), false, 'Fee darf NICHT stark sein');
+assert.strictEqual(isStrong({ type: 'witch' }), false, 'Hexe darf NICHT stark sein');
+assert.strictEqual(isStrong({ type: 'werewolf' }), false, 'Werwolf darf NICHT stark sein');
+assert.strictEqual(isStrong({ type: 'shapeshifter', selectedType: 'jester' }), false, 'Gestaltenwandler als Narr darf NICHT stark sein');
+assert.strictEqual(isStrong({ type: 'color', value: 12 }), false, 'Farbe 12 darf NICHT stark sein');
+console.log('✓ 6. Tisch-Aufprall, Staubwolke & isStrongCard Regellogik verifiziert');
+
 console.log('\n======================================================');
 console.log('ALLE FRONTEND UI & AUTH INTEGRATIONSTESTS BESTANDEN!');
 console.log('======================================================\n');

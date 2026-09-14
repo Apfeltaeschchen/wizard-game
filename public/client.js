@@ -161,6 +161,70 @@ let cachedScoreHistory = [];
 let cachedPlayers = [];
 let cachedTrumpCard = null;
 let inspectedCardIndex = null; // Für Touch "Tap to Inspect"
+let isDealingAnimationPending = false;
+
+// --- ERKENNUNG STARKER KARTEN FÜR AUFPRALL & STAUBWOLKE ---
+function isStrongCard(card) {
+  if (!card) return false;
+  // Karten unter oder gleich Null (Narr, Fee, Hexe, Werwolf) sind NIEMALS stark:
+  if (card.type === 'jester' || card.type === 'fairy' || card.type === 'witch' || card.type === 'werewolf') {
+    return false;
+  }
+  // Gestaltenwandler: Entweder-Oder (nur stark, wenn als Zauberer gewählt)
+  if (card.type === 'shapeshifter') {
+    return (card.selectedType === 'wizard' || card.chosenRole === 'wizard');
+  }
+  // Starke Sonderkarten (> Narr)
+  if (['wizard', 'dragon', 'bomb', 'juggler'].includes(card.type)) {
+    return true;
+  }
+  // Höchste Farbkarten (Wert 13)
+  if (card.type === 'color' && Number(card.value) === 13) {
+    return true;
+  }
+  return false;
+}
+
+// --- WEISSE & GRAUE STAUBWOLKE BEIM TISCH-AUFPRALL ---
+function createDustCloudEffect(container) {
+  if (!container) return;
+  const cloud = document.createElement('div');
+  cloud.classList.add('card-dust-cloud');
+
+  const particleCount = 8;
+  for (let i = 0; i < particleCount; i++) {
+    const puff = document.createElement('div');
+    puff.classList.add('dust-puff');
+
+    // Kreisförmig nach außen streuen (Winkel 0 bis 360 Grad)
+    const angle = (i / particleCount) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
+    const dist = 28 + Math.random() * 28;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * (dist * 0.65); // Ovale Tischperspektive
+
+    const size = 18 + Math.random() * 16;
+    const scale = 1.9 + Math.random() * 0.8;
+    const delay = Math.random() * 0.04;
+
+    puff.style.width = `${size}px`;
+    puff.style.height = `${size}px`;
+    puff.style.setProperty('--dx', `${dx.toFixed(1)}px`);
+    puff.style.setProperty('--dy', `${dy.toFixed(1)}px`);
+    puff.style.setProperty('--scale', scale.toFixed(2));
+    puff.style.animationDelay = `${delay.toFixed(3)}s`;
+
+    // Feine Variation zwischen reinweiß und hellem Schiefergrau
+    const grayVal = Math.floor(225 + Math.random() * 30);
+    puff.style.background = `radial-gradient(circle, rgba(${grayVal}, ${grayVal}, ${grayVal + 5}, 0.88) 0%, rgba(205, 210, 220, 0.45) 45%, rgba(160, 165, 175, 0) 70%)`;
+
+    cloud.appendChild(puff);
+  }
+
+  container.appendChild(cloud);
+  setTimeout(() => {
+    cloud.remove();
+  }, 620);
+}
 
 // --- NATIVE WEB AUDIO API SOUND- & MUSIK-ENGINE (OHNE EXTERNE DATEIEN) ---
 const WizardAudio = (() => {
@@ -346,74 +410,39 @@ const WizardAudio = (() => {
     }
   }
 
-  // Mystischer ätherischer Zweiklang + echter Kartensound beim Ausspielen eines Zauberers
-  function playWizardSound() {
+  // Satter, dumpfer Holzplatten-Aufschlag bei wuchtigem Karten-Slam
+  function playTableThump() {
     try {
       playCardSnap();
       const c = getContext();
       if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
       const t = c.currentTime;
 
-      const osc1 = c.createOscillator();
-      const osc2 = c.createOscillator();
-      const gain = c.createGain();
-
-      osc1.type = 'sine';
-      osc2.type = 'triangle';
-      osc1.frequency.setValueAtTime(587.33, t); // D5
-      osc2.frequency.setValueAtTime(880.00, t); // A5
-
-      gain.gain.setValueAtTime(0.01, t);
-      gain.gain.linearRampToValueAtTime(0.22, t + 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
-
-      osc1.connect(gain);
-      osc2.connect(gain);
-      gain.connect(sfxGain);
-
-      osc1.start(t);
-      osc2.start(t);
-      osc1.stop(t + 0.7);
-      osc2.stop(t + 0.7);
-    } catch (e) {
-      console.warn('Audio playWizardSound error:', e);
-    }
-  }
-
-  // Schelmischer, verspielter Boing + echter Kartensound beim Ausspielen eines Narren
-  function playJesterSound() {
-    try {
-      playCardSnap();
-      const c = getContext();
-      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
-      const t = c.currentTime;
-
+      // Resonanter tiefer Holz-Thump (Sinus 68Hz -> 36Hz)
       const osc = c.createOscillator();
       const gain = c.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(430, t);
-      osc.frequency.exponentialRampToValueAtTime(180, t + 0.16);
+      osc.frequency.setValueAtTime(68, t);
+      osc.frequency.exponentialRampToValueAtTime(36, t + 0.14);
 
-      gain.gain.setValueAtTime(0.22, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
 
       osc.connect(gain);
       gain.connect(sfxGain);
 
       osc.start(t);
-      osc.stop(t + 0.22);
+      osc.stop(t + 0.18);
     } catch (e) {
-      console.warn('Audio playJesterSound error:', e);
+      console.warn('Audio playTableThump error:', e);
     }
   }
 
   function playForCard(card) {
     if (!card) return playCardSnap();
-    if (card.type === 'wizard') {
-      playWizardSound();
-    } else if (card.type === 'jester') {
-      playJesterSound();
+    if (isStrongCard(card)) {
+      playTableThump();
     } else {
       playCardSnap();
     }
@@ -521,8 +550,7 @@ const WizardAudio = (() => {
     getContext,
     playCardSnap,
     playCardDeal,
-    playWizardSound,
-    playJesterSound,
+    playTableThump,
     playForCard,
     startMusic,
     stopMusic,
@@ -1796,6 +1824,8 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
 socket.on('handDealt', (hand) => {
   myCurrentHand = hand;
   inspectedCardIndex = null;
+  isDealingAnimationPending = true;
+  handContainer.innerHTML = '';
 
   const isDrawerOpen = (scoreDrawer && scoreDrawer.classList.contains('open'));
   closeScoreDrawer();
@@ -1803,6 +1833,7 @@ socket.on('handDealt', (hand) => {
   // Wenn das Sidepanel verschwindet: 320ms Ausblendung + 500ms Pause (halbe Sekunde nichts) = 820ms; sonst 500ms Pause
   const dealDelay = isDrawerOpen ? 820 : 500;
   setTimeout(() => {
+    isDealingAnimationPending = false;
     renderHand(true);
   }, dealDelay);
 });
@@ -2343,6 +2374,8 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName 
 socket.on('roundFinished', ({ isGameOver, scoreHistory, round }) => {
   currentTrick = [];
   trickContainer.innerHTML = '';
+  handContainer.innerHTML = '';
+  isDealingAnimationPending = true;
   if (shapeshifterModal) shapeshifterModal.style.display = 'none';
   if (cloudSuitModal) cloudSuitModal.style.display = 'none';
   if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
@@ -2519,7 +2552,13 @@ function renderTrickCards(trickCards, animateLast = true) {
     cardWrapper.style.setProperty('--rand-rot', `${rot}deg`);
 
     if (animateLast && isLastCard) {
-      cardWrapper.classList.add('card-played-animated');
+      const strong = isStrongCard(item.card);
+      if (strong) {
+        cardWrapper.classList.add('card-slam-heavy');
+        createDustCloudEffect(wrap);
+      } else {
+        cardWrapper.classList.add('card-played-animated');
+      }
       WizardAudio.playForCard(item.card);
     } else {
       cardWrapper.style.transform = `rotate(${rot}deg)`;
@@ -2682,6 +2721,9 @@ function isCardPlayable(cardToPlay, hand, trick) {
 
 // --- HANDKARTEN RENDERN ---
 function renderHand(isNewDeal = false) {
+  if (isDealingAnimationPending && !isNewDeal) {
+    return;
+  }
   handContainer.innerHTML = '';
 
   const total = myCurrentHand.length;
