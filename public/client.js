@@ -835,7 +835,7 @@ const WizardAuth = (() => {
     const userGroup = document.getElementById('auth-user-controls');
     const userNameEl = document.getElementById('lobbyUserName');
     const userTitleEl = document.getElementById('lobbyUserTitle');
-    const userAvatarEl = document.getElementById('lobbyUserAvatar');
+    const userAvatarEl = document.getElementById('lobbyUserAvatarShield') || document.getElementById('lobbyUserAvatar');
 
     if (currentUser) {
       if (guestGroup) guestGroup.style.display = 'none';
@@ -843,7 +843,7 @@ const WizardAuth = (() => {
       if (userNameEl) userNameEl.innerText = currentUser.username;
       if (userTitleEl) userTitleEl.innerText = currentUser.title || 'Zauberlehrling';
       if (userAvatarEl) {
-        userAvatarEl.src = `/images/${currentUser.avatar_id || 'wizard_blue'}.png`;
+        userAvatarEl.innerText = (currentUser.username || '?').charAt(0).toUpperCase();
       }
     } else {
       if (guestGroup) guestGroup.style.display = 'flex';
@@ -872,20 +872,17 @@ const WizardAuth = (() => {
     const modal = document.getElementById('auth-modal');
     const tabLogin = document.getElementById('tabLoginBtn');
     const tabReg = document.getElementById('tabRegisterBtn');
-    const avatarSec = document.getElementById('authAvatarSection');
     const submitBtn = document.getElementById('authSubmitBtn');
     const titleEl = document.getElementById('authModalTitle');
 
     if (tab === 'register') {
       if (tabLogin) tabLogin.classList.remove('active');
       if (tabReg) tabReg.classList.add('active');
-      if (avatarSec) avatarSec.style.display = 'block';
       if (submitBtn) submitBtn.innerText = 'Konto erschaffen';
       if (titleEl) titleEl.innerText = 'Gilden-Aufnahme';
     } else {
       if (tabLogin) tabLogin.classList.add('active');
       if (tabReg) tabReg.classList.remove('active');
-      if (avatarSec) avatarSec.style.display = 'none';
       if (submitBtn) submitBtn.innerText = 'Einloggen';
       if (titleEl) titleEl.innerText = 'Gilden-Register';
     }
@@ -939,12 +936,12 @@ const WizardAuth = (() => {
     const u = currentUser;
     const usernameEl = document.getElementById('profileUsername');
     const titleBadgeEl = document.getElementById('profileTitleBadge');
-    const avatarImgEl = document.getElementById('profileAvatarImg');
+    const avatarShieldEl = document.getElementById('profileAvatarShield');
     const memberSinceEl = document.getElementById('profileMemberSince');
 
     if (usernameEl) usernameEl.innerText = u.username;
     if (titleBadgeEl) titleBadgeEl.innerText = u.title || 'Zauberlehrling';
-    if (avatarImgEl) avatarImgEl.src = `/images/${u.avatar_id || 'wizard_blue'}.png`;
+    if (avatarShieldEl) avatarShieldEl.innerText = (u.username || '?').charAt(0).toUpperCase();
 
     if (memberSinceEl && u.created_at) {
       try {
@@ -952,12 +949,6 @@ const WizardAuth = (() => {
         memberSinceEl.innerText = `Chronik begonnen: ${d.toLocaleDateString('de-DE')}`;
       } catch (e) {}
     }
-
-    // Avatar Switcher Selection
-    document.querySelectorAll('#profileAvatarSwitcher .profile-avatar-mini-opt').forEach(opt => {
-      const aId = opt.getAttribute('data-avatar');
-      opt.classList.toggle('selected', aId === (u.avatar_id || 'wizard_blue'));
-    });
 
     // Alltime Win/Loss Banner (E-Sport Stil)
     const gamesPlayed = u.games_played || 0;
@@ -1110,7 +1101,7 @@ const WizardAuth = (() => {
         else if (rank === 2) { rankClass = 'rank-2'; rankLabel = '🥈'; }
         else if (rank === 3) { rankClass = 'rank-3'; rankLabel = '🥉'; }
 
-        const avatarSrc = entry.avatar_id ? `/images/${entry.avatar_id}.png` : '/images/wizard_blue.png';
+        const initial = entry.username ? entry.username.charAt(0).toUpperCase() : '?';
         const titleBadge = entry.title ? `<span class="lb-title-badge">${escapeHtml(entry.title)}</span>` : '<span style="color:#777;">-</span>';
 
         row.innerHTML = `
@@ -1119,7 +1110,7 @@ const WizardAuth = (() => {
           </td>
           <td>
             <div class="lb-player-cell">
-              <img src="${avatarSrc}" alt="Avatar" class="lb-avatar-mini" onerror="this.src='/images/wizard_blue.png';" />
+              <div class="seat-avatar" style="width: 26px; height: 30px; font-size: 12px; margin: 0; box-shadow: none;">${initial}</div>
               <span class="lb-player-name">${escapeHtml(entry.username)}</span>
             </div>
           </td>
@@ -1180,21 +1171,12 @@ const WizardAuth = (() => {
     if (authCloseBtn) authCloseBtn.addEventListener('click', closeAuthModal);
     if (authGuestBtn) authGuestBtn.addEventListener('click', closeAuthModal);
 
-    // Avatar Selection im Auth Modal
-    document.querySelectorAll('#authAvatarSection .auth-avatar-option').forEach(opt => {
-      opt.addEventListener('click', () => {
-        document.querySelectorAll('#authAvatarSection .auth-avatar-option').forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        selectedRegisterAvatar = opt.getAttribute('data-avatar');
-      });
-    });
-
     // Form Submit
     function submitAuth() {
       const u = uInput ? uInput.value.trim() : '';
       const p = pInput ? pInput.value : '';
       if (activeAuthTab === 'register') {
-        register(u, p, selectedRegisterAvatar);
+        register(u, p);
       } else {
         login(u, p);
       }
@@ -1207,14 +1189,6 @@ const WizardAuth = (() => {
     // Profile-Drawer Controls
     const profileCloseBtn = document.getElementById('profile-drawer-close');
     if (profileCloseBtn) profileCloseBtn.addEventListener('click', closeProfileDrawer);
-
-    // Avatar Switcher im Profile Drawer
-    document.querySelectorAll('#profileAvatarSwitcher .profile-avatar-mini-opt').forEach(opt => {
-      opt.addEventListener('click', () => {
-        const aId = opt.getAttribute('data-avatar');
-        if (aId) updateAvatar(aId);
-      });
-    });
 
     // Title Selector im Profile Drawer
     const titleSelect = document.getElementById('profileTitleSelect');
@@ -1563,12 +1537,12 @@ function updateWaitingRoomView(amIHost) {
       ? '<span style="color: #2ecc71; font-size: 12px; font-weight: bold;">● Bereit</span>'
       : '<span style="color: #e74c3c; font-size: 12px; font-weight: bold;">● Getrennt</span>';
 
-    const avatarSrc = p.avatarId ? `/images/${p.avatarId}.png` : '/images/wizard_blue.png';
+    const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
     const titleHtml = p.title ? `<div style="font-size: 11px; color: #d6be90; font-style: italic;">${escapeHtml(p.title)}</div>` : '';
 
     item.innerHTML = `
       <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="${avatarSrc}" alt="Avatar" class="waiting-player-avatar" onerror="this.src='/images/wizard_blue.png';" />
+        <div class="seat-avatar" style="width: 32px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${initial}</div>
         <div>
           <div style="font-size: 15px;"><b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge}</div>
           ${titleHtml}
@@ -1818,70 +1792,19 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   }
 }
 
-// --- AUSTEIL-ANIMATION ZU DEN MITSPIELERN ---
-function triggerDealAnimationToOpponents() {
-  const myIndex = cachedPlayers.findIndex(p => p.sessionId === mySessionId);
-  let opponents = [];
-  if (myIndex !== -1 && cachedPlayers.length > 1) {
-    for (let i = 1; i < cachedPlayers.length; i++) {
-      const nextIdx = (myIndex + i) % cachedPlayers.length;
-      opponents.push(cachedPlayers[nextIdx]);
-    }
-  } else {
-    opponents = cachedPlayers.filter(p => p.sessionId !== mySessionId);
-  }
-
-  if (opponents.length === 0) return;
-  const table = document.getElementById('table-area');
-  if (!table) return;
-
-  const tableRect = table.getBoundingClientRect();
-  const startX = tableRect.width / 2 - 25;
-  const startY = tableRect.height / 2 - 35;
-
-  opponents.forEach((p, idx) => {
-    const seat = document.getElementById(`seat-${p.sessionId}`);
-    if (!seat) return;
-    const seatRect = seat.getBoundingClientRect();
-    const targetX = (seatRect.left + seatRect.width / 2) - (tableRect.left + 25);
-    const targetY = (seatRect.top + seatRect.height / 2) - (tableRect.top + 35);
-
-    const flyingCard = document.createElement('div');
-    flyingCard.classList.add('deal-flying-card');
-    flyingCard.style.left = `${startX}px`;
-    flyingCard.style.top = `${startY}px`;
-    flyingCard.style.transform = `scale(0.5) rotate(0deg)`;
-    flyingCard.style.opacity = '0.9';
-    table.appendChild(flyingCard);
-
-    // Fliege zum Sitz des Mitspielers
-    setTimeout(() => {
-      flyingCard.style.left = `${targetX}px`;
-      flyingCard.style.top = `${targetY}px`;
-      flyingCard.style.transform = `scale(0.35) rotate(${((idx % 3) - 1) * 15}deg)`;
-      flyingCard.style.opacity = '0';
-    }, idx * 55 + 20);
-
-    // Aufräumen nach Flugende
-    setTimeout(() => {
-      flyingCard.remove();
-    }, idx * 55 + 460);
-  });
-}
-
+// --- AUSTEIL-VERARBEITUNG & HANDKARTEN ---
 socket.on('handDealt', (hand) => {
   myCurrentHand = hand;
   inspectedCardIndex = null;
-  renderHand(true);
-  triggerDealAnimationToOpponents();
 
-  // Zügige Karten-Slide Soundeffekte
-  const deals = Math.min(hand.length, 4);
-  for (let i = 0; i < deals; i++) {
-    setTimeout(() => {
-      WizardAudio.playCardDeal();
-    }, i * 75);
-  }
+  const isDrawerOpen = (scoreDrawer && scoreDrawer.classList.contains('open'));
+  closeScoreDrawer();
+
+  // Wenn das Sidepanel verschwindet: 320ms Ausblendung + 500ms Pause (halbe Sekunde nichts) = 820ms; sonst 500ms Pause
+  const dealDelay = isDrawerOpen ? 820 : 500;
+  setTimeout(() => {
+    renderHand(true);
+  }, dealDelay);
 });
 
 // Trumpfwahl-Buttons (Geber)
@@ -2542,13 +2465,10 @@ function renderOpponents() {
       `;
     }
 
-    const avatarHtml = p.avatarId
-      ? `<img src="/images/${p.avatarId}.png" alt="${escapeHtml(p.name)}" class="seat-avatar-img" onerror="this.style.display='none'; this.parentElement.innerText='${initial}';" />`
-      : initial;
     const titleHtml = p.title ? `<div class="seat-title">${escapeHtml(p.title)}</div>` : '';
 
     seatEl.innerHTML = `
-      <div class="seat-avatar ${disconnectedClass}">${avatarHtml}</div>
+      <div class="seat-avatar ${disconnectedClass}">${initial}</div>
       <div class="seat-details">
         <div class="seat-name-row">
           <span class="seat-name">${escapeHtml(p.name)}</span>
@@ -2801,21 +2721,24 @@ function renderHand(isNewDeal = false) {
     cardElement.style.setProperty('--target-y', `${offsetY}px`);
     cardElement.style.setProperty('--target-rot', `${angle}deg`);
 
+    if (isNewDeal) {
+      cardElement.classList.add('card-fly-up');
+      cardElement.style.animationDelay = `${index * 70}ms`;
+      setTimeout(() => {
+        cardElement.classList.remove('card-fly-up');
+        if (inspectedCardIndex !== index) {
+          cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
+        }
+      }, index * 70 + 420);
+      setTimeout(() => {
+        WizardAudio.playCardDeal();
+      }, index * 70);
+    } else if (inspectedCardIndex !== index) {
+      cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
+    }
+
     if (playable) {
       cardElement.classList.add('card-playable');
-      if (isNewDeal) {
-        cardElement.classList.add('card-dealing-in');
-        cardElement.style.animationDelay = `${index * 45}ms`;
-        setTimeout(() => {
-          cardElement.classList.remove('card-dealing-in');
-          if (inspectedCardIndex !== index) {
-            cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
-          }
-        }, index * 45 + 400);
-      } else if (inspectedCardIndex !== index) {
-        cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
-      }
-
       cardElement.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!isMyTurn || currentGameState !== 'playing_tricks') return;
@@ -2864,18 +2787,6 @@ function renderHand(isNewDeal = false) {
       });
     } else {
       cardElement.classList.remove('card-playable');
-      if (isNewDeal) {
-        cardElement.classList.add('card-dealing-in');
-        cardElement.style.animationDelay = `${index * 45}ms`;
-        setTimeout(() => {
-          cardElement.classList.remove('card-dealing-in');
-          if (inspectedCardIndex !== index) {
-            cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
-          }
-        }, index * 45 + 400);
-      } else if (inspectedCardIndex !== index) {
-        cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
-      }
 
       if (isMyTurn && isPlayingPhase) {
         cardElement.style.filter = 'brightness(0.35)';

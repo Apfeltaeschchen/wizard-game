@@ -10,11 +10,13 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const dbPath = path.join(dataDir, 'wizard.db');
+const dbPath = process.env.WIZARD_DB_PATH || path.join(dataDir, 'wizard.db');
 const db = new Database(dbPath);
 
 // Performance & Concurrency Optimierungen
-db.pragma('journal_mode = WAL');
+if (dbPath !== ':memory:') {
+  db.pragma('journal_mode = WAL');
+}
 db.pragma('foreign_keys = ON');
 
 // Schemainitialisierung

@@ -1,3 +1,4 @@
+process.env.WIZARD_DB_PATH = ':memory:';
 const assert = require('assert');
 const http = require('http');
 const ioClient = require('socket.io-client');
