@@ -1680,6 +1680,7 @@
     /* 3D-KARTEN-WRAPPER */
     .card-3d-wrapper {
       position: relative;
+      z-index: 2 !important;
       width: var(--card-w);
       height: var(--card-h);
       transform-style: preserve-3d;
@@ -1769,11 +1770,15 @@
     }
 
     /* WEISSE & GRAUE TAVERNESTAUBS-PARTIKEL BEIM AUFPRALL */
+    .trick-card-item {
+      position: relative;
+    }
+
     .card-dust-cloud {
       position: absolute;
       inset: 0;
       pointer-events: none;
-      z-index: 5;
+      z-index: 0 !important; /* Strikt HINTER / UNTER der Karte */
       display: flex;
       align-items: center;
       justify-content: center;

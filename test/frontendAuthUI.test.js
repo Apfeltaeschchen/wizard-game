@@ -66,6 +66,7 @@ assert.ok(html.includes('card-dust-cloud'), 'card-dust-cloud CSS vorhanden');
 assert.ok(html.includes('dust-puff'), 'dust-puff CSS vorhanden');
 assert.ok(html.includes('dustPuffAnim'), 'dustPuffAnim Keyframe vorhanden');
 assert.ok(js.includes('isDealingAnimationPending'), 'isDealingAnimationPending Schutz vorhanden');
+assert.ok(js.includes('hasDealtThisRound'), 'hasDealtThisRound Einmal-Austeil-Sperre vorhanden');
 assert.ok(js.includes('function isStrongCard'), 'isStrongCard Funktion definiert');
 assert.ok(js.includes('createDustCloudEffect'), 'createDustCloudEffect definiert');
 assert.ok(js.includes('playTableThump'), 'playTableThump definiert');

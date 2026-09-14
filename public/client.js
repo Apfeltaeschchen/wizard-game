@@ -162,6 +162,7 @@ let cachedPlayers = [];
 let cachedTrumpCard = null;
 let inspectedCardIndex = null; // Für Touch "Tap to Inspect"
 let isDealingAnimationPending = false;
+let hasDealtThisRound = false;
 
 // --- ERKENNUNG STARKER KARTEN FÜR AUFPRALL & STAUBWOLKE ---
 function isStrongCard(card) {
@@ -220,7 +221,13 @@ function createDustCloudEffect(container) {
     cloud.appendChild(puff);
   }
 
-  container.appendChild(cloud);
+  // Unter der Karte platzieren (vor dem cardWrapper im DOM)
+  if (container.firstChild) {
+    container.insertBefore(cloud, container.firstChild);
+  } else {
+    container.appendChild(cloud);
+  }
+
   setTimeout(() => {
     cloud.remove();
   }, 620);
@@ -1690,6 +1697,7 @@ socket.on('gameStarted', ({ round, maxRounds: mr, trumpCard, gameState }) => {
   currentTrick = [];
   cachedTrumpCard = trumpCard;
   inspectedCardIndex = null;
+  hasDealtThisRound = false;
 
   switchScreen('game');
   tableArea.style.display = 'flex';
@@ -1824,6 +1832,15 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
 socket.on('handDealt', (hand) => {
   myCurrentHand = hand;
   inspectedCardIndex = null;
+
+  if (hasDealtThisRound) {
+    // Normales Update während des Spiels (z. B. nach gespielter Karte oder Tausch)
+    renderHand(false);
+    return;
+  }
+
+  // Erstes Austeilen dieser Runde (nur 1x pro Runde)
+  hasDealtThisRound = true;
   isDealingAnimationPending = true;
   handContainer.innerHTML = '';
 
@@ -2376,6 +2393,7 @@ socket.on('roundFinished', ({ isGameOver, scoreHistory, round }) => {
   trickContainer.innerHTML = '';
   handContainer.innerHTML = '';
   isDealingAnimationPending = true;
+  hasDealtThisRound = false;
   if (shapeshifterModal) shapeshifterModal.style.display = 'none';
   if (cloudSuitModal) cloudSuitModal.style.display = 'none';
   if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
@@ -2452,6 +2470,8 @@ socket.on('gameResetToLobby', ({ message, players, roomCode }) => {
   myCurrentHand = [];
   currentTrick = [];
   cachedScoreHistory = [];
+  hasDealtThisRound = false;
+  isDealingAnimationPending = false;
   if (players) cachedPlayers = players;
 
   switchScreen('waiting');
