@@ -36,7 +36,13 @@ assert.ok(html.includes('class="esport-banner"'), 'E-Sport Alltime Win/Loss Bann
 assert.ok(html.includes('id="profileWinRate"'), 'profileWinRate vorhanden');
 assert.ok(html.includes('id="profileProphecyRate"'), 'profileProphecyRate vorhanden');
 assert.ok(html.includes('id="profileTitleSelect"'), 'profileTitleSelect vorhanden');
-console.log('✓ 3. Profil-Drawer, E-Sport W/L Banner & Wizard-Statistiken verifiziert');
+
+// Validiere, dass profile-drawer global auf body-Ebene liegt und nicht in game-screen verborgen wird
+const gameScreenEnd = html.indexOf('id="pause-overlay"');
+const profileDrawerPos = html.indexOf('id="profile-drawer"');
+assert.ok(profileDrawerPos > gameScreenEnd, 'profile-drawer darf NICHT innerhalb von game-screen geschachtelt sein');
+console.log('✓ 3. Profil-Drawer, E-Sport W/L Banner & globale Sichtbarkeit verifiziert');
+
 
 // 4. Prüfe Leaderboard-Modal & Austeil-Animation
 assert.ok(html.includes('id="leaderboard-modal"'), 'leaderboard-modal vorhanden');

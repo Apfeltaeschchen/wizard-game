@@ -3310,125 +3310,6 @@
       </div>
     </div>
 
-    <!-- SLIDE-OUT RECHTS (PROFIL & STATISTIKEN) -->
-    <div id="profile-drawer">
-      <div class="drawer-resize-handle" data-drawer="profile-drawer" title="Ziehen zum Vergrößern"></div>
-      <div class="drawer-header">
-        <h3 style="margin: 0; color: var(--gold-bright); font-size: 16px;">📊 Magier-Chronik &amp; Profil</h3>
-        <button id="profile-drawer-close" class="drawer-close-btn">&times;</button>
-      </div>
-      <div class="drawer-scroll" style="padding: 16px;">
-        
-        <!-- PROFIL-HEADER -->
-        <div class="profile-hero-card">
-          <div class="profile-avatar-wrap">
-            <div id="profileAvatarShield" class="seat-avatar" style="width: 54px; height: 60px; font-size: 26px; border-width: 2px;">M</div>
-          </div>
-          <div class="profile-hero-info">
-            <h2 id="profileUsername" class="profile-username">Magier</h2>
-            <div id="profileTitleBadge" class="profile-title-badge">Zauberlehrling</div>
-            <div id="profileMemberSince" class="profile-member-since">Chronik begonnen: Unbekannt</div>
-          </div>
-        </div>
-
-        <!-- ALLTIME WIN/LOSS BANNER (E-SPORT STIL) -->
-        <div class="esport-banner">
-          <div class="esport-header">
-            <span>⚔️ ALLTIME MATCH-BILANZ</span>
-            <span id="profileTotalGames" class="esport-games-count">0 Partien</span>
-          </div>
-          
-          <div class="esport-wl-row">
-            <div class="wl-badge-box">
-              <span id="profileWinsBadge" class="badge-win">0W</span>
-              <span class="wl-sep">-</span>
-              <span id="profileLossesBadge" class="badge-loss">0L</span>
-            </div>
-            <div class="wl-rate-box">
-              <div class="wl-rate-val" id="profileWinRate">0.0%</div>
-              <div class="wl-rate-label">Siegquote</div>
-            </div>
-          </div>
-
-          <div class="wl-progress-bar">
-            <div id="profileWinRateBar" class="wl-progress-fill" style="width: 0%;"></div>
-          </div>
-
-          <div class="esport-highlights">
-            <div class="esport-pill" title="Aktuelle Siegesserie">
-              <span class="pill-icon">🔥</span>
-              <span>Serie: <b id="profileCurrentStreak">0</b> (Rekord: <b id="profileMaxStreak">0</b>)</span>
-            </div>
-            <div class="esport-pill" title="Top-3 Treppchenplätze">
-              <span class="pill-icon">🥉</span>
-              <span>Podium: <b id="profilePodiumCount">0</b></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- WIZARD SIGNATUR-STATISTIKEN -->
-        <div class="profile-section-box">
-          <div class="profile-section-title">🔮 Wizard Signatur-Statistiken</div>
-          <div class="profile-stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">🎯</div>
-              <div class="stat-value" id="profileProphecyRate">0.0%</div>
-              <div class="stat-label">Prophezeiungs-Quote</div>
-              <div class="stat-sub" id="profileProphecyHits">0 / 0 Treffer</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">⭐</div>
-              <div class="stat-value" id="profileHighestScore">0</div>
-              <div class="stat-label">Höchstpunktzahl</div>
-              <div class="stat-sub">Persönlicher Highscore</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">📜</div>
-              <div class="stat-value" id="profileTotalPoints">0</div>
-              <div class="stat-label">Gesamtpunkte</div>
-              <div class="stat-sub">Alltime gesammelt</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">🧙‍♂️</div>
-              <div class="stat-value" id="profileWizardsPlayed">0</div>
-              <div class="stat-label">Zauberer ausgespielt</div>
-              <div class="stat-sub">Höchste Magie</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">🃏</div>
-              <div class="stat-value" id="profileJestersPlayed">0</div>
-              <div class="stat-label">Narren ausgespielt</div>
-              <div class="stat-sub">Täuschende Demut</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">🎲</div>
-              <div class="stat-value" id="profileAvgPoints">0.0</div>
-              <div class="stat-label">Ø Punkte / Spiel</div>
-              <div class="stat-sub">Durchschnitt</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TITEL-AUSWAHL -->
-        <div class="profile-section-box">
-          <div class="profile-section-title">👑 Ehrentitel anlegen</div>
-          <p style="font-size: 11.5px; color: #d6be90; margin: 0 0 10px; font-style: italic;">
-            Wähle einen deiner freigeschalteten Ehrentitel für dein Wappen:
-          </p>
-          <select id="profileTitleSelect" class="profile-title-select"></select>
-          <div id="profileTitleStatusDesc" style="margin-top: 8px; font-size: 11px; color: var(--gold-antique); font-style: italic;"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <div id="drawer-backdrop"></div>
-
     <!-- DER VERWITTERTE EICHENTISCH -->
     <div id="table-area" class="poker-table">
       
@@ -3724,6 +3605,125 @@
       </button>
     </div>
   </div>
+
+  <!-- SLIDE-OUT RECHTS (PROFIL & STATISTIKEN) - GLOBAL AUF BODY-EBENE -->
+  <div id="profile-drawer">
+    <div class="drawer-resize-handle" data-drawer="profile-drawer" title="Ziehen zum Vergrößern"></div>
+    <div class="drawer-header">
+      <h3 style="margin: 0; color: var(--gold-bright); font-size: 16px;">📊 Magier-Chronik &amp; Profil</h3>
+      <button id="profile-drawer-close" class="drawer-close-btn">&times;</button>
+    </div>
+    <div class="drawer-scroll" style="padding: 16px;">
+      
+      <!-- PROFIL-HEADER -->
+      <div class="profile-hero-card">
+        <div class="profile-avatar-wrap">
+          <div id="profileAvatarShield" class="seat-avatar" style="width: 54px; height: 60px; font-size: 26px; border-width: 2px;">M</div>
+        </div>
+        <div class="profile-hero-info">
+          <h2 id="profileUsername" class="profile-username">Magier</h2>
+          <div id="profileTitleBadge" class="profile-title-badge">Zauberlehrling</div>
+          <div id="profileMemberSince" class="profile-member-since">Chronik begonnen: Unbekannt</div>
+        </div>
+      </div>
+
+      <!-- ALLTIME WIN/LOSS BANNER (E-SPORT STIL) -->
+      <div class="esport-banner">
+        <div class="esport-header">
+          <span>⚔️ ALLTIME MATCH-BILANZ</span>
+          <span id="profileTotalGames" class="esport-games-count">0 Partien</span>
+        </div>
+        
+        <div class="esport-wl-row">
+          <div class="wl-badge-box">
+            <span id="profileWinsBadge" class="badge-win">0W</span>
+            <span class="wl-sep">-</span>
+            <span id="profileLossesBadge" class="badge-loss">0L</span>
+          </div>
+          <div class="wl-rate-box">
+            <div class="wl-rate-val" id="profileWinRate">0.0%</div>
+            <div class="wl-rate-label">Siegquote</div>
+          </div>
+        </div>
+
+        <div class="wl-progress-bar">
+          <div id="profileWinRateBar" class="wl-progress-fill" style="width: 0%;"></div>
+        </div>
+
+        <div class="esport-highlights">
+          <div class="esport-pill" title="Aktuelle Siegesserie">
+            <span class="pill-icon">🔥</span>
+            <span>Serie: <b id="profileCurrentStreak">0</b> (Rekord: <b id="profileMaxStreak">0</b>)</span>
+          </div>
+          <div class="esport-pill" title="Top-3 Treppchenplätze">
+            <span class="pill-icon">🥉</span>
+            <span>Podium: <b id="profilePodiumCount">0</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- WIZARD SIGNATUR-STATISTIKEN -->
+      <div class="profile-section-box">
+        <div class="profile-section-title">🔮 Wizard Signatur-Statistiken</div>
+        <div class="profile-stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value" id="profileProphecyRate">0.0%</div>
+            <div class="stat-label">Prophezeiungs-Quote</div>
+            <div class="stat-sub" id="profileProphecyHits">0 / 0 Treffer</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-value" id="profileHighestScore">0</div>
+            <div class="stat-label">Höchstpunktzahl</div>
+            <div class="stat-sub">Persönlicher Highscore</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">📜</div>
+            <div class="stat-value" id="profileTotalPoints">0</div>
+            <div class="stat-label">Gesamtpunkte</div>
+            <div class="stat-sub">Alltime gesammelt</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">🧙‍♂️</div>
+            <div class="stat-value" id="profileWizardsPlayed">0</div>
+            <div class="stat-label">Zauberer ausgespielt</div>
+            <div class="stat-sub">Höchste Magie</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">🃏</div>
+            <div class="stat-value" id="profileJestersPlayed">0</div>
+            <div class="stat-label">Narren ausgespielt</div>
+            <div class="stat-sub">Täuschende Demut</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">🎲</div>
+            <div class="stat-value" id="profileAvgPoints">0.0</div>
+            <div class="stat-label">Ø Punkte / Spiel</div>
+            <div class="stat-sub">Durchschnitt</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TITEL-AUSWAHL -->
+      <div class="profile-section-box">
+        <div class="profile-section-title">👑 Ehrentitel anlegen</div>
+        <p style="font-size: 11.5px; color: #d6be90; margin: 0 0 10px; font-style: italic;">
+          Wähle einen deiner freigeschalteten Ehrentitel für dein Wappen:
+        </p>
+        <select id="profileTitleSelect" class="profile-title-select"></select>
+        <div id="profileTitleStatusDesc" style="margin-top: 8px; font-size: 11px; color: var(--gold-antique); font-style: italic;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="drawer-backdrop"></div>
 
   <!-- AUTH-MODAL: ANMELDEN & REGISTRIEREN -->
   <div id="auth-modal" class="modal-overlay" style="display: none;">

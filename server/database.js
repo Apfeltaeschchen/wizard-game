@@ -313,6 +313,24 @@ function getLeaderboard(limit = 10) {
   }));
 }
 
+function closeDatabase() {
+  try {
+    if (dbPath !== ':memory:') {
+      db.pragma('wal_checkpoint(TRUNCATE)');
+    }
+  } catch (e) {}
+}
+
+process.once('SIGINT', () => {
+  closeDatabase();
+  process.exit(0);
+});
+
+process.once('SIGTERM', () => {
+  closeDatabase();
+  process.exit(0);
+});
+
 module.exports = {
   db,
   registerUser,
@@ -324,5 +342,7 @@ module.exports = {
   recordSpecialCard,
   recordGameFinished,
   getLeaderboard,
-  getUserById: (id) => stmtFindUserById.get(id)
+  getUserById: (id) => stmtFindUserById.get(id),
+  closeDatabase
 };
+

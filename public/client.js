@@ -928,12 +928,17 @@ const WizardAuth = (() => {
 
     if (modal) modal.style.display = 'flex';
     const uInput = document.getElementById('authUsernameInput');
+    if (uInput && !uInput.value.trim() && typeof nameInput !== 'undefined' && nameInput && nameInput.value.trim()) {
+      uInput.value = nameInput.value.trim();
+    }
     if (uInput) setTimeout(() => uInput.focus(), 50);
   }
 
   function closeAuthModal() {
     const modal = document.getElementById('auth-modal');
     if (modal) modal.style.display = 'none';
+    const pInput = document.getElementById('authPasswordInput');
+    if (pInput) pInput.value = '';
     clearAuthError();
   }
 
