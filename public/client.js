@@ -3104,11 +3104,33 @@ socket.on('actionError', ({ message }) => {
 // Bot-Steuerung im Warteraum
 const btnAddBot = document.getElementById('btnAddBot');
 const btnRemoveBot = document.getElementById('btnRemoveBot');
+const botDifficultyMenu = document.getElementById('botDifficultyMenu');
+
 if (btnAddBot) {
-  btnAddBot.addEventListener('click', () => {
-    socket.emit('addBot', { roomCode: currentRoomCode });
+  btnAddBot.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (botDifficultyMenu) {
+      const isVisible = botDifficultyMenu.style.display === 'flex';
+      botDifficultyMenu.style.display = isVisible ? 'none' : 'flex';
+    }
   });
 }
+
+document.querySelectorAll('.bot-diff-option').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const diff = btn.getAttribute('data-diff') || 'master';
+    socket.emit('addBot', { roomCode: currentRoomCode, difficulty: diff });
+    if (botDifficultyMenu) botDifficultyMenu.style.display = 'none';
+  });
+});
+
+document.addEventListener('click', (e) => {
+  if (botDifficultyMenu && !e.target.closest('.bot-dropdown-wrapper')) {
+    botDifficultyMenu.style.display = 'none';
+  }
+});
+
 if (btnRemoveBot) {
   btnRemoveBot.addEventListener('click', () => {
     socket.emit('removeBot', { roomCode: currentRoomCode });
@@ -3144,7 +3166,17 @@ function updateWaitingRoomView(amIHost) {
     item.style.border = isMe ? '1px solid #f1c40f' : '1px solid rgba(255,255,255,0.1)';
 
     const hostBadge = p.isHost ? '<span class="host-badge">Host</span>' : '';
-    const botBadge = p.isBot ? '<span class="bot-badge" style="background: rgba(147, 51, 234, 0.25); color: #c084fc; border: 1px solid #a855f7; border-radius: 4px; padding: 2px 6px; font-size: 11px; margin-left: 4px;">🤖 Bot</span>' : '';
+    let botBadge = '';
+    if (p.isBot) {
+      const diff = p.difficulty || 'master';
+      if (diff === 'novice') {
+        botBadge = '<span class="bot-badge bot-badge-novice" title="Schwierigkeitsstufe: Novize (Lehrling)">🟢 Novize</span>';
+      } else if (diff === 'archmage') {
+        botBadge = '<span class="bot-badge bot-badge-archmage" title="Schwierigkeitsstufe: Erzmagier (Oberster Rat)">🟣 Erzmagier</span>';
+      } else {
+        botBadge = '<span class="bot-badge bot-badge-master" title="Schwierigkeitsstufe: Meister (Magier)">🔵 Meister</span>';
+      }
+    }
     const statusText = p.isBot
       ? '<span style="color: #c084fc; font-size: 12px; font-weight: bold;">● KI-Bereit</span>'
       : (p.connected
@@ -4146,6 +4178,13 @@ function renderOpponents() {
       `;
     }
 
+    let botDiffHtml = '';
+    if (p.isBot) {
+      const diff = p.difficulty || 'master';
+      const label = diff === 'novice' ? 'Novize' : (diff === 'archmage' ? 'Erzmagier' : 'Meister');
+      botDiffHtml = `<span class="seat-bot-pill bot-pill-${diff}">${label}</span>`;
+    }
+
     const bidPillHtml = `<span class="seat-bid-pill" title="Gebot: ${bidText} | Gewonnen: ${wonText}">🎯 ${bidText}/${wonText}</span>`;
 
     seatEl.innerHTML = `
@@ -4153,7 +4192,7 @@ function renderOpponents() {
       <div class="seat-details">
         <div class="seat-name-row">
           <span class="seat-name">${escapeHtml(p.name)}</span>
-          ${hostBadge}${dealerBadge}${rankBadgeHtml}
+          ${hostBadge}${dealerBadge}${botDiffHtml}${rankBadgeHtml}
         </div>
         ${bidPillHtml}
         <div class="seat-stats" style="display: none;">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>

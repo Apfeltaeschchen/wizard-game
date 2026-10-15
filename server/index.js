@@ -11,9 +11,17 @@ const {
   calculatePoints,
   sortCards,
   isForbiddenBid,
-  getMaxRounds
+  getMaxRounds,
+  getEffectiveCard
 } = require('./gameLogic');
-const { createBotPlayer, calculateBotBid, chooseBotCard } = require('./botLogic');
+const {
+  createBotPlayer,
+  calculateBotBid,
+  chooseBotCard,
+  chooseBotWitchSwap,
+  chooseBotJugglerPass,
+  chooseBotCloudAdjustment
+} = require('./botLogic');
 
 const app = express();
 const server = http.createServer(app);
@@ -769,7 +777,7 @@ io.on('connection', (socket) => {
   });
 
   // Host fügt einen KI-Magier (Bot) zur Kammer hinzu
-  socket.on('addBot', ({ roomCode }) => {
+  socket.on('addBot', ({ roomCode, difficulty }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -790,7 +798,8 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const bot = createBotPlayer(room.players);
+    const botDiff = ['novice', 'master', 'archmage'].includes(difficulty) ? difficulty : 'master';
+    const bot = createBotPlayer(room.players, botDiff);
     room.players.push(bot);
 
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -879,6 +888,9 @@ io.on('connection', (socket) => {
     const code = roomCode || room.roomCode;
     const deck = shuffle(createDeck(room.edition || 'classic'));
     const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
+
+    room.roundPlayedCards = [];
+    room.playerVoids = {};
 
     // 1. Zuerst Handkarten an alle Spieler austeilen
     room.players.forEach(player => {
@@ -1484,6 +1496,29 @@ io.on('connection', (socket) => {
     }
     currentPlayer.hand = sortCards(currentPlayer.hand, currentTrumpSuit);
 
+    // Card- & Void-Tracking für Bots
+    if (!room.roundPlayedCards) room.roundPlayedCards = [];
+    room.roundPlayedCards.push(playedCard);
+
+    if (!room.playerVoids) room.playerVoids = {};
+    if (!room.playerVoids[currentPlayer.sessionId]) room.playerVoids[currentPlayer.sessionId] = {};
+
+    let leadSuit = 'none';
+    for (let i = 0; i < room.currentTrick.length; i++) {
+      const tc = getEffectiveCard(room.currentTrick[i].card);
+      if (['wizard', 'dragon', 'unicorn', 'bomb'].includes(tc.type)) break;
+      if (tc.type === 'color') {
+        leadSuit = tc.suit;
+        break;
+      }
+    }
+    if (leadSuit !== 'none') {
+      const effPlayed = getEffectiveCard(playedCard);
+      if (effPlayed.type === 'color' && effPlayed.suit !== leadSuit) {
+        room.playerVoids[currentPlayer.sessionId][leadSuit] = true;
+      }
+    }
+
     room.currentTrick.push({
       playerName: currentPlayer.name,
       playerSessionId: currentPlayer.sessionId,
@@ -1571,7 +1606,7 @@ io.on('connection', (socket) => {
         if (!cloudWinner || !cloudWinner.connected) return next();
 
         if (cloudWinner.isBot) {
-          const delta = (cloudWinner.tricksWon > (cloudWinner.bid !== null ? cloudWinner.bid : 0)) ? 1 : -1;
+          const delta = chooseBotCloudAdjustment(cloudWinner, cloudWinner.bid !== null ? cloudWinner.bid : 0, cloudWinner.tricksWon, cloudWinner.hand);
           const oldBid = cloudWinner.bid !== null ? cloudWinner.bid : 0;
           const newBid = Math.max(0, oldBid + delta);
           cloudWinner.bid = newBid;
@@ -1619,7 +1654,24 @@ io.on('connection', (socket) => {
         if (!canSwap) return next();
 
         if (witchPlayer.isBot) {
-          setRoomTimeout(room, () => next(), 600);
+          const swapDecision = chooseBotWitchSwap(witchPlayer, room.currentTrick, witchPlayer.hand);
+          if (swapDecision && swapDecision.handIndex !== null && swapDecision.trickIndex !== null && witchPlayer.hand[swapDecision.handIndex] && room.currentTrick[swapDecision.trickIndex]) {
+            const handCard = witchPlayer.hand[swapDecision.handIndex];
+            const trickEntry = room.currentTrick[swapDecision.trickIndex];
+            const trickCard = trickEntry.card;
+
+            witchPlayer.hand.splice(swapDecision.handIndex, 1, trickCard);
+            trickEntry.card = handCard;
+            witchPlayer.hand = sortCards(witchPlayer.hand, room.trumpSuit);
+
+            io.to(room.roomCode).emit('witchSwapShowcase', {
+              witchPlayerName: witchPlayer.name,
+              takenCard: trickCard,
+              givenCard: handCard
+            });
+            io.to(room.roomCode).emit('trickUpdated', room.currentTrick);
+          }
+          setRoomTimeout(room, () => next(), 1000);
           return;
         }
 
@@ -1656,10 +1708,10 @@ io.on('connection', (socket) => {
 
         io.to(room.roomCode).emit('trickUpdated', []);
 
-        // Bots wählen sofort eine Handkarte zum Weitergeben
+        // Bots wählen eine Handkarte zum Weitergeben
         room.players.forEach(p => {
           if (p.isBot && p.hand && p.hand.length > 0) {
-            room.jugglerPassSelections[p.sessionId] = 0;
+            room.jugglerPassSelections[p.sessionId] = chooseBotJugglerPass(p, p.hand);
           }
         });
 
@@ -2076,19 +2128,39 @@ io.on('connection', (socket) => {
       }
       const isDealer = (room.currentTurnIndex === room.dealerIndex);
       const playerBids = room.players.map(p => p.bid);
-      const botBid = calculateBotBid(bot.hand, room.trumpCard, currentTrumpSuit, playerBids, isDealer, room.round);
+      const botBid = calculateBotBid(
+        bot.hand,
+        room.trumpCard,
+        currentTrumpSuit,
+        playerBids,
+        isDealer,
+        room.round,
+        room.players.length,
+        bot.difficulty || 'master',
+        room.edition || 'classic'
+      );
 
       setRoomTimeout(room, () => {
         handlePlayerBid(room, bot.sessionId, botBid);
       }, 600);
     } else if (room.gameState === 'playing_tricks') {
+      const roomContext = {
+        playedCards: room.roundPlayedCards || [],
+        playerVoids: room.playerVoids || {},
+        players: room.players,
+        edition: room.edition || 'classic',
+        botSessionId: bot.sessionId
+      };
+
       const botDecision = chooseBotCard(
         bot.hand,
         room.currentTrick,
         room.trumpCard,
         bot.bid !== null ? bot.bid : 0,
         bot.tricksWon,
-        room.round
+        room.round,
+        bot.difficulty || 'master',
+        roomContext
       );
 
       const cardIdx = (typeof botDecision === 'object' && botDecision !== null) ? botDecision.cardIndex : botDecision;
@@ -2121,6 +2193,7 @@ io.on('connection', (socket) => {
         handCount: p.hand ? p.hand.length : 0,
         userId: p.userId || null,
         isBot: !!p.isBot,
+        difficulty: p.difficulty || (p.isBot ? 'master' : null),
         skillRating: p.isBot ? p.skillRating : (p.userId ? (p.skillRating || (p.rank ? p.rank.sr : 1000)) : null),
         rank: p.isBot ? p.rank : (p.userId ? (p.rank || dbModule.getRankDetailsFromSR(p.skillRating || 1000)) : null)
       };
