@@ -1007,6 +1007,8 @@
       padding: 8px 10px 6px;
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6);
       position: relative;
+      perspective: 1200px;
+      transform-style: preserve-3d;
       flex: 1;
       min-height: 0;
       max-height: 100%;
@@ -2197,6 +2199,152 @@
     .card.trick-clearing {
       animation: trickClearingAnim 0.32s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
       pointer-events: none;
+    }
+
+    /* AAA SIEGER-AVATAR PULS-AURA */
+    @keyframes winnerAvatarPulseAnim {
+      0% {
+        box-shadow: 0 0 0 0 rgba(240, 195, 85, 0.9), 0 0 20px rgba(240, 195, 85, 0.8);
+        transform: scale(1.08);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(240, 195, 85, 0), 0 0 30px rgba(240, 195, 85, 0.6);
+        transform: scale(1.05);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(240, 195, 85, 0), 0 0 8px rgba(240, 195, 85, 0.2);
+        transform: scale(1);
+      }
+    }
+    .winner-avatar-pulse {
+      animation: winnerAvatarPulseAnim 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+
+    /* TISCH-MIKROBEBEN BEI BOMBE / MAGIEKOLLAPS */
+    @keyframes tableMicroShake {
+      0% { transform: translate3d(0, 0, 0); }
+      20% { transform: translate3d(-3px, 2px, 0); }
+      40% { transform: translate3d(3px, -2px, 0); }
+      60% { transform: translate3d(-2px, 1px, 0); }
+      80% { transform: translate3d(1px, -1px, 0); }
+      100% { transform: translate3d(0, 0, 0); }
+    }
+    .table-micro-shake {
+      animation: tableMicroShake 0.18s cubic-bezier(0.36, 0.07, 0.19, 0.97) both !important;
+    }
+
+    /* MAGISCHER EFFEKT-LAYER & SONDERKARTEN-PARTIKEL */
+    #table-fx-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 95;
+    }
+
+    @keyframes bombShockwaveExpand {
+      0% {
+        transform: translate(-50%, -50%) scale(0.08);
+        opacity: 1;
+        border-width: 4px;
+      }
+      60% {
+        opacity: 0.85;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+        border-width: 1px;
+      }
+    }
+    .bomb-shockwave-ring {
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      border: 3px solid #ff5722;
+      box-shadow: 0 0 24px rgba(255, 87, 34, 0.9), inset 0 0 16px rgba(255, 152, 0, 0.6);
+      pointer-events: none;
+      animation: bombShockwaveExpand 0.32s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+      z-index: 100;
+    }
+
+    @keyframes dragonEmberFly {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx, 30px), var(--dy, -30px)) scale(0.2);
+        opacity: 0;
+      }
+    }
+    .dragon-ember {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff7ed 0%, #ea580c 60%, #7c2d12 100%);
+      box-shadow: 0 0 8px #f97316;
+      pointer-events: none;
+      animation: dragonEmberFly 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      z-index: 101;
+    }
+
+    @keyframes fairyDustFly {
+      0% {
+        transform: translate(0, 0) rotate(0deg) scale(0.8);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx, 20px), var(--dy, -25px)) rotate(180deg) scale(0.1);
+        opacity: 0;
+      }
+    }
+    .fairy-dust {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fef08a 0%, #10b981 60%, transparent 100%);
+      box-shadow: 0 0 8px #34d399, 0 0 14px #fbbf24;
+      pointer-events: none;
+      animation: fairyDustFly 0.45s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+      z-index: 101;
+    }
+
+    @keyframes unicornRingExpand {
+      0% {
+        transform: translate(-50%, -50%) scale(0.2);
+        opacity: 0.9;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0;
+      }
+    }
+    .unicorn-ring {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 2px solid #c084fc;
+      box-shadow: 0 0 20px #e879f9, inset 0 0 15px #a855f7;
+      pointer-events: none;
+      animation: unicornRingExpand 0.38s ease-out forwards;
+      z-index: 100;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .table-micro-shake,
+      .bomb-shockwave-ring,
+      .dragon-ember,
+      .fairy-dust,
+      .unicorn-ring,
+      .winner-avatar-pulse {
+        animation: none !important;
+        transition: none !important;
+      }
     }
 
     /* AUSTEIL-ANIMATION (STAFFEL-AUFSTIEG DER HANDKARTEN VON LINKS NACH RECHTS: 0.26s) */
@@ -4682,6 +4830,7 @@
 
     <!-- DER VERWITTERTE EICHENTISCH -->
     <div id="table-area" class="poker-table">
+      <div id="table-fx-layer"></div>
       
       <!-- KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS SCHWEBEND) -->
       <div class="trump-section-fixed" id="trump-wrapper" title="Aufgedeckte Trumpfkarte der Runde">

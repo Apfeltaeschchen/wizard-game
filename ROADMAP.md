@@ -100,20 +100,23 @@ flowchart TD
 * **Matchmaking-Logik**: Der Server gruppiert wartende Spieler anhand ihrer Skill-Rating (SR ±200 Punkte) in einen Raum (3–6 Spieler).
 * **Match-Ready-Dialog**: Akustisches Signal & 15-Sekunden Bestätigungs-Countdown vor Spielstart.
 
-### 3. ERWEITERUNG B: Visuelles Polish & AAA 3D-Karten-Animationen
-* **3D-Kartenflugbahnen**: Bezier-Kurven und Fluganimationen von Handkarte zum Spieltisch und vom Tisch zum Stichgewinner (`transform-style: preserve-3d`).
-* **Partikel- & Soundeffekte**:
-  - Lindwurm: Flammenhauch & Brandspuren auf dem Tisch.
-  - Magiekollaps: Schockwelle & Tisch-Beben.
-  - Einhorn: Sternenstaub-Aura.
-* **Tisch-Lichtreflexe**: Dynamischer Schattenwurf passend zur Finger-/Maus-Position.
+### 3. ✅ ERWEITERUNG B: Visuelles Polish & AAA 3D-Karten-Animationen (Abgeschlossen)
+* **3D-Bühne**: `perspective: 1200px` und `transform-style: preserve-3d` auf `.poker-table`.
+* **FLIP 3D-Kartenflug**: Hand-/Sitz-Ursprung zu Tischplatz ohne Klon-Flackern mit `cubic-bezier(0.16, 1, 0.3, 1)`, Z-Elevation (60px) und dynamischem Centrifugal-Tilt (±10°).
+* **Target-Aware Trick Suction**: Dynamische Vektorberechnung $(\Delta x, \Delta y)$ mit 25ms Stagger direkt in das Sieger-Pill/HUD und anschließender `.winner-avatar-pulse` Triumph-Aura.
+* **Sonderkarten-FX (#table-fx-layer)**:
+  - Lindwurm (Drache): Glutfunken-Burst (`.dragon-ember`).
+  - Magiekollaps (Bombe): Schockwellen-Ring (`.bomb-shockwave-ring`) & 180ms Tisch-Mikrobeben (`.table-micro-shake`).
+  - Waldnymphe (Fee): Feenstaub-Spirale (`.fairy-dust`).
+  - Einhorn: Himmlischer Sternenstaub-Ring (`.unicorn-ring`).
+* **Barrierefreiheit**: `prefers-reduced-motion` Weiche.
 
 ### 4. ERWEITERUNG C: Produktiv-Deployment & Hosting
 * **Docker & Container**: `Dockerfile` und `docker-compose.yml` für schnelles Deployment.
 * **SSL/WSS**: Sichere WebSocket-Verschlüsselung mit Nginx Reverse Proxy.
 * **Umgebungsvariablen**: Konsequente Trennung von `.env` (Port, JWT Secret, DB-Pfad).
 
-### 5. ERWEITERUNG D: Mehrstufige KI-Schwierigkeitsgrade (Solo- & Bot-Entwicklung)
+### 5. ✅ ERWEITERUNG D: Mehrstufige KI-Schwierigkeitsgrade (Abgeschlossen)
 * **Stufe 1: Novize (Lehrling - Casual & Anfänger)**:
   - Spielt nach elementaren Grundregeln (Farbbedienung, Zauberer/Narr).
   - Bietet rein nach Faustformel ohne tiefes Mitzählen gegnerischer Gebote.
@@ -125,8 +128,8 @@ flowchart TD
 * **Stufe 3: Erzmagier (Oberster Rat - Hardcore & E-Sport)**:
   - **Probability Tracking (Kartenzählen)**: Weiß exakt, welche Zauberer, Narren, Drachen und Trümpfe noch im Deck bzw. auf fremden Händen sein können.
   - **Sonderkarten-Perfektion**: Meistert Vorrangregeln (Lindwurm vs. Waldnymphe, Einhorn-Entzauberung gegen Magiekollaps, Schattenhexe-Ritualtausch zur Maximierung der Handkartenqualität).
-  - **Sabotage-Taktik**: Erkennt führende Spieler und zerstört deren Vorhersagen durch forciertes Stiche-Übertragen.
-  - **Monte-Carlo-Stichsimulation (MCTS)**: Simuliert vor jedem Ausspielen hunderte Stichverläufe für die mathematisch optimale Karte.
+  - **Sabotage-Taktik**: Erkennt führende Spieler und zerstört deren Vorhersagen durch forciertes Stiche-Übertragen (Zero-Killer).
+  - **Void Matrix**: Führt Echtzeit-Renonce-Tracking für alle Mitspieler.
 
 ---
 
@@ -143,3 +146,12 @@ flowchart TD
   - Sonderkarten: Erzmagier (`E`), Scharlatan (`S`), Lindwurm (`L`), Waldnymphe (`F`), Magiekollaps (`K`), Doppelgänger (`D`), Blutfürst (`B`), Himmelsschleier (`9¾`), Mondbestie (`M`), Schattenhexe (`X`), Taschenspieler (`7½`/`T`), Einhorn (`H`)
   - 1050 × 1498 px Bild-Architektur mit SVG-Platzhaltern in `public/images/cards/`
   - Modus-gefiltertes Regel-Grimoire mit Lore-Texten & Bestiarium
+* ✅ **Erweiterung D: Mehrstufige KI-Schwierigkeitsgrade** (Abgeschlossen)
+  - Novize, Meister, Erzmagier mit Bayesian Card Counting, Void Matrix & Sabotage-Taktik
+  - Lobby-Steuerung für Host zur freien Stufenwahl
+  - 100% verifiziert via `test/botDifficulties.test.js`
+* ✅ **Erweiterung B: AAA 3D-Karten-Animationen & Visuelles Polish** (Abgeschlossen)
+  - Mathematische FLIP 3D-Bogenflüge mit dynamischer Z-Elevation & Handschwung
+  - Zielgerichtetes Einsaugen $(\Delta x, \Delta y)$ in Sieger-Avatare mit Stagger & Triumph-Puls
+  - Partikeleffekte für Drache, Bombe, Fee, Einhorn auf `#table-fx-layer`
+  - 100% verifiziert via `test/cardAnimationsAndEffects.test.js` und `npm test`

@@ -862,6 +862,7 @@ let cachedTrumpCard = null;
 let inspectedCardIndex = null; // Für Touch "Tap to Inspect"
 let isDealingAnimationPending = false;
 let hasDealtThisRound = false;
+let lastPlayedCardOrigin = null;
 
 // --- ERKENNUNG STARKER KARTEN FÜR AUFPRALL & STAUBWOLKE ---
 function isStrongCard(card) {
@@ -934,6 +935,137 @@ function createDustCloudEffect(container) {
   setTimeout(() => {
     cloud.remove();
   }, 620);
+}
+
+// --- AAA MAGISCHE PARTIKEL- & SPEZIALEFFEKTE FÜR SONDERKARTEN ---
+const GrimoireFX = {
+  getLayer() {
+    return (typeof document !== 'undefined') ? document.getElementById('table-fx-layer') : null;
+  },
+
+  triggerSpecialCardEffect(card, targetContainer) {
+    if (!card) return;
+    const type = card.type;
+    if (type === 'dragon') {
+      this.triggerDragonImpact(targetContainer);
+    } else if (type === 'bomb') {
+      this.triggerBombShockwave(targetContainer);
+    } else if (type === 'fairy') {
+      this.triggerFairyImpact(targetContainer);
+    } else if (type === 'unicorn') {
+      this.triggerUnicornRing(targetContainer);
+    }
+  },
+
+  triggerDragonImpact(targetContainer) {
+    const layer = this.getLayer();
+    if (!layer || !targetContainer) return;
+    const rect = targetContainer.getBoundingClientRect();
+    const lRect = layer.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2 - lRect.left;
+    const cy = rect.top + rect.height / 2 - lRect.top;
+
+    const count = 10;
+    for (let i = 0; i < count; i++) {
+      const ember = document.createElement('div');
+      ember.classList.add('dragon-ember');
+      ember.style.left = `${cx}px`;
+      ember.style.top = `${cy}px`;
+
+      const angle = (i / count) * Math.PI * 2 + (Math.random() * 0.5 - 0.25);
+      const dist = 32 + Math.random() * 38;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * (dist * 0.7);
+
+      ember.style.setProperty('--dx', `${dx.toFixed(1)}px`);
+      ember.style.setProperty('--dy', `${dy.toFixed(1)}px`);
+      ember.style.animationDelay = `${(Math.random() * 0.05).toFixed(3)}s`;
+
+      layer.appendChild(ember);
+      setTimeout(() => ember.remove(), 480);
+    }
+  },
+
+  triggerBombShockwave(targetContainer) {
+    const layer = this.getLayer();
+    const table = (typeof document !== 'undefined') ? (document.querySelector('.poker-table') || document.getElementById('table-area')) : null;
+    if (table) {
+      table.classList.remove('table-micro-shake');
+      void table.offsetWidth; // force reflow
+      table.classList.add('table-micro-shake');
+      setTimeout(() => table.classList.remove('table-micro-shake'), 220);
+    }
+
+    if (!layer) return;
+    let cx = layer.clientWidth / 2;
+    let cy = layer.clientHeight / 2;
+    if (targetContainer) {
+      const rect = targetContainer.getBoundingClientRect();
+      const lRect = layer.getBoundingClientRect();
+      cx = rect.left + rect.width / 2 - lRect.left;
+      cy = rect.top + rect.height / 2 - lRect.top;
+    }
+
+    const ring = document.createElement('div');
+    ring.classList.add('bomb-shockwave-ring');
+    ring.style.left = `${cx}px`;
+    ring.style.top = `${cy}px`;
+    layer.appendChild(ring);
+    setTimeout(() => ring.remove(), 400);
+  },
+
+  triggerFairyImpact(targetContainer) {
+    const layer = this.getLayer();
+    if (!layer || !targetContainer) return;
+    const rect = targetContainer.getBoundingClientRect();
+    const lRect = layer.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2 - lRect.left;
+    const cy = rect.top + rect.height / 2 - lRect.top;
+
+    const count = 9;
+    for (let i = 0; i < count; i++) {
+      const sparkle = document.createElement('div');
+      sparkle.classList.add('fairy-dust');
+      sparkle.style.left = `${cx}px`;
+      sparkle.style.top = `${cy}px`;
+
+      const angle = (i / count) * Math.PI * 2 + (Math.random() * 0.4);
+      const dist = 24 + Math.random() * 32;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * (dist * 0.65) - 10;
+
+      sparkle.style.setProperty('--dx', `${dx.toFixed(1)}px`);
+      sparkle.style.setProperty('--dy', `${dy.toFixed(1)}px`);
+      sparkle.style.animationDelay = `${(i * 0.025).toFixed(3)}s`;
+
+      layer.appendChild(sparkle);
+      setTimeout(() => sparkle.remove(), 550);
+    }
+  },
+
+  triggerUnicornRing(targetContainer) {
+    const layer = this.getLayer();
+    if (!layer) return;
+    let cx = layer.clientWidth / 2;
+    let cy = layer.clientHeight / 2;
+    if (targetContainer) {
+      const rect = targetContainer.getBoundingClientRect();
+      const lRect = layer.getBoundingClientRect();
+      cx = rect.left + rect.width / 2 - lRect.left;
+      cy = rect.top + rect.height / 2 - lRect.top;
+    }
+
+    const ring = document.createElement('div');
+    ring.classList.add('unicorn-ring');
+    ring.style.left = `${cx}px`;
+    ring.style.top = `${cy}px`;
+    layer.appendChild(ring);
+    setTimeout(() => ring.remove(), 450);
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.GrimoireFX = GrimoireFX;
 }
 
 // --- NATIVE WEB AUDIO API SOUND- & MUSIK-ENGINE (OHNE EXTERNE DATEIEN) ---
@@ -4002,27 +4134,84 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, isUnicornVoid
   const isMe = (winnerSessionId === mySessionId);
   const trickItems = document.querySelectorAll('#trick-container .trick-card-item');
 
-  // 1. Zuerst strahlendes Sieger-Highlight ("Wolke") auf den Stichkarten
+  // 1. Zuerst strahlendes Sieger-Highlight ("Wolke") auf den Stichkarten (480ms)
   trickItems.forEach(item => item.classList.add('trick-winner-highlight'));
 
-  // 2. Danach zielgerichteter Einzug zum Gewinner (gestrafft auf 650ms Highlight + 350ms Einzug)
+  // 2. Danach zielgerichteter 3D-Vektor-Einzug zum Gewinner-Avatar
   setTimeout(() => {
-    trickItems.forEach(item => {
-      item.classList.remove('trick-winner-highlight');
-      if (isBombed || isUnicornVoided) {
+    if (isBombed) {
+      GrimoireFX.triggerBombShockwave();
+      trickItems.forEach(item => {
+        item.classList.remove('trick-winner-highlight');
         item.classList.add('trick-clearing');
-      } else if (isMe) {
-        item.classList.add('trick-clearing-me');
+      });
+    } else if (isUnicornVoided) {
+      GrimoireFX.triggerUnicornRing();
+      trickItems.forEach(item => {
+        item.classList.remove('trick-winner-highlight');
+        item.classList.add('trick-clearing');
+      });
+    } else {
+      let targetEl = null;
+      if (isMe) {
+        targetEl = document.getElementById('my-hud-bid') || document.getElementById('my-stats-hud') || document.getElementById('my-hand-section');
       } else {
-        item.classList.add('trick-clearing-opponent');
+        targetEl = (winnerSessionId ? document.getElementById('seat-' + winnerSessionId) : null) ||
+                   document.querySelector(`.player-seat[data-session-id="${winnerSessionId}"]`) ||
+                   document.querySelector(`.player-seat[data-player-name="${winnerName}"]`) ||
+                   document.querySelector('.player-seat');
       }
-    });
+
+      const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (targetEl && !prefersReducedMotion && targetEl.getBoundingClientRect) {
+        const targetRect = targetEl.getBoundingClientRect();
+        const tx = targetRect.left + targetRect.width / 2;
+        const ty = targetRect.top + targetRect.height / 2;
+
+        trickItems.forEach((wrap, i) => {
+          wrap.classList.remove('trick-winner-highlight');
+          const cRect = wrap.getBoundingClientRect();
+          const cx = cRect.left + cRect.width / 2;
+          const cy = cRect.top + cRect.height / 2;
+          const dx = tx - cx;
+          const dy = ty - cy;
+          const stagger = i * 25;
+
+          setTimeout(() => {
+            wrap.style.transition = 'transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.32s ease-in';
+            wrap.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0px) scale(0.15) rotate(${15 + (i * 8)}deg)`;
+            wrap.style.opacity = '0';
+            wrap.style.pointerEvents = 'none';
+          }, stagger);
+        });
+
+        setTimeout(() => {
+          if (targetEl) {
+            targetEl.classList.remove('winner-avatar-pulse');
+            void targetEl.offsetWidth; // force reflow
+            targetEl.classList.add('winner-avatar-pulse');
+            setTimeout(() => targetEl.classList.remove('winner-avatar-pulse'), 550);
+          }
+        }, 320);
+      } else {
+        // Fallback: richtungsabhängig oder sofort
+        trickItems.forEach(item => {
+          item.classList.remove('trick-winner-highlight');
+          if (isMe) {
+            item.classList.add('trick-clearing-me');
+          } else {
+            item.classList.add('trick-clearing-opponent');
+          }
+        });
+      }
+    }
 
     setTimeout(() => {
       trickContainer.innerHTML = '';
       trickContainer.classList.remove('round-1-trick');
-    }, 350);
-  }, 650);
+    }, 380);
+  }, 480);
 });
 
 socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedResults }) => {
@@ -4147,6 +4336,8 @@ function renderOpponents() {
     const seatEl = document.createElement('div');
     seatEl.classList.add('player-seat');
     seatEl.id = `seat-${p.sessionId}`;
+    seatEl.setAttribute('data-session-id', p.sessionId);
+    seatEl.setAttribute('data-player-name', p.name);
     if (isHisTurn) seatEl.classList.add('seat-active-turn');
 
     const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
@@ -4216,7 +4407,7 @@ function updateMyStatsHUD() {
   if (tricksEl) tricksEl.innerText = tricksVal;
 }
 
-// --- ZÜGIGES PLATZIEREN DER GESPIELTEN KARTEN MIT SOUNDEFFEKTEN & RUNDE 1 FOKUS ---
+// --- AAA FLIP 3D-KARTENFLUGBAHN, RICHTUNGSWINKEL & AUFPRALL-EFFEKTE ---
 function renderTrickCards(trickCards, animateLast = true) {
   trickContainer.innerHTML = '';
   trickContainer.classList.toggle('round-1-trick', currentRound === 1);
@@ -4238,22 +4429,80 @@ function renderTrickCards(trickCards, animateLast = true) {
     const rot = ((idx % 4) - 1.5) * 4;
     cardWrapper.style.setProperty('--rand-rot', `${rot}deg`);
 
+    wrap.title = `Gespielt von ${item.playerName}`;
+    wrap.appendChild(cardWrapper);
+    trickContainer.appendChild(wrap);
+
     if (animateLast && isLastCard) {
       const strong = isStrongCard(item.card);
-      if (strong) {
-        cardWrapper.classList.add('card-slam-heavy');
-        createDustCloudEffect(wrap);
+      const isMe = (item.playerSessionId === mySessionId);
+      const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      let startRect = null;
+      if (isMe && lastPlayedCardOrigin && (Date.now() - (lastPlayedCardOrigin.timestamp || 0) < 5000)) {
+        startRect = lastPlayedCardOrigin;
+        lastPlayedCardOrigin = null;
+      } else if (isMe) {
+        const handEl = document.getElementById('hand-container') || document.getElementById('my-hand-section');
+        if (handEl && handEl.getBoundingClientRect) startRect = handEl.getBoundingClientRect();
       } else {
-        cardWrapper.classList.add('card-played-animated');
+        const seatEl = (item.playerSessionId ? document.getElementById('seat-' + item.playerSessionId) : null) ||
+                       document.querySelector(`.player-seat[data-session-id="${item.playerSessionId}"]`) ||
+                       document.querySelector(`.player-seat[data-player-name="${item.playerName}"]`);
+        if (seatEl && seatEl.getBoundingClientRect) startRect = seatEl.getBoundingClientRect();
       }
+
+      const endRect = (cardWrapper.getBoundingClientRect) ? cardWrapper.getBoundingClientRect() : null;
+
+      if (startRect && endRect && endRect.width > 0 && !prefersReducedMotion) {
+        // FLIP-MATHEMATIK (First, Last, Invert, Play)
+        const dx = (startRect.left + startRect.width / 2) - (endRect.left + endRect.width / 2);
+        const dy = (startRect.top + startRect.height / 2) - (endRect.top + endRect.height / 2);
+        const scaleFactor = Math.max(0.55, Math.min(1.25, startRect.width / endRect.width));
+
+        // Zentrifugaler Neigungswinkel basierend auf Hand-Ursprung
+        const screenMidX = window.innerWidth / 2;
+        const originMidX = startRect.left + startRect.width / 2;
+        const tilt = Math.max(-10, Math.min(10, ((originMidX - screenMidX) / Math.max(screenMidX, 1)) * 8));
+
+        // 1. INVERT (sofort synchron am Startpunkt platzieren mit Z-Elevation)
+        cardWrapper.style.transition = 'none';
+        cardWrapper.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 60px) scale(${scaleFactor.toFixed(2)}) rotate(${tilt.toFixed(1)}deg)`;
+        cardWrapper.style.boxShadow = '0 24px 38px rgba(0,0,0,0.65), 0 0 16px rgba(240, 195, 85, 0.45)';
+        cardWrapper.style.zIndex = '100';
+
+        // 2. PLAY (im nächsten Frame flüssig mit AAA Bezier auf den Tisch fliegen)
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            cardWrapper.style.transition = 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease-out';
+            cardWrapper.style.transform = `translate3d(0, 0, 0) scale(1) rotate(${rot}deg)`;
+            cardWrapper.style.boxShadow = '';
+
+            setTimeout(() => {
+              cardWrapper.style.zIndex = '';
+              cardWrapper.style.transition = '';
+              if (strong) {
+                createDustCloudEffect(wrap);
+              }
+              GrimoireFX.triggerSpecialCardEffect(item.card, wrap);
+            }, 280);
+          });
+        });
+      } else {
+        // Fallback für reduzierte Bewegung oder fehlende Koordinaten
+        if (strong) {
+          cardWrapper.classList.add('card-slam-heavy');
+          createDustCloudEffect(wrap);
+        } else {
+          cardWrapper.classList.add('card-played-animated');
+        }
+        GrimoireFX.triggerSpecialCardEffect(item.card, wrap);
+      }
+
       WizardAudio.playForCard(item.card);
     } else {
       cardWrapper.style.transform = `rotate(${rot}deg)`;
     }
-
-    wrap.title = `Gespielt von ${item.playerName}`;
-    wrap.appendChild(cardWrapper);
-    trickContainer.appendChild(wrap);
   });
 }
 
@@ -4500,6 +4749,17 @@ function renderHand(isNewDeal = false) {
           GrimoireHaptics.selection();
           renderHand();
         } else {
+          if (cardElement && cardElement.getBoundingClientRect) {
+            const r = cardElement.getBoundingClientRect();
+            lastPlayedCardOrigin = {
+              left: r.left,
+              top: r.top,
+              width: r.width,
+              height: r.height,
+              timestamp: Date.now()
+            };
+          }
+
           if (card.type === 'bomb') {
             GrimoireHaptics.impact('heavy');
           } else if (card.type === 'wizard' || card.type === 'dragon') {
