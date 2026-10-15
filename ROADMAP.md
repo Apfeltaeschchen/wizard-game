@@ -1,8 +1,38 @@
 # Grimoire Online – Projekt-Roadmap & Arbeitsstand
 
-> **WICHTIGE ENTWICKLER-NOTIZ**:  
-> Der Entwickler schließt vor dem Offline-Gehen **Etappe 3** ab.  
-> Bei Wiederaufnahme der Arbeit („Wo waren wir stehen geblieben?“) geht es direkt mit **Etappe 4 (F-Droid)** und den nachfolgenden Erweiterungen in exakt dieser festgelegten Reihenfolge weiter!
+> **WICHTIGE ENTWICKLER-NOTIZ FÜR MORGEN**:  
+> Sobald du morgen wieder am Start bist, findest du hier als Erstes die genaue Schritt-für-Schritt-Anleitung, um die Android-APK zu bauen und auf deinem Smartphone zu testen!  
+> Danach geht es direkt mit **Etappe 4 (F-Droid)** und den Folge-Erweiterungen weiter.
+
+---
+
+## 📱 Kurzanleitung für morgen: Android APK bauen & auf dem Smartphone testen
+
+Falls du die frisch vorbereitete Android-App morgen direkt auf deinem Handy ausprobieren möchtest:
+
+1. **Android Studio öffnen**:
+   ```powershell
+   npm run cap:open:android
+   ```
+2. **APK kompilieren**:
+   - In Android Studio oben im Menü: **Build** ➔ **Build Bundle(s) / APK(s)** ➔ **Build APK(s)**.
+3. **APK-Datei finden**:
+   - Nach ca. 30–60 Sekunden erscheint unten rechts ein Pop-up mit dem Link **`locate`**.
+   - Die fertige Datei liegt unter:  
+     `android/app/build/outputs/apk/debug/app-debug.apk`
+4. **Auf dein Handy übertragen & installieren**:
+   - Übertrage `app-debug.apk` per USB-Kabel, Nextcloud, Google Drive oder Web-Messenger auf dein Smartphone und tippe auf **Installieren**.
+5. **Spielserver auf dem PC starten**:
+   ```powershell
+   npm start
+   ```
+   *(Wichtig: Dein PC und dein Smartphone müssen im selben WLAN sein).*
+6. **Server-Adresse in der App verbinden**:
+   - Ermittle kurz deine PC-IP im Terminal via `ipconfig` (z. B. `192.168.178.50`).
+   - Öffne die **Grimoire**-App auf dem Smartphone.
+   - Tippe oben rechts auf das neue Zahnrad-Symbol **`⚙️ Server`**.
+   - Trage deine PC-Adresse ein (z. B. `http://192.168.178.50:3000`) und tippe auf **`⚔️ Speichern & Verbinden`**.
+   - Schon bist du voll vernetzt und kannst mit Haptik, Safe-Areas und flüssigen Touch-Gesten spielen!
 
 ---
 
