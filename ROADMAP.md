@@ -1,9 +1,10 @@
 # Grimoire Online – Projekt-Roadmap & Arbeitsstand
 
-> **STATUS HEUTE**:  
-> 1. **Schritt 1**: Android APK bauen & auf Smartphone testen  
-> 2. **Schritt 2**: Gameplay- & Visual-Polish (Erweiterung B: AAA 3D-Karten-Animationen & Partikeleffekte / Erweiterung A: Ranked Matchmaking)  
-> 3. **Schritt 3**: F-Droid Veröffentlichung (Etappe 4: FOSS-Metadaten, GPLv3-Lizenz, Fastlane)
+> **FOKUS FÜR MORGEN**:  
+> 🎯 **Prio 1 (Benutzervorgabe)**: Durchgängige Icons für ALLE Buttons & mobile Erkennbarkeit auf kleinen Bildschirmen (damit man auf Smartphones immer sofort erkennt, welcher Button was tut).  
+> 📱 **Schritt 1**: Android APK bauen & auf Smartphone testen  
+> 📦 **Schritt 2**: F-Droid Veröffentlichung (Etappe 4: FOSS-Metadaten, GPLv3-Lizenz, Fastlane)  
+> ⚔️ **Schritt 3**: Erweiterung A: Automatisches Ranked-Matchmaking (1-Klick Queue)  
 
 ---
 
@@ -85,6 +86,42 @@ flowchart TD
 ---
 
 ## 📌 Phase 2: Nach Wiederkehr des Entwicklers
+
+### 0. 🎯 PRIORITÄT FÜR MORGEN: Durchgängige Icons für alle Buttons & Mobile Erkennbarkeit
+> [!IMPORTANT]
+> **Benutzervorgabe**:
+> *"merk dir für morgen, dass die buttons für alles keine icons haben und man somit nicht sehen kann welcher button das ist (der wenn der bildschirm so klein ist)"*
+
+* **Problem & Ziel**:
+  Auf kleinen Smartphone-Bildschirmen (z. B. Portrait-Modus oder schmale Breiten $\le$ 640px / $\le$ 380px) sind Buttons entweder abgeschnitten oder wenn Beschriftungen ausgeblendet/kompaktiert werden, ununterscheidbar, weil viele Buttons noch keinen visuellen Icon-Anker besitzen.
+* **Geplante Umsetzung**:
+  1. **Lobby & Beitritt**:
+     - `createGameBtn`: 📜 `Neues Spiel gründen` (Icon optisch hervorheben)
+     - `joinBtn`: 🚪 / ⚔️ `Dem Bunde beitreten` (bislang ohne Icon!)
+     - Modus-Wahlschalter: ⚡ `Schnellspiel` vs. 🏆 `Rangliste`
+  2. **Warteraum & Bots**:
+     - `waitingRoomLeaveBtn`: 🚪 `Kammer verlassen` (bislang ohne Icon!)
+     - `waitingRoomStartBtn`: ⚔️ `Partie beginnen` (bislang ohne Icon!)
+     - `btnAddBot`: 🤖 `Bot hinzufügen`
+     - `btnRemoveBot`: ❌ `Bot entfernen`
+     - `btnOpenCompanionsWaiting`: 👥 `Gefährten einladen`
+     - `btnCopyWaitingCode`: 📋 `Code kopieren`
+  3. **In-Game Menüs, Buch der Wahrheit & Profile**:
+     - Magier-Detailmodal: ✨ `Als Gefährten hinzufügen`, 🚪 `Schließen`
+     - Zitadellen-Spielmenü: einheitliche, klar differenzierbare Icons für Klang (🎵), Regeln (📜), Gefährten (👥), Server (⚙️), Spiel verlassen (🚪/🚩)
+     - Pausen-/Game-Over-Buttons: 🚪 `Bund verlassen`, 🔄 `Neue Runde`
+  4. **Modale & Dialoge (GrimoireDialog & Auth)**:
+     - `dialogConfirmBtn`: ✅ `Bestätigen`
+     - `dialogCancelBtn`: ❌ `Abbrechen`
+     - Auth-Tabs: 🔑 `Anmelden`, ✨ `Registrieren`
+     - Auth-Aktionen: 🗝️ `Einloggen`, 👤 `Als Gast fortfahren`
+  5. **Sonderkarten-Dialoge**:
+     - Werwolf: 👁️ `Verstanden`
+     - Hexe: 🔮 `Ritualtausch vollziehen`
+     - Jongleur: 🎭 `Karte weitergeben` / ✋ `In die Hand nehmen`
+  6. **Mobile CSS Struktur**:
+     - Alle Button-Beschriftungen sauber in `<span class="btn-text">` und Icons in `<span class="btn-icon">` kapseln.
+     - Bei extremer Kompaktierung auf Smartphones (`@media (max-width: 480px)` bzw. `@media (max-width: 380px)`) bleibt das prägnante Icon immer mittig zentriert sichtbar (`display: inline-block`), mit `title` und `aria-label` für volle Barrierefreiheit und intuitive Erkennbarkeit.
 
 ### 1. ETAPPE 4: F-Droid Veröffentlichung (FOSS & 100% Kostenlos)
 * **Lizenzierung**: Saubere Open-Source-Lizenzdatei (`LICENSE`, z. B. GPLv3 oder MIT) im Root anlegen.
