@@ -1,37 +1,41 @@
 # Grimoire Online – Projekt-Roadmap & Arbeitsstand
 
-> **WICHTIGE ENTWICKLER-NOTIZ FÜR MORGEN**:  
-> Sobald du morgen wieder am Start bist, findest du hier als Erstes die genaue Schritt-für-Schritt-Anleitung, um die Android-APK zu bauen und auf deinem Smartphone zu testen!  
-> Danach geht es direkt mit **Etappe 4 (F-Droid)** und den Folge-Erweiterungen weiter.
+> **STATUS HEUTE**:  
+> 1. **Schritt 1**: Android APK bauen & auf Smartphone testen  
+> 2. **Schritt 2**: Gameplay- & Visual-Polish (Erweiterung B: AAA 3D-Karten-Animationen & Partikeleffekte / Erweiterung A: Ranked Matchmaking)  
+> 3. **Schritt 3**: F-Droid Veröffentlichung (Etappe 4: FOSS-Metadaten, GPLv3-Lizenz, Fastlane)
 
 ---
 
-## 📱 Kurzanleitung für morgen: Android APK bauen & auf dem Smartphone testen
+## 📱 Detaillierte Anleitung: Android APK bauen & auf dem Smartphone testen
 
-Falls du die frisch vorbereitete Android-App morgen direkt auf deinem Handy ausprobieren möchtest:
-
-1. **Android Studio öffnen**:
+1. **Android Studio installieren (falls noch nicht geschehen)**:
+   - Von [developer.android.com/studio](https://developer.android.com/studio) herunterladen und mit Standardeinstellungen installieren.
+2. **Projekt in Android Studio öffnen**:
    ```powershell
    npm run cap:open:android
    ```
-2. **APK kompilieren**:
+   *(Alternativ: Android Studio öffnen ➔ `Open` ➔ Ordner `C:\Users\Jamin\Documents\wizard-game\android` wählen).*
+3. **Gradle Sync abwarten**:
+   - Beim ersten Öffnen lädt Android Studio kurz im Hintergrund die nötigen Gradle-Plugins herunter (ca. 1–2 Min., bis unten *"Gradle build finished"* steht).
+4. **APK kompilieren**:
    - In Android Studio oben im Menü: **Build** ➔ **Build Bundle(s) / APK(s)** ➔ **Build APK(s)**.
-3. **APK-Datei finden**:
-   - Nach ca. 30–60 Sekunden erscheint unten rechts ein Pop-up mit dem Link **`locate`**.
+5. **APK-Datei finden**:
+   - Nach ca. 30–60 Sekunden erscheint unten rechts ein Pop-up mit dem blauen Link **`locate`**.
    - Die fertige Datei liegt unter:  
      `android/app/build/outputs/apk/debug/app-debug.apk`
-4. **Auf dein Handy übertragen & installieren**:
-   - Übertrage `app-debug.apk` per USB-Kabel, Nextcloud, Google Drive oder Web-Messenger auf dein Smartphone und tippe auf **Installieren**.
-5. **Spielserver auf dem PC starten**:
+6. **Auf dein Handy übertragen & installieren**:
+   - Übertrage `app-debug.apk` per USB-Kabel, Nextcloud, Google Drive, WhatsApp Web, Telegram oder Signal auf dein Smartphone und tippe auf **Installieren**.
+7. **Spielserver auf dem PC starten**:
    ```powershell
    npm start
    ```
    *(Wichtig: Dein PC und dein Smartphone müssen im selben WLAN sein).*
-6. **Server-Adresse in der App verbinden**:
-   - Ermittle kurz deine PC-IP im Terminal via `ipconfig` (z. B. `192.168.178.50`).
+8. **Server-Adresse in der App verbinden**:
+   - Deine aktuelle PC-WLAN-IP ist: **`192.168.188.162`**
    - Öffne die **Grimoire**-App auf dem Smartphone.
-   - Tippe oben rechts auf das neue Zahnrad-Symbol **`⚙️ Server`**.
-   - Trage deine PC-Adresse ein (z. B. `http://192.168.178.50:3000`) und tippe auf **`⚔️ Speichern & Verbinden`**.
+   - Tippe oben rechts auf das Zahnrad-Symbol **`⚙️ Server`**.
+   - Trage ein: **`http://192.168.188.162:3000`** und tippe auf **`⚔️ Speichern & Verbinden`**.
    - Schon bist du voll vernetzt und kannst mit Haptik, Safe-Areas und flüssigen Touch-Gesten spielen!
 
 ---
@@ -40,21 +44,21 @@ Falls du die frisch vorbereitete Android-App morgen direkt auf deinem Handy ausp
 
 ```mermaid
 flowchart TD
-    subgraph P1["PHASE 1: JETZT (Vor dem Offline-Gehen)"]
-        E3_1["Aufgabe 3.1: Server-URL Konfiguration für mobile Geräte"]
-        E3_2["Aufgabe 3.2: Git-Sicherung & Thematische Commits"]
-        E3_3["Aufgabe 3.3: APK-Generierung & Test-Dokumentation"]
+    subgraph P1["PHASE 1: MOBILE INITIALISIERUNG (ABGESCHLOSSEN ✅)"]
+        E3_1["Etappe 1: Core Quality & Grimoire der Gefährten"]
+        E3_2["Etappe 2: Rebranding Grimoire & 1050x1498px Pipeline"]
+        E3_3["Etappe 3: Capacitor Setup & Server-URL Konfig"]
     end
 
-    subgraph P2["PHASE 2: NACH WIEDERKEHR DES ENTWICKLERS"]
-        E4["ETAPPE 4: F-Droid Veröffentlichung (FOSS & 100% Kostenlos)"]
-        OPT3["ERWEITERUNG A: Automatisches Ranked-Matchmaking (1-Klick Queue)"]
-        OPT4["ERWEITERUNG B: Visuelles Polish & AAA 3D-Karten-Animationen"]
-        OPT5["ERWEITERUNG C: Produktiv-Deployment (Docker, SSL/WSS, Nginx)"]
+    subgraph P2["PHASE 2: HEUTIGER ABLAUF"]
+        S1["1. Schritt: APK bauen & Smartphone-Test"]
+        S2["2. Schritt: Erweiterung B: AAA 3D-Karten-Animationen & Effekte"]
+        S2A["Optional: Erweiterung A: Automatisches Ranked-Matchmaking"]
+        S3["3. Schritt: Etappe 4: F-Droid Veröffentlichung (FOSS & GPLv3)"]
     end
 
-    P1 --> P2
-    E4 --> OPT3 --> OPT4 --> OPT5
+    P1 --> S1 --> S2 --> S3
+    S2 -.-> S2A
 ```
 
 ---

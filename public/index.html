@@ -3266,15 +3266,15 @@
       background: linear-gradient(180deg, #991b1b 0%, #450a0a 100%);
       color: #fef2f2;
       border-bottom: 2px solid #ef4444;
-      padding: 10px 16px;
+      padding: calc(var(--safe-top) + 8px) 16px 8px;
       font-family: var(--font-subheading);
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 700;
       text-align: center;
-      z-index: 9999;
+      z-index: 800;
       box-shadow: 0 4px 20px rgba(0,0,0,0.8);
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
       gap: 8px;
       animation: bannerSlideDown 0.3s ease-out;
@@ -3535,8 +3535,12 @@
 
   <!-- GLOBALER VERBINDUNGS-STATUS (ERSCHEINT BEI DISCONNECT / FEHLENDEM SERVER) -->
   <div id="connection-status-banner" class="connection-status-banner" style="display: none;">
-    <span style="font-size: 18px;">⚠️</span>
-    <span id="connection-status-text">Keine Verbindung zum Magier-Turm (Server). Stelle sicher, dass der Server mit 'node server/index.js' läuft.</span>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; flex-wrap: wrap;">
+      <span style="font-size: 16px;">⚠️</span>
+      <span id="connection-status-text">Keine Verbindung zum Magier-Turm (Server).</span>
+      <button type="button" class="btn-auth-bar" style="margin-left: 6px; padding: 3px 10px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique);" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server einstellen</button>
+    </div>
+    <button type="button" id="btnDismissConnectionBanner" style="background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 8px; line-height: 1; display: flex; align-items: center;" title="Hinweis schließen" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.dismissBanner()">&times;</button>
   </div>
 
   <!-- TOAST-BANNER: DU BIST DRAN (OBERTES DRITTEL) -->
@@ -3574,7 +3578,7 @@
       </div>
     </div>
 
-    <div style="position: absolute; top: calc(var(--safe-top) + 14px); right: calc(var(--safe-right) + 16px); display: flex; gap: 8px; z-index: 50;">
+    <div style="position: absolute; top: calc(var(--safe-top) + 14px); right: calc(var(--safe-right) + 16px); display: flex; gap: 8px; z-index: 900;">
       <button id="btnOpenServerSettings" class="btn-score-toggle" style="margin: 0;" title="Server-Verbindung &amp; IP konfigurieren">
         <span class="score-toggle-icon">⚙️</span>
         <span class="score-toggle-text">Server</span>
@@ -4552,19 +4556,31 @@
       </div>
     </div>
   <!-- SERVER-EINSTELLUNGEN MODAL (CAPACITOR & MOBILE NETZWERK) -->
-  <div id="server-settings-modal" class="modal-overlay" style="display: none; z-index: 2400;">
-    <div class="auth-modal-card" style="max-width: 440px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold-antique); padding-bottom: 10px; margin-bottom: 16px;">
+  <div id="server-settings-modal" class="modal-overlay" style="display: none; z-index: 100000;">
+    <div class="auth-modal-card" style="max-width: 460px; width: 92%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gold-antique); padding-bottom: 10px; margin-bottom: 14px;">
         <h3 style="margin: 0; font-family: var(--font-heading); color: var(--gold-bright); font-size: 18px;">⚙️ Spielserver-Verbindung</h3>
         <button id="btnCloseServerSettings" type="button" class="drawer-close-btn" style="line-height: 1;">&times;</button>
       </div>
-      <p style="font-size: 13px; color: #ebd7af; line-height: 1.5; margin: 0 0 14px;">
-        Konfiguriere die Adresse des Node.js-Spielservers. Auf mobilen Endgeräten im selben WLAN trage bitte die IP-Adresse deines Entwickler-PCs ein (z. B. <code>http://192.168.178.50:3000</code>).
+      <p style="font-size: 12.5px; color: #ebd7af; line-height: 1.4; margin: 0 0 12px;">
+        Wähle dein Server-Ziel aus dem Dropdown-Menü oder trage eine eigene Adresse ein:
       </p>
-      <div style="text-align: left; margin-bottom: 6px; font-size: 12px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-bright);">
+
+      <div style="text-align: left; margin-bottom: 6px; font-size: 11.5px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-bright);">
+        Schnellauswahl (Dropdown)
+      </div>
+      <select id="serverPresetSelect" style="width: 100%; box-sizing: border-box; margin-bottom: 12px; padding: 10px 12px; background: #0c0f14; border: 1.5px solid var(--gold-antique); color: #ffd700; border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer;">
+        <option value="">-- Wähle ein Server-Ziel --</option>
+        <option value="http://192.168.188.162:3000">💻 Entwickler-PC im WLAN (http://192.168.188.162:3000)</option>
+        <option value="http://localhost:3000">🖥️ Lokaler Rechner (http://localhost:3000)</option>
+        <option value="http://10.0.2.2:3000">📱 Android Emulator (http://10.0.2.2:3000)</option>
+        <option value="custom">✏️ Manuelle Eingabe...</option>
+      </select>
+
+      <div style="text-align: left; margin-bottom: 6px; font-size: 11.5px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-bright);">
         Server-Adresse (URL)
       </div>
-      <input type="text" id="inputCustomServerUrl" placeholder="Standard (z. B. http://192.168.178.50:3000)" style="width: 100%; box-sizing: border-box; margin-bottom: 12px; padding: 10px 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique); color: #fff; border-radius: 6px; font-family: monospace; font-size: 13px;" />
+      <input type="text" id="inputCustomServerUrl" placeholder="z. B. http://192.168.188.162:3000" style="width: 100%; box-sizing: border-box; margin-bottom: 12px; padding: 10px 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique); color: #fff; border-radius: 6px; font-family: monospace; font-size: 13px;" />
       <div id="serverSettingsFeedback" style="display: none; font-size: 12px; margin-bottom: 12px; padding: 8px; border-radius: 4px;"></div>
       <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px;">
         <button id="btnResetServerUrl" type="button" class="btn-auth-bar" style="background: rgba(255,255,255,0.1);">↺ Standard</button>
@@ -4576,7 +4592,7 @@
   <!-- GLOBALER TOAST-HINWEIS -->
   <div id="global-toast" class="global-toast" aria-live="polite"></div>
 
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="socket.io.min.js"></script>
   <script src="client.js"></script>
 </body>
 </html>

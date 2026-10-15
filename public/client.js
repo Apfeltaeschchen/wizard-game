@@ -20,15 +20,18 @@ function getApiUrl(endpoint) {
   return base ? (base + cleanEndpoint) : cleanEndpoint;
 }
 
+let isBannerDismissedByUser = false;
+
 function showConnectionStatus(message, isError = true) {
   let safeHtml = String(message).replace(/(https?:\/\/localhost:3000)/g, '<a href="$1" style="color: #fde047; text-decoration: underline; font-weight: bold;">$1</a>');
-  const serverSettingsBtnHtml = ' <button type="button" class="btn-auth-bar" style="margin-left: 8px; padding: 3px 8px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px;" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server-Adresse</button>';
-  if (isError && !safeHtml.includes('GrimoireServerSettings')) {
-    safeHtml += serverSettingsBtnHtml;
-  }
+  const serverSettingsBtnHtml = ' <button type="button" class="btn-auth-bar" style="margin-left: 6px; padding: 3px 10px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique); cursor: pointer;" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server einstellen</button>';
+  const closeBtnHtml = ' <button type="button" id="btnDismissConnectionBanner" style="background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 8px; line-height: 1; display: flex; align-items: center;" title="Hinweis schließen" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.dismissBanner()">&times;</button>';
+  
   if (connectionBanner) {
-    connectionBanner.innerHTML = safeHtml;
-    connectionBanner.style.display = 'block';
+    connectionBanner.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; flex-wrap: wrap;"><span>⚠️</span><span>${safeHtml}</span>${serverSettingsBtnHtml}</div>${closeBtnHtml}`;
+    if (!isBannerDismissedByUser) {
+      connectionBanner.style.display = 'flex';
+    }
     if (isError) {
       connectionBanner.classList.add('error');
     } else {
@@ -36,7 +39,7 @@ function showConnectionStatus(message, isError = true) {
     }
   }
   if (lobbyStatusMsg && (!lobbyScreen || lobbyScreen.style.display !== 'none')) {
-    lobbyStatusMsg.innerHTML = safeHtml;
+    lobbyStatusMsg.innerHTML = safeHtml + serverSettingsBtnHtml;
     lobbyStatusMsg.style.display = 'block';
     lobbyStatusMsg.style.color = isError ? '#f87171' : '#fde047';
   }
@@ -4671,21 +4674,44 @@ const GrimoireServerSettings = {
   modal: null,
   input: null,
   feedback: null,
+  presetSelect: null,
 
   init() {
     this.modal = document.getElementById('server-settings-modal');
     this.input = document.getElementById('inputCustomServerUrl');
     this.feedback = document.getElementById('serverSettingsFeedback');
+    this.presetSelect = document.getElementById('serverPresetSelect');
 
     const openBtn = document.getElementById('btnOpenServerSettings');
     const closeBtn = document.getElementById('btnCloseServerSettings');
     const saveBtn = document.getElementById('btnSaveServerUrl');
     const resetBtn = document.getElementById('btnResetServerUrl');
+    const dismissBtn = document.getElementById('btnDismissConnectionBanner');
 
-    if (openBtn) openBtn.addEventListener('click', () => this.openModal());
-    if (closeBtn) closeBtn.addEventListener('click', () => this.closeModal());
-    if (saveBtn) saveBtn.addEventListener('click', () => this.save());
-    if (resetBtn) resetBtn.addEventListener('click', () => this.reset());
+    if (openBtn) openBtn.addEventListener('click', (e) => { e.preventDefault(); this.openModal(); });
+    if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault(); this.closeModal(); });
+    if (saveBtn) saveBtn.addEventListener('click', (e) => { e.preventDefault(); this.save(); });
+    if (resetBtn) resetBtn.addEventListener('click', (e) => { e.preventDefault(); this.reset(); });
+    if (dismissBtn) dismissBtn.addEventListener('click', (e) => { e.preventDefault(); this.dismissBanner(); });
+
+    if (this.presetSelect) {
+      this.presetSelect.addEventListener('change', () => {
+        const val = this.presetSelect.value;
+        if (val && val !== 'custom') {
+          if (this.input) this.input.value = val;
+        } else if (val === 'custom') {
+          if (this.input) {
+            this.input.focus();
+          }
+        }
+      });
+    }
+
+    if (this.input) {
+      this.input.addEventListener('input', () => {
+        this.syncPresetWithInput();
+      });
+    }
 
     if (this.modal) {
       this.modal.addEventListener('click', (e) => {
@@ -4694,11 +4720,35 @@ const GrimoireServerSettings = {
     }
   },
 
+  syncPresetWithInput() {
+    if (!this.presetSelect || !this.input) return;
+    const currentVal = this.input.value.trim().replace(/\/+$/, '');
+    let matched = false;
+    for (let i = 0; i < this.presetSelect.options.length; i++) {
+      const optVal = this.presetSelect.options[i].value;
+      if (optVal && optVal !== 'custom' && optVal.replace(/\/+$/, '') === currentVal) {
+        this.presetSelect.selectedIndex = i;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      this.presetSelect.value = currentVal ? 'custom' : '';
+    }
+  },
+
+  dismissBanner() {
+    isBannerDismissedByUser = true;
+    hideConnectionStatus();
+  },
+
   openModal() {
     if (!this.modal) this.init();
+    const currentUrl = getGrimoireServerUrl();
     if (this.input) {
-      this.input.value = getGrimoireServerUrl();
+      this.input.value = currentUrl;
     }
+    this.syncPresetWithInput();
     if (this.feedback) {
       this.feedback.style.display = 'none';
     }
@@ -4715,15 +4765,25 @@ const GrimoireServerSettings = {
 
   save() {
     if (!this.input) return;
-    const rawVal = this.input.value.trim();
+    let rawVal = this.input.value.trim();
     if (rawVal) {
+      // Automatische Korrektur: Protokoll ergänzen falls vergessen
       if (!rawVal.startsWith('http://') && !rawVal.startsWith('https://')) {
-        this.showFeedback('Bitte vollständige URL angeben, z. B. http://192.168.178.50:3000', true);
-        return;
+        rawVal = 'http://' + rawVal;
       }
+      // Falls Port vergessen wurde (z. B. nur IP wie 192.168.188.162 oder localhost), :3000 anfügen
       try {
-        localStorage.setItem('grimoire_server_url', rawVal.replace(/\/+$/, ''));
-        this.showFeedback('Server-Adresse gespeichert! Seite lädt neu...', false);
+        const u = new URL(rawVal);
+        if (!u.port && (u.hostname === 'localhost' || /^(\d{1,3}\.){3}\d{1,3}$/.test(u.hostname))) {
+          u.port = '3000';
+          rawVal = u.origin;
+        }
+      } catch (err) {}
+
+      const cleanUrl = rawVal.replace(/\/+$/, '');
+      try {
+        localStorage.setItem('grimoire_server_url', cleanUrl);
+        this.showFeedback('Gespeichert! Verbinde neu mit ' + cleanUrl + '...', false);
         setTimeout(() => {
           window.location.reload();
         }, 600);
@@ -4739,6 +4799,7 @@ const GrimoireServerSettings = {
     try {
       localStorage.removeItem('grimoire_server_url');
       if (this.input) this.input.value = '';
+      if (this.presetSelect) this.presetSelect.selectedIndex = 0;
       this.showFeedback('Standard-Server wiederhergestellt! Seite lädt neu...', false);
       setTimeout(() => {
         window.location.reload();

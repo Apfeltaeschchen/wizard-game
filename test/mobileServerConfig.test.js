@@ -13,10 +13,14 @@ const js = fs.readFileSync(jsPath, 'utf8');
 // 1. Prüfe HTML-Elemente
 assert.ok(html.includes('id="btnOpenServerSettings"'), 'btnOpenServerSettings vorhanden');
 assert.ok(html.includes('id="server-settings-modal"'), 'server-settings-modal vorhanden');
+assert.ok(html.includes('id="serverPresetSelect"'), 'serverPresetSelect Dropdown vorhanden');
 assert.ok(html.includes('id="inputCustomServerUrl"'), 'inputCustomServerUrl vorhanden');
 assert.ok(html.includes('id="btnSaveServerUrl"'), 'btnSaveServerUrl vorhanden');
 assert.ok(html.includes('id="btnResetServerUrl"'), 'btnResetServerUrl vorhanden');
-console.log('✓ 1. HTML Server-Settings Modal & Button vorhanden');
+assert.ok(html.includes('id="btnDismissConnectionBanner"'), 'btnDismissConnectionBanner vorhanden');
+assert.ok(html.includes('src="socket.io.min.js"'), 'socket.io.min.js eingebunden');
+assert.ok(fs.existsSync(path.join(__dirname, '../public/socket.io.min.js')), 'public/socket.io.min.js Datei existiert');
+console.log('✓ 1. HTML Server-Settings Modal, Dropdown, Dismiss-Button & lokales socket.io.min.js vorhanden');
 
 // 2. Prüfe Client.js Module & Logik
 assert.ok(js.includes('function getGrimoireServerUrl()'), 'getGrimoireServerUrl definiert');
@@ -24,7 +28,15 @@ assert.ok(js.includes('function getApiUrl('), 'getApiUrl definiert');
 assert.ok(js.includes('const GrimoireServerSettings ='), 'GrimoireServerSettings Modul definiert');
 assert.ok(js.includes('GrimoireServerSettings.init();'), 'GrimoireServerSettings init aufgerufen');
 assert.ok(js.includes('grimoire_server_url'), 'grimoire_server_url in localStorage genutzt');
-console.log('✓ 2. Client.js Server-URL Controller & Storage-Anbindung verifiziert');
+assert.ok(js.includes('dismissBanner'), 'dismissBanner Methode vorhanden');
+assert.ok(js.includes('syncPresetWithInput'), 'syncPresetWithInput Methode vorhanden');
+console.log('✓ 2. Client.js Server-URL Controller, Dropdown-Sync & Storage-Anbindung verifiziert');
+
+// 2b. Prüfe AndroidManifest
+const manifestPath = path.join(__dirname, '../android/app/src/main/AndroidManifest.xml');
+const manifest = fs.readFileSync(manifestPath, 'utf8');
+assert.ok(manifest.includes('android:usesCleartextTraffic="true"'), 'usesCleartextTraffic im AndroidManifest aktiv');
+console.log('✓ 2b. AndroidManifest.xml: Cleartext Traffic für HTTP-Verbindungen (WLAN) verifiziert');
 
 // 3. Simuliere URL-Auflösung
 function testGetApiUrl(endpoint, customUrl) {
