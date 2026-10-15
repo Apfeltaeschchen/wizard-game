@@ -3755,6 +3755,8 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   // SUBTILE TISCH-AURA & HANDKARTEN-FOKUS
   tableArea.classList.toggle('my-turn-aura', isMyTurn);
   myHandSection.classList.toggle('my-turn-hand-focus', isMyTurn);
+  const myHud = document.getElementById('my-stats-hud');
+  if (myHud) myHud.classList.toggle('my-turn-active', isMyTurn);
 
   renderOpponents();
   renderHand();
@@ -4569,6 +4571,7 @@ socket.on('gameResetToLobby', async ({ message, players, roomCode }) => {
 // --- VIRTUELLE MITSPIELER-SITZE RENDERN (RELATIVE UHRZEIGER-REIHENFOLGE) ---
 function renderOpponents() {
   opponentsContainer.innerHTML = '';
+  opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
   const myIndex = cachedPlayers.findIndex(p => p.sessionId === mySessionId);
   let opponents = [];
   if (myIndex !== -1 && cachedPlayers.length > 1) {

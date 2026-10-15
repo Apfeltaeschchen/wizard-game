@@ -1072,6 +1072,15 @@
       max-height: 80px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+      transition: margin-top 0.3s ease;
+    }
+
+    #opponents-container.round-1-opponents {
+      margin-top: 52px !important;
+      overflow: visible !important;
+    }
+    .round-1-opponents .player-seat {
+      overflow: visible !important;
     }
 
     .player-seat {
@@ -1096,27 +1105,46 @@
       transform: translateY(-1px);
     }
 
-    /* VERGRÖSSERTE PULS-AURA (2s TIEFER KRÄFTIGER ATMUNGSEFFEKT) */
-    @keyframes deepTurnBreath {
-      0% {
-        box-shadow: 0 0 16px rgba(241, 196, 15, 0.5), 0 0 30px rgba(241, 196, 15, 0.25);
+    /* VERGRÖSSERTE PULS-AURA (2s TIEFER KRÄFTIGER ATMUNGSEFFEKT SPEZIFISCH UM DEN RUNDEN AVATAR) */
+    @keyframes avatarActiveTurnPulse {
+      0%, 100% {
+        box-shadow: 0 0 10px rgba(240, 195, 85, 0.7), 0 0 20px rgba(240, 195, 85, 0.35), inset 0 0 6px rgba(240, 195, 85, 0.4);
         border-color: var(--gold-antique);
+        transform: scale(1);
       }
       50% {
-        box-shadow: 0 0 28px rgba(241, 196, 15, 0.85), 0 0 55px rgba(241, 196, 15, 0.45);
-        border-color: var(--gold-bright);
-      }
-      100% {
-        box-shadow: 0 0 16px rgba(241, 196, 15, 0.5), 0 0 30px rgba(241, 196, 15, 0.25);
-        border-color: var(--gold-antique);
+        box-shadow: 0 0 22px rgba(240, 195, 85, 1), 0 0 40px rgba(240, 195, 85, 0.75), 0 0 60px rgba(240, 195, 85, 0.4), inset 0 0 10px rgba(240, 195, 85, 0.8);
+        border-color: #fffbeb;
+        transform: scale(1.14);
       }
     }
 
     .player-seat.seat-active-turn {
       border-color: var(--gold-bright) !important;
-      box-shadow: 0 0 14px rgba(240, 195, 85, 0.65) !important;
-      animation: deepTurnBreath 2s ease-in-out infinite;
+      box-shadow: 0 0 12px rgba(240, 195, 85, 0.5) !important;
       z-index: 25;
+    }
+
+    .player-seat.seat-active-turn .seat-avatar {
+      border-color: var(--gold-bright) !important;
+      animation: avatarActiveTurnPulse 2s ease-in-out infinite !important;
+      z-index: 30 !important;
+    }
+
+    @keyframes myHudTurnGlow {
+      0%, 100% {
+        box-shadow: 0 0 8px rgba(240, 195, 85, 0.3);
+        border-color: var(--gold-antique);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(240, 195, 85, 0.85), inset 0 0 8px rgba(240, 195, 85, 0.35);
+        border-color: var(--gold-bright);
+      }
+    }
+
+    .my-stats-hud.my-turn-active {
+      border-color: var(--gold-bright) !important;
+      animation: myHudTurnGlow 2s ease-in-out infinite !important;
     }
 
     .seat-avatar {
@@ -2686,7 +2714,16 @@
         display: none !important;
       }
       .forehead-floating-card {
-        bottom: calc(100% + 2px) !important;
+        bottom: calc(100% + 3px) !important;
+      }
+      .forehead-floating-card .card {
+        width: 32px !important;
+        height: 46px !important;
+      }
+      #opponents-container.round-1-opponents {
+        margin-top: 48px !important;
+        overflow: visible !important;
+        max-height: none !important;
       }
 
       #score-board-drawer,
@@ -2695,7 +2732,7 @@
       #profile-drawer {
         width: min(88vw, 340px) !important;
         max-width: 88vw !important;
-        z-index: 1500 !important;
+        z-index: 2500 !important;
       }
       .drawer-header { padding: 10px 14px; }
       .drawer-scroll { padding: 8px; }
@@ -4217,19 +4254,20 @@
     @keyframes shakeInput {
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-5px); }
+    }
     /* 5. GRIMOIRE DER GEFÄHRTEN (#companions-drawer) */
     #companions-drawer {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 440px;
-      max-width: 95vw;
-      height: 100dvh;
-      background: linear-gradient(180deg, #1b0f06 0%, #24140b 10%, #150b05 90%, #0d0603 100%);
-      color: #f7eedb;
-      border-left: 5px solid #4a2810;
-      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95);
-      z-index: 1500;
+      position: fixed !important;
+      top: 0 !important;
+      right: 0 !important;
+      width: 440px !important;
+      max-width: 95vw !important;
+      height: 100dvh !important;
+      background: linear-gradient(180deg, #1b0f06 0%, #24140b 10%, #150b05 90%, #0d0603 100%) !important;
+      color: #f7eedb !important;
+      border-left: 5px solid #4a2810 !important;
+      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95) !important;
+      z-index: 2500 !important;
       transform: translateX(100%);
       transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
