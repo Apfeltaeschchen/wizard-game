@@ -889,6 +889,8 @@ const WizardAudio = (() => {
   let masterGain = null;
   let sfxGain = null;
   let musicGain = null;
+  let wasPlayingBeforeHide = false;
+  let isAppInBackground = false;
 
   // Lade gespeicherte Audioeinstellungen oder Defaults
   let settings = {
@@ -922,7 +924,7 @@ const WizardAudio = (() => {
         applyVolumeSettings();
       }
     }
-    if (ctx && ctx.state === 'suspended') {
+    if (ctx && ctx.state === 'suspended' && !isAppInBackground) {
       ctx.resume().catch(() => {});
     }
     return ctx;
@@ -1007,6 +1009,7 @@ const WizardAudio = (() => {
   }
 
   function playBufferNode(buf, volume = 0.95, pitchJitter = 0.08) {
+    if (isAppInBackground) return;
     const c = getContext();
     if (!c || !buf || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
     try {
@@ -1029,6 +1032,7 @@ const WizardAudio = (() => {
 
   // Echter Papier-/Kartenlege-Sound auf Spieltischfilz
   function playCardSnap() {
+    if (isAppInBackground) return;
     try {
       const c = getContext();
       if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
@@ -1049,6 +1053,7 @@ const WizardAudio = (() => {
 
   // Echter Kartengleit-Sound (z. B. beim Austeilen der Handkarten)
   function playCardDeal() {
+    if (isAppInBackground) return;
     try {
       const c = getContext();
       if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
@@ -1069,6 +1074,7 @@ const WizardAudio = (() => {
 
   // Satter, dumpfer Holzplatten-Aufschlag bei wuchtigem Karten-Slam
   function playTableThump() {
+    if (isAppInBackground) return;
     try {
       playCardSnap();
       const c = getContext();
@@ -1097,6 +1103,7 @@ const WizardAudio = (() => {
   }
 
   function playForCard(card) {
+    if (isAppInBackground) return;
     if (!card) return playCardSnap();
     if (isStrongCard(card)) {
       playTableThump();
@@ -1122,7 +1129,7 @@ const WizardAudio = (() => {
       musicAudio.src = MUSIC_PLAYLIST[currentTrackIdx].url;
       if (typeof musicAudio.load === 'function') musicAudio.load();
       applyVolumeSettings();
-      if (isMusicPlaying && !settings.musicMuted && settings.music > 0) {
+      if (!isAppInBackground && isMusicPlaying && !settings.musicMuted && settings.music > 0) {
         musicAudio.play().catch(() => {});
       }
     }
@@ -1152,6 +1159,11 @@ const WizardAudio = (() => {
   }
 
   function startMusic() {
+    if (isAppInBackground) {
+      wasPlayingBeforeHide = true;
+      return;
+    }
+    wasPlayingBeforeHide = false;
     const c = getContext();
     if (c && c.state === 'suspended') {
       c.resume().catch(() => {});
@@ -1176,8 +1188,66 @@ const WizardAudio = (() => {
 
   function stopMusic() {
     isMusicPlaying = false;
+    wasPlayingBeforeHide = false;
     if (musicAudio) {
       musicAudio.pause();
+    }
+  }
+
+  function handleAppBackground() {
+    if (!isAppInBackground) {
+      isAppInBackground = true;
+      if (isMusicPlaying || (musicAudio && !musicAudio.paused)) {
+        wasPlayingBeforeHide = true;
+      }
+    }
+    isMusicPlaying = false;
+    if (musicAudio && !musicAudio.paused) {
+      musicAudio.pause();
+    }
+    if (ctx && ctx.state !== 'suspended' && typeof ctx.suspend === 'function') {
+      ctx.suspend().catch(() => {});
+    }
+  }
+
+  function handleAppForeground() {
+    isAppInBackground = false;
+    if (ctx && typeof ctx.resume === 'function') {
+      ctx.resume().catch(() => {});
+    }
+    if (wasPlayingBeforeHide) {
+      wasPlayingBeforeHide = false;
+      if (!settings.musicMuted && settings.music > 0 && settings.master > 0) {
+        if (musicAudio) {
+          applyVolumeSettings();
+          const playPromise = musicAudio.play();
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              isMusicPlaying = true;
+            }).catch(() => {
+              // Falls Browser Autoplay nach Sleep blockiert, reaktiviere beim nächsten User-Tap
+              const onWakeGesture = () => {
+                if (typeof window !== 'undefined') {
+                  ['click', 'touchstart', 'pointerdown'].forEach(e => window.removeEventListener(e, onWakeGesture));
+                }
+                if (!isAppInBackground && !isMusicPlaying && !settings.musicMuted && settings.music > 0) {
+                  if (ctx && ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+                    ctx.resume().catch(() => {});
+                  }
+                  if (musicAudio) {
+                    musicAudio.play().then(() => { isMusicPlaying = true; }).catch(() => {});
+                  }
+                }
+              };
+              if (typeof window !== 'undefined') {
+                ['click', 'touchstart', 'pointerdown'].forEach(e => window.addEventListener(e, onWakeGesture, { once: true, passive: true }));
+              }
+            });
+          }
+        } else {
+          startMusic();
+        }
+      }
     }
   }
 
@@ -1192,11 +1262,12 @@ const WizardAudio = (() => {
   }
 
   function playInviteChime() {
+    if (isAppInBackground) return;
     try {
       const c = getContext();
       if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
       loadBuffer('/audio/invite-chime.wav').then(buf => {
-        if (buf) playBufferNode(buf, 0.95, 0.0);
+        if (buf && !isAppInBackground) playBufferNode(buf, 0.95, 0.0);
       });
     } catch (e) {
       console.warn('playInviteChime error:', e);
@@ -1254,6 +1325,10 @@ const WizardAudio = (() => {
       applyVolumeSettings();
       saveSettings();
     },
+    handleAppBackground,
+    handleAppForeground,
+    wasPlayingBeforeHide: () => wasPlayingBeforeHide,
+    isAppInBackground: () => isAppInBackground,
     setMusicMuted: (muted) => {
       settings.musicMuted = !!muted;
       applyVolumeSettings();
@@ -1267,6 +1342,43 @@ const WizardAudio = (() => {
   };
 })();
 if (typeof window !== 'undefined') window.WizardAudio = WizardAudio;
+
+// --- AUDIO LIFECYCLE MANAGEMENT (Hintergrund / Sperrbildschirm / Tab-Wechsel) ---
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      WizardAudio.handleAppBackground();
+    } else if (document.visibilityState === 'visible') {
+      WizardAudio.handleAppForeground();
+    }
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', () => {
+    WizardAudio.handleAppBackground();
+  });
+  window.addEventListener('blur', () => {
+    WizardAudio.handleAppBackground();
+  });
+  window.addEventListener('focus', () => {
+    if (typeof document === 'undefined' || document.visibilityState !== 'hidden') {
+      WizardAudio.handleAppForeground();
+    }
+  });
+
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    try {
+      window.Capacitor.Plugins.App.addListener('appStateChange', (state) => {
+        if (state && state.isActive) {
+          WizardAudio.handleAppForeground();
+        } else {
+          WizardAudio.handleAppBackground();
+        }
+      });
+    } catch (e) {}
+  }
+}
 
 // --- CAPACITOR & WEB HAPTISCHES FEEDBACK ---
 const GrimoireHaptics = {
