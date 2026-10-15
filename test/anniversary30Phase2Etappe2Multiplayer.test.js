@@ -47,18 +47,28 @@ async function run() {
     await wait(200);
 
     // 3. Spieler 2 & 3 treten bei
-    p2Client.emit('joinRoom', { playerName: 'Hexe_Morgana', roomCode, sessionId: p2SessionId });
-    p3Client.emit('joinRoom', { playerName: 'Werwolf_Lupin', roomCode, sessionId: p3SessionId });
-    await wait(300);
+    await new Promise((resolve) => {
+      const checkPlayers = (players) => {
+        if (players.length === 3 && players.every(p => p.connected)) {
+          p1Client.off('roomUpdated', checkPlayers);
+          resolve();
+        }
+      };
+      p1Client.on('roomUpdated', checkPlayers);
+      p2Client.emit('joinRoom', { playerName: 'Hexe_Morgana', roomCode, sessionId: p2SessionId });
+      p3Client.emit('joinRoom', { playerName: 'Werwolf_Lupin', roomCode, sessionId: p3SessionId });
+    });
     console.log('✓ 2. Alle 3 Spieler beigetreten');
 
     // 4. Spiel starten (Runde 1) -> genau 23 Runden bei 69 Karten
     let startedMaxRounds = null;
-    p1Client.on('gameStarted', (data) => {
-      startedMaxRounds = data.maxRounds;
+    await new Promise((resolve) => {
+      p1Client.on('gameStarted', (data) => {
+        startedMaxRounds = data.maxRounds;
+        resolve();
+      });
+      p1Client.emit('startGame', { roomCode });
     });
-    p1Client.emit('startGame', { roomCode });
-    await wait(400);
     assert.strictEqual(startedMaxRounds, 23, '3 Spieler haben 23 Runden bei 69 Karten');
     console.log('✓ 3. Spiel gestartet: Rundenanzahl ist genau 23 für 69 Karten');
 

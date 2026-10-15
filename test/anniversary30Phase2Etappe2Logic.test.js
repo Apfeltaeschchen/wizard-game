@@ -13,9 +13,9 @@ console.log('TEST: 30 JAHRE JUBILÄUMSEDITION - ETAPPE 2 LOGIK');
 console.log('      (Werwolf, Hexe, Jongleur & 69-Karten-Deck)');
 console.log('====================================================\n');
 
-// 1. Deck-Zusammensetzung (69 Karten)
+// 1. Deck-Zusammensetzung (70 Karten)
 const deck = createDeck('anniversary_30');
-assert.strictEqual(deck.length, 69, '30-Jahre-Deck muss genau 69 Karten enthalten');
+assert.strictEqual(deck.length, 70, '30-Jahre-Deck muss genau 70 Karten enthalten');
 assert.strictEqual(deck.filter(c => c.type === 'dragon').length, 1, '1 Drache');
 assert.strictEqual(deck.filter(c => c.type === 'fairy').length, 1, '1 Fee');
 assert.strictEqual(deck.filter(c => c.type === 'bomb').length, 1, '1 Bombe');
@@ -25,16 +25,17 @@ assert.strictEqual(deck.filter(c => c.type === 'cloud').length, 1, '1 Wolke');
 assert.strictEqual(deck.filter(c => c.type === 'werewolf').length, 1, '1 Werwolf');
 assert.strictEqual(deck.filter(c => c.type === 'witch').length, 1, '1 Hexe');
 assert.strictEqual(deck.filter(c => c.type === 'juggler').length, 1, '1 Jongleur');
+assert.strictEqual(deck.filter(c => c.type === 'unicorn').length, 1, '1 Einhorn');
 assert.strictEqual(deck.filter(c => c.type === 'wizard').length, 4, '4 Zauberer');
 assert.strictEqual(deck.filter(c => c.type === 'jester').length, 4, '4 Narren');
-console.log('✓ 1. createDeck(anniversary_30): Exakt 69 Karten inkl. aller 9 Sonderkarten');
+console.log('✓ 1. createDeck(anniversary_30): Exakt 70 Karten inkl. aller 10 Sonderkarten');
 
 // 2. Rundenanzahlen
-assert.strictEqual(getMaxRounds(3, 'anniversary_30'), 23, '3 Spieler: 23 Runden (69/3)');
-assert.strictEqual(getMaxRounds(4, 'anniversary_30'), 17, '4 Spieler: 17 Runden (68/4)');
-assert.strictEqual(getMaxRounds(5, 'anniversary_30'), 13, '5 Spieler: 13 Runden (65/5)');
-assert.strictEqual(getMaxRounds(6, 'anniversary_30'), 11, '6 Spieler: 11 Runden (66/6)');
-console.log('✓ 2. getMaxRounds für alle Spielerzahlen korrekt (23, 17, 13, 11)');
+assert.strictEqual(getMaxRounds(3, 'anniversary_30'), 23, '3 Spieler: 23 Runden (70/3)');
+assert.strictEqual(getMaxRounds(4, 'anniversary_30'), 17, '4 Spieler: 17 Runden (70/4)');
+assert.strictEqual(getMaxRounds(5, 'anniversary_30'), 14, '5 Spieler: 14 Runden (70/5)');
+assert.strictEqual(getMaxRounds(6, 'anniversary_30'), 11, '6 Spieler: 11 Runden (70/6)');
+console.log('✓ 2. getMaxRounds für alle Spielerzahlen korrekt (23, 17, 14, 11)');
 
 // 3. getEffectiveCard
 const werewolfCard = { type: 'werewolf' };

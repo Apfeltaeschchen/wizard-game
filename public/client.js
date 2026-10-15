@@ -1,11 +1,93 @@
 const savedAuthToken = (function() {
   try { return localStorage.getItem('wizard_auth_token'); } catch (e) { return null; }
 })();
-const socket = io({
-  auth: {
-    token: savedAuthToken || null
+const connectionBanner = document.getElementById('connection-status-banner');
+const lobbyStatusMsg = document.getElementById('lobby-status-message');
+
+function getGrimoireServerUrl() {
+  try {
+    const custom = localStorage.getItem('grimoire_server_url');
+    if (custom && custom.trim()) {
+      return custom.trim().replace(/\/+$/, '');
+    }
+  } catch (e) {}
+  return '';
+}
+
+function getApiUrl(endpoint) {
+  const base = getGrimoireServerUrl();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+  return base ? (base + cleanEndpoint) : cleanEndpoint;
+}
+
+function showConnectionStatus(message, isError = true) {
+  let safeHtml = String(message).replace(/(https?:\/\/localhost:3000)/g, '<a href="$1" style="color: #fde047; text-decoration: underline; font-weight: bold;">$1</a>');
+  const serverSettingsBtnHtml = ' <button type="button" class="btn-auth-bar" style="margin-left: 8px; padding: 3px 8px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px;" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server-Adresse</button>';
+  if (isError && !safeHtml.includes('GrimoireServerSettings')) {
+    safeHtml += serverSettingsBtnHtml;
   }
-});
+  if (connectionBanner) {
+    connectionBanner.innerHTML = safeHtml;
+    connectionBanner.style.display = 'block';
+    if (isError) {
+      connectionBanner.classList.add('error');
+    } else {
+      connectionBanner.classList.remove('error');
+    }
+  }
+  if (lobbyStatusMsg && (!lobbyScreen || lobbyScreen.style.display !== 'none')) {
+    lobbyStatusMsg.innerHTML = safeHtml;
+    lobbyStatusMsg.style.display = 'block';
+    lobbyStatusMsg.style.color = isError ? '#f87171' : '#fde047';
+  }
+}
+
+function hideConnectionStatus() {
+  if (connectionBanner) {
+    connectionBanner.style.display = 'none';
+  }
+  if (lobbyStatusMsg) {
+    lobbyStatusMsg.style.display = 'none';
+  }
+}
+
+const savedServerUrl = getGrimoireServerUrl();
+let socket;
+if (typeof io !== 'undefined') {
+  const socketOpts = {
+    auth: {
+      token: savedAuthToken || null
+    }
+  };
+  socket = savedServerUrl ? io(savedServerUrl, socketOpts) : io(socketOpts);
+
+  socket.on('connect', () => {
+    hideConnectionStatus();
+  });
+
+  socket.on('connect_error', () => {
+    const isCap = (typeof window !== 'undefined' && (window.Capacitor || (window.location && (window.location.protocol === 'capacitor:' || window.location.hostname === 'localhost'))));
+    const hint = (isCap && !savedServerUrl)
+      ? '⚠️ Verbindung zum Spielserver verloren oder nicht erreichbar. Auf Mobilgeräten trage bitte die Netzwerk-IP deines PCs ein.'
+      : '⚠️ Verbindung zum Spielserver verloren oder nicht erreichbar. Bitte prüfen, ob der Node-Server läuft.';
+    showConnectionStatus(hint);
+  });
+
+  socket.on('disconnect', (reason) => {
+    showConnectionStatus('⚠️ Verbindung zum Server getrennt (' + reason + '). Versuche Wiederverbindung...');
+  });
+} else {
+  socket = {
+    on: () => {},
+    emit: () => {},
+    connected: false
+  };
+  const isAltPort = (typeof window !== 'undefined' && window.location && window.location.port && window.location.port !== '3000');
+  const customNotice = isAltPort
+    ? `⚠️ Hinweis: Du hast die Seite über Port ${window.location.port} (z. B. VS Code Live Server) geöffnet. Der Spielserver benötigt Node.js: Bitte starte "npm start" im Terminal und öffne http://localhost:3000 im Browser.`
+    : '⚠️ Der Spielserver (Socket.IO) ist nicht erreichbar. Bitte starte den Server mit "npm start" und öffne http://localhost:3000 im Browser.';
+  showConnectionStatus(customNotice);
+}
 
 // Eindeutige Session-ID pro Browser-Tab
 let mySessionId = sessionStorage.getItem('wizard_session_id');
@@ -114,7 +196,6 @@ const witchModal = document.getElementById('witch-modal');
 const witchTrickCards = document.getElementById('witch-trick-cards');
 const witchHandCards = document.getElementById('witch-hand-cards');
 const btnWitchSwapExecute = document.getElementById('btnWitchSwapExecute');
-const btnWitchNoSwap = document.getElementById('btnWitchNoSwap');
 const btnWitchCancel = document.getElementById('btnWitchCancel');
 
 const witchSwapShowcase = document.getElementById('witch-swap-showcase');
@@ -147,11 +228,223 @@ function hideSpecialModals() {
   selectedJugglerPassCardIndex = null;
 }
 
+// --- HERALDISCHE WAPPEN-SVGS FÜR KARTEN ---
+const MEDIEVAL_ICONS = {
+  red: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 3L23 15H31L25 21L28 33L20 26L12 33L15 21L9 15H17L20 3Z" fill="url(#fireGrad)" stroke="#550c0f" stroke-width="1.2"/>
+    <circle cx="20" cy="20" r="4.5" fill="#f87171" stroke="#fef08a" stroke-width="1"/>
+    <defs><linearGradient id="fireGrad" x1="20" y1="3" x2="20" y2="33" gradientUnits="userSpaceOnUse"><stop stop-color="#ef4444"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient></defs>
+  </svg>`,
+
+  blue: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 4 C14 14 10 20 10 26 C10 32 14.5 36 20 36 C25.5 36 30 32 30 26 C30 20 26 14 20 4 Z" fill="url(#waterGrad)" stroke="#091d3e" stroke-width="1.2"/>
+    <path d="M16 25 Q20 20 24 25" stroke="#bae6fd" stroke-width="1.5" fill="none"/>
+    <defs><linearGradient id="waterGrad" x1="20" y1="4" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#0c4a6e"/></linearGradient></defs>
+  </svg>`,
+
+  green: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 4 C11 15 11 27 20 36 C29 27 29 15 20 4 Z" fill="url(#earthGrad)" stroke="#092612" stroke-width="1.2"/>
+    <path d="M20 8 V32 M15 18 L20 24 L25 18" stroke="#86efac" stroke-width="1.4" fill="none"/>
+    <defs><linearGradient id="earthGrad" x1="20" y1="4" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#14532d"/></linearGradient></defs>
+  </svg>`,
+
+  yellow: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="20" r="8" fill="url(#sunGrad)" stroke="#5e3902" stroke-width="1.2"/>
+    <path d="M20 3 V9 M20 31 V37 M3 20 H9 M31 20 H37 M8 8 L13 13 M27 27 L32 32 M8 32 L13 27 M27 13 L32 8" stroke="#d97706" stroke-width="2" stroke-linecap="round"/>
+    <defs><linearGradient id="sunGrad" x1="20" y1="12" x2="20" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#fde047"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs>
+  </svg>`,
+
+  wizard: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="21" stroke="#f0c355" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <polygon points="24,6 38,36 10,36" stroke="#f0c355" stroke-width="1.2" fill="none"/>
+    <polygon points="24,42 38,12 10,12" stroke="#f0c355" stroke-width="1.2" fill="none"/>
+    <circle cx="24" cy="24" r="6" fill="#f0c355" stroke="#765615" stroke-width="1"/>
+    <path d="M20 24 Q24 20 28 24 Q24 28 20 24 Z" fill="#371252"/>
+  </svg>`,
+
+  jester: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 28 C12 16 16 12 24 10 C32 12 36 16 36 28 C36 34 30 38 24 38 C18 38 12 34 12 28 Z" fill="#52525b" stroke="#18181b" stroke-width="1.2"/>
+    <path d="M12 20 Q6 24 10 32 M36 20 Q42 24 38 32" stroke="#d4d4d8" stroke-width="2" fill="none"/>
+    <circle cx="10" cy="32" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
+    <circle cx="38" cy="32" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
+    <circle cx="24" cy="10" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
+  </svg>`,
+
+  dragon: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 4 C27 9 32 10 38 9 C35 15 32 20 37 25 C31 23 26 26 24 33 C22 26 17 23 11 25 C16 20 13 15 10 9 C16 10 21 9 24 4 Z" fill="url(#dragonGrad)" stroke="#78350f" stroke-width="1.2"/>
+    <path d="M24 16 L28 22 L24 28 L20 22 Z" fill="#f59e0b" stroke="#451a03" stroke-width="0.8"/>
+    <circle cx="21" cy="12" r="1.5" fill="#fef08a"/>
+    <circle cx="27" cy="12" r="1.5" fill="#fef08a"/>
+    <path d="M18 36 L24 44 L30 36 L24 39 Z" fill="#b91c1c" stroke="#450a0a" stroke-width="1"/>
+    <defs><linearGradient id="dragonGrad" x1="24" y1="4" x2="24" y2="33" gradientUnits="userSpaceOnUse"><stop stop-color="#dc2626"/><stop offset="1" stop-color="#450a0a"/></linearGradient></defs>
+  </svg>`,
+
+  fairy: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="16" cy="18" rx="10" ry="6" transform="rotate(-30 16 18)" fill="url(#fairyWingGrad)" stroke="#38bdf8" stroke-width="1.2"/>
+    <ellipse cx="32" cy="18" rx="10" ry="6" transform="rotate(30 32 18)" fill="url(#fairyWingGrad)" stroke="#38bdf8" stroke-width="1.2"/>
+    <ellipse cx="18" cy="28" rx="7" ry="4" transform="rotate(20 18 28)" fill="url(#fairyWingGrad)" stroke="#0284c7" stroke-width="1"/>
+    <ellipse cx="30" cy="28" rx="7" ry="4" transform="rotate(-20 30 28)" fill="url(#fairyWingGrad)" stroke="#0284c7" stroke-width="1"/>
+    <path d="M24 10 C25.5 10 26.5 12 26.5 14 C26.5 16 25 18 24 24 C23 18 21.5 16 21.5 14 C21.5 12 22.5 10 24 10 Z" fill="#f0fdf4" stroke="#bae6fd" stroke-width="0.8"/>
+    <polygon points="24,30 26,38 24,44 22,38" fill="#e0f2fe"/>
+    <circle cx="24" cy="13" r="2.5" fill="#fef08a"/>
+    <polygon points="36,8 37.5,12 41,13.5 37.5,15 36,19 34.5,15 31,13.5 34.5,12" fill="#fef08a"/>
+    <defs><linearGradient id="fairyWingGrad" x1="16" y1="12" x2="32" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#7dd3fc" stop-opacity="0.8"/><stop offset="1" stop-color="#0284c7" stop-opacity="0.4"/></linearGradient></defs>
+  </svg>`,
+
+  bomb: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="22" cy="27" r="14" fill="url(#bombGrad)" stroke="#0f172a" stroke-width="1.5"/>
+    <rect x="23" y="10" width="6" height="4" rx="1" fill="#475569" stroke="#1e293b" stroke-width="1" transform="rotate(25 23 10)"/>
+    <path d="M28 11 C31 8 36 7 38 10" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <polygon points="38,10 42,8 40,12 44,13 40,15 41,19 37,16 35,19 36,14 32,12 36,11" fill="#ea580c" stroke="#fef08a" stroke-width="0.8"/>
+    <ellipse cx="17" cy="22" rx="4" ry="2" transform="rotate(-30 17 22)" fill="white" fill-opacity="0.3"/>
+    <defs><linearGradient id="bombGrad" x1="16" y1="16" x2="28" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#475569"/><stop offset="1" stop-color="#090d14"/></linearGradient></defs>
+  </svg>`,
+
+  shapeshifter: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 14 C12 6 24 6 24 6 C24 6 36 6 36 14 C36 28 24 40 24 40 C24 40 12 28 12 14 Z" fill="url(#maskGrad)" stroke="#34d399" stroke-width="1.2"/>
+    <path d="M24 6 V40" stroke="#064e3b" stroke-width="1" stroke-dasharray="2 2"/>
+    <path d="M16 18 Q20 15 22 19 Q19 22 16 18 Z" fill="#022c22" stroke="#6ee7b7" stroke-width="0.8"/>
+    <path d="M26 19 Q28 15 32 18 Q29 22 26 19 Z" fill="#451a03" stroke="#fef08a" stroke-width="0.8"/>
+    <path d="M18 29 Q24 33 30 29" stroke="#34d399" stroke-width="1.2" fill="none"/>
+    <circle cx="24" cy="10" r="2" fill="#fef08a"/>
+    <defs><linearGradient id="maskGrad" x1="12" y1="10" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#059669"/><stop offset="0.5" stop-color="#047857"/><stop offset="1" stop-color="#064e3b"/></linearGradient></defs>
+  </svg>`,
+
+  vampire: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 14 C27 8 30 8 32 12 C36 10 42 14 44 22 C39 20 35 24 33 30 C30 25 27 27 24 34 C21 27 18 25 15 30 C13 24 9 20 4 22 C6 14 12 10 16 12 C18 8 21 8 24 14 Z" fill="url(#vampGrad)" stroke="#ef4444" stroke-width="1.2"/>
+    <polygon points="21,24 22,28 23,24" fill="#ffffff"/>
+    <polygon points="25,24 26,28 27,24" fill="#ffffff"/>
+    <circle cx="20" cy="18" r="1.5" fill="#f87171"/>
+    <circle cx="28" cy="18" r="1.5" fill="#f87171"/>
+    <defs><linearGradient id="vampGrad" x1="24" y1="8" x2="24" y2="34" gradientUnits="userSpaceOnUse"><stop stop-color="#7f1d1d"/><stop offset="1" stop-color="#180303"/></linearGradient></defs>
+  </svg>`,
+
+  cloud: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 32 C12 32 9 29 9 25 C9 21.5 11.5 18.5 15 18 C16.5 13 21 9 26 9 C31.5 9 36 13 36.5 18.5 C39.5 19.5 42 22 42 25.5 C42 29 39 32 35 32 Z" fill="url(#cloudGrad)" stroke="#94a3b8" stroke-width="1.3"/>
+    <polygon points="25,21 21,29 26,29 23,37 30,27 25,27" fill="#fef08a" stroke="#ca8a04" stroke-width="0.8"/>
+    <defs><linearGradient id="cloudGrad" x1="24" y1="9" x2="24" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#64748b"/><stop offset="1" stop-color="#1e293b"/></linearGradient></defs>
+  </svg>`,
+
+  werewolf: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 36 L15 22 L10 14 L20 18 L24 8 L28 18 L38 14 L33 22 L36 36 L24 32 Z" fill="url(#werewolfGrad)" stroke="#f59e0b" stroke-width="1.3"/>
+    <circle cx="19" cy="22" r="2" fill="#fbbf24"/>
+    <circle cx="29" cy="22" r="2" fill="#fbbf24"/>
+    <polygon points="22,27 24,30 26,27" fill="#78350f"/>
+    <polygon points="20,29 21,32 22,29" fill="#fef3c7"/>
+    <polygon points="26,29 27,32 28,29" fill="#fef3c7"/>
+    <defs><linearGradient id="werewolfGrad" x1="24" y1="8" x2="24" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#b45309"/><stop offset="1" stop-color="#451a03"/></linearGradient></defs>
+  </svg>`,
+
+  witch: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 34 C16 31 32 31 38 34 C36 31 30 28 27 26 L36 12 L22 23 C18 26 12 31 10 34 Z" fill="url(#witchGrad)" stroke="#c084fc" stroke-width="1.2"/>
+    <path d="M28 14 Q32 10 38 12 Q33 17 31 20" fill="none" stroke="#fef08a" stroke-width="1.2"/>
+    <circle cx="21" cy="29" r="2" fill="#34d399"/>
+    <circle cx="27" cy="29" r="2" fill="#34d399"/>
+    <path d="M16 38 C16 42 32 42 32 38" stroke="#a855f7" stroke-width="1.5" fill="none"/>
+    <defs><linearGradient id="witchGrad" x1="24" y1="12" x2="24" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#7e22ce"/><stop offset="1" stop-color="#2e1065"/></linearGradient></defs>
+  </svg>`,
+
+  juggler: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="12" r="5" fill="url(#jugglerOrb1)" stroke="#06b6d4" stroke-width="1.2"/>
+    <circle cx="14" cy="24" r="5" fill="url(#jugglerOrb2)" stroke="#ca8a04" stroke-width="1.2"/>
+    <circle cx="34" cy="24" r="5" fill="url(#jugglerOrb3)" stroke="#06b6d4" stroke-width="1.2"/>
+    <path d="M16 36 C18 30 24 28 24 28 C24 28 30 30 32 36 C28 40 20 40 16 36 Z" fill="url(#jugglerCap)" stroke="#38bdf8" stroke-width="1.2"/>
+    <circle cx="16" cy="36" r="1.5" fill="#fef08a"/>
+    <circle cx="32" cy="36" r="1.5" fill="#fef08a"/>
+    <circle cx="24" cy="40" r="1.5" fill="#fef08a"/>
+    <defs>
+      <radialGradient id="jugglerOrb1" cx="40%" cy="40%" r="60%"><stop stop-color="#22d3ee"/><stop offset="1" stop-color="#0e7490"/></radialGradient>
+      <radialGradient id="jugglerOrb2" cx="40%" cy="40%" r="60%"><stop stop-color="#fef08a"/><stop offset="1" stop-color="#a16207"/></radialGradient>
+      <radialGradient id="jugglerOrb3" cx="40%" cy="40%" r="60%"><stop stop-color="#67e8f9"/><stop offset="1" stop-color="#155e75"/></radialGradient>
+      <linearGradient id="jugglerCap" x1="16" y1="28" x2="32" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#0891b2"/><stop offset="1" stop-color="#164e63"/></linearGradient>
+    </defs>
+  </svg>`,
+
+  unicorn: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 38 C14 34 13 25 17 17 C19 13 23 9 32 8 C36 7 40 9 42 12 C40 15 38 18 38 22 C42 24 40 28 36 29 C34 32 32 36 26 38 Z" fill="url(#unicornBody)" stroke="#a5b4fc" stroke-width="1.4"/>
+    <polygon points="30,10 44,2 34,13" fill="url(#unicornHorn)" stroke="#fef08a" stroke-width="1"/>
+    <circle cx="33" cy="16" r="1.8" fill="#38bdf8"/>
+    <path d="M22 20 Q16 26 22 34" stroke="#c084fc" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M25 18 Q19 24 26 32" stroke="#67e8f9" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="44" cy="2" r="2.5" fill="#fef08a"/>
+    <defs>
+      <linearGradient id="unicornBody" x1="16" y1="8" x2="40" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#ffffff"/><stop offset="0.6" stop-color="#e0e7ff"/><stop offset="1" stop-color="#c7d2fe"/></linearGradient>
+      <linearGradient id="unicornHorn" x1="30" y1="10" x2="44" y2="2" gradientUnits="userSpaceOnUse"><stop stop-color="#fde047"/><stop offset="1" stop-color="#ca8a04"/></linearGradient>
+    </defs>
+  </svg>`
+};
+
+// --- HERALDISCHE WAPPEN DER 6 MAGIER-RÄNGE (OVERWATCH-STIL) ---
+const RANK_CRESTS = {
+  novice: `<svg viewBox="0 0 48 48" class="rank-crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="24,4 42,14 42,34 24,44 6,34 6,14" fill="url(#noviceGrad)" stroke="#78350f" stroke-width="2"/>
+    <circle cx="24" cy="24" r="10" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="2 2"/>
+    <path d="M24,16 L26.5,21.5 L32,22 L28,26 L29,31.5 L24,28.5 L19,31.5 L20,26 L16,22 L21.5,21.5 Z" fill="#d97706" stroke="#fef3c7" stroke-width="0.8"/>
+    <defs><linearGradient id="noviceGrad" x1="24" y1="4" x2="24" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#b45309"/><stop offset="1" stop-color="#451a03"/></linearGradient></defs>
+  </svg>`,
+
+  adept: `<svg viewBox="0 0 48 48" class="rank-crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 4 L42 10 V26 C42 36 24 44 24 44 C24 44 6 36 6 26 V10 Z" fill="url(#adeptGrad)" stroke="#0284c7" stroke-width="2"/>
+    <polygon points="24,12 33,24 24,36 15,24" fill="url(#adeptGem)" stroke="#e0f2fe" stroke-width="1.2"/>
+    <circle cx="24" cy="24" r="3" fill="#ffffff"/>
+    <defs>
+      <linearGradient id="adeptGrad" x1="24" y1="4" x2="24" y2="44" gradientUnits="userSpaceOnUse"><stop stop-color="#1e293b"/><stop offset="1" stop-color="#0f172a"/></linearGradient>
+      <linearGradient id="adeptGem" x1="24" y1="12" x2="24" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#0369a1"/></linearGradient>
+    </defs>
+  </svg>`,
+
+  mage: `<svg viewBox="0 0 48 48" class="rank-crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 3 L43 12 V28 C43 37 24 45 24 45 C24 45 5 37 5 28 V12 Z" fill="url(#mageGrad)" stroke="#f59e0b" stroke-width="2"/>
+    <path d="M24 10 L28 20 L38 24 L28 28 L24 38 L20 28 L10 24 L20 20 Z" fill="url(#mageStar)" stroke="#fef08a" stroke-width="1.2"/>
+    <circle cx="24" cy="24" r="4" fill="#a855f7" stroke="#fef08a" stroke-width="1"/>
+    <defs>
+      <linearGradient id="mageGrad" x1="24" y1="3" x2="24" y2="45" gradientUnits="userSpaceOnUse"><stop stop-color="#3b0764"/><stop offset="1" stop-color="#1e0338"/></linearGradient>
+      <linearGradient id="mageStar" x1="24" y1="10" x2="24" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#fde047"/><stop offset="1" stop-color="#ca8a04"/></linearGradient>
+    </defs>
+  </svg>`,
+
+  archmage: `<svg viewBox="0 0 48 48" class="rank-crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 2 L44 11 V27 C44 38 24 46 24 46 C24 46 4 38 4 27 V11 Z" fill="url(#archGrad)" stroke="#10b981" stroke-width="2"/>
+    <polygon points="24,8 36,18 31,34 17,34 12,18" stroke="#34d399" stroke-width="1.5" fill="none"/>
+    <polygon points="24,12 32,30 16,30" fill="url(#archEmerald)" stroke="#6ee7b7" stroke-width="1"/>
+    <circle cx="24" cy="23" r="3.5" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+    <defs>
+      <linearGradient id="archGrad" x1="24" y1="2" x2="24" y2="46" gradientUnits="userSpaceOnUse"><stop stop-color="#064e3b"/><stop offset="1" stop-color="#022c22"/></linearGradient>
+      <linearGradient id="archEmerald" x1="24" y1="12" x2="24" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#34d399"/><stop offset="1" stop-color="#047857"/></linearGradient>
+    </defs>
+  </svg>`,
+
+  grandmaster: `<svg viewBox="0 0 48 48" class="rank-crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M24 2 L45 10 V27 C45 39 24 46 24 46 C24 46 3 39 3 27 V10 Z" fill="url(#gmGrad)" stroke="#f59e0b" stroke-width="2"/>
+    <path d="M12 12 Q24 6 36 12 Q30 24 24 38 Q18 24 12 12 Z" fill="url(#gmRuby)" stroke="#fca5a5" stroke-width="1.5"/>
+    <polygon points="24,14 27,21 34,22 29,27 30,34 24,30 18,34 19,27 14,22 21,21" fill="#fbbf24" stroke="#78350f" stroke-width="0.8"/>
+    <defs>
+      <linearGradient id="gmGrad" x1="24" y1="2" x2="24" y2="46" gradientUnits="userSpaceOnUse"><stop stop-color="#7f1d1d"/><stop offset="1" stop-color="#450a0a"/></linearGradient>
+      <linearGradient id="gmRuby" x1="24" y1="10" x2="24" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#ef4444"/><stop offset="1" stop-color="#991b1b"/></linearGradient>
+    </defs>
+  </svg>`,
+
+  high_council: `<svg viewBox="0 0 48 48" class="rank-crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="24" cy="24" r="22" stroke="url(#councilRing)" stroke-width="2"/>
+    <path d="M24 2 L45 10 V26 C45 38 24 46 24 46 C24 46 3 38 3 26 V10 Z" fill="url(#councilGrad)" stroke="#38bdf8" stroke-width="1.5"/>
+    <path d="M12 20 L24 8 L36 20 L30 36 L18 36 Z" fill="url(#councilDiamond)" stroke="#fef08a" stroke-width="1.2"/>
+    <circle cx="24" cy="22" r="5" fill="#ffffff" stroke="#38bdf8" stroke-width="1.5"/>
+    <defs>
+      <linearGradient id="councilRing" x1="2" y1="2" x2="46" y2="46" gradientUnits="userSpaceOnUse"><stop stop-color="#fde047"/><stop offset="0.5" stop-color="#38bdf8"/><stop offset="1" stop-color="#c084fc"/></linearGradient>
+      <linearGradient id="councilGrad" x1="24" y1="2" x2="24" y2="46" gradientUnits="userSpaceOnUse"><stop stop-color="#1e1b4b"/><stop offset="1" stop-color="#020617"/></linearGradient>
+      <linearGradient id="councilDiamond" x1="24" y1="8" x2="24" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#e0f2fe"/><stop offset="0.5" stop-color="#67e8f9"/><stop offset="1" stop-color="#0284c7"/></linearGradient>
+    </defs>
+  </svg>`
+};
+
 // Spielzustand
 let currentRoomCode = '';
 let currentRound = 1;
 let maxRounds = 20;
 let currentEdition = 'classic';
+let currentIsRanked = false;
+let selectedGameMode = 'quickplay';
+let cachedRankedResults = null;
 let myCurrentHand = [];
 let currentTrick = [];
 let isMyTurn = false;
@@ -474,7 +767,7 @@ const WizardAudio = (() => {
     currentTrackIdx = (currentTrackIdx + 1) % MUSIC_PLAYLIST.length;
     if (musicAudio) {
       musicAudio.src = MUSIC_PLAYLIST[currentTrackIdx].url;
-      musicAudio.load();
+      if (typeof musicAudio.load === 'function') musicAudio.load();
       applyVolumeSettings();
       if (isMusicPlaying && !settings.musicMuted && settings.music > 0) {
         musicAudio.play().catch(() => {});
@@ -545,6 +838,18 @@ const WizardAudio = (() => {
     }
   }
 
+  function playInviteChime() {
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      loadBuffer('/audio/invite-chime.wav').then(buf => {
+        if (buf) playBufferNode(buf, 0.95, 0.0);
+      });
+    } catch (e) {
+      console.warn('playInviteChime error:', e);
+    }
+  }
+
   // Bei erstem User-Event AudioContext aufwecken, Assets cachen und Musik starten
   ['click', 'touchstart', 'keydown'].forEach(evt => {
     window.addEventListener(evt, () => {
@@ -563,6 +868,7 @@ const WizardAudio = (() => {
     playCardDeal,
     playTableThump,
     playForCard,
+    playInviteChime,
     startMusic,
     stopMusic,
     toggleMusic,
@@ -607,10 +913,45 @@ const WizardAudio = (() => {
     }
   };
 })();
+if (typeof window !== 'undefined') window.WizardAudio = WizardAudio;
+
+// --- CAPACITOR & WEB HAPTISCHES FEEDBACK ---
+const GrimoireHaptics = {
+  async impact(style = 'light') {
+    try {
+      if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Haptics')) {
+        const capStyle = style === 'heavy' ? 'HEAVY' : (style === 'medium' ? 'MEDIUM' : 'LIGHT');
+        await window.Capacitor.Plugins.Haptics.impact({ style: capStyle });
+      } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(style === 'heavy' ? 45 : (style === 'medium' ? 25 : 12));
+      }
+    } catch (e) {}
+  },
+  async notification(type = 'success') {
+    try {
+      if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Haptics')) {
+        await window.Capacitor.Plugins.Haptics.notification({ type: type.toUpperCase() });
+      } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(type === 'error' ? [30, 40, 30] : (type === 'warning' ? [20, 30] : [20, 25, 20]));
+      }
+    } catch (e) {}
+  },
+  async selection() {
+    try {
+      if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isPluginAvailable && window.Capacitor.isPluginAvailable('Haptics')) {
+        await window.Capacitor.Plugins.Haptics.selectionChanged();
+      } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(8);
+      }
+    } catch (e) {}
+  }
+};
+if (typeof window !== 'undefined') window.GrimoireHaptics = GrimoireHaptics;
 
 // --- "DU BIST DRAN!" TOAST-POP-UP TRIGGER (1.4s AUTO-FADE) ---
 let turnPopupTimer = null;
 function triggerTurnPopup() {
+  GrimoireHaptics.impact('medium');
   const banner = document.getElementById('turn-popup-banner');
   if (!banner) return;
   clearTimeout(turnPopupTimer);
@@ -665,22 +1006,43 @@ const WizardAuth = (() => {
     } catch (e) {}
   }
 
+  function getCachedUser() {
+    try {
+      const raw = localStorage.getItem('wizard_cached_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setCachedUser(user) {
+    try {
+      if (user) {
+        localStorage.setItem('wizard_cached_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('wizard_cached_user');
+      }
+    } catch (e) {}
+  }
+
   async function checkSession() {
     const token = getToken();
     if (!token) {
       currentUser = null;
+      setCachedUser(null);
       renderLobbyBar();
       return null;
     }
 
     try {
-      const resp = await fetch('/api/auth/me', {
+      const resp = await fetch(getApiUrl('/api/auth/me'), {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (!resp.ok) {
         setToken(null);
+        setCachedUser(null);
         currentUser = null;
         renderLobbyBar();
         return null;
@@ -688,8 +1050,12 @@ const WizardAuth = (() => {
       const data = await resp.json();
       if (data.success && data.user) {
         currentUser = data.user;
+        setCachedUser(currentUser);
         if (socket) {
           socket.auth = { token };
+          if (socket.connected) {
+            socket.emit('authIdentify', { token });
+          }
         }
         if (nameInput) {
           nameInput.value = data.user.username;
@@ -699,6 +1065,7 @@ const WizardAuth = (() => {
         return data.user;
       } else {
         setToken(null);
+        setCachedUser(null);
         currentUser = null;
         renderLobbyBar();
         return null;
@@ -716,7 +1083,7 @@ const WizardAuth = (() => {
       return false;
     }
     try {
-      const resp = await fetch('/api/auth/login', {
+      const resp = await fetch(getApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -728,8 +1095,10 @@ const WizardAuth = (() => {
       }
       setToken(data.token);
       currentUser = data.user;
+      setCachedUser(currentUser);
       if (socket) {
         socket.auth = { token: data.token };
+        if (socket.connected) socket.emit('authIdentify', { token: data.token });
       }
       if (nameInput) {
         nameInput.value = data.user.username;
@@ -751,7 +1120,7 @@ const WizardAuth = (() => {
       return false;
     }
     try {
-      const resp = await fetch('/api/auth/register', {
+      const resp = await fetch(getApiUrl('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, avatar_id: avatarId || 'wizard_blue' })
@@ -763,8 +1132,10 @@ const WizardAuth = (() => {
       }
       setToken(data.token);
       currentUser = data.user;
+      setCachedUser(currentUser);
       if (socket) {
         socket.auth = { token: data.token };
+        if (socket.connected) socket.emit('authIdentify', { token: data.token });
       }
       if (nameInput) {
         nameInput.value = data.user.username;
@@ -784,13 +1155,14 @@ const WizardAuth = (() => {
     const token = getToken();
     if (token) {
       try {
-        await fetch('/api/auth/logout', {
+        await fetch(getApiUrl('/api/auth/logout'), {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });
       } catch (e) {}
     }
     setToken(null);
+    setCachedUser(null);
     currentUser = null;
     if (socket) {
       socket.auth = {};
@@ -804,7 +1176,7 @@ const WizardAuth = (() => {
     const token = getToken();
     if (!token) return;
     try {
-      const resp = await fetch('/api/auth/profile', {
+      const resp = await fetch(getApiUrl('/api/auth/profile'), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -815,6 +1187,7 @@ const WizardAuth = (() => {
       const data = await resp.json();
       if (data.success && data.user) {
         currentUser = data.user;
+        setCachedUser(currentUser);
         renderLobbyBar();
         renderProfileData();
         showToast(`Ehrentitel gewechselt zu "${title}"`);
@@ -828,7 +1201,7 @@ const WizardAuth = (() => {
     const token = getToken();
     if (!token) return;
     try {
-      const resp = await fetch('/api/auth/profile', {
+      const resp = await fetch(getApiUrl('/api/auth/profile'), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -839,6 +1212,7 @@ const WizardAuth = (() => {
       const data = await resp.json();
       if (data.success && data.user) {
         currentUser = data.user;
+        setCachedUser(currentUser);
         renderLobbyBar();
         renderProfileData();
         showToast('Magier-Gestalt aktualisiert!');
@@ -852,13 +1226,14 @@ const WizardAuth = (() => {
     const token = getToken();
     if (!token) return;
     try {
-      const resp = await fetch('/api/auth/me', {
+      const resp = await fetch(getApiUrl('/api/auth/me'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (resp.ok) {
         const data = await resp.json();
         if (data.success && data.user) {
           currentUser = data.user;
+          setCachedUser(currentUser);
           renderLobbyBar();
           const profileDrawer = document.getElementById('profile-drawer');
           if (profileDrawer && profileDrawer.classList.contains('open')) {
@@ -1111,75 +1486,188 @@ const WizardAuth = (() => {
     }
   }
 
-  async function openLeaderboard() {
-    const modal = document.getElementById('leaderboard-modal');
-    if (modal) modal.style.display = 'flex';
-    await loadLeaderboard();
-  }
+  let currentLeaderboardTab = 'alltime';
 
   function closeLeaderboard() {
     const modal = document.getElementById('leaderboard-modal');
     if (modal) modal.style.display = 'none';
   }
 
-  async function loadLeaderboard() {
+  async function openLeaderboard(tab = 'alltime') {
+    const modal = document.getElementById('leaderboard-modal');
+    if (modal) modal.style.display = 'flex';
+    currentLeaderboardTab = (typeof tab === 'string' && tab) ? tab : 'alltime';
+    updateLeaderboardTabUI();
+    await loadLeaderboard(currentLeaderboardTab);
+  }
+
+  function updateLeaderboardTabUI() {
+    const tabAlltime = document.getElementById('tabLeaderboardAlltime');
+    const tabRanked = document.getElementById('tabLeaderboardRanked');
+    const titleEl = document.getElementById('leaderboardTitle');
+    const subEl = document.getElementById('leaderboardSubtitle');
+
+    if (tabAlltime) tabAlltime.classList.toggle('active', currentLeaderboardTab === 'alltime');
+    if (tabRanked) tabRanked.classList.toggle('active', currentLeaderboardTab === 'ranked');
+
+    if (currentLeaderboardTab === 'ranked') {
+      if (titleEl) titleEl.innerText = 'Magier-Rangliste (Ranked)';
+      if (subEl) subEl.innerText = 'Die mächtigsten Magier im gewerteten Duell nach Skill Rating (SR)';
+    } else {
+      if (titleEl) titleEl.innerText = 'Ruhmeshalle der Großmagier';
+      if (subEl) subEl.innerText = 'Die besten Magier aller Reiche im ewigen Wettstreit';
+    }
+  }
+
+  async function loadLeaderboard(type = 'alltime') {
+    const thead = document.getElementById('leaderboardTableHead');
     const tbody = document.getElementById('leaderboardTableBody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #d6be90; font-style: italic;">Rufe Chronik der Großmagier ab...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #d6be90; font-style: italic;">Rufe Chronik der Magier ab...</td></tr>';
 
-    try {
-      const resp = await fetch('/api/leaderboard?limit=10');
-      const data = await resp.json();
-      if (!data.success || !Array.isArray(data.leaderboard) || data.leaderboard.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #d6be90; font-style: italic;">Noch keine Magier in der Ruhmeshalle verzeichnet. Bestreite das erste Duell!</td></tr>';
-        return;
+    if (type === 'ranked') {
+      if (thead) {
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 46px; text-align: center;">Rang</th>
+            <th>Magier</th>
+            <th>Liga & Division</th>
+            <th style="text-align: center;">Skill Rating</th>
+            <th style="text-align: center;">Höchstes SR</th>
+            <th style="text-align: center;">Siege / Niederlagen</th>
+            <th style="text-align: center;">Winrate</th>
+          </tr>
+        `;
       }
 
-      tbody.innerHTML = '';
-      data.leaderboard.forEach((entry, idx) => {
-        const row = document.createElement('tr');
-        const rank = idx + 1;
-        let rankClass = 'rank-other';
-        let rankLabel = rank;
-        if (rank === 1) { rankClass = 'rank-1'; rankLabel = '🥇'; }
-        else if (rank === 2) { rankClass = 'rank-2'; rankLabel = '🥈'; }
-        else if (rank === 3) { rankClass = 'rank-3'; rankLabel = '🥉'; }
+      try {
+        const resp = await fetch(getApiUrl('/api/leaderboard/ranked?limit=15'));
+        const data = await resp.json();
+        if (!data.success || !Array.isArray(data.leaderboard) || data.leaderboard.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #d6be90; font-style: italic;">Noch keine Magier in der Rangliste verzeichnet. Bestreite das erste gewertete Duell!</td></tr>';
+          return;
+        }
 
-        const initial = entry.username ? entry.username.charAt(0).toUpperCase() : '?';
-        const titleBadge = entry.title ? `<span class="lb-title-badge">${escapeHtml(entry.title)}</span>` : '<span style="color:#777;">-</span>';
+        tbody.innerHTML = '';
+        data.leaderboard.forEach((entry, idx) => {
+          const row = document.createElement('tr');
+          const rank = idx + 1;
+          let rankClass = 'rank-other';
+          let rankLabel = rank;
+          if (rank === 1) { rankClass = 'rank-1'; rankLabel = '🥇'; }
+          else if (rank === 2) { rankClass = 'rank-2'; rankLabel = '🥈'; }
+          else if (rank === 3) { rankClass = 'rank-3'; rankLabel = '🥉'; }
 
-        row.innerHTML = `
-          <td style="text-align: center;">
-            <span class="rank-pill ${rankClass}">${rankLabel}</span>
-          </td>
-          <td>
-            <div class="lb-player-cell">
-              <div class="seat-avatar" style="width: 26px; height: 30px; font-size: 12px; margin: 0; box-shadow: none;">${initial}</div>
-              <span class="lb-player-name">${escapeHtml(entry.username)}</span>
-            </div>
-          </td>
-          <td>${titleBadge}</td>
-          <td style="text-align: center;">
-            <span style="color: #86efac; font-weight: bold;">${entry.games_won}W</span> - <span style="color: #fca5a5;">${entry.games_lost}L</span>
-          </td>
-          <td style="text-align: center; font-weight: bold; color: var(--gold-bright);">
-            ${entry.win_rate}%
-          </td>
-          <td style="text-align: center; color: #cbd5e1;">
-            ${entry.prophecy_rate}%
-          </td>
-          <td style="text-align: right; font-family: var(--font-medieval); font-weight: bold; color: #fde047;">
-            ${(entry.highest_score || 0).toLocaleString('de-DE')}
-          </td>
-          <td style="text-align: right; font-family: var(--font-medieval); font-weight: bold; color: var(--gold-bright);">
-            ${(entry.total_points || 0).toLocaleString('de-DE')}
-          </td>
+          const initial = entry.username ? entry.username.charAt(0).toUpperCase() : '?';
+          const r = entry.rank;
+          const crestSvg = (r && RANK_CRESTS[r.tier]) ? RANK_CRESTS[r.tier] : '';
+          const rankBadge = r ? `
+            <span class="player-rank-badge" style="color: ${r.color}; border-color: ${r.color};">
+              <span style="display:inline-block; width:18px; height:18px; vertical-align:middle;">${crestSvg}</span>
+              ${escapeHtml(r.divisionName)}
+            </span>
+          ` : '<span style="color:#777;">Unplatziert</span>';
+
+          row.innerHTML = `
+            <td style="text-align: center;">
+              <span class="rank-pill ${rankClass}">${rankLabel}</span>
+            </td>
+            <td>
+              <div class="lb-player-cell">
+                <div class="seat-avatar" style="width: 26px; height: 30px; font-size: 12px; margin: 0; box-shadow: none;">${initial}</div>
+                <span class="lb-player-name">${escapeHtml(entry.username)}</span>
+              </div>
+            </td>
+            <td>${rankBadge}</td>
+            <td style="text-align: center; font-family: var(--font-medieval); font-weight: bold; font-size: 15px; color: ${r ? r.color : '#fde047'};">
+              ${entry.skill_rating} SR
+            </td>
+            <td style="text-align: center; font-family: var(--font-medieval); color: #d6be90;">
+              ${entry.highest_skill_rating || entry.skill_rating} SR
+            </td>
+            <td style="text-align: center;">
+              <span style="color: #86efac; font-weight: bold;">${entry.ranked_games_won}W</span> - <span style="color: #fca5a5;">${entry.ranked_games_lost}L</span>
+            </td>
+            <td style="text-align: center; font-weight: bold; color: var(--gold-bright);">
+              ${entry.ranked_win_rate}%
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (e) {
+        console.warn('Fehler beim Laden der Rangliste:', e);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Verbindungsfehler beim Laden der Rangliste.</td></tr>';
+      }
+    } else {
+      if (thead) {
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 46px; text-align: center;">Rang</th>
+            <th>Magier</th>
+            <th>Ehrentitel</th>
+            <th style="text-align: center;">Siege / Niederlagen</th>
+            <th style="text-align: center;">Winrate</th>
+            <th style="text-align: center;">Prophezeiung</th>
+            <th style="text-align: right;">Highscore</th>
+            <th style="text-align: right;">Gesamtpunkte</th>
+          </tr>
         `;
-        tbody.appendChild(row);
-      });
-    } catch (e) {
-      console.warn('Fehler beim Laden der Bestenliste:', e);
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #ef4444;">Verbindungsfehler beim Laden der Ruhmeshalle.</td></tr>';
+      }
+
+      try {
+        const resp = await fetch(getApiUrl('/api/leaderboard?limit=10'));
+        const data = await resp.json();
+        if (!data.success || !Array.isArray(data.leaderboard) || data.leaderboard.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #d6be90; font-style: italic;">Noch keine Magier in der Ruhmeshalle verzeichnet. Bestreite das erste Duell!</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        data.leaderboard.forEach((entry, idx) => {
+          const row = document.createElement('tr');
+          const rank = idx + 1;
+          let rankClass = 'rank-other';
+          let rankLabel = rank;
+          if (rank === 1) { rankClass = 'rank-1'; rankLabel = '🥇'; }
+          else if (rank === 2) { rankClass = 'rank-2'; rankLabel = '🥈'; }
+          else if (rank === 3) { rankClass = 'rank-3'; rankLabel = '🥉'; }
+
+          const initial = entry.username ? entry.username.charAt(0).toUpperCase() : '?';
+          const titleBadge = entry.title ? `<span class="lb-title-badge">${escapeHtml(entry.title)}</span>` : '<span style="color:#777;">-</span>';
+
+          row.innerHTML = `
+            <td style="text-align: center;">
+              <span class="rank-pill ${rankClass}">${rankLabel}</span>
+            </td>
+            <td>
+              <div class="lb-player-cell">
+                <div class="seat-avatar" style="width: 26px; height: 30px; font-size: 12px; margin: 0; box-shadow: none;">${initial}</div>
+                <span class="lb-player-name">${escapeHtml(entry.username)}</span>
+              </div>
+            </td>
+            <td>${titleBadge}</td>
+            <td style="text-align: center;">
+              <span style="color: #86efac; font-weight: bold;">${entry.games_won}W</span> - <span style="color: #fca5a5;">${entry.games_lost}L</span>
+            </td>
+            <td style="text-align: center; font-weight: bold; color: var(--gold-bright);">
+              ${entry.win_rate}%
+            </td>
+            <td style="text-align: center; color: #cbd5e1;">
+              ${entry.prophecy_rate}%
+            </td>
+            <td style="text-align: right; font-family: var(--font-medieval); font-weight: bold; color: #fde047;">
+              ${(entry.highest_score || 0).toLocaleString('de-DE')}
+            </td>
+            <td style="text-align: right; font-family: var(--font-medieval); font-weight: bold; color: var(--gold-bright);">
+              ${(entry.total_points || 0).toLocaleString('de-DE')}
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (e) {
+        console.warn('Fehler beim Laden der Bestenliste:', e);
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #ef4444;">Verbindungsfehler beim Laden der Ruhmeshalle.</td></tr>';
+      }
     }
   }
 
@@ -1246,16 +1734,58 @@ const WizardAuth = (() => {
     // Leaderboard Controls
     const lbCloseBtn = document.getElementById('leaderboardCloseBtn');
     const btnRefreshLb = document.getElementById('btnRefreshLeaderboard');
+    const tabLbAlltime = document.getElementById('tabLeaderboardAlltime');
+    const tabLbRanked = document.getElementById('tabLeaderboardRanked');
+
     if (lbCloseBtn) lbCloseBtn.addEventListener('click', closeLeaderboard);
-    if (btnRefreshLb) btnRefreshLb.addEventListener('click', loadLeaderboard);
+    const lbModal = document.getElementById('leaderboard-modal');
+    if (lbModal) {
+      lbModal.addEventListener('click', (e) => {
+        if (e.target === lbModal) closeLeaderboard();
+      });
+    }
+    if (tabLbAlltime) tabLbAlltime.addEventListener('click', () => {
+      currentLeaderboardTab = 'alltime';
+      updateLeaderboardTabUI();
+      loadLeaderboard('alltime');
+    });
+    if (tabLbRanked) tabLbRanked.addEventListener('click', () => {
+      currentLeaderboardTab = 'ranked';
+      updateLeaderboardTabUI();
+      loadLeaderboard('ranked');
+    });
+    if (btnRefreshLb) btnRefreshLb.addEventListener('click', () => loadLeaderboard(currentLeaderboardTab));
+
+    // Penalty-Notice Modal Controls
+    const btnPenaltyNoticeAck = document.getElementById('btnPenaltyNoticeAck');
+    const penaltyNoticeModal = document.getElementById('penalty-notice-modal');
+    if (btnPenaltyNoticeAck && penaltyNoticeModal) {
+      btnPenaltyNoticeAck.addEventListener('click', () => {
+        penaltyNoticeModal.style.display = 'none';
+      });
+    }
   }
 
   return {
     init: async () => {
+      // 0ms Auto-Login: Synchron aus dem lokalen Speicher laden
+      const token = getToken();
+      const cached = getCachedUser();
+      if (token && cached) {
+        currentUser = cached;
+        if (nameInput && cached.username) {
+          nameInput.value = cached.username;
+          sessionStorage.setItem('wizard_last_name', cached.username);
+        }
+        renderLobbyBar();
+      }
       setupUIBindings();
       await checkSession();
     },
+    getUser: () => currentUser,
     getCurrentUser: () => currentUser,
+    getCachedUser,
+    setCachedUser,
     getToken,
     setToken,
     login,
@@ -1272,6 +1802,333 @@ const WizardAuth = (() => {
     refreshUser
   };
 })();
+if (typeof window !== 'undefined') window.WizardAuth = WizardAuth;
+
+// --- GRIMOIRE DER GEFÄHRTEN & OVERWATCH-STYLE INVITE CONTROLLER ---
+const CompanionsManager = (() => {
+  let cachedFriends = [];
+  let inviteTimerInterval = null;
+  let pendingInviteData = null;
+
+  function init() {
+    setupUI();
+    setupSocket();
+  }
+
+  function setupUI() {
+    const drawer = document.getElementById('companions-drawer');
+    const closeBtn = document.getElementById('btnCompanionsClose');
+    const guestOpenBtn = document.getElementById('btnOpenCompanionsGuest');
+    const userOpenBtn = document.getElementById('btnOpenCompanionsUser');
+    const waitingOpenBtn = document.getElementById('btnOpenCompanionsWaiting');
+
+    if (guestOpenBtn) guestOpenBtn.addEventListener('click', () => openCompanions());
+    if (userOpenBtn) userOpenBtn.addEventListener('click', () => openCompanions());
+    if (waitingOpenBtn) waitingOpenBtn.addEventListener('click', () => openCompanions());
+
+    if (closeBtn) closeBtn.addEventListener('click', closeCompanions);
+
+    const backdrop = document.getElementById('drawer-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        if (drawer && drawer.classList.contains('open')) {
+          closeCompanions();
+        }
+      });
+    }
+
+    const btnAdd = document.getElementById('btnAddFriend');
+    const inputName = document.getElementById('inputAddFriendName');
+    if (btnAdd && inputName) {
+      btnAdd.addEventListener('click', () => {
+        const val = inputName.value.trim();
+        if (!val) return;
+        socket.emit('addFriend', { friendUsername: val, token: WizardAuth.getToken() });
+        inputName.value = '';
+      });
+      inputName.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          btnAdd.click();
+        }
+      });
+    }
+
+    const btnGuestRegister = document.getElementById('btnCompanionsGuestRegister');
+    if (btnGuestRegister) {
+      btnGuestRegister.addEventListener('click', () => {
+        closeCompanions();
+        if (typeof WizardAuth !== 'undefined' && WizardAuth.openAuthModal) {
+          WizardAuth.openAuthModal('register');
+        }
+      });
+    }
+
+    // Overwatch Invite Modal Buttons
+    const btnAccept = document.getElementById('btnAcceptInvite');
+    const btnDecline = document.getElementById('btnDeclineInvite');
+    if (btnAccept) {
+      btnAccept.addEventListener('click', () => {
+        if (pendingInviteData && pendingInviteData.roomCode) {
+          const code = pendingInviteData.roomCode;
+          closeInviteModal();
+          joinRoomWithCode(code);
+        }
+      });
+    }
+    if (btnDecline) {
+      btnDecline.addEventListener('click', closeInviteModal);
+    }
+  }
+
+  function setupSocket() {
+    if (!socket || typeof socket.on !== 'function') return;
+
+    socket.on('friendsList', ({ friends }) => {
+      cachedFriends = friends || [];
+      renderFriendsList();
+    });
+
+    socket.on('friendActionSuccess', ({ message }) => {
+      showToast(message || 'Aktion erfolgreich!');
+      const msgEl = document.getElementById('companionActionMessage');
+      if (msgEl) {
+        msgEl.innerText = message || '';
+        msgEl.style.color = '#86efac';
+        msgEl.style.display = 'block';
+        setTimeout(() => { if (msgEl) msgEl.style.display = 'none'; }, 4000);
+      }
+    });
+
+    socket.on('friendActionError', ({ message }) => {
+      showToast('⚠️ ' + (message || 'Fehler!'));
+      const msgEl = document.getElementById('companionActionMessage');
+      if (msgEl) {
+        msgEl.innerText = message || '';
+        msgEl.style.color = '#f87171';
+        msgEl.style.display = 'block';
+        setTimeout(() => { if (msgEl) msgEl.style.display = 'none'; }, 4000);
+      }
+    });
+
+    socket.on('friendGameInvite', (inviteData) => {
+      showInviteModal(inviteData);
+    });
+  }
+
+  function openCompanions() {
+    // Andere Drawers schließen
+    if (typeof closeScoreDrawer === 'function') closeScoreDrawer();
+    if (typeof closeRulesDrawer === 'function') closeRulesDrawer();
+    if (typeof WizardAuth !== 'undefined' && WizardAuth.closeProfileDrawer) {
+      WizardAuth.closeProfileDrawer();
+    }
+
+    const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
+    const guestView = document.getElementById('companions-guest-view');
+    const userView = document.getElementById('companions-user-view');
+    const drawer = document.getElementById('companions-drawer');
+    const backdrop = document.getElementById('drawer-backdrop');
+
+    if (!user) {
+      if (guestView) guestView.style.display = 'block';
+      if (userView) userView.style.display = 'none';
+    } else {
+      if (guestView) guestView.style.display = 'none';
+      if (userView) userView.style.display = 'block';
+      if (socket && typeof socket.emit === 'function') {
+        socket.emit('getFriends', { token: WizardAuth.getToken() });
+      }
+    }
+
+    if (drawer) drawer.classList.add('open');
+    if (backdrop) backdrop.classList.add('open');
+  }
+
+  function closeCompanions() {
+    const drawer = document.getElementById('companions-drawer');
+    const backdrop = document.getElementById('drawer-backdrop');
+    if (drawer) drawer.classList.remove('open');
+
+    const scoreDrawer = document.getElementById('score-board-drawer');
+    const rulesDrawer = document.getElementById('rules-drawer');
+    const profileDrawer = document.getElementById('profile-drawer');
+    const scoreOpen = scoreDrawer && scoreDrawer.classList.contains('open');
+    const rulesOpen = rulesDrawer && rulesDrawer.classList.contains('open');
+    const profileOpen = profileDrawer && profileDrawer.classList.contains('open');
+    if (backdrop && !scoreOpen && !rulesOpen && !profileOpen) {
+      backdrop.classList.remove('open');
+    }
+  }
+
+  function renderFriendsList() {
+    const listEl = document.getElementById('companionsList');
+    const countEl = document.getElementById('companionsCount');
+    if (countEl) countEl.innerText = cachedFriends.length;
+    if (!listEl) return;
+
+    if (cachedFriends.length === 0) {
+      listEl.innerHTML = `
+        <div style="text-align: center; color: #a89070; padding: 28px 12px; font-style: italic; font-size: 13.5px;">
+          Dein Grimoire ist noch leer. Gib den Namen eines Magiers ein, um euren Bund zu stiften!
+        </div>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = '';
+    cachedFriends.forEach(friend => {
+      const card = document.createElement('div');
+      card.className = 'companion-card';
+
+      const statusMap = {
+        citadel: { label: 'In der Zitadelle', dot: '🟢', color: '#86efac' },
+        waiting_room: { label: friend.liveStatusText || 'Im Warteraum', dot: '🟡', color: '#fde047' },
+        in_game: { label: friend.liveStatusText || 'Im Duell', dot: '🔴', color: '#f87171' },
+        offline: { label: 'Abwesend', dot: '⚫', color: '#94a3b8' }
+      };
+      const st = statusMap[friend.liveStatus] || statusMap.offline;
+
+      const sr = friend.skill_rating || 1000;
+      const rank = friend.rank || (typeof getRankDetailsFromSR === 'function' ? getRankDetailsFromSR(sr) : null);
+      const divName = rank ? rank.divisionName : 'Novize V';
+      const tierKey = rank ? rank.tierKey : 'novice';
+      const crestSvg = (typeof RANK_CRESTS !== 'undefined' && RANK_CRESTS[tierKey]) ? RANK_CRESTS[tierKey] : '';
+
+      // Buttons
+      let actionButtons = '';
+      const inWaitingRoom = (currentGameState === 'lobby' && currentRoomCode);
+      if (inWaitingRoom && friend.liveStatus !== 'in_game' && friend.liveStatus !== 'offline') {
+        actionButtons += `<button class="btn-companion-action btn-invite-companion" data-id="${friend.id}" title="In Warteraum einladen">✉️ Einladen</button>`;
+      }
+      if (friend.liveStatus === 'waiting_room' && friend.liveRoomCode) {
+        actionButtons += `<button class="btn-companion-action btn-join-companion" data-code="${friend.liveRoomCode}" title="Raum beitreten">🚀 Beitreten</button>`;
+      }
+      actionButtons += `<button class="btn-companion-remove" data-id="${friend.id}" data-name="${escapeHtml(friend.username)}" title="Aus Grimoire entfernen">✕</button>`;
+
+      card.innerHTML = `
+        <div class="companion-avatar-wrap">
+          <div class="companion-mini-crest">${crestSvg}</div>
+        </div>
+        <div class="companion-info">
+          <div class="companion-name">${escapeHtml(friend.username)}</div>
+          <div class="companion-rank">${escapeHtml(divName)} • ${sr} SR</div>
+          <div class="companion-status" style="color: ${st.color}; font-size: 11px;">
+            <span>${st.dot}</span> ${escapeHtml(st.label)}
+          </div>
+        </div>
+        <div class="companion-actions">
+          ${actionButtons}
+        </div>
+      `;
+
+      listEl.appendChild(card);
+    });
+
+    // Event listener bindings
+    listEl.querySelectorAll('.btn-invite-companion').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = btn.getAttribute('data-id');
+        socket.emit('inviteFriendToRoom', { friendId: id, roomCode: currentRoomCode, token: WizardAuth.getToken() });
+      });
+    });
+
+    listEl.querySelectorAll('.btn-join-companion').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const code = btn.getAttribute('data-code');
+        closeCompanions();
+        joinRoomWithCode(code);
+      });
+    });
+
+    listEl.querySelectorAll('.btn-companion-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        if (confirm(`Möchtest du ${name} wirklich aus deinem Grimoire der Gefährten entfernen?`)) {
+          socket.emit('removeFriend', { friendId: id, token: WizardAuth.getToken() });
+        }
+      });
+    });
+  }
+
+  function showInviteModal(data) {
+    pendingInviteData = data;
+    const modal = document.getElementById('friend-invite-modal');
+    const hostEl = document.getElementById('inviteHostName');
+    const codeEl = document.getElementById('inviteRoomCode');
+    const timerFill = document.getElementById('inviteTimerFill');
+    const timerLabel = document.getElementById('inviteTimerLabel');
+    const modeBadge = document.getElementById('inviteModeBadge');
+
+    if (!modal) return;
+
+    if (hostEl) hostEl.innerText = data.hostName || 'Ein Gefährte';
+    if (codeEl) codeEl.innerText = data.roomCode || '------';
+    if (modeBadge) {
+      modeBadge.innerText = data.isRanked ? '⚔️ Rangliste' : '🍻 Schnellspiel';
+      modeBadge.className = data.isRanked ? 'waiting-mode-badge mode-ranked' : 'waiting-mode-badge mode-quickplay';
+    }
+
+    // Play CC0 Audio Chime
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playInviteChime) {
+      WizardAudio.playInviteChime();
+    }
+
+    // 15s Countdown
+    if (timerFill) timerFill.style.width = '100%';
+    if (timerLabel) timerLabel.innerText = '15s';
+
+    if (inviteTimerInterval) clearInterval(inviteTimerInterval);
+
+    const startTime = Date.now();
+    const duration = 15000;
+
+    inviteTimerInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const leftMs = Math.max(0, duration - elapsed);
+      const pct = (leftMs / duration) * 100;
+      const sec = Math.ceil(leftMs / 1000);
+
+      if (timerFill) timerFill.style.width = `${pct}%`;
+      if (timerLabel) timerLabel.innerText = `${sec}s`;
+
+      if (leftMs <= 0) {
+        clearInterval(inviteTimerInterval);
+        inviteTimerInterval = null;
+        closeInviteModal();
+      }
+    }, 100);
+
+    modal.style.display = 'flex';
+  }
+
+  function closeInviteModal() {
+    if (inviteTimerInterval) {
+      clearInterval(inviteTimerInterval);
+      inviteTimerInterval = null;
+    }
+    pendingInviteData = null;
+    const modal = document.getElementById('friend-invite-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function joinRoomWithCode(code) {
+    if (!code) return;
+    if (nameInput && !nameInput.value.trim()) {
+      const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
+      if (user && user.username) nameInput.value = user.username;
+    }
+    if (roomInput) roomInput.value = code;
+    if (joinBtn) joinBtn.click();
+  }
+
+  return {
+    init,
+    open: openCompanions,
+    close: closeCompanions
+  };
+})();
+if (typeof window !== 'undefined') window.CompanionsManager = CompanionsManager;
 
 // Screen-Manager zur sauberen Umschaltung zwischen den 3 Screens
 function switchScreen(screenName) {
@@ -1340,13 +2197,15 @@ function closeRulesDrawer() {
   }
 }
 
-scoreDrawerToggle.addEventListener('click', () => {
-  if (scoreDrawer.classList.contains('open')) {
-    closeScoreDrawer();
-  } else {
-    openScoreDrawer();
-  }
-});
+if (scoreDrawerToggle) {
+  scoreDrawerToggle.addEventListener('click', () => {
+    if (scoreDrawer && scoreDrawer.classList.contains('open')) {
+      closeScoreDrawer();
+    } else {
+      openScoreDrawer();
+    }
+  });
+}
 
 if (rulesDrawerToggle) {
   rulesDrawerToggle.addEventListener('click', () => {
@@ -1358,7 +2217,7 @@ if (rulesDrawerToggle) {
   });
 }
 
-scoreDrawerClose.addEventListener('click', closeScoreDrawer);
+if (scoreDrawerClose) scoreDrawerClose.addEventListener('click', closeScoreDrawer);
 if (rulesDrawerClose) rulesDrawerClose.addEventListener('click', closeRulesDrawer);
 
 // Tab-Umschaltung im Grimoire der Regeln
@@ -1373,42 +2232,118 @@ document.querySelectorAll('.rules-tab-btn').forEach(btn => {
   });
 });
 
-drawerBackdrop.addEventListener('click', () => {
-  closeScoreDrawer();
-  closeRulesDrawer();
-  if (typeof WizardAuth !== 'undefined') WizardAuth.closeProfileDrawer();
-});
+if (drawerBackdrop) {
+  drawerBackdrop.addEventListener('click', () => {
+    closeScoreDrawer();
+    closeRulesDrawer();
+    if (typeof WizardAuth !== 'undefined') WizardAuth.closeProfileDrawer();
+  });
+}
+
+// --- SPIELMODUS-WAHL (LOBBY) ---
+const btnModeQuickplay = document.getElementById('btnModeQuickplay');
+const btnModeRanked = document.getElementById('btnModeRanked');
+
+function setGameMode(mode) {
+  if (mode === 'ranked') {
+    if (typeof WizardAuth !== 'undefined' && !WizardAuth.getToken()) {
+      alert('Für Ranglistenspiele musst du im Magier-Register angemeldet sein!');
+      if (typeof WizardAuth !== 'undefined') WizardAuth.openAuthModal('login');
+      return;
+    }
+    selectedGameMode = 'ranked';
+  } else {
+    selectedGameMode = 'quickplay';
+  }
+
+  if (btnModeQuickplay) btnModeQuickplay.classList.toggle('active', selectedGameMode === 'quickplay');
+  if (btnModeRanked) btnModeRanked.classList.toggle('active', selectedGameMode === 'ranked');
+}
+
+if (btnModeQuickplay) btnModeQuickplay.addEventListener('click', () => setGameMode('quickplay'));
+if (btnModeRanked) btnModeRanked.addEventListener('click', () => setGameMode('ranked'));
 
 // --- SCREEN 1: HAUPT-LOBBY ---
+function clearLobbyInputErrors() {
+  if (nameInput) nameInput.classList.remove('input-error');
+  if (roomInput) roomInput.classList.remove('input-error');
+  if (lobbyStatusMsg) {
+    lobbyStatusMsg.style.display = 'none';
+    lobbyStatusMsg.textContent = '';
+  }
+}
+
+function showLobbyError(msg, targetInput = null) {
+  if (lobbyStatusMsg) {
+    lobbyStatusMsg.textContent = msg;
+    lobbyStatusMsg.style.display = 'block';
+    lobbyStatusMsg.style.color = '#f87171';
+  }
+  if (targetInput) {
+    targetInput.classList.add('input-error');
+    targetInput.focus();
+  }
+}
+
 function doCreateGame() {
-  const playerName = nameInput.value.trim();
+  clearLobbyInputErrors();
+
+  if (!socket || !socket.connected) {
+    showLobbyError('⚠️ Keine Verbindung zum Spielserver. Bitte prüfe, ob "npm start" läuft.');
+    showConnectionStatus('⚠️ Keine Verbindung zum Spielserver. Bitte prüfe, ob der Server läuft.');
+    return;
+  }
+
+  const playerName = nameInput ? nameInput.value.trim() : '';
   if (!playerName) {
-    alert('Bitte gib zuerst deinen Spielernamen ein!');
-    nameInput.focus();
+    showLobbyError('Bitte gib zuerst deinen Spielernamen ein!', nameInput);
+    return;
+  }
+  if (selectedGameMode === 'ranked' && typeof WizardAuth !== 'undefined' && !WizardAuth.getToken()) {
+    showLobbyError('Für Ranglistenspiele musst du im Magier-Register angemeldet sein!');
+    WizardAuth.openAuthModal('login');
     return;
   }
   sessionStorage.setItem('wizard_last_name', playerName);
-  if (createGameBtn) createGameBtn.disabled = true;
-  statusMessage.innerText = 'Erstelle neues Spiel...';
+  if (createGameBtn) {
+    createGameBtn.disabled = true;
+    setTimeout(() => {
+      if (currentGameState === 'lobby' && createGameBtn) {
+        createGameBtn.disabled = false;
+      }
+    }, 4000);
+  }
+  if (lobbyStatusMsg) {
+    lobbyStatusMsg.textContent = 'Erstelle Spielraum in der Zitadelle...';
+    lobbyStatusMsg.style.display = 'block';
+    lobbyStatusMsg.style.color = '#fde047';
+  }
   socket.emit('createRoom', {
     playerName,
     sessionId: mySessionId,
-    authToken: WizardAuth.getToken()
+    authToken: WizardAuth.getToken(),
+    isRanked: (selectedGameMode === 'ranked')
   });
 }
 
 function doJoin() {
-  const playerName = nameInput.value.trim();
-  const rawRoomCode = roomInput.value.trim();
+  clearLobbyInputErrors();
+
+  if (!socket || !socket.connected) {
+    showLobbyError('⚠️ Keine Verbindung zum Spielserver. Bitte prüfe, ob "npm start" läuft.');
+    showConnectionStatus('⚠️ Keine Verbindung zum Spielserver. Bitte prüfe, ob der Server läuft.');
+    return;
+  }
+
+  const playerName = nameInput ? nameInput.value.trim() : '';
+  const rawRoomCode = roomInput ? roomInput.value.trim() : '';
 
   if (!playerName) {
-    alert('Bitte gib zuerst deinen Spielernamen ein!');
-    nameInput.focus();
+    showLobbyError('Bitte gib zuerst deinen Spielernamen ein!', nameInput);
     return;
   }
   if (!rawRoomCode) {
-    alert('Bitte gib den Zahlencode des Raums ein!');
-    roomInput.focus();
+    showLobbyError('Bitte gib den Zahlencode des Raums ein!', roomInput);
     return;
   }
 
@@ -1416,25 +2351,35 @@ function doJoin() {
   sessionStorage.setItem('wizard_last_name', playerName);
   sessionStorage.setItem('wizard_last_room', currentRoomCode);
 
+  if (lobbyStatusMsg) {
+    lobbyStatusMsg.textContent = 'Betrete Spielraum ' + currentRoomCode + '...';
+    lobbyStatusMsg.style.display = 'block';
+    lobbyStatusMsg.style.color = '#fde047';
+  }
+
   socket.emit('joinRoom', {
     playerName,
     roomCode: currentRoomCode,
     sessionId: mySessionId,
     authToken: WizardAuth.getToken()
   });
-
-  statusMessage.innerText = 'Betrete Raum...';
 }
 
 if (createGameBtn) createGameBtn.addEventListener('click', doCreateGame);
-joinBtn.addEventListener('click', doJoin);
-nameInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    if (roomInput.value.trim()) doJoin();
-    else doCreateGame();
-  }
-});
-roomInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doJoin(); });
+if (joinBtn) joinBtn.addEventListener('click', doJoin);
+if (nameInput) {
+  nameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      if (roomInput && roomInput.value.trim()) doJoin();
+      else doCreateGame();
+    }
+  });
+}
+if (roomInput) {
+  roomInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doJoin();
+  });
+}
 
 // Event wenn Raum erfolgreich erstellt wurde
 socket.on('roomCreated', ({ roomCode }) => {
@@ -1488,10 +2433,12 @@ if (btnCopyGameCode) {
 }
 
 // --- SCREEN 2: SEPARATER WARTERAUM ---
-waitingRoomStartBtn.addEventListener('click', () => {
-  waitingRoomStartBtn.disabled = true;
-  socket.emit('startGame', { roomCode: currentRoomCode });
-});
+if (waitingRoomStartBtn) {
+  waitingRoomStartBtn.addEventListener('click', () => {
+    waitingRoomStartBtn.disabled = true;
+    socket.emit('startGame', { roomCode: currentRoomCode });
+  });
+}
 
 if (editionSelect) {
   editionSelect.addEventListener('change', (e) => {
@@ -1501,14 +2448,27 @@ if (editionSelect) {
   });
 }
 
+function updateRulesTabForEdition(edition) {
+  const targetTab = (edition === 'anniversary_30') ? 'tab-rules-special' : 'tab-rules-basic';
+  const tabBtn = document.querySelector(`.rules-tab-btn[data-tab="${targetTab}"]`);
+  if (tabBtn) {
+    document.querySelectorAll('.rules-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.rules-tab-content').forEach(c => c.classList.remove('active'));
+    tabBtn.classList.add('active');
+    const content = document.getElementById(targetTab);
+    if (content) content.classList.add('active');
+  }
+}
+
 socket.on('editionChanged', ({ edition }) => {
   currentEdition = edition;
   if (editionSelect) editionSelect.value = edition;
   if (guestEditionDisplay) {
     guestEditionDisplay.innerText = (edition === 'anniversary_30')
-      ? '30 Jahre Jubiläumsedition'
-      : 'Standard Wizard';
+      ? 'Zeitalter der Bestien & Mythen'
+      : 'Bund der Erzmagier (Klassisch)';
   }
+  updateRulesTabForEdition(edition);
 });
 
 function confirmAndLeaveRoom() {
@@ -1518,21 +2478,25 @@ function confirmAndLeaveRoom() {
     currentRoomCode = '';
     currentGameState = 'lobby';
     switchScreen('lobby');
-    pauseOverlay.style.display = 'none';
-    gameOverModal.style.display = 'none';
+    if (pauseOverlay) pauseOverlay.style.display = 'none';
+    if (gameOverModal) gameOverModal.style.display = 'none';
   }
 }
 
-waitingRoomLeaveBtn.addEventListener('click', confirmAndLeaveRoom);
-btnLeaveGame.addEventListener('click', confirmAndLeaveRoom);
+if (waitingRoomLeaveBtn) waitingRoomLeaveBtn.addEventListener('click', confirmAndLeaveRoom);
+if (btnLeaveGame) btnLeaveGame.addEventListener('click', confirmAndLeaveRoom);
 
-resetGameBtn.addEventListener('click', () => {
-  socket.emit('resetGame', { roomCode: currentRoomCode });
-});
+if (resetGameBtn) {
+  resetGameBtn.addEventListener('click', () => {
+    socket.emit('resetGame', { roomCode: currentRoomCode });
+  });
+}
 
-btnHostReDeal.addEventListener('click', () => {
-  socket.emit('hostReDealRound', { roomCode: currentRoomCode });
-});
+if (btnHostReDeal) {
+  btnHostReDeal.addEventListener('click', () => {
+    socket.emit('hostReDealRound', { roomCode: currentRoomCode });
+  });
+}
 
 const btnHostAbortToWaiting = document.getElementById('btnHostAbortToWaiting');
 if (btnHostAbortToWaiting) {
@@ -1547,7 +2511,7 @@ if (btnPauseLeaveGame) {
 }
 
 socket.on('lobbyError', ({ message }) => {
-  alert(message);
+  showLobbyError(message);
   sessionStorage.removeItem('wizard_last_room');
   currentRoomCode = '';
   if (createGameBtn) createGameBtn.disabled = false;
@@ -1556,14 +2520,39 @@ socket.on('lobbyError', ({ message }) => {
 
 socket.on('actionError', ({ message }) => {
   alert(message);
-  waitingRoomStartBtn.disabled = false;
+  if (waitingRoomStartBtn) waitingRoomStartBtn.disabled = false;
 });
+
+// Bot-Steuerung im Warteraum
+const btnAddBot = document.getElementById('btnAddBot');
+const btnRemoveBot = document.getElementById('btnRemoveBot');
+if (btnAddBot) {
+  btnAddBot.addEventListener('click', () => {
+    socket.emit('addBot', { roomCode: currentRoomCode });
+  });
+}
+if (btnRemoveBot) {
+  btnRemoveBot.addEventListener('click', () => {
+    socket.emit('removeBot', { roomCode: currentRoomCode });
+  });
+}
 
 // Rendert den separaten Warteraum
 function updateWaitingRoomView(amIHost) {
   waitingRoomCode.innerText = currentRoomCode;
   waitingRoomCount.innerText = cachedPlayers.length;
   waitingRoomPlayersList.innerHTML = '';
+
+  const modeBadge = document.getElementById('waitingRoomModeBadge');
+  if (modeBadge) {
+    if (currentIsRanked) {
+      modeBadge.className = 'waiting-mode-badge mode-ranked';
+      modeBadge.innerHTML = '⚔️ Ranglisten-Duell (Gewertet)';
+    } else {
+      modeBadge.className = 'waiting-mode-badge mode-quickplay';
+      modeBadge.innerHTML = '🍻 Schnellspiel (Normal)';
+    }
+  }
 
   cachedPlayers.forEach(p => {
     const isMe = (p.sessionId === mySessionId);
@@ -1577,18 +2566,35 @@ function updateWaitingRoomView(amIHost) {
     item.style.border = isMe ? '1px solid #f1c40f' : '1px solid rgba(255,255,255,0.1)';
 
     const hostBadge = p.isHost ? '<span class="host-badge">Host</span>' : '';
-    const statusText = p.connected
-      ? '<span style="color: #2ecc71; font-size: 12px; font-weight: bold;">● Bereit</span>'
-      : '<span style="color: #e74c3c; font-size: 12px; font-weight: bold;">● Getrennt</span>';
+    const botBadge = p.isBot ? '<span class="bot-badge" style="background: rgba(147, 51, 234, 0.25); color: #c084fc; border: 1px solid #a855f7; border-radius: 4px; padding: 2px 6px; font-size: 11px; margin-left: 4px;">🤖 Bot</span>' : '';
+    const statusText = p.isBot
+      ? '<span style="color: #c084fc; font-size: 12px; font-weight: bold;">● KI-Bereit</span>'
+      : (p.connected
+        ? '<span style="color: #2ecc71; font-size: 12px; font-weight: bold;">● Bereit</span>'
+        : '<span style="color: #e74c3c; font-size: 12px; font-weight: bold;">● Getrennt</span>');
 
-    const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
+    const initial = p.isBot ? '🤖' : (p.name ? p.name.charAt(0).toUpperCase() : '?');
     const titleHtml = p.title ? `<div style="font-size: 11px; color: #d6be90; font-style: italic;">${escapeHtml(p.title)}</div>` : '';
+
+    let rankBadgeHtml = '';
+    if (p.rank) {
+      const crestSvg = RANK_CRESTS[p.rank.tier] || '';
+      rankBadgeHtml = `
+        <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${p.rank.divisionName} (${p.skillRating || 0} SR)">
+          <span style="display:inline-block; width:16px; height:16px; vertical-align:middle;">${crestSvg}</span>
+          ${p.rank.divisionName}
+        </span>
+      `;
+    }
 
     item.innerHTML = `
       <div style="display: flex; align-items: center; gap: 10px;">
         <div class="seat-avatar" style="width: 32px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${initial}</div>
         <div>
-          <div style="font-size: 15px;"><b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge}</div>
+          <div style="font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+            <b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge} ${botBadge}
+            ${rankBadgeHtml}
+          </div>
           ${titleHtml}
         </div>
       </div>
@@ -1607,9 +2613,18 @@ function updateWaitingRoomView(amIHost) {
       hostEditionControls.style.display = 'none';
       guestEditionDisplay.style.display = 'block';
       guestEditionDisplay.innerText = (currentEdition === 'anniversary_30')
-        ? '30 Jahre Jubiläumsedition'
-        : 'Standard Wizard';
+        ? 'Zeitalter der Bestien & Mythen'
+        : 'Bund der Erzmagier (Klassisch)';
     }
+  }
+
+  // Host-Bot-Steuerung anzeigen / aktualisieren
+  const hostBotControls = document.getElementById('host-bot-controls');
+  if (hostBotControls) {
+    hostBotControls.style.display = amIHost ? 'flex' : 'none';
+    const botCount = cachedPlayers.filter(p => p.isBot).length;
+    if (btnAddBot) btnAddBot.disabled = cachedPlayers.length >= 6;
+    if (btnRemoveBot) btnRemoveBot.disabled = botCount === 0;
   }
 
   const connectedCount = cachedPlayers.filter(p => p.connected).length;
@@ -1630,14 +2645,18 @@ socket.on('syncGameState', (state) => {
   currentRoomCode = state.roomCode;
   currentRound = state.round;
   maxRounds = state.maxRounds || Math.floor(60 / (state.players ? state.players.length : 3));
+  if (state.isRanked !== undefined) {
+    currentIsRanked = !!state.isRanked;
+  }
   if (state.edition) {
     currentEdition = state.edition;
     if (editionSelect) editionSelect.value = state.edition;
     if (guestEditionDisplay) {
       guestEditionDisplay.innerText = (state.edition === 'anniversary_30')
-        ? '30 Jahre Jubiläumsedition'
-        : 'Standard Wizard';
+        ? 'Zeitalter der Bestien & Mythen'
+        : 'Bund der Erzmagier (Klassisch)';
     }
+    updateRulesTabForEdition(state.edition);
   }
   currentGameState = state.gameState;
   myCurrentHand = state.hand || [];
@@ -1760,8 +2779,8 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
     const trumpTitle = document.getElementById('trump-selection-title');
     if (isMyTurn) {
       if (isWerewolfChooser) {
-        statusMessage.innerText = '🐺 Du hast den Werwolf! Wähle die Trumpffarbe.';
-        if (trumpTitle) trumpTitle.innerText = '🐺 Du hast den Werwolf! Wähle die Trumpffarbe:';
+        statusMessage.innerText = '🐺 Du hast die Mondbestie! Wähle die Trumpffarbe.';
+        if (trumpTitle) trumpTitle.innerText = '🐺 Du hast die Mondbestie! Wähle die Trumpffarbe:';
       } else {
         statusMessage.innerText = 'Du bist der Geber! Wähle die Trumpffarbe.';
         if (trumpTitle) trumpTitle.innerText = 'Du bist der Geber! Wähle die Trumpffarbe:';
@@ -1769,7 +2788,7 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
       trumpSelectionArea.style.display = 'block';
     } else {
       if (isWerewolfChooser) {
-        statusMessage.innerText = `🐺 ${activePlayerName} wählt die Trumpffarbe...`;
+        statusMessage.innerText = `🐺 ${activePlayerName} wählt als Mondbestie die Trumpffarbe...`;
       } else {
         const dealer = cachedPlayers.find(p => p.isDealer);
         const dealerName = dealer ? escapeHtml(dealer.name) : 'Der Geber';
@@ -1813,10 +2832,10 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
     if (jugglerModal) jugglerModal.style.display = 'none';
     if (witchModal) witchModal.style.display = 'none';
     if (isMyTurn) {
-      statusMessage.innerText = '☁️ Wolken-Fluch! Du hast den Stich gewonnen und passt deinen Tipp um +1 oder -1 an.';
+      statusMessage.innerText = '⚡ Schicksal des Himmelsschleiers! Du hast den Stich gewonnen und passt deine Prophezeiung um +1 oder -1 an.';
       if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'flex';
     } else {
-      statusMessage.innerText = `☁️ ${activePlayerName} hat den Stich mit der Wolke gewonnen und passt den Tipp an...`;
+      statusMessage.innerText = `⚡ ${activePlayerName} hat den Stich mit dem Himmelsschleier gewonnen und passt die Prophezeiung an...`;
       if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
     }
   } else if (gameState === 'juggler_passing') {
@@ -1827,9 +2846,9 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
     if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
     if (jugglerModal) jugglerModal.style.display = 'none';
     if (witchModal) witchModal.style.display = 'none';
-    statusMessage.innerText = 'Der Jongleur fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.';
+    statusMessage.innerText = 'Der Taschenspieler fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.';
     if ((!jugglerPassModal || jugglerPassModal.style.display === 'none') && myCurrentHand.length > 0 && selectedJugglerPassCardIndex === null) {
-      renderJugglerPassModal('Der Jongleur fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.');
+      renderJugglerPassModal('Der Taschenspieler fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.');
     }
   } else if (gameState === 'witch_swap') {
     bidOverlay.style.display = 'none';
@@ -1839,9 +2858,9 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
     if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
     if (jugglerModal) jugglerModal.style.display = 'none';
     if (isMyTurn) {
-      statusMessage.innerText = '🧙‍♀️ Hexen-Tausch! Wähle 1 Handkarte und 1 Karte aus dem Stich zum Tauschen.';
+      statusMessage.innerText = '🔮 Ritual der Schattenhexe! Wähle 1 Handkarte und 1 Karte aus dem Stich zum Tauschen.';
     } else {
-      statusMessage.innerText = `🧙‍♀️ ${activePlayerName} vollzieht den Hexen-Tausch mit dem Stich...`;
+      statusMessage.innerText = `🔮 ${activePlayerName} vollzieht das Ritual der Schattenhexe mit dem Stich...`;
       if (witchModal) witchModal.style.display = 'none';
     }
   } else if (gameState === 'round_over') {
@@ -1881,10 +2900,11 @@ socket.on('handDealt', (hand) => {
 
 // Trumpfwahl-Buttons (Geber)
 document.querySelectorAll('#trump-selection-area .trump-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    const suit = e.target.getAttribute('data-suit');
+  btn.addEventListener('click', () => {
+    GrimoireHaptics.impact('medium');
+    const suit = btn.getAttribute('data-suit');
     socket.emit('selectTrumpSuit', { roomCode: currentRoomCode, suit });
-    trumpSelectionArea.style.display = 'none';
+    if (trumpSelectionArea) trumpSelectionArea.style.display = 'none';
   });
 });
 
@@ -1892,6 +2912,7 @@ document.querySelectorAll('#trump-selection-area .trump-btn').forEach(btn => {
 if (btnShapeshifterWizard) {
   btnShapeshifterWizard.addEventListener('click', () => {
     if (pendingCardPlayIndex !== null) {
+      GrimoireHaptics.impact('medium');
       socket.emit('playCard', {
         roomCode: currentRoomCode,
         cardIndex: pendingCardPlayIndex,
@@ -1909,6 +2930,7 @@ if (btnShapeshifterWizard) {
 if (btnShapeshifterJester) {
   btnShapeshifterJester.addEventListener('click', () => {
     if (pendingCardPlayIndex !== null) {
+      GrimoireHaptics.impact('light');
       socket.emit('playCard', {
         roomCode: currentRoomCode,
         cardIndex: pendingCardPlayIndex,
@@ -1932,9 +2954,10 @@ if (btnShapeshifterCancel) {
 
 // Wolke-Farbauswahl
 document.querySelectorAll('#cloud-suit-modal .cloud-suit-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    const suit = e.target.getAttribute('data-suit');
+  btn.addEventListener('click', () => {
+    const suit = btn.getAttribute('data-suit');
     if (pendingCardPlayIndex !== null && suit) {
+      GrimoireHaptics.impact('light');
       socket.emit('playCard', {
         roomCode: currentRoomCode,
         cardIndex: pendingCardPlayIndex,
@@ -1956,48 +2979,12 @@ if (btnCloudCancel) {
   });
 }
 
-// Wolke: Tipp-Anpassung (+1 / -1)
-socket.on('cloudBidAdjustmentPending', ({ playerName, playerSessionId }) => {
-  if (playerSessionId !== mySessionId) {
-    statusMessage.innerText = `☁️ ${escapeHtml(playerName)} hat die Wolke gewonnen und passt den Tipp an...`;
-  }
-});
-
-socket.on('cloudBidAdjustmentPrompt', ({ currentBid }) => {
-  statusMessage.innerText = `☁️ Wolken-Prophezeiung! Passe deinen Tipp (${currentBid}) um +1 oder -1 an.`;
-  if (btnCloudMinus) {
-    btnCloudMinus.disabled = (currentBid <= 0);
-    btnCloudMinus.style.opacity = (currentBid <= 0) ? '0.4' : '1';
-    btnCloudMinus.style.cursor = (currentBid <= 0) ? 'not-allowed' : 'pointer';
-  }
-  if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'flex';
-});
-
-if (btnCloudMinus) {
-  btnCloudMinus.addEventListener('click', () => {
-    socket.emit('submitCloudBidAdjustment', { roomCode: currentRoomCode, adjustment: -1 });
-    if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
-  });
-}
-
-if (btnCloudPlus) {
-  btnCloudPlus.addEventListener('click', () => {
-    socket.emit('submitCloudBidAdjustment', { roomCode: currentRoomCode, adjustment: 1 });
-    if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
-  });
-}
-
-socket.on('cloudBidAdjusted', ({ playerName, oldBid, newBid }) => {
-  if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
-  statusMessage.innerText = `☁️ ${escapeHtml(playerName)} hat den Tipp von ${oldBid} auf ${newBid} korrigiert!`;
-});
-
 // --- 30 JAHRE JUBILÄUMSEDITION: ETAPPE 2 HANDLERS ---
 
 // Jongleur: Farbauswahl beim Ausspielen
 document.querySelectorAll('#juggler-modal .juggler-suit-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    const suit = e.target.getAttribute('data-suit');
+  btn.addEventListener('click', () => {
+    const suit = btn.getAttribute('data-suit');
     if (pendingCardPlayIndex !== null && suit) {
       socket.emit('playCard', {
         roomCode: currentRoomCode,
@@ -2057,11 +3044,11 @@ function renderJugglerPassModal(message) {
   }
 
   if (jugglerPassModal) jugglerPassModal.style.display = 'flex';
-  statusMessage.innerText = message || 'Jongleur! Wähle 1 Karte zum geheimen Weitergeben.';
+  statusMessage.innerText = message || 'Taschenspieler! Wähle 1 Karte zum geheimen Weitergeben.';
 }
 
 socket.on('jugglerPassPrompt', (data) => {
-  const message = (data && data.message) ? data.message : 'Der Jongleur fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.';
+  const message = (data && data.message) ? data.message : 'Der Taschenspieler fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.';
   if (data && Array.isArray(data.hand) && data.hand.length > 0) {
     myCurrentHand = data.hand;
   }
@@ -2135,10 +3122,11 @@ socket.on('jugglerPassingComplete', ({ message }) => {
   statusMessage.innerText = message || 'Karten wurden verdeckt weitergegeben. Das Spiel geht weiter!';
 });
 
-// Wolke: Tipp-Anpassung (+1 / -1) nach Beenden des Stichs
+// Himmelsschleier: Tipp-Anpassung (+1 / -1) nach Beenden des Stichs
 socket.on('cloudBidAdjustmentPrompt', ({ currentBid }) => {
   if (!cloudBidAdjustmentModal) return;
   cloudBidAdjustmentModal.style.display = 'flex';
+  statusMessage.innerText = `⚡ Schicksal des Himmelsschleiers! Passe deine Prophezeiung (${currentBid}) um +1 oder -1 an.`;
   if (btnCloudMinus) {
     if (currentBid <= 0) {
       btnCloudMinus.disabled = true;
@@ -2155,11 +3143,13 @@ socket.on('cloudBidAdjustmentPrompt', ({ currentBid }) => {
 });
 
 socket.on('cloudBidAdjustmentPending', ({ playerName }) => {
-  statusMessage.innerText = `☁️ ${escapeHtml(playerName)} muss die Wolken-Vorhersage anpassen (+1 / -1)...`;
+  statusMessage.innerText = `☁️ ${escapeHtml(playerName)} muss die Vorhersage anpassen (+1 / -1)...`;
 });
 
 socket.on('cloudBidAdjusted', ({ playerName, oldBid, newBid }) => {
+  if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
   showToast(`☁️ ${escapeHtml(playerName)} hat die Vorhersage von ${oldBid} auf ${newBid} geändert!`);
+  statusMessage.innerText = `☁️ ${escapeHtml(playerName)} hat die Prophezeiung von ${oldBid} auf ${newBid} korrigiert!`;
 });
 
 if (btnCloudMinus) {
@@ -2176,13 +3166,13 @@ if (btnCloudPlus) {
   });
 }
 
-// Hexe: Tausch-Modal Steuerung nach Beenden des Stichs
+// Schattenhexe: Tausch-Modal Steuerung nach Beenden des Stichs
 socket.on('witchSwapPrompt', ({ trickCards, handCards }) => {
   renderWitchModal(trickCards, handCards || myCurrentHand);
 });
 
 socket.on('witchSwapPending', ({ playerName }) => {
-  statusMessage.innerText = `🧙‍♀️ ${escapeHtml(playerName)} vollzieht den Hexen-Tausch mit dem Stich...`;
+  statusMessage.innerText = `🔮 ${escapeHtml(playerName)} vollzieht das Ritual der Schattenhexe mit dem Stich...`;
 });
 
 function renderWitchModal(trickCards, handCards) {
@@ -2209,14 +3199,14 @@ function renderWitchModal(trickCards, handCards) {
       lbl.style.fontSize = '10px';
       lbl.style.color = '#c084fc';
       lbl.style.marginBottom = '2px';
-      lbl.innerText = isWitch ? `${escapeHtml(trickItem.playerName)} (Hexe)` : escapeHtml(trickItem.playerName);
+      lbl.innerText = isWitch ? `${escapeHtml(trickItem.playerName)} (Schattenhexe)` : escapeHtml(trickItem.playerName);
 
       const el = renderCard(trickItem.card);
 
       if (isWitch) {
         wrap.style.cursor = 'not-allowed';
         wrap.style.opacity = '0.4';
-        wrap.title = 'Die Hexe selbst kann nicht aus dem Stich genommen werden';
+        wrap.title = 'Die Schattenhexe selbst kann nicht aus dem Stich genommen werden';
       } else {
         wrap.style.cursor = 'pointer';
         wrap.addEventListener('click', () => {
@@ -2295,11 +3285,11 @@ if (btnWitchCancel) {
   });
 }
 
-// Hexe: 3.5s Showcase Overlay für alle Mitspieler zum Kartenzählen
+// Schattenhexe: 3.5s Showcase Overlay für alle Mitspieler zum Kartenzählen
 socket.on('witchSwapShowcase', (data) => {
   const pName = (data && (data.witchPlayerName || data.playerName)) || 'Ein Magier';
   if (witchShowcaseMsg) {
-    witchShowcaseMsg.innerText = `🧙‍♀️ ${escapeHtml(pName)} hat einen Hexen-Tausch vollzogen!`;
+    witchShowcaseMsg.innerText = `🔮 ${escapeHtml(pName)} hat ein Tauschritual mit der Schattenhexe vollzogen!`;
   }
   if (witchShowcaseTaken) {
     witchShowcaseTaken.innerHTML = '';
@@ -2316,13 +3306,13 @@ socket.on('witchSwapShowcase', (data) => {
   }, (data && data.durationMs) || 1500);
 });
 
-// Werwolf: Benachrichtigung & Animation beim Trumpftausch
+// Mondbestie: Benachrichtigung & Animation beim Trumpftausch
 socket.on('werewolfTrumpSwapped', ({ werewolfPlayerName, takenCard, newTrumpCard, trumpSuit }) => {
   if (werewolfInfoTitle) {
-    werewolfInfoTitle.innerText = '🐺 Werwolf auf der Hand!';
+    werewolfInfoTitle.innerText = '🐺 Mondbestie auf der Hand!';
   }
   if (werewolfInfoDesc) {
-    werewolfInfoDesc.innerText = `${escapeHtml(werewolfPlayerName)} besitzt den Werwolf! Er nimmt die aufgedeckte Trumpfkarte auf die Hand und bestimmt selbst die neue Trumpffarbe:`;
+    werewolfInfoDesc.innerText = `${escapeHtml(werewolfPlayerName)} besitzt die Mondbestie! Er nimmt die aufgedeckte Trumpfkarte auf die Hand und bestimmt selbst die neue Trumpffarbe:`;
   }
   if (werewolfTakenCardContainer) {
     werewolfTakenCardContainer.innerHTML = '';
@@ -2333,7 +3323,7 @@ socket.on('werewolfTrumpSwapped', ({ werewolfPlayerName, takenCard, newTrumpCard
     if (newTrumpCard) werewolfNewCardContainer.appendChild(renderCard(newTrumpCard));
   }
   if (werewolfInfoModal) werewolfInfoModal.style.display = 'flex';
-  statusMessage.innerText = `🐺 ${escapeHtml(werewolfPlayerName)} wählt als Werwolf-Meister die Trumpffarbe!`;
+  statusMessage.innerText = `🐺 ${escapeHtml(werewolfPlayerName)} wählt als Herr der Mondbestien die Trumpffarbe!`;
 });
 
 if (btnWerewolfInfoClose) {
@@ -2345,9 +3335,9 @@ if (btnWerewolfInfoClose) {
 socket.on('vampireRevealedNewTrump', ({ vampirePlayerName, newTrumpCard, trumpSuit }) => {
   cachedTrumpCard = newTrumpCard;
   renderTrumpCard(newTrumpCard);
-  const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb', none: 'Kein Trumpf' };
+  const suitNames = { red: 'Rubin', blue: 'Saphir', green: 'Smaragd', yellow: 'Topas', none: 'Kein Trumpf' };
   const sText = suitNames[trumpSuit] || trumpSuit;
-  statusMessage.innerText = `🦇 ${escapeHtml(vampirePlayerName)} hat als Vampir eine neue Trumpfkarte aufgedeckt! (Trumpf: ${sText})`;
+  statusMessage.innerText = `🩸 ${escapeHtml(vampirePlayerName)} hat als Blutfürst eine neue Trumpfkarte aufgedeckt! (Trumpf: ${sText})`;
 });
 
 socket.on('trumpSuitChosen', ({ suit, trumpCard }) => {
@@ -2379,11 +3369,20 @@ socket.on('trickUpdated', (trickCards) => {
   renderOpponents();
 });
 
-socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName }) => {
+socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, isUnicornVoided, nextLeadName }) => {
   if (isBombed) {
-    statusMessage.innerText = `💥 Die Bombe hat den Stich neutralisiert! ${escapeHtml(nextLeadName || 'Nächster Spieler')} eröffnet den nächsten Stich.`;
+    GrimoireHaptics.impact('heavy');
+    statusMessage.innerText = `💥 Der Magiekollaps hat den Stich neutralisiert! ${escapeHtml(nextLeadName || 'Nächster Spieler')} eröffnet den nächsten Stich.`;
+  } else if (isUnicornVoided) {
+    GrimoireHaptics.impact('medium');
+    statusMessage.innerText = `🦄 Das Einhorn hat alle Mächte gebannt! Da keine Zahlenkarte lag, verpufft der Stich. ${escapeHtml(nextLeadName || 'Nächster Spieler')} eröffnet den nächsten Stich.`;
   } else {
     statusMessage.innerText = `${escapeHtml(winnerName)} gewinnt den Stich!`;
+    if (winnerSessionId === mySessionId) {
+      GrimoireHaptics.notification('success');
+    } else {
+      GrimoireHaptics.impact('light');
+    }
   }
 
   const isMe = (winnerSessionId === mySessionId);
@@ -2396,7 +3395,7 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName 
   setTimeout(() => {
     trickItems.forEach(item => {
       item.classList.remove('trick-winner-highlight');
-      if (isBombed) {
+      if (isBombed || isUnicornVoided) {
         item.classList.add('trick-clearing');
       } else if (isMe) {
         item.classList.add('trick-clearing-me');
@@ -2412,7 +3411,13 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, nextLeadName 
   }, 650);
 });
 
-socket.on('roundFinished', ({ isGameOver, scoreHistory, round }) => {
+socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedResults }) => {
+  if (isRanked !== undefined) {
+    currentIsRanked = !!isRanked;
+  }
+  if (rankedResults) {
+    cachedRankedResults = Array.isArray(rankedResults) ? rankedResults : Object.values(rankedResults);
+  }
   currentTrick = [];
   trickContainer.innerHTML = '';
   handContainer.innerHTML = '';
@@ -2546,12 +3551,23 @@ function renderOpponents() {
 
     const titleHtml = p.title ? `<div class="seat-title">${escapeHtml(p.title)}</div>` : '';
 
+    let rankBadgeHtml = '';
+    if (p.rank) {
+      const crestSvg = RANK_CRESTS[p.rank.tier] || '';
+      rankBadgeHtml = `
+        <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${p.rank.divisionName} (${p.skillRating || 0} SR)">
+          <span style="display:inline-block; width:14px; height:14px; vertical-align:middle;">${crestSvg}</span>
+          ${p.rank.divisionName}
+        </span>
+      `;
+    }
+
     seatEl.innerHTML = `
       <div class="seat-avatar ${disconnectedClass}">${initial}</div>
       <div class="seat-details">
         <div class="seat-name-row">
           <span class="seat-name">${escapeHtml(p.name)}</span>
-          ${hostBadge}${dealerBadge}
+          ${hostBadge}${dealerBadge}${rankBadgeHtml}
         </div>
         ${titleHtml}
         <div class="seat-stats">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>
@@ -2693,13 +3709,18 @@ function renderBidButtons(maxBid, forbiddenBid) {
     btn.innerText = i;
 
     if (i === forbiddenBid) {
-      btn.disabled = true;
-      btn.style.background = '#475569';
-      btn.style.opacity = '0.4';
+      btn.style.background = '#334155';
+      btn.style.opacity = '0.35';
       btn.style.cursor = 'not-allowed';
       btn.title = 'Diese Zahl ist für den Geber verboten!';
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        GrimoireHaptics.notification('error');
+        showToast('🛑 Geber-Gesetz: Die Gesamtsumme darf die Stichzahl nicht treffen!');
+      });
     } else {
       btn.addEventListener('click', () => {
+        GrimoireHaptics.impact('light');
         socket.emit('submitBid', { roomCode: currentRoomCode, bid: i });
         bidOverlay.style.display = 'none';
       });
@@ -2743,7 +3764,7 @@ function isCardPlayable(cardToPlay, hand, trick) {
   if (cardToPlay.isBlind || cardToPlay.type === 'blind_card') {
     return true;
   }
-  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb', 'shapeshifter', 'cloud', 'vampire', 'werewolf', 'witch', 'juggler'].includes(cardToPlay.type)) {
+  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb', 'shapeshifter', 'cloud', 'vampire', 'werewolf', 'witch', 'juggler', 'unicorn'].includes(cardToPlay.type)) {
     return true;
   }
   if (!trick || trick.length === 0) {
@@ -2753,7 +3774,7 @@ function isCardPlayable(cardToPlay, hand, trick) {
   for (let i = 0; i < trick.length; i++) {
     const trickCard = trick[i].card;
     const effCard = getEffectiveCard(trickCard);
-    if (effCard.type === 'wizard' || effCard.type === 'dragon') break;
+    if (effCard.type === 'wizard' || effCard.type === 'dragon' || effCard.type === 'unicorn' || effCard.type === 'bomb') break;
     if (effCard.type === 'color') {
       leadSuit = effCard.suit;
       break;
@@ -2835,12 +3856,21 @@ function renderHand(isNewDeal = false) {
         e.stopPropagation();
         if (!isMyTurn || currentGameState !== 'playing_tricks') return;
 
-        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        const isTouchDevice = ('ontouchstart' in window) && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 
         if (isTouchDevice && inspectedCardIndex !== index) {
           inspectedCardIndex = index;
+          GrimoireHaptics.selection();
           renderHand();
         } else {
+          if (card.type === 'bomb') {
+            GrimoireHaptics.impact('heavy');
+          } else if (card.type === 'wizard' || card.type === 'dragon') {
+            GrimoireHaptics.impact('medium');
+          } else {
+            GrimoireHaptics.impact('light');
+          }
+
           if (card.isBlind || card.type === 'blind_card') {
             socket.emit('playCard', { roomCode: currentRoomCode, cardIndex: index });
             isMyTurn = false;
@@ -2889,10 +3919,11 @@ function renderHand(isNewDeal = false) {
       }
 
       cardElement.addEventListener('click', (e) => {
-        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        const isTouchDevice = ('ontouchstart' in window) && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
         if (isTouchDevice && inspectedCardIndex !== index) {
           e.stopPropagation();
           inspectedCardIndex = index;
+          GrimoireHaptics.selection();
           renderHand();
         }
       });
@@ -2909,143 +3940,52 @@ document.addEventListener('click', () => {
   }
 });
 
-// --- HERALDISCHE WAPPEN-SVGS FÜR KARTEN ---
-const MEDIEVAL_ICONS = {
-  red: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 3L23 15H31L25 21L28 33L20 26L12 33L15 21L9 15H17L20 3Z" fill="url(#fireGrad)" stroke="#550c0f" stroke-width="1.2"/>
-    <circle cx="20" cy="20" r="4.5" fill="#f87171" stroke="#fef08a" stroke-width="1"/>
-    <defs><linearGradient id="fireGrad" x1="20" y1="3" x2="20" y2="33" gradientUnits="userSpaceOnUse"><stop stop-color="#ef4444"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient></defs>
-  </svg>`,
-
-  blue: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 4 C14 14 10 20 10 26 C10 32 14.5 36 20 36 C25.5 36 30 32 30 26 C30 20 26 14 20 4 Z" fill="url(#waterGrad)" stroke="#091d3e" stroke-width="1.2"/>
-    <path d="M16 25 Q20 20 24 25" stroke="#bae6fd" stroke-width="1.5" fill="none"/>
-    <defs><linearGradient id="waterGrad" x1="20" y1="4" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#0c4a6e"/></linearGradient></defs>
-  </svg>`,
-
-  green: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 4 C11 15 11 27 20 36 C29 27 29 15 20 4 Z" fill="url(#earthGrad)" stroke="#092612" stroke-width="1.2"/>
-    <path d="M20 8 V32 M15 18 L20 24 L25 18" stroke="#86efac" stroke-width="1.4" fill="none"/>
-    <defs><linearGradient id="earthGrad" x1="20" y1="4" x2="20" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#14532d"/></linearGradient></defs>
-  </svg>`,
-
-  yellow: `<svg viewBox="0 0 40 40" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="20" cy="20" r="8" fill="url(#sunGrad)" stroke="#5e3902" stroke-width="1.2"/>
-    <path d="M20 3 V9 M20 31 V37 M3 20 H9 M31 20 H37 M8 8 L13 13 M27 27 L32 32 M8 32 L13 27 M27 13 L32 8" stroke="#d97706" stroke-width="2" stroke-linecap="round"/>
-    <defs><linearGradient id="sunGrad" x1="20" y1="12" x2="20" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#fde047"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs>
-  </svg>`,
-
-  wizard: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="24" cy="24" r="21" stroke="#f0c355" stroke-width="1.5" stroke-dasharray="3 3"/>
-    <polygon points="24,6 38,36 10,36" stroke="#f0c355" stroke-width="1.2" fill="none"/>
-    <polygon points="24,42 38,12 10,12" stroke="#f0c355" stroke-width="1.2" fill="none"/>
-    <circle cx="24" cy="24" r="6" fill="#f0c355" stroke="#765615" stroke-width="1"/>
-    <path d="M20 24 Q24 20 28 24 Q24 28 20 24 Z" fill="#371252"/>
-  </svg>`,
-
-  jester: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 28 C12 16 16 12 24 10 C32 12 36 16 36 28 C36 34 30 38 24 38 C18 38 12 34 12 28 Z" fill="#52525b" stroke="#18181b" stroke-width="1.2"/>
-    <path d="M12 20 Q6 24 10 32 M36 20 Q42 24 38 32" stroke="#d4d4d8" stroke-width="2" fill="none"/>
-    <circle cx="10" cy="32" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
-    <circle cx="38" cy="32" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
-    <circle cx="24" cy="10" r="2.5" fill="#f0c355" stroke="#765615" stroke-width="0.8"/>
-  </svg>`,
-
-  dragon: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M24 4 C27 9 32 10 38 9 C35 15 32 20 37 25 C31 23 26 26 24 33 C22 26 17 23 11 25 C16 20 13 15 10 9 C16 10 21 9 24 4 Z" fill="url(#dragonGrad)" stroke="#78350f" stroke-width="1.2"/>
-    <path d="M24 16 L28 22 L24 28 L20 22 Z" fill="#f59e0b" stroke="#451a03" stroke-width="0.8"/>
-    <circle cx="21" cy="12" r="1.5" fill="#fef08a"/>
-    <circle cx="27" cy="12" r="1.5" fill="#fef08a"/>
-    <path d="M18 36 L24 44 L30 36 L24 39 Z" fill="#b91c1c" stroke="#450a0a" stroke-width="1"/>
-    <defs><linearGradient id="dragonGrad" x1="24" y1="4" x2="24" y2="33" gradientUnits="userSpaceOnUse"><stop stop-color="#dc2626"/><stop offset="1" stop-color="#450a0a"/></linearGradient></defs>
-  </svg>`,
-
-  fairy: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="16" cy="18" rx="10" ry="6" transform="rotate(-30 16 18)" fill="url(#fairyWingGrad)" stroke="#38bdf8" stroke-width="1.2"/>
-    <ellipse cx="32" cy="18" rx="10" ry="6" transform="rotate(30 32 18)" fill="url(#fairyWingGrad)" stroke="#38bdf8" stroke-width="1.2"/>
-    <ellipse cx="18" cy="28" rx="7" ry="4" transform="rotate(20 18 28)" fill="url(#fairyWingGrad)" stroke="#0284c7" stroke-width="1"/>
-    <ellipse cx="30" cy="28" rx="7" ry="4" transform="rotate(-20 30 28)" fill="url(#fairyWingGrad)" stroke="#0284c7" stroke-width="1"/>
-    <path d="M24 10 C25.5 10 26.5 12 26.5 14 C26.5 16 25 18 24 24 C23 18 21.5 16 21.5 14 C21.5 12 22.5 10 24 10 Z" fill="#f0fdf4" stroke="#bae6fd" stroke-width="0.8"/>
-    <polygon points="24,30 26,38 24,44 22,38" fill="#e0f2fe"/>
-    <circle cx="24" cy="13" r="2.5" fill="#fef08a"/>
-    <polygon points="36,8 37.5,12 41,13.5 37.5,15 36,19 34.5,15 31,13.5 34.5,12" fill="#fef08a"/>
-    <defs><linearGradient id="fairyWingGrad" x1="16" y1="12" x2="32" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#7dd3fc" stop-opacity="0.8"/><stop offset="1" stop-color="#0284c7" stop-opacity="0.4"/></linearGradient></defs>
-  </svg>`,
-
-  bomb: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="22" cy="27" r="14" fill="url(#bombGrad)" stroke="#0f172a" stroke-width="1.5"/>
-    <rect x="23" y="10" width="6" height="4" rx="1" fill="#475569" stroke="#1e293b" stroke-width="1" transform="rotate(25 23 10)"/>
-    <path d="M28 11 C31 8 36 7 38 10" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" fill="none"/>
-    <polygon points="38,10 42,8 40,12 44,13 40,15 41,19 37,16 35,19 36,14 32,12 36,11" fill="#ea580c" stroke="#fef08a" stroke-width="0.8"/>
-    <ellipse cx="17" cy="22" rx="4" ry="2" transform="rotate(-30 17 22)" fill="white" fill-opacity="0.3"/>
-    <defs><linearGradient id="bombGrad" x1="16" y1="16" x2="28" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#475569"/><stop offset="1" stop-color="#090d14"/></linearGradient></defs>
-  </svg>`,
-
-  shapeshifter: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 14 C12 6 24 6 24 6 C24 6 36 6 36 14 C36 28 24 40 24 40 C24 40 12 28 12 14 Z" fill="url(#maskGrad)" stroke="#34d399" stroke-width="1.2"/>
-    <path d="M24 6 V40" stroke="#064e3b" stroke-width="1" stroke-dasharray="2 2"/>
-    <path d="M16 18 Q20 15 22 19 Q19 22 16 18 Z" fill="#022c22" stroke="#6ee7b7" stroke-width="0.8"/>
-    <path d="M26 19 Q28 15 32 18 Q29 22 26 19 Z" fill="#451a03" stroke="#fef08a" stroke-width="0.8"/>
-    <path d="M18 29 Q24 33 30 29" stroke="#34d399" stroke-width="1.2" fill="none"/>
-    <circle cx="24" cy="10" r="2" fill="#fef08a"/>
-    <defs><linearGradient id="maskGrad" x1="12" y1="10" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#059669"/><stop offset="0.5" stop-color="#047857"/><stop offset="1" stop-color="#064e3b"/></linearGradient></defs>
-  </svg>`,
-
-  vampire: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M24 14 C27 8 30 8 32 12 C36 10 42 14 44 22 C39 20 35 24 33 30 C30 25 27 27 24 34 C21 27 18 25 15 30 C13 24 9 20 4 22 C6 14 12 10 16 12 C18 8 21 8 24 14 Z" fill="url(#vampGrad)" stroke="#ef4444" stroke-width="1.2"/>
-    <polygon points="21,24 22,28 23,24" fill="#ffffff"/>
-    <polygon points="25,24 26,28 27,24" fill="#ffffff"/>
-    <circle cx="20" cy="18" r="1.5" fill="#f87171"/>
-    <circle cx="28" cy="18" r="1.5" fill="#f87171"/>
-    <defs><linearGradient id="vampGrad" x1="24" y1="8" x2="24" y2="34" gradientUnits="userSpaceOnUse"><stop stop-color="#7f1d1d"/><stop offset="1" stop-color="#180303"/></linearGradient></defs>
-  </svg>`,
-
-  cloud: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 32 C12 32 9 29 9 25 C9 21.5 11.5 18.5 15 18 C16.5 13 21 9 26 9 C31.5 9 36 13 36.5 18.5 C39.5 19.5 42 22 42 25.5 C42 29 39 32 35 32 Z" fill="url(#cloudGrad)" stroke="#94a3b8" stroke-width="1.3"/>
-    <polygon points="25,21 21,29 26,29 23,37 30,27 25,27" fill="#fef08a" stroke="#ca8a04" stroke-width="0.8"/>
-    <defs><linearGradient id="cloudGrad" x1="24" y1="9" x2="24" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#64748b"/><stop offset="1" stop-color="#1e293b"/></linearGradient></defs>
-  </svg>`,
-
-  werewolf: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 36 L15 22 L10 14 L20 18 L24 8 L28 18 L38 14 L33 22 L36 36 L24 32 Z" fill="url(#werewolfGrad)" stroke="#f59e0b" stroke-width="1.3"/>
-    <circle cx="19" cy="22" r="2" fill="#fbbf24"/>
-    <circle cx="29" cy="22" r="2" fill="#fbbf24"/>
-    <polygon points="22,27 24,30 26,27" fill="#78350f"/>
-    <polygon points="20,29 21,32 22,29" fill="#fef3c7"/>
-    <polygon points="26,29 27,32 28,29" fill="#fef3c7"/>
-    <defs><linearGradient id="werewolfGrad" x1="24" y1="8" x2="24" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#b45309"/><stop offset="1" stop-color="#451a03"/></linearGradient></defs>
-  </svg>`,
-
-  witch: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10 34 C16 31 32 31 38 34 C36 31 30 28 27 26 L36 12 L22 23 C18 26 12 31 10 34 Z" fill="url(#witchGrad)" stroke="#c084fc" stroke-width="1.2"/>
-    <path d="M28 14 Q32 10 38 12 Q33 17 31 20" fill="none" stroke="#fef08a" stroke-width="1.2"/>
-    <circle cx="21" cy="29" r="2" fill="#34d399"/>
-    <circle cx="27" cy="29" r="2" fill="#34d399"/>
-    <path d="M16 38 C16 42 32 42 32 38" stroke="#a855f7" stroke-width="1.5" fill="none"/>
-    <defs><linearGradient id="witchGrad" x1="24" y1="12" x2="24" y2="38" gradientUnits="userSpaceOnUse"><stop stop-color="#7e22ce"/><stop offset="1" stop-color="#2e1065"/></linearGradient></defs>
-  </svg>`,
-
-  juggler: `<svg viewBox="0 0 48 48" class="crest-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="24" cy="12" r="5" fill="url(#jugglerOrb1)" stroke="#06b6d4" stroke-width="1.2"/>
-    <circle cx="14" cy="24" r="5" fill="url(#jugglerOrb2)" stroke="#ca8a04" stroke-width="1.2"/>
-    <circle cx="34" cy="24" r="5" fill="url(#jugglerOrb3)" stroke="#06b6d4" stroke-width="1.2"/>
-    <path d="M16 36 C18 30 24 28 24 28 C24 28 30 30 32 36 C28 40 20 40 16 36 Z" fill="url(#jugglerCap)" stroke="#38bdf8" stroke-width="1.2"/>
-    <circle cx="16" cy="36" r="1.5" fill="#fef08a"/>
-    <circle cx="32" cy="36" r="1.5" fill="#fef08a"/>
-    <circle cx="24" cy="40" r="1.5" fill="#fef08a"/>
-    <defs>
-      <radialGradient id="jugglerOrb1" cx="40%" cy="40%" r="60%"><stop stop-color="#22d3ee"/><stop offset="1" stop-color="#0e7490"/></radialGradient>
-      <radialGradient id="jugglerOrb2" cx="40%" cy="40%" r="60%"><stop stop-color="#fef08a"/><stop offset="1" stop-color="#a16207"/></radialGradient>
-      <radialGradient id="jugglerOrb3" cx="40%" cy="40%" r="60%"><stop stop-color="#67e8f9"/><stop offset="1" stop-color="#155e75"/></radialGradient>
-      <linearGradient id="jugglerCap" x1="16" y1="28" x2="32" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#0891b2"/><stop offset="1" stop-color="#164e63"/></linearGradient>
-    </defs>
-  </svg>`
-};
+// (Heraldische Wappen & Rang-Icons wurden nach oben vor den Spielzustand verlegt)
 
 // Karten-Renderer (Old Medieval Fantasy Style)
+// Artwork-Dateizuordnung für 1050 × 1498 px Artworks (mit .svg Fallbacks & alternativen Namen)
+const CARD_ARTWORK_FILES = {
+  wizard: ['archmage.png', 'archmage.svg', 'wizard.png'],
+  jester: ['charlatan.png', 'charlatan.svg', 'jester.png'],
+  unicorn: ['unicorn.png', 'unicorn.svg', 'horned_beast.png', 'horned_beast.svg'],
+  dragon: ['lindwurm.png', 'lindwurm.svg', 'wyrm.png', 'wyrm.svg', 'dragon.png'],
+  fairy: ['waldnymphe.png', 'waldnymphe.svg', 'sylph.png', 'sylph.svg', 'fairy.png'],
+  bomb: ['magiekollaps.png', 'magiekollaps.svg', 'collapse.png', 'collapse.svg', 'bomb.png'],
+  shapeshifter: ['doppelganger.png', 'doppelganger.svg', 'metamorph.png', 'metamorph.svg', 'shapeshifter.png'],
+  vampire: ['bloodlord.png', 'bloodlord.svg', 'vampire.png', 'vampire.svg'],
+  cloud: ['himmelsschleier.png', 'himmelsschleier.svg', 'cloud.png', 'cloud.svg'],
+  werewolf: ['moonbeast.png', 'moonbeast.svg', 'lycanthrope.png', 'lycanthrope.svg', 'werewolf.png'],
+  werewolf_trump: ['moonbeast.png', 'moonbeast.svg', 'lycanthrope.png', 'lycanthrope.svg', 'werewolf.png'],
+  werewolf_trump_pending: ['moonbeast.png', 'moonbeast.svg', 'lycanthrope.png', 'lycanthrope.svg', 'werewolf.png'],
+  witch: ['shadowwitch.png', 'shadowwitch.svg', 'witch.png', 'witch.svg', 'oracle.png'],
+  juggler: ['trickster.png', 'trickster.svg', 'gaukler.png', 'gaukler.svg', 'juggler.png']
+};
+
+// Karten-Renderer (Old Medieval Fantasy Style mit 1050 × 1498 px Artwork-Support)
 function renderCard(card) {
   const div = document.createElement('div');
   div.classList.add('card');
+
+  // Prüfe, ob für diese Spezialkarte ein Artwork vorhanden ist
+  const artFiles = CARD_ARTWORK_FILES[card.type];
+  if (artFiles && !card.isBlind && card.type !== 'blind_card') {
+    div.classList.add('card-has-artwork');
+    const artImg = document.createElement('img');
+    artImg.className = 'card-art-img';
+    artImg.alt = card.type;
+    let fileIdx = 0;
+    artImg.src = `/images/cards/${artFiles[fileIdx]}`;
+    artImg.onerror = function() {
+      fileIdx++;
+      if (fileIdx < artFiles.length) {
+        this.src = `/images/cards/${artFiles[fileIdx]}`;
+      } else {
+        this.remove();
+        div.classList.remove('card-has-artwork');
+      }
+    };
+    div.appendChild(artImg);
+  }
 
   if (card.isBlind || card.type === 'blind_card') {
     div.classList.add('card-blind');
@@ -3067,58 +4007,58 @@ function renderCard(card) {
 
   if (card.type === 'wizard') {
     div.classList.add('card-wizard');
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">Z</span>
+        <span class="card-val">E</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.wizard}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.wizard}</div>
-        <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">Z</div>
-        <div class="card-name-label"><em>Zauberer</em></div>
+        <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">E</div>
+        <div class="card-name-label"><em>Erzmagier</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">Z</span>
+        <span class="card-val">E</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.wizard}</div>
       </div>
     `;
   } else if (card.type === 'jester') {
     div.classList.add('card-jester');
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">N</span>
+        <span class="card-val">S</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.jester}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.jester}</div>
-        <div class="card-center-val" style="font-size: 26px; color: #f8fafc; margin-top: 2px;">N</div>
-        <div class="card-name-label"><em>Narr</em></div>
+        <div class="card-center-val" style="font-size: 26px; color: #f8fafc; margin-top: 2px;">S</div>
+        <div class="card-name-label"><em>Scharlatan</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">N</span>
+        <span class="card-val">S</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.jester}</div>
       </div>
     `;
   } else if (card.type === 'dragon') {
     div.classList.add('card-dragon');
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">D</span>
+        <span class="card-val">L</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.dragon}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.dragon}</div>
-        <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">D</div>
-        <div class="card-name-label"><em>Drache</em></div>
+        <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">L</div>
+        <div class="card-name-label"><em>Lindwurm</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">D</span>
+        <span class="card-val">L</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.dragon}</div>
       </div>
     `;
   } else if (card.type === 'fairy') {
     div.classList.add('card-fairy');
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">F</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.fairy}</div>
@@ -3126,7 +4066,7 @@ function renderCard(card) {
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.fairy}</div>
         <div class="card-center-val" style="font-size: 26px; color: #e0f2fe; margin-top: 2px;">F</div>
-        <div class="card-name-label"><em>Fee</em></div>
+        <div class="card-name-label"><em>Waldnymphe</em></div>
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">F</span>
@@ -3135,36 +4075,53 @@ function renderCard(card) {
     `;
   } else if (card.type === 'bomb') {
     div.classList.add('card-bomb');
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">B</span>
+        <span class="card-val">K</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.bomb}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.bomb}</div>
-        <div class="card-center-val" style="font-size: 26px; color: #fdba74; margin-top: 2px;">B</div>
-        <div class="card-name-label"><em>Bombe</em></div>
+        <div class="card-center-val" style="font-size: 26px; color: #fdba74; margin-top: 2px;">K</div>
+        <div class="card-name-label"><em>Magiekollaps</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">B</span>
+        <span class="card-val">K</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.bomb}</div>
+      </div>
+    `;
+  } else if (card.type === 'unicorn') {
+    div.classList.add('card-unicorn');
+    div.innerHTML += `
+      <div class="card-corner top-left">
+        <span class="card-val">H</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.unicorn}</div>
+      </div>
+      <div class="card-center">
+        <div class="card-center-crest">${MEDIEVAL_ICONS.unicorn}</div>
+        <div class="card-center-val" style="font-size: 26px; color: #e0e7ff; margin-top: 2px;">H</div>
+        <div class="card-name-label"><em>Einhorn</em></div>
+      </div>
+      <div class="card-corner bottom-right">
+        <span class="card-val">H</span>
+        <div class="card-mini-icon">${MEDIEVAL_ICONS.unicorn}</div>
       </div>
     `;
   } else if (card.type === 'shapeshifter') {
     div.classList.add('card-shapeshifter');
-    const roleSub = card.chosenRole === 'wizard' ? ' (Z)' : (card.chosenRole === 'jester' ? ' (N)' : '');
-    div.innerHTML = `
+    const roleSub = card.chosenRole === 'wizard' ? ' (E)' : (card.chosenRole === 'jester' ? ' (S)' : '');
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">G</span>
+        <span class="card-val">D</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.shapeshifter}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.shapeshifter}</div>
-        <div class="card-center-val" style="font-size: 24px; color: #a7f3d0; margin-top: 2px;">G${roleSub}</div>
-        <div class="card-name-label"><em>Gestaltenwandler</em></div>
+        <div class="card-center-val" style="font-size: 24px; color: #a7f3d0; margin-top: 2px;">D${roleSub}</div>
+        <div class="card-name-label"><em>Doppelgänger</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">G</span>
+        <span class="card-val">D</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.shapeshifter}</div>
       </div>
     `;
@@ -3172,45 +4129,46 @@ function renderCard(card) {
     div.classList.add('card-vampire');
     let copyLabel = '';
     if (card.copiedCard) {
-      if (card.copiedCard.type === 'wizard') copyLabel = '<div style="font-size: 8.5px; color: #fef08a; margin-top: 1px;">Kopie: Zauberer</div>';
-      else if (card.copiedCard.type === 'jester') copyLabel = '<div style="font-size: 8.5px; color: #cbd5e1; margin-top: 1px;">Kopie: Narr</div>';
-      else if (card.copiedCard.type === 'dragon') copyLabel = '<div style="font-size: 8.5px; color: #fef08a; margin-top: 1px;">Kopie: Drache</div>';
-      else if (card.copiedCard.type === 'fairy') copyLabel = '<div style="font-size: 8.5px; color: #bae6fd; margin-top: 1px;">Kopie: Fee</div>';
-      else if (card.copiedCard.type === 'bomb') copyLabel = '<div style="font-size: 8.5px; color: #fdba74; margin-top: 1px;">Kopie: Bombe</div>';
+      if (card.copiedCard.type === 'wizard') copyLabel = '<div style="font-size: 8.5px; color: #fef08a; margin-top: 1px;">Kopie: Erzmagier</div>';
+      else if (card.copiedCard.type === 'jester') copyLabel = '<div style="font-size: 8.5px; color: #cbd5e1; margin-top: 1px;">Kopie: Scharlatan</div>';
+      else if (card.copiedCard.type === 'dragon') copyLabel = '<div style="font-size: 8.5px; color: #fef08a; margin-top: 1px;">Kopie: Lindwurm</div>';
+      else if (card.copiedCard.type === 'fairy') copyLabel = '<div style="font-size: 8.5px; color: #bae6fd; margin-top: 1px;">Kopie: Waldnymphe</div>';
+      else if (card.copiedCard.type === 'bomb') copyLabel = '<div style="font-size: 8.5px; color: #fdba74; margin-top: 1px;">Kopie: Magiekollaps</div>';
+      else if (card.copiedCard.type === 'unicorn') copyLabel = '<div style="font-size: 8.5px; color: #f0abfc; margin-top: 1px;">Kopie: Einhorn</div>';
       else if (card.copiedCard.type === 'werewolf' || card.copiedCard.type === 'werewolf_trump' || card.copiedCard.type === 'werewolf_trump_pending') {
         const cSuit = card.copiedCard.chosenSuit ? ` (${card.copiedCard.chosenSuit})` : '';
-        copyLabel = `<div style="font-size: 8.5px; color: #f59e0b; margin-top: 1px;">Kopie: Werwolf${cSuit}</div>`;
+        copyLabel = `<div style="font-size: 8.5px; color: #f59e0b; margin-top: 1px;">Kopie: Mondbestie${cSuit}</div>`;
       }
-      else if (card.copiedCard.type === 'witch') copyLabel = '<div style="font-size: 8.5px; color: #c084fc; margin-top: 1px;">Kopie: Hexe</div>';
-      else if (card.copiedCard.type === 'juggler') copyLabel = '<div style="font-size: 8.5px; color: #67e8f9; margin-top: 1px;">Kopie: Jongleur</div>';
+      else if (card.copiedCard.type === 'witch') copyLabel = '<div style="font-size: 8.5px; color: #c084fc; margin-top: 1px;">Kopie: Schattenhexe</div>';
+      else if (card.copiedCard.type === 'juggler') copyLabel = '<div style="font-size: 8.5px; color: #67e8f9; margin-top: 1px;">Kopie: Taschenspieler</div>';
       else if (card.copiedCard.type === 'color') {
-        const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+        const suitNames = { red: 'Rubin', blue: 'Saphir', green: 'Smaragd', yellow: 'Topas' };
         const sName = suitNames[card.copiedCard.suit] || card.copiedCard.suit;
         const valStr = card.copiedCard.value ? ` ${card.copiedCard.value}` : '';
         copyLabel = `<div style="font-size: 8.5px; color: #fca5a5; margin-top: 1px;">Kopie: ${sName}${valStr}</div>`;
       }
     }
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">V</span>
+        <span class="card-val">B</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.vampire}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.vampire}</div>
-        <div class="card-center-val" style="font-size: 24px; color: #fca5a5; margin-top: 1px;">V</div>
-        <div class="card-name-label"><em>Vampir</em></div>
+        <div class="card-center-val" style="font-size: 24px; color: #fca5a5; margin-top: 1px;">B</div>
+        <div class="card-name-label"><em>Blutfürst</em></div>
         ${copyLabel}
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">V</span>
+        <span class="card-val">B</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.vampire}</div>
       </div>
     `;
   } else if (card.type === 'cloud') {
     div.classList.add('card-cloud');
-    const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+    const suitNames = { red: 'Rubin', blue: 'Saphir', green: 'Smaragd', yellow: 'Topas' };
     const suitSub = card.chosenSuit ? `<div style="font-size: 8.5px; color: #93c5fd; margin-top: 1px;">${suitNames[card.chosenSuit] || card.chosenSuit}</div>` : '';
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val" style="font-size: 13px;">9¾</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.cloud}</div>
@@ -3218,7 +4176,7 @@ function renderCard(card) {
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.cloud}</div>
         <div class="card-center-val" style="font-size: 20px; color: #f1f5f9; margin-top: 1px;">9 ¾</div>
-        <div class="card-name-label"><em>Wolke</em></div>
+        <div class="card-name-label"><em>Himmelsschleier</em></div>
         ${suitSub}
       </div>
       <div class="card-corner bottom-right">
@@ -3228,18 +4186,18 @@ function renderCard(card) {
     `;
   } else if (card.type === 'werewolf' || card.type === 'werewolf_trump_pending') {
     div.classList.add('card-werewolf');
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">W</span>
+        <span class="card-val">M</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.werewolf}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.werewolf}</div>
-        <div class="card-center-val" style="font-size: 24px; color: #f59e0b; margin-top: 2px;">W</div>
-        <div class="card-name-label"><em>Werwolf</em></div>
+        <div class="card-center-val" style="font-size: 24px; color: #f59e0b; margin-top: 2px;">M</div>
+        <div class="card-name-label"><em>Mondbestie</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">W</span>
+        <span class="card-val">M</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.werewolf}</div>
       </div>
     `;
@@ -3247,12 +4205,12 @@ function renderCard(card) {
     div.classList.add('card-werewolf', 'card-werewolf-trump');
     const chosenSuit = card.chosenSuit || card.suit || 'red';
     div.classList.add(`card-werewolf-trump-${chosenSuit}`);
-    const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+    const suitNames = { red: 'Rubin', blue: 'Saphir', green: 'Smaragd', yellow: 'Topas' };
     const suitName = suitNames[chosenSuit] || chosenSuit;
     const suitIcon = MEDIEVAL_ICONS[chosenSuit] || '';
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">W</span>
+        <span class="card-val">M</span>
         <div class="card-mini-icon">${suitIcon}</div>
       </div>
       <div class="card-center">
@@ -3260,36 +4218,36 @@ function renderCard(card) {
           <div style="width: 20px; height: 20px;">${MEDIEVAL_ICONS.werewolf}</div>
           <div style="width: 18px; height: 18px;">${suitIcon}</div>
         </div>
-        <div class="card-center-val" style="font-size: 20px; color: #fde047; margin-top: 1px;">W</div>
-        <div class="card-name-label"><em>Werwolf-Trumpf: ${suitName}</em></div>
+        <div class="card-center-val" style="font-size: 20px; color: #fde047; margin-top: 1px;">M</div>
+        <div class="card-name-label"><em>Mondbestien-Trumpf: ${suitName}</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">W</span>
+        <span class="card-val">M</span>
         <div class="card-mini-icon">${suitIcon}</div>
       </div>
     `;
   } else if (card.type === 'witch') {
     div.classList.add('card-witch');
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">H</span>
+        <span class="card-val">X</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.witch}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.witch}</div>
-        <div class="card-center-val" style="font-size: 24px; color: #c084fc; margin-top: 2px;">H</div>
-        <div class="card-name-label"><em>Hexe</em></div>
+        <div class="card-center-val" style="font-size: 24px; color: #c084fc; margin-top: 2px;">X</div>
+        <div class="card-name-label"><em>Schattenhexe</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">H</span>
+        <span class="card-val">X</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.witch}</div>
       </div>
     `;
   } else if (card.type === 'juggler') {
     div.classList.add('card-juggler');
-    const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+    const suitNames = { red: 'Rubin', blue: 'Saphir', green: 'Smaragd', yellow: 'Topas' };
     const suitSub = card.chosenSuit ? `<div style="font-size: 8.5px; color: #67e8f9; margin-top: 1px;">${suitNames[card.chosenSuit] || card.chosenSuit}</div>` : '';
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val" style="font-size: 13px;">7½</span>
         <div class="card-mini-icon">${MEDIEVAL_ICONS.juggler}</div>
@@ -3297,7 +4255,7 @@ function renderCard(card) {
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.juggler}</div>
         <div class="card-center-val" style="font-size: 20px; color: #67e8f9; margin-top: 1px;">7 ½</div>
-        <div class="card-name-label"><em>Jongleur</em></div>
+        <div class="card-name-label"><em>Taschenspieler</em></div>
         ${suitSub}
       </div>
       <div class="card-corner bottom-right">
@@ -3310,7 +4268,7 @@ function renderCard(card) {
     const iconSvg = MEDIEVAL_ICONS[card.suit] || '';
     const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
     const sName = suitNames[card.suit] || card.suit;
-    div.innerHTML = `
+    div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">${card.value}</span>
         <div class="card-mini-icon">${iconSvg}</div>
@@ -3421,6 +4379,55 @@ function showGameOverScreen(amIHost) {
 
   const sorted = [...cachedPlayers].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
 
+  // RANKED OVERWATCH PROGRESSION DISPLAY
+  const rankedBox = document.getElementById('ranked-gameover-container');
+  const resultsList = Array.isArray(cachedRankedResults)
+    ? cachedRankedResults
+    : (cachedRankedResults ? Object.values(cachedRankedResults) : []);
+
+  if (rankedBox) {
+    if (currentIsRanked && resultsList.length > 0) {
+      const myResult = resultsList.find(r => r.sessionId === mySessionId);
+      const nr = myResult ? (myResult.newRank || myResult.rank) : null;
+      if (myResult && nr) {
+        const delta = myResult.deltaSR !== undefined ? myResult.deltaSR : (myResult.delta || 0);
+        const deltaSign = delta >= 0 ? `+${delta}` : `${delta}`;
+        const deltaClass = delta >= 0 ? 'sr-delta-positive' : 'sr-delta-negative';
+        const tierKey = nr.tier || nr.tierKey || 'novice';
+        const crestSvg = RANK_CRESTS[tierKey] || '';
+        const divName = nr.divisionName || nr.label || 'Rang';
+        const tierColor = nr.color || '#fde047';
+        const progPct = nr.progressPercent !== undefined ? nr.progressPercent : (nr.progressPct || 0);
+
+        rankedBox.style.display = 'block';
+        rankedBox.innerHTML = `
+          <div class="ranked-results-box">
+            <div class="ranked-tier-showcase">
+              <div class="ranked-big-crest">${crestSvg}</div>
+              <div>
+                <div class="ranked-tier-name" style="color: ${tierColor};">${escapeHtml(divName)}</div>
+                <div style="font-size: 13px; color: #ebd7af;">
+                  ${myResult.oldSR} SR ➔ <b style="color: #fff; font-size: 15px;">${myResult.newSR} SR</b>
+                  <span class="sr-delta-badge ${deltaClass}">${deltaSign} SR</span>
+                </div>
+              </div>
+            </div>
+            <div class="sr-progress-track">
+              <div class="sr-progress-fill" style="width: ${progPct}%; background: ${tierColor};"></div>
+            </div>
+            <div style="font-size: 11px; color: #d6be90; font-family: var(--font-subheading); letter-spacing: 0.5px;">
+              ${progPct}% Divisions-Fortschritt
+            </div>
+          </div>
+        `;
+      } else {
+        rankedBox.style.display = 'none';
+      }
+    } else {
+      rankedBox.style.display = 'none';
+    }
+  }
+
   podiumList.innerHTML = '';
   sorted.forEach((p, idx) => {
     const row = document.createElement('div');
@@ -3430,7 +4437,18 @@ function showGameOverScreen(amIHost) {
     row.style.background = idx === 0 ? 'rgba(241, 196, 15, 0.25)' : 'rgba(255, 255, 255, 0.05)';
     row.style.border = idx === 0 ? '1px solid #f1c40f' : '1px solid #7f8c8d';
 
-    row.innerHTML = `<b>${idx + 1}. ${escapeHtml(p.name)}</b>: ${p.totalScore || 0} Punkte`;
+    let rankedDeltaHtml = '';
+    if (currentIsRanked && resultsList.length > 0) {
+      const pRes = resultsList.find(r => r.sessionId === p.sessionId);
+      if (pRes) {
+        const d = pRes.deltaSR !== undefined ? pRes.deltaSR : (pRes.delta || 0);
+        const sign = d >= 0 ? `+${d}` : `${d}`;
+        const cls = d >= 0 ? 'sr-delta-positive' : 'sr-delta-negative';
+        rankedDeltaHtml = ` <span class="sr-delta-badge ${cls}" style="font-size: 11px; padding: 1px 6px;">${sign} SR</span>`;
+      }
+    }
+
+    row.innerHTML = `<b>${idx + 1}. ${escapeHtml(p.name)}</b>: ${p.totalScore || 0} Punkte${rankedDeltaHtml}`;
     podiumList.appendChild(row);
   });
 
@@ -3444,6 +4462,36 @@ function showGameOverScreen(amIHost) {
   }
 
   gameOverModal.style.display = 'flex';
+}
+
+// Socket Events für Ranked-System
+socket.on('rankedResults', (results) => {
+  cachedRankedResults = results;
+});
+
+socket.on('rankedPenaltyNotice', ({ penaltyAmount, newSR, rank, notice }) => {
+  const modal = document.getElementById('penalty-notice-modal');
+  const descEl = document.getElementById('penaltyNoticeText');
+  const srEl = document.getElementById('penaltyNewSR');
+  if (modal) {
+    if (descEl && notice) descEl.innerText = notice;
+    if (srEl) srEl.innerText = `Neues Rating: ${newSR} SR (${rank ? rank.divisionName : 'Unplatziert'})`;
+    modal.style.display = 'flex';
+  }
+});
+
+const btnPenaltyNoticeAck = document.getElementById('btnPenaltyNoticeAck');
+if (btnPenaltyNoticeAck) {
+  btnPenaltyNoticeAck.addEventListener('click', () => {
+    const modal = document.getElementById('penalty-notice-modal');
+    if (modal) modal.style.display = 'none';
+  });
+}
+const penaltyNoticeModal = document.getElementById('penalty-notice-modal');
+if (penaltyNoticeModal) {
+  penaltyNoticeModal.addEventListener('click', (e) => {
+    if (e.target === penaltyNoticeModal) penaltyNoticeModal.style.display = 'none';
+  });
 }
 
 // --- AUDIO- & SOUND-EINSTELLUNGEN UI CONTROLLER ---
@@ -3618,8 +4666,105 @@ function setupResizableDrawers() {
   });
 }
 
+// --- SPIELSERVER- & NETZWERK-EINSTELLUNGEN (CAPACITOR & MOBILE) ---
+const GrimoireServerSettings = {
+  modal: null,
+  input: null,
+  feedback: null,
+
+  init() {
+    this.modal = document.getElementById('server-settings-modal');
+    this.input = document.getElementById('inputCustomServerUrl');
+    this.feedback = document.getElementById('serverSettingsFeedback');
+
+    const openBtn = document.getElementById('btnOpenServerSettings');
+    const closeBtn = document.getElementById('btnCloseServerSettings');
+    const saveBtn = document.getElementById('btnSaveServerUrl');
+    const resetBtn = document.getElementById('btnResetServerUrl');
+
+    if (openBtn) openBtn.addEventListener('click', () => this.openModal());
+    if (closeBtn) closeBtn.addEventListener('click', () => this.closeModal());
+    if (saveBtn) saveBtn.addEventListener('click', () => this.save());
+    if (resetBtn) resetBtn.addEventListener('click', () => this.reset());
+
+    if (this.modal) {
+      this.modal.addEventListener('click', (e) => {
+        if (e.target === this.modal) this.closeModal();
+      });
+    }
+  },
+
+  openModal() {
+    if (!this.modal) this.init();
+    if (this.input) {
+      this.input.value = getGrimoireServerUrl();
+    }
+    if (this.feedback) {
+      this.feedback.style.display = 'none';
+    }
+    if (this.modal) {
+      this.modal.style.display = 'flex';
+    }
+  },
+
+  closeModal() {
+    if (this.modal) {
+      this.modal.style.display = 'none';
+    }
+  },
+
+  save() {
+    if (!this.input) return;
+    const rawVal = this.input.value.trim();
+    if (rawVal) {
+      if (!rawVal.startsWith('http://') && !rawVal.startsWith('https://')) {
+        this.showFeedback('Bitte vollständige URL angeben, z. B. http://192.168.178.50:3000', true);
+        return;
+      }
+      try {
+        localStorage.setItem('grimoire_server_url', rawVal.replace(/\/+$/, ''));
+        this.showFeedback('Server-Adresse gespeichert! Seite lädt neu...', false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 600);
+      } catch (e) {
+        this.showFeedback('Fehler beim Speichern: ' + e.message, true);
+      }
+    } else {
+      this.reset();
+    }
+  },
+
+  reset() {
+    try {
+      localStorage.removeItem('grimoire_server_url');
+      if (this.input) this.input.value = '';
+      this.showFeedback('Standard-Server wiederhergestellt! Seite lädt neu...', false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 600);
+    } catch (e) {
+      this.showFeedback('Fehler beim Zurücksetzen: ' + e.message, true);
+    }
+  },
+
+  showFeedback(msg, isError) {
+    if (!this.feedback) return;
+    this.feedback.textContent = msg;
+    this.feedback.style.display = 'block';
+    this.feedback.style.background = isError ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)';
+    this.feedback.style.color = isError ? '#fca5a5' : '#86efac';
+    this.feedback.style.border = isError ? '1px solid #ef4444' : '1px solid #22c55e';
+  }
+};
+if (typeof window !== 'undefined') {
+  window.GrimoireServerSettings = GrimoireServerSettings;
+}
+
 // Initialer Zustand: Haupt-Lobby, Audio-Bindings, Auth & Drawer-Resizing einrichten
 setupAudioSettingsUI();
 setupResizableDrawers();
+GrimoireServerSettings.init();
 WizardAuth.init();
+CompanionsManager.init();
 switchScreen('lobby');

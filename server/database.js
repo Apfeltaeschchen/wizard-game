@@ -59,7 +59,22 @@ db.exec(`
     unlocked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, achievement_id)
   );
+
+  CREATE TABLE IF NOT EXISTS friendships (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    friend_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, friend_id)
+  );
 `);
+
+// Automatische Migration für Ranglisten-Felder
+try { db.exec('ALTER TABLE user_stats ADD COLUMN skill_rating INTEGER DEFAULT 1000;'); } catch (e) {}
+try { db.exec('ALTER TABLE user_stats ADD COLUMN highest_skill_rating INTEGER DEFAULT 1000;'); } catch (e) {}
+try { db.exec('ALTER TABLE user_stats ADD COLUMN ranked_games_played INTEGER DEFAULT 0;'); } catch (e) {}
+try { db.exec('ALTER TABLE user_stats ADD COLUMN ranked_games_won INTEGER DEFAULT 0;'); } catch (e) {}
+try { db.exec('ALTER TABLE user_stats ADD COLUMN pending_penalty_notice TEXT DEFAULT NULL;'); } catch (e) {}
 
 // Prepared Statements
 const stmtFindUserByName = db.prepare('SELECT * FROM users WHERE username = ?');
@@ -67,20 +82,24 @@ const stmtFindUserById = db.prepare(`
   SELECT u.id, u.username, u.avatar_id, u.title, u.created_at,
          s.games_played, s.games_won, s.games_lost, s.current_streak, s.max_win_streak,
          s.podium_finishes, s.total_points, s.highest_score, s.bids_made, s.bids_hit,
-         s.wizards_played, s.jesters_played
+         s.wizards_played, s.jesters_played,
+         s.skill_rating, s.highest_skill_rating, s.ranked_games_played, s.ranked_games_won,
+         s.pending_penalty_notice
   FROM users u
   LEFT JOIN user_stats s ON u.id = s.user_id
   WHERE u.id = ?
 `);
 
 const stmtInsertUser = db.prepare('INSERT INTO users (username, password_hash, avatar_id) VALUES (?, ?, ?)');
-const stmtInsertStats = db.prepare('INSERT INTO user_stats (user_id) VALUES (?)');
+const stmtInsertStats = db.prepare('INSERT INTO user_stats (user_id, skill_rating, highest_skill_rating) VALUES (?, 1000, 1000)');
 const stmtCreateSession = db.prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)');
 const stmtFindSession = db.prepare(`
   SELECT s.token, s.expires_at, u.id, u.username, u.avatar_id, u.title,
          st.games_played, st.games_won, st.games_lost, st.current_streak, st.max_win_streak,
          st.podium_finishes, st.total_points, st.highest_score, st.bids_made, st.bids_hit,
-         st.wizards_played, st.jesters_played
+         st.wizards_played, st.jesters_played,
+         st.skill_rating, st.highest_skill_rating, st.ranked_games_played, st.ranked_games_won,
+         st.pending_penalty_notice
   FROM sessions s
   JOIN users u ON s.user_id = u.id
   LEFT JOIN user_stats st ON u.id = st.user_id
@@ -91,11 +110,22 @@ const stmtUpdateProfile = db.prepare('UPDATE users SET avatar_id = COALESCE(?, a
 const stmtGetLeaderboard = db.prepare(`
   SELECT u.id, u.username, u.avatar_id, u.title,
          s.games_played, s.games_won, s.games_lost, s.max_win_streak, s.highest_score,
-         s.bids_made, s.bids_hit, s.total_points
+         s.bids_made, s.bids_hit, s.total_points, s.skill_rating
   FROM users u
   JOIN user_stats s ON u.id = s.user_id
   WHERE s.games_played > 0
   ORDER BY s.games_won DESC, s.highest_score DESC, s.total_points DESC
+  LIMIT ?
+`);
+
+const stmtGetRankedLeaderboard = db.prepare(`
+  SELECT u.id, u.username, u.avatar_id, u.title,
+         s.skill_rating, s.highest_skill_rating, s.ranked_games_played, s.ranked_games_won,
+         s.games_played, s.games_won, s.bids_made, s.bids_hit
+  FROM users u
+  JOIN user_stats s ON u.id = s.user_id
+  WHERE s.ranked_games_played > 0 OR s.skill_rating != 1000
+  ORDER BY s.skill_rating DESC, s.ranked_games_won DESC, s.highest_skill_rating DESC
   LIMIT ?
 `);
 
@@ -140,7 +170,7 @@ function registerUser(username, password, avatarId = 'wizard_blue') {
   stmtCreateSession.run(token, userId, expiresAt);
 
   const user = stmtFindUserById.get(userId);
-  return { success: true, token, user };
+  return { success: true, token, user: formatUserWithRank(user) };
 }
 
 /**
@@ -168,7 +198,109 @@ function loginUser(username, password) {
   stmtCreateSession.run(token, user.id, expiresAt);
 
   const fullUser = stmtFindUserById.get(user.id);
-  return { success: true, token, user: fullUser };
+  return { success: true, token, user: formatUserWithRank(fullUser) };
+}
+
+function getRankDetailsFromSR(sr) {
+  const rating = Math.max(0, sr !== undefined && sr !== null ? Number(sr) : 1000);
+  let tierKey = 'novice';
+  let tierName = 'Novize';
+  let division = 5;
+  let progressPct = 0;
+  let minSR = 0;
+  let maxSR = 199;
+
+  if (rating < 1000) {
+    tierKey = 'novice';
+    tierName = 'Novize';
+    const divIdx = Math.min(4, Math.floor(rating / 200));
+    division = 5 - divIdx;
+    minSR = divIdx * 200;
+    maxSR = minSR + 199;
+    progressPct = Math.round(((rating - minSR) / 200) * 100);
+  } else if (rating < 1500) {
+    tierKey = 'adept';
+    tierName = 'Adept';
+    const offset = rating - 1000;
+    const divIdx = Math.min(4, Math.floor(offset / 100));
+    division = 5 - divIdx;
+    minSR = 1000 + divIdx * 100;
+    maxSR = minSR + 99;
+    progressPct = Math.round(((rating - minSR) / 100) * 100);
+  } else if (rating < 2000) {
+    tierKey = 'mage';
+    tierName = 'Magier';
+    const offset = rating - 1500;
+    const divIdx = Math.min(4, Math.floor(offset / 100));
+    division = 5 - divIdx;
+    minSR = 1500 + divIdx * 100;
+    maxSR = minSR + 99;
+    progressPct = Math.round(((rating - minSR) / 100) * 100);
+  } else if (rating < 2500) {
+    tierKey = 'archmage';
+    tierName = 'Erzmagier';
+    const offset = rating - 2000;
+    const divIdx = Math.min(4, Math.floor(offset / 100));
+    division = 5 - divIdx;
+    minSR = 2000 + divIdx * 100;
+    maxSR = minSR + 99;
+    progressPct = Math.round(((rating - minSR) / 100) * 100);
+  } else if (rating < 3000) {
+    tierKey = 'grandmaster';
+    tierName = 'Großmagier';
+    const offset = rating - 2500;
+    const divIdx = Math.min(4, Math.floor(offset / 100));
+    division = 5 - divIdx;
+    minSR = 2500 + divIdx * 100;
+    maxSR = minSR + 99;
+    progressPct = Math.round(((rating - minSR) / 100) * 100);
+  } else {
+    tierKey = 'high_council';
+    tierName = 'Oberster Rat';
+    division = 1;
+    minSR = 3000;
+    maxSR = 9999;
+    progressPct = 100;
+  }
+
+  const romans = { 5: 'V', 4: 'IV', 3: 'III', 2: 'II', 1: 'I' };
+  const divisionRoman = (tierKey === 'high_council') ? '' : (romans[division] || 'V');
+  const label = (tierKey === 'high_council') ? 'Oberster Rat' : `${tierName} ${divisionRoman}`;
+
+  const tierColors = {
+    novice: '#b45309',
+    adept: '#38bdf8',
+    mage: '#fbbf24',
+    archmage: '#34d399',
+    grandmaster: '#f87171',
+    high_council: '#c084fc'
+  };
+
+  const finalProgress = Math.min(100, Math.max(0, progressPct));
+
+  return {
+    tier: tierKey,
+    tierKey,
+    tierName,
+    division,
+    divisionRoman,
+    divisionName: label,
+    label,
+    color: tierColors[tierKey] || '#fbbf24',
+    sr: rating,
+    progressPercent: finalProgress,
+    progressPct: finalProgress,
+    minSR,
+    maxSR
+  };
+}
+
+function formatUserWithRank(user) {
+  if (!user) return null;
+  return {
+    ...user,
+    rank: getRankDetailsFromSR(user.skill_rating || 1000)
+  };
 }
 
 /**
@@ -183,7 +315,7 @@ function getUserByToken(token) {
     stmtDeleteSession.run(token);
     return null;
   }
-  return row;
+  return formatUserWithRank(row);
 }
 
 /**
@@ -313,6 +445,191 @@ function getLeaderboard(limit = 10) {
   }));
 }
 
+/**
+ * Ruft die kompetitive Ranglisten-Tabelle ab
+ */
+function getRankedLeaderboard(limit = 25) {
+  const rows = stmtGetRankedLeaderboard.all(limit);
+  return rows.map((r, idx) => {
+    const rankInfo = getRankDetailsFromSR(r.skill_rating || 1000);
+    const played = r.ranked_games_played || 0;
+    const won = r.ranked_games_won || 0;
+    const lost = Math.max(0, played - won);
+    const winRate = played > 0 ? Math.round((won / played) * 100) : 0;
+    return {
+      rankPosition: idx + 1,
+      id: r.id,
+      username: r.username,
+      avatar_id: r.avatar_id,
+      title: r.title,
+      skill_rating: r.skill_rating || 1000,
+      highest_skill_rating: r.highest_skill_rating || 1000,
+      ranked_games_played: played,
+      ranked_games_won: won,
+      ranked_games_lost: lost,
+      win_rate: winRate,
+      ranked_win_rate: winRate,
+      rank: rankInfo
+    };
+  });
+}
+
+/**
+ * Verbucht das Ergebnis eines gewerteten Matches und berechnet SR-Fortschritt
+ */
+function recordRankedGameFinished(userId, { rank, totalPlayers, points, bidsMade, bidsHit }) {
+  if (!userId) return null;
+  const current = db.prepare('SELECT skill_rating, highest_skill_rating, ranked_games_played, ranked_games_won FROM user_stats WHERE user_id = ?').get(userId);
+  if (!current) return null;
+
+  const oldSR = current.skill_rating || 1000;
+  const isWin = (rank === 1);
+  const prophecyRate = (bidsMade > 0) ? (bidsHit / bidsMade) : 0;
+
+  // Overwatch-inspiriertes SR-Delta basierend auf Platzierung und Teilnehmerzahl
+  let delta = 0;
+  if (totalPlayers >= 4) {
+    if (rank === 1) delta = 28;
+    else if (rank === 2) delta = 14;
+    else if (rank === 3) delta = 3;
+    else if (rank === 4) delta = -10;
+    else if (rank === 5) delta = -18;
+    else if (rank === 6) delta = -25;
+  } else {
+    // 3 Spieler
+    if (rank === 1) delta = 25;
+    else if (rank === 2) delta = 0;
+    else delta = -22;
+  }
+
+  // Bonus für hohe Vorhersagegenauigkeit
+  if (prophecyRate >= 0.70) delta += 3;
+  if (prophecyRate >= 0.90) delta += 2;
+
+  const newSR = Math.max(0, oldSR + delta);
+  const newHighest = Math.max(current.highest_skill_rating || 1000, newSR);
+  const rankedWonInc = isWin ? 1 : 0;
+
+  db.prepare(`
+    UPDATE user_stats
+    SET skill_rating = ?,
+        highest_skill_rating = ?,
+        ranked_games_played = ranked_games_played + 1,
+        ranked_games_won = ranked_games_won + ?
+    WHERE user_id = ?
+  `).run(newSR, newHighest, rankedWonInc, userId);
+
+  const oldRank = getRankDetailsFromSR(oldSR);
+  const newRank = getRankDetailsFromSR(newSR);
+
+  return {
+    oldSR,
+    newSR,
+    delta,
+    deltaSR: delta,
+    oldRank,
+    newRank,
+    isTierUp: (newRank.tierKey !== oldRank.tierKey && newSR > oldSR),
+    isTierDown: (newRank.tierKey !== oldRank.tierKey && newSR < oldSR)
+  };
+}
+
+/**
+ * Bestraft vorzeitiges Verlassen eines gewerteten Matches (-50 SR)
+ */
+function applyLeaverPenalty(userId) {
+  if (!userId) return null;
+  const current = db.prepare('SELECT skill_rating FROM user_stats WHERE user_id = ?').get(userId);
+  if (!current) return null;
+
+  const oldSR = current.skill_rating || 1000;
+  const penalty = 50;
+  const newSR = Math.max(0, oldSR - penalty);
+
+  const notice = '⚠️ RATS-VERWARNUNG: Du hast eine gewertete Partie vorzeitig verlassen. Der Hohe Rat hat dir -50 Rangpunkte (SR) aberkannt!';
+
+  db.prepare(`
+    UPDATE user_stats
+    SET skill_rating = ?,
+        pending_penalty_notice = ?
+    WHERE user_id = ?
+  `).run(newSR, notice, userId);
+
+  return { oldSR, newSR, penalty, notice };
+}
+
+/**
+ * Holt eine anstehende Straf-Benachrichtigung ab und löscht sie
+ */
+function popPenaltyNotice(userId) {
+  if (!userId) return null;
+  const row = db.prepare('SELECT pending_penalty_notice FROM user_stats WHERE user_id = ?').get(userId);
+  if (!row || !row.pending_penalty_notice) return null;
+
+  const notice = row.pending_penalty_notice;
+  db.prepare('UPDATE user_stats SET pending_penalty_notice = NULL WHERE user_id = ?').run(userId);
+  return notice;
+}
+
+/**
+ * Freundesverwaltung: Grimoire der Gefährten
+ */
+const stmtFindFriendship = db.prepare('SELECT id FROM friendships WHERE user_id = ? AND friend_id = ?');
+const stmtInsertFriendship = db.prepare('INSERT OR IGNORE INTO friendships (user_id, friend_id) VALUES (?, ?)');
+const stmtDeleteFriendship = db.prepare('DELETE FROM friendships WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)');
+const stmtGetFriends = db.prepare(`
+  SELECT u.id, u.username, u.avatar_id, u.title, u.created_at,
+         s.games_played, s.games_won, s.games_lost, s.current_streak, s.max_win_streak,
+         s.podium_finishes, s.total_points, s.highest_score, s.bids_made, s.bids_hit,
+         s.wizards_played, s.jesters_played,
+         s.skill_rating, s.highest_skill_rating, s.ranked_games_played, s.ranked_games_won
+  FROM friendships f
+  JOIN users u ON f.friend_id = u.id
+  LEFT JOIN user_stats s ON u.id = s.user_id
+  WHERE f.user_id = ?
+  ORDER BY u.username COLLATE NOCASE ASC
+`);
+
+function addFriend(userId, friendUsername) {
+  if (!userId) return { success: false, error: 'Nicht authentifiziert.' };
+  if (!friendUsername || typeof friendUsername !== 'string') {
+    return { success: false, error: 'Bitte gib einen gültigen Magiernamen ein.' };
+  }
+  const cleanName = friendUsername.trim();
+  const targetUser = stmtFindUserByName.get(cleanName);
+  if (!targetUser) {
+    return { success: false, error: `Kein Magier namens "${cleanName}" in den Gildenbüchern gefunden.` };
+  }
+  if (targetUser.id === userId) {
+    return { success: false, error: 'Du kannst dich nicht selbst als Gefährten aufnehmen.' };
+  }
+  const existing = stmtFindFriendship.get(userId, targetUser.id);
+  if (existing) {
+    return { success: false, error: `${targetUser.username} ist bereits dein Gefährte.` };
+  }
+
+  const tx = db.transaction(() => {
+    stmtInsertFriendship.run(userId, targetUser.id);
+    stmtInsertFriendship.run(targetUser.id, userId);
+  });
+  tx();
+
+  const friendFull = formatUserWithRank(stmtFindUserById.get(targetUser.id));
+  return { success: true, friend: friendFull };
+}
+
+function removeFriend(userId, friendId) {
+  if (!userId || !friendId) return { success: false, error: 'Ungültige Anfrage.' };
+  stmtDeleteFriendship.run(userId, friendId, friendId, userId);
+  return { success: true };
+}
+
+function getFriends(userId) {
+  if (!userId) return [];
+  const rows = stmtGetFriends.all(userId);
+  return rows.map(r => formatUserWithRank(r));
+}
+
 function closeDatabase() {
   try {
     if (dbPath !== ':memory:') {
@@ -341,8 +658,17 @@ module.exports = {
   recordRoundBid,
   recordSpecialCard,
   recordGameFinished,
+  recordRankedGameFinished,
+  applyLeaverPenalty,
+  popPenaltyNotice,
   getLeaderboard,
-  getUserById: (id) => stmtFindUserById.get(id),
+  getRankedLeaderboard,
+  getRankDetailsFromSR,
+  formatUserWithRank,
+  getUserById: (id) => formatUserWithRank(stmtFindUserById.get(id)),
+  addFriend,
+  removeFriend,
+  getFriends,
   closeDatabase
 };
 

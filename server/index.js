@@ -13,6 +13,7 @@ const {
   isForbiddenBid,
   getMaxRounds
 } = require('./gameLogic');
+const { createBotPlayer, calculateBotBid, chooseBotCard } = require('./botLogic');
 
 const app = express();
 const server = http.createServer(app);
@@ -77,6 +78,12 @@ app.get('/api/leaderboard', (req, res) => {
   res.json({ success: true, leaderboard });
 });
 
+app.get('/api/leaderboard/ranked', (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 25;
+  const leaderboard = dbModule.getRankedLeaderboard(limit);
+  res.json({ success: true, leaderboard });
+});
+
 // Socket.IO Handshake Authentifizierung
 io.use((socket, next) => {
   const token = socket.handshake.auth && socket.handshake.auth.token;
@@ -91,6 +98,98 @@ io.use((socket, next) => {
 
 // In-Memory Speicher für alle aktiven Spielräume
 const rooms = {};
+
+// Online-Benutzer & Socket-Zuordnung für Grimoire der Gefährten
+const onlineUserSockets = new Map();
+
+function registerUserSocket(userId, socket) {
+  if (!userId || !socket) return;
+  const numId = Number(userId);
+  if (!onlineUserSockets.has(numId)) {
+    onlineUserSockets.set(numId, new Set());
+  }
+  onlineUserSockets.get(numId).add(socket);
+  socket.authenticatedUserId = numId;
+}
+
+function unregisterUserSocket(socket) {
+  if (socket.authenticatedUserId && onlineUserSockets.has(socket.authenticatedUserId)) {
+    const set = onlineUserSockets.get(socket.authenticatedUserId);
+    set.delete(socket);
+    if (set.size === 0) {
+      onlineUserSockets.delete(socket.authenticatedUserId);
+    }
+  }
+}
+
+function getUserLiveStatus(userId) {
+  const numId = Number(userId);
+  if (!numId) return { status: 'offline', statusText: 'Offline', roomCode: null, isHost: false };
+
+  for (const code in rooms) {
+    const room = rooms[code];
+    const player = room.players.find(p => p.userId === numId && p.connected);
+    if (player) {
+      if (room.gameState === 'lobby') {
+        return {
+          status: 'waiting_room',
+          statusText: `Warteraum #${code}`,
+          roomCode: code,
+          isHost: room.hostSessionId === player.sessionId
+        };
+      } else {
+        return {
+          status: 'in_game',
+          statusText: `Duell #${code} (Runde ${room.round})`,
+          roomCode: code,
+          isHost: room.hostSessionId === player.sessionId
+        };
+      }
+    }
+  }
+
+  if (onlineUserSockets.has(numId) && onlineUserSockets.get(numId).size > 0) {
+    return {
+      status: 'citadel',
+      statusText: 'In der Zitadelle',
+      roomCode: null,
+      isHost: false
+    };
+  }
+
+  return {
+    status: 'offline',
+    statusText: 'Offline',
+    roomCode: null,
+    isHost: false
+  };
+}
+
+function sendFriendsListTo(target, userId) {
+  const numId = Number(userId);
+  const friends = dbModule.getFriends(numId);
+  const enriched = friends.map(f => {
+    const live = getUserLiveStatus(f.id);
+    return {
+      ...f,
+      liveStatus: live.status,
+      liveStatusText: live.statusText,
+      liveRoomCode: live.roomCode,
+      isHost: live.isHost
+    };
+  });
+
+  if (typeof target === 'number') {
+    const sockets = onlineUserSockets.get(target);
+    if (sockets) {
+      for (const s of sockets) {
+        s.emit('friendsList', { friends: enriched });
+      }
+    }
+  } else if (target && target.emit) {
+    target.emit('friendsList', { friends: enriched });
+  }
+}
 
 // Bereinigt Namen und verhindert HTML-Injections (XSS)
 function sanitizeName(name) {
@@ -158,11 +257,12 @@ function generateUniqueRoomCode() {
   return code;
 }
 
-function createNewRoomState(hostSessionId = null, roomCode = '') {
+function createNewRoomState(hostSessionId = null, roomCode = '', isRanked = false) {
   return {
     players: [],
     roomCode: roomCode,
     gameState: 'lobby',
+    isRanked: !!isRanked,
     edition: 'classic', // 'classic' oder 'anniversary_30'
     round: 1,
     trumpCard: null,
@@ -191,8 +291,134 @@ function createNewRoomState(hostSessionId = null, roomCode = '') {
 
 io.on('connection', (socket) => {
 
+  if (socket.user && socket.user.id) {
+    registerUserSocket(socket.user.id, socket);
+    sendFriendsListTo(socket, socket.user.id);
+  }
+
+  socket.on('authIdentify', ({ token }) => {
+    if (token) {
+      const user = dbModule.getUserByToken(token);
+      if (user) {
+        socket.user = user;
+        registerUserSocket(user.id, socket);
+        sendFriendsListTo(socket, user.id);
+      }
+    }
+  });
+
+  socket.on('getFriends', ({ token } = {}) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('friendsError', { message: 'Nur angemeldete Magier können das Grimoire der Gefährten nutzen.' });
+      return;
+    }
+    sendFriendsListTo(socket, authUser.id);
+  });
+
+  socket.on('addFriend', ({ friendUsername, token }) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('friendActionError', { message: 'Nicht angemeldet.' });
+      return;
+    }
+
+    const res = dbModule.addFriend(authUser.id, friendUsername);
+    if (!res.success) {
+      socket.emit('friendActionError', { message: res.error });
+      return;
+    }
+
+    socket.emit('friendActionSuccess', { message: `${res.friend.username} ist nun dein Gefährte! ✨` });
+    sendFriendsListTo(socket, authUser.id);
+    sendFriendsListTo(res.friend.id, res.friend.id);
+  });
+
+  socket.on('removeFriend', ({ friendId, token }) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('friendActionError', { message: 'Nicht angemeldet.' });
+      return;
+    }
+
+    dbModule.removeFriend(authUser.id, friendId);
+    socket.emit('friendActionSuccess', { message: 'Gefährte wurde entfernt.' });
+    sendFriendsListTo(socket, authUser.id);
+    sendFriendsListTo(friendId, friendId);
+  });
+
+  socket.on('inviteFriendToRoom', ({ friendId, roomCode, token }) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('friendActionError', { message: 'Nicht angemeldet.' });
+      return;
+    }
+
+    const normCode = roomCode ? roomCode.trim().toUpperCase() : null;
+    if (!normCode || !rooms[normCode]) {
+      socket.emit('friendActionError', { message: 'Der Spielraum existiert nicht mehr.' });
+      return;
+    }
+    const room = rooms[normCode];
+    if (room.players.length >= 6) {
+      socket.emit('friendActionError', { message: 'Der Warteraum ist bereits voll (6/6).' });
+      return;
+    }
+    if (room.gameState !== 'lobby') {
+      socket.emit('friendActionError', { message: 'Das Spiel hat bereits begonnen.' });
+      return;
+    }
+
+    const targetSockets = onlineUserSockets.get(Number(friendId));
+    if (!targetSockets || targetSockets.size === 0) {
+      socket.emit('friendActionError', { message: 'Dein Gefährte ist derzeit nicht in der Zitadelle erreichbar.' });
+      return;
+    }
+
+    for (const s of targetSockets) {
+      s.emit('friendGameInvite', {
+        hostName: authUser.username,
+        hostAvatar: authUser.avatar_id || 'wizard_blue',
+        hostTitle: authUser.title || 'Zauberlehrling',
+        hostRank: authUser.rank || dbModule.getRankDetailsFromSR(authUser.skill_rating || 1000),
+        roomCode: normCode,
+        isRanked: !!room.isRanked
+      });
+    }
+
+    socket.emit('friendActionSuccess', { message: 'Einladung an deinen Gefährten versandt! ✉️' });
+  });
+
   // Neues Spiel erstellen mit garantiert einmaligem 6-stelligen Zahlencode
-  socket.on('createRoom', ({ playerName, sessionId, roomCode, authToken }) => {
+  socket.on('createRoom', ({ playerName, sessionId, roomCode, authToken, isRanked }) => {
     if (!sessionId) {
       socket.emit('lobbyError', { message: 'Ungültige Session-Daten.' });
       return;
@@ -203,13 +429,32 @@ io.on('connection', (socket) => {
       authUser = dbModule.getUserByToken(authToken);
     }
 
+    const isRankedRoom = !!isRanked;
+    if (isRankedRoom && !authUser) {
+      socket.emit('lobbyError', { message: 'Für gewertete Ranglistenspiele musst du mit einem Gilden-Konto angemeldet sein!' });
+      return;
+    }
+
+    if (authUser) {
+      const penaltyNotice = dbModule.popPenaltyNotice(authUser.id);
+      if (penaltyNotice) {
+        socket.emit('rankedPenaltyNotice', {
+          penaltyAmount: 50,
+          newSR: authUser.skill_rating || 1000,
+          rank: authUser.rank,
+          notice: penaltyNotice,
+          message: penaltyNotice
+        });
+      }
+    }
+
     const cleanName = authUser ? authUser.username : sanitizeName(playerName);
     // Falls ein spezifischer Code angegeben wurde und frei ist (z.B. in Tests), sonst neuen Zahlencode generieren:
     const code = (roomCode && typeof roomCode === 'string' && !rooms[roomCode.trim().toUpperCase()])
       ? roomCode.trim().toUpperCase().substring(0, 10)
       : generateUniqueRoomCode();
 
-    const room = createNewRoomState(sessionId, code);
+    const room = createNewRoomState(sessionId, code, isRankedRoom);
     const hostPlayer = {
       sessionId,
       socketId: socket.id,
@@ -217,6 +462,8 @@ io.on('connection', (socket) => {
       name: cleanName,
       avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
       title: authUser ? authUser.title : null,
+      skillRating: authUser ? (authUser.skill_rating || 1000) : 1000,
+      rank: authUser ? authUser.rank : dbModule.getRankDetailsFromSR(1000),
       hand: [],
       bid: null,
       tricksWon: 0,
@@ -227,7 +474,7 @@ io.on('connection', (socket) => {
     rooms[code] = room;
 
     socket.join(code);
-    socket.emit('roomCreated', { roomCode: code });
+    socket.emit('roomCreated', { roomCode: code, isRanked: isRankedRoom });
 
     socket.emit('syncGameState', {
       roomCode: code,
@@ -235,10 +482,11 @@ io.on('connection', (socket) => {
       maxRounds: getMaxRounds(1, room.edition || 'classic'),
       edition: room.edition || 'classic',
       gameState: 'lobby',
+      isRanked: isRankedRoom,
       trumpCard: null,
       hand: [],
       currentTrick: [],
-      players: getSanitizedPlayers(room.players, 0, room.hostSessionId),
+      players: getSanitizedPlayers(room.players, 0, room.hostSessionId, room),
       activePlayerSessionId: null,
       dealerSessionId: sessionId,
       scoreHistory: [],
@@ -249,7 +497,7 @@ io.on('connection', (socket) => {
       isGameOver: false
     });
 
-    io.to(code).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
+    io.to(code).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
   // Spieler tritt einem Raum bei
@@ -283,6 +531,24 @@ io.on('connection', (socket) => {
       room.cleanupTimer = null;
     }
 
+    if (authUser) {
+      const penaltyNotice = dbModule.popPenaltyNotice(authUser.id);
+      if (penaltyNotice) {
+        socket.emit('rankedPenaltyNotice', {
+          penaltyAmount: 50,
+          newSR: authUser.skill_rating || 1000,
+          rank: authUser.rank,
+          notice: penaltyNotice,
+          message: penaltyNotice
+        });
+      }
+    }
+
+    if (room.isRanked && !authUser) {
+      socket.emit('lobbyError', { message: 'Dieser Bund ist ein gewertetes Ranglistenspiel. Bitte melde dich an, um beizutreten!' });
+      return;
+    }
+
     const existingPlayer = room.players.find(p => p.sessionId === sessionId);
 
     if (existingPlayer) {
@@ -292,6 +558,8 @@ io.on('connection', (socket) => {
         existingPlayer.userId = authUser.id;
         existingPlayer.avatarId = authUser.avatar_id;
         existingPlayer.title = authUser.title;
+        existingPlayer.skillRating = authUser.skill_rating || 1000;
+        existingPlayer.rank = authUser.rank;
       }
       if (cleanName && cleanName !== existingPlayer.name) {
         const nameTaken = room.players.some(p => p.sessionId !== sessionId && p.name.trim().toLowerCase() === cleanName.toLowerCase());
@@ -341,6 +609,7 @@ io.on('connection', (socket) => {
         maxRounds: maxRounds,
         edition: room.edition || 'classic',
         gameState: room.gameState,
+        isRanked: room.isRanked,
         trumpCard: room.trumpCard,
         trumpChooserSessionId: room.trumpChooserSessionId,
         hand: (room.round === 1 && existingPlayer.hand && existingPlayer.hand.length > 0)
@@ -380,7 +649,7 @@ io.on('connection', (socket) => {
         });
       }
 
-      io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
+      io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
       return;
     }
 
@@ -414,6 +683,8 @@ io.on('connection', (socket) => {
       name: cleanName,
       avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
       title: authUser ? authUser.title : null,
+      skillRating: authUser ? (authUser.skill_rating || 1000) : 1000,
+      rank: authUser ? authUser.rank : dbModule.getRankDetailsFromSR(1000),
       hand: [],
       bid: null,
       tricksWon: 0,
@@ -429,10 +700,11 @@ io.on('connection', (socket) => {
       maxRounds: maxRounds,
       edition: room.edition || 'classic',
       gameState: room.gameState,
+      isRanked: room.isRanked,
       trumpCard: room.trumpCard,
       hand: [],
       currentTrick: room.currentTrick,
-      players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId),
+      players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room),
       activePlayerSessionId: null,
       dealerSessionId: room.players[room.dealerIndex] ? room.players[room.dealerIndex].sessionId : null,
       scoreHistory: room.scoreHistory,
@@ -443,7 +715,7 @@ io.on('connection', (socket) => {
       isGameOver: false
     });
 
-    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
   // Host ändert die gespielte Edition (classic vs. anniversary_30)
@@ -474,6 +746,68 @@ io.on('connection', (socket) => {
 
     room.edition = edition;
     io.to(normalizedCode).emit('editionChanged', { edition: room.edition });
+  });
+
+  // Host fügt einen KI-Magier (Bot) zur Kammer hinzu
+  socket.on('addBot', ({ roomCode }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Bots können nur im Warteraum hinzugefügt werden.' });
+      return;
+    }
+
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der Host kann Bots verwalten!' });
+      return;
+    }
+
+    if (room.players.length >= 6) {
+      socket.emit('actionError', { message: 'Die Kammer ist bereits voll (maximal 6 Spieler)!' });
+      return;
+    }
+
+    const bot = createBotPlayer(room.players);
+    room.players.push(bot);
+
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+  });
+
+  // Host entfernt den zuletzt hinzugefügten KI-Magier
+  socket.on('removeBot', ({ roomCode }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Bots können nur im Warteraum entfernt werden.' });
+      return;
+    }
+
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der Host kann Bots verwalten!' });
+      return;
+    }
+
+    let botIdx = -1;
+    for (let i = room.players.length - 1; i >= 0; i--) {
+      if (room.players[i].isBot) {
+        botIdx = i;
+        break;
+      }
+    }
+
+    if (botIdx === -1) {
+      socket.emit('actionError', { message: 'Keine Bots im Raum vorhanden.' });
+      return;
+    }
+
+    room.players.splice(botIdx, 1);
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
   // Spiel starten (aus der Lobby)
@@ -720,7 +1054,7 @@ io.on('connection', (socket) => {
     io.to(roomCode).emit('gameResetToLobby', {
       message: message || 'Zurück zur Lobby.',
       roomCode: roomCode,
-      players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId)
+      players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room)
     });
   }
 
@@ -767,17 +1101,10 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Geber bzw. Werwolf-Spieler wählt Trumpffarbe
-  socket.on('selectTrumpSuit', ({ roomCode, suit }) => {
-    const normalizedCode = (roomCode || '').trim().toUpperCase();
-    const room = rooms[normalizedCode];
-    if (!room || room.gameState !== 'choose_trump' || room.isPaused) return;
-
-    const allowedSessionId = room.trumpChooserSessionId || (room.players[room.dealerIndex] ? room.players[room.dealerIndex].sessionId : null);
-    const chooser = room.players.find(p => p.sessionId === allowedSessionId);
-    if (!chooser || socket.id !== chooser.socketId) return;
-
-    if (!['red', 'blue', 'green', 'yellow'].includes(suit)) return;
+  // Vereinheitlichte Logik: Trumpffarbe wählen (für Spieler und Bots)
+  function handleSelectTrumpSuit(room, chooserSessionId, suit) {
+    if (!room || room.gameState !== 'choose_trump' || room.isPaused) return false;
+    if (!['red', 'blue', 'green', 'yellow'].includes(suit)) return false;
 
     const isWerewolf = room.trumpCard && (room.trumpCard.isWerewolf || room.trumpCard.type === 'werewolf_trump_pending' || room.trumpCard.type === 'werewolf');
 
@@ -806,23 +1133,85 @@ io.on('connection', (socket) => {
         }
       });
       p.hand = sortCards(p.hand, suit);
-      if (room.round === 1) {
-        io.to(p.socketId).emit('handDealt', [{ type: 'blind_card', isBlind: true, id: 'blind-1' }]);
-      } else {
-        io.to(p.socketId).emit('handDealt', p.hand);
+      if (p.socketId) {
+        if (room.round === 1) {
+          io.to(p.socketId).emit('handDealt', [{ type: 'blind_card', isBlind: true, id: 'blind-1' }]);
+        } else {
+          io.to(p.socketId).emit('handDealt', p.hand);
+        }
       }
     });
 
-    io.to(normalizedCode).emit('trumpSuitChosen', {
+    io.to(room.roomCode).emit('trumpSuitChosen', {
       suit,
       trumpCard: room.trumpCard
     });
 
     room.gameState = 'bidding';
-    notifyTurn(normalizedCode);
+    notifyTurn(room.roomCode);
+    return true;
+  }
+
+  // Geber bzw. Werwolf-Spieler wählt Trumpffarbe (Socket Handler)
+  socket.on('selectTrumpSuit', ({ roomCode, suit }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room || room.gameState !== 'choose_trump' || room.isPaused) return;
+
+    const allowedSessionId = room.trumpChooserSessionId || (room.players[room.dealerIndex] ? room.players[room.dealerIndex].sessionId : null);
+    const chooser = room.players.find(p => p.sessionId === allowedSessionId);
+    if (!chooser || socket.id !== chooser.socketId) return;
+
+    handleSelectTrumpSuit(room, chooser.sessionId, suit);
   });
 
-  // Spieler gibt Stichvorhersage ab
+  // Vereinheitlichte Logik: Stichvorhersage abgeben (für Spieler und Bots)
+  function handlePlayerBid(room, playerSessionId, bid) {
+    if (!room || room.gameState !== 'bidding' || room.isPaused) {
+      return { success: false, message: 'Nicht in der Bietphase.' };
+    }
+
+    const currentPlayer = room.players[room.currentTurnIndex];
+    if (!currentPlayer || currentPlayer.sessionId !== playerSessionId) {
+      return { success: false, message: 'Du bist nicht am Zug.' };
+    }
+
+    const parsedBid = parseInt(bid, 10);
+    if (isNaN(parsedBid) || parsedBid < 0 || parsedBid > room.round) {
+      return { success: false, message: 'Ungültiges Gebot.' };
+    }
+
+    // Serverseitige Geber-Regel (Plus/Minus Eins) validieren
+    const isLastPlayer = (room.currentTurnIndex === room.dealerIndex);
+    if (isLastPlayer) {
+      const totalBidsSoFar = room.players.reduce((sum, p) => sum + (p.bid !== null ? p.bid : 0), 0);
+      if (isForbiddenBid(parsedBid, room.round, totalBidsSoFar, true)) {
+        return { success: false, message: 'Diese Stichansage ist für den Geber nach den Regeln verboten!' };
+      }
+    }
+
+    currentPlayer.bid = parsedBid;
+    if (currentPlayer.heldWizardThisRound && parsedBid === 0) {
+      currentPlayer.attemptingZeroWizardRound = true;
+    }
+    io.to(room.roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+
+    const allBidsPlaced = room.players.every(p => p.bid !== null);
+
+    if (allBidsPlaced) {
+      room.gameState = 'playing_tricks';
+      room.currentTurnIndex = (room.dealerIndex + 1) % room.players.length;
+      io.to(room.roomCode).emit('biddingFinished');
+      notifyTurn(room.roomCode);
+    } else {
+      room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
+      notifyTurn(room.roomCode);
+    }
+
+    return { success: true };
+  }
+
+  // Spieler gibt Stichvorhersage ab (Socket Handler)
   socket.on('submitBid', ({ roomCode, bid }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
@@ -831,35 +1220,9 @@ io.on('connection', (socket) => {
     const currentPlayer = room.players[room.currentTurnIndex];
     if (!currentPlayer || socket.id !== currentPlayer.socketId) return;
 
-    const parsedBid = parseInt(bid, 10);
-    if (isNaN(parsedBid) || parsedBid < 0 || parsedBid > room.round) return;
-
-    // Serverseitige Geber-Regel (Plus/Minus Eins) validieren
-    const isLastPlayer = (room.currentTurnIndex === room.dealerIndex);
-    if (isLastPlayer) {
-      const totalBidsSoFar = room.players.reduce((sum, p) => sum + (p.bid !== null ? p.bid : 0), 0);
-      if (isForbiddenBid(parsedBid, room.round, totalBidsSoFar, true)) {
-        socket.emit('actionError', { message: 'Diese Stichansage ist für den Geber nach den Regeln verboten!' });
-        return;
-      }
-    }
-
-    currentPlayer.bid = parsedBid;
-    if (currentPlayer.heldWizardThisRound && parsedBid === 0) {
-      currentPlayer.attemptingZeroWizardRound = true;
-    }
-    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
-
-    const allBidsPlaced = room.players.every(p => p.bid !== null);
-
-    if (allBidsPlaced) {
-      room.gameState = 'playing_tricks';
-      room.currentTurnIndex = (room.dealerIndex + 1) % room.players.length;
-      io.to(normalizedCode).emit('biddingFinished');
-      notifyTurn(normalizedCode);
-    } else {
-      room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
-      notifyTurn(normalizedCode);
+    const result = handlePlayerBid(room, currentPlayer.sessionId, bid);
+    if (result && !result.success && result.message) {
+      socket.emit('actionError', { message: result.message });
     }
   });
 
@@ -905,6 +1268,8 @@ io.on('connection', (socket) => {
       }
     });
 
+    const rankedResults = {};
+
     if (isGameOver) {
       // Rangfolge berechnen und Alltime Win/Loss verbuchen
       const sortedByScore = [...room.players].sort((a, b) => b.totalScore - a.totalScore);
@@ -924,16 +1289,57 @@ io.on('connection', (socket) => {
             points: p.totalScore,
             hadZeroWizardTrickWin: !!(rank === 1 && p.completedZeroWizardRound)
           });
+
+          if (room.isRanked) {
+            let totalBidsMade = 0;
+            let totalBidsHit = 0;
+            if (room.scoreHistory) {
+              room.scoreHistory.forEach(h => {
+                const entry = h.entries ? h.entries.find(e => e.sessionId === p.sessionId) : null;
+                if (entry && entry.bid !== null && entry.bid !== undefined) {
+                  totalBidsMade++;
+                  if (entry.bid === entry.tricksWon) totalBidsHit++;
+                }
+              });
+            }
+
+            const res = dbModule.recordRankedGameFinished(p.userId, {
+              rank: rank,
+              totalPlayers: totalPlayers,
+              points: p.totalScore,
+              bidsMade: totalBidsMade,
+              bidsHit: totalBidsHit
+            });
+
+            if (res) {
+              p.skillRating = res.newSR;
+              p.rank = res.newRank;
+              rankedResults[p.sessionId] = {
+                ...res,
+                sessionId: p.sessionId,
+                playerName: p.name,
+                userId: p.userId
+              };
+            }
+          }
         }
       });
     }
+
+    const rankedResultsList = Object.values(rankedResults);
 
     io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
     io.to(roomCode).emit('roundFinished', {
       isGameOver,
       scoreHistory: room.scoreHistory,
-      round: room.round
+      round: room.round,
+      isRanked: !!room.isRanked,
+      rankedResults: isGameOver ? rankedResultsList : null,
+      rankedResultsMap: isGameOver ? rankedResults : null
     });
+    if (isGameOver && room.isRanked && rankedResultsList.length > 0) {
+      io.to(roomCode).emit('rankedResults', rankedResultsList);
+    }
     io.to(roomCode).emit('turnChanged', { activePlayerSessionId: null, gameState: 'round_over' });
 
     if (!isGameOver) {
@@ -943,17 +1349,21 @@ io.on('connection', (socket) => {
     }
   }
 
-  // Spieler spielt eine Karte aus
-  socket.on('playCard', ({ roomCode, cardIndex, chosenRole, chosenSuit, witchSwap }) => {
-    const normalizedCode = (roomCode || '').trim().toUpperCase();
-    const room = rooms[normalizedCode];
-    if (!room || room.gameState !== 'playing_tricks' || room.isPaused) return;
+  // Vereinheitlichte Logik: Karte ausspielen (für Spieler und Bots)
+  function handlePlayerPlayCard(room, playerSessionId, cardIndex, chosenRole, chosenSuit, witchSwap) {
+    if (!room || room.gameState !== 'playing_tricks' || room.isPaused) {
+      return { success: false, message: 'Nicht am Zug oder Spiel pausiert.' };
+    }
 
     const currentPlayer = room.players[room.currentTurnIndex];
-    if (!currentPlayer || socket.id !== currentPlayer.socketId) return;
+    if (!currentPlayer || currentPlayer.sessionId !== playerSessionId) {
+      return { success: false, message: 'Du bist nicht an der Reihe!' };
+    }
 
     const cardToPlay = currentPlayer.hand[cardIndex];
-    if (!cardToPlay) return;
+    if (!cardToPlay) {
+      return { success: false, message: 'Karte nicht gefunden.' };
+    }
 
     // Defaults für Runde 1 (wo Spieler blind legt):
     if (room.round === 1) {
@@ -1018,14 +1428,16 @@ io.on('connection', (socket) => {
             }
           });
           p.hand = sortCards(p.hand, room.trumpSuit);
-          if (room.round === 1) {
-            io.to(p.socketId).emit('handDealt', [{ type: 'blind_card', isBlind: true, id: 'blind-1' }]);
-          } else {
-            io.to(p.socketId).emit('handDealt', p.hand);
+          if (p.socketId) {
+            if (room.round === 1) {
+              io.to(p.socketId).emit('handDealt', [{ type: 'blind_card', isBlind: true, id: 'blind-1' }]);
+            } else {
+              io.to(p.socketId).emit('handDealt', p.hand);
+            }
           }
         });
 
-        io.to(normalizedCode).emit('vampireRevealedNewTrump', {
+        io.to(room.roomCode).emit('vampireRevealedNewTrump', {
           vampirePlayerName: currentPlayer.name,
           vampirePlayerSessionId: currentPlayer.sessionId,
           newTrumpCard: newTrump,
@@ -1037,8 +1449,7 @@ io.on('connection', (socket) => {
     }
 
     if (!isValidMove(cardToPlay, currentPlayer.hand, room.currentTrick)) {
-      socket.emit('invalidMove', { message: 'Du musst die angespielte Farbe bedienen!' });
-      return;
+      return { success: false, message: 'Du musst die angespielte Farbe bedienen!', errorType: 'invalidMove' };
     }
 
     const playedCard = currentPlayer.hand.splice(cardIndex, 1)[0];
@@ -1059,165 +1470,242 @@ io.on('connection', (socket) => {
       card: playedCard
     });
 
-    if (room.round === 1) {
-      io.to(currentPlayer.socketId).emit('handDealt', []);
-    } else {
-      io.to(currentPlayer.socketId).emit('handDealt', currentPlayer.hand);
+    if (currentPlayer.socketId) {
+      if (room.round === 1) {
+        io.to(currentPlayer.socketId).emit('handDealt', []);
+      } else {
+        io.to(currentPlayer.socketId).emit('handDealt', currentPlayer.hand);
+      }
     }
-    io.to(normalizedCode).emit('trickUpdated', room.currentTrick);
-    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+    io.to(room.roomCode).emit('trickUpdated', room.currentTrick);
+    io.to(room.roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
 
     room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
 
     // Wenn alle Spieler eine Karte gelegt haben -> Stich auswerten
     if (room.currentTrick.length === room.players.length) {
-      room.gameState = 'evaluating_trick';
+      evaluateCompletedTrick(room);
+    } else {
+      notifyTurn(room.roomCode);
+    }
 
-      const trickResult = evaluateTrickDetails(
-        room.currentTrick.map(t => ({ playerId: t.playerSessionId, card: t.card })),
-        room.trumpCard
-      );
+    return { success: true };
+  }
 
-      const isBombed = trickResult.isBombed;
-      const winnerSessionId = trickResult.winnerPlayerId;
-      const nextLeadSessionId = trickResult.nextLeadPlayerId;
+  // Wertet einen vollständigen Stich aus (inkl. Sonderkarten-Pipeline & Bots)
+  function evaluateCompletedTrick(room) {
+    room.gameState = 'evaluating_trick';
 
-      const winner = winnerSessionId ? room.players.find(p => p.sessionId === winnerSessionId) : null;
-      const nextLeadPlayer = nextLeadSessionId ? room.players.find(p => p.sessionId === nextLeadSessionId) : null;
+    const trickResult = evaluateTrickDetails(
+      room.currentTrick.map(t => ({ playerId: t.playerSessionId, card: t.card })),
+      room.trumpCard
+    );
 
-      if (winner) {
-        winner.tricksWon += 1;
-        io.to(normalizedCode).emit('trickWinner', {
-          winnerName: winner.name,
-          winnerSessionId: winner.sessionId,
-          isBombed: false
-        });
-        io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
-      } else if (isBombed) {
-        io.to(normalizedCode).emit('trickWinner', {
-          winnerName: null,
-          winnerSessionId: null,
-          isBombed: true,
-          nextLeadName: nextLeadPlayer ? nextLeadPlayer.name : null,
-          nextLeadSessionId: nextLeadSessionId
-        });
-      }
+    const isBombed = trickResult.isBombed;
+    const winnerSessionId = trickResult.winnerPlayerId;
+    const nextLeadSessionId = trickResult.nextLeadPlayerId;
 
-      // Bombe zerstört NICHT den Jongleur oder die Hexe, aber neutralisiert die Wolke!
-      const hadJuggler = room.currentTrick.some(t => t.card && (t.card.type === 'juggler' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'juggler')));
-      const hadCloud = !isBombed && room.currentTrick.some(t => t.card && (t.card.type === 'cloud' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'cloud')));
-      const hadWitch = room.currentTrick.some(t => t.card && t.card.type === 'witch');
+    const winner = winnerSessionId ? room.players.find(p => p.sessionId === winnerSessionId) : null;
+    const nextLeadPlayer = nextLeadSessionId ? room.players.find(p => p.sessionId === nextLeadSessionId) : null;
 
-      setRoomTimeout(room, () => {
-        // Pipeline: Wolke -> Hexe -> Jongleur -> Stich aufräumen & weiter
-        function stepCloud(next) {
-          if (!hadCloud) return next();
-          // Der Spieler, der den Stich gewinnt, in dem die Wolke liegt, muss seine Vorhersage um genau +1 oder -1 korrigieren!
-          const cloudWinner = room.players.find(p => p.sessionId === trickResult.winnerPlayerId);
-          if (!cloudWinner || !cloudWinner.connected) return next();
+    if (winner) {
+      winner.tricksWon += 1;
+      io.to(room.roomCode).emit('trickWinner', {
+        winnerName: winner.name,
+        winnerSessionId: winner.sessionId,
+        isBombed: false,
+        isUnicornVoided: false
+      });
+      io.to(room.roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+    } else if (isBombed) {
+      io.to(room.roomCode).emit('trickWinner', {
+        winnerName: null,
+        winnerSessionId: null,
+        isBombed: true,
+        isUnicornVoided: false,
+        nextLeadName: nextLeadPlayer ? nextLeadPlayer.name : null,
+        nextLeadSessionId: nextLeadSessionId
+      });
+    } else if (trickResult.isUnicornVoided) {
+      io.to(room.roomCode).emit('trickWinner', {
+        winnerName: null,
+        winnerSessionId: null,
+        isBombed: false,
+        isUnicornVoided: true,
+        nextLeadName: nextLeadPlayer ? nextLeadPlayer.name : null,
+        nextLeadSessionId: nextLeadSessionId
+      });
+    }
 
-          room.gameState = 'cloud_adjust_bid';
-          room.cloudPlayerSessionId = cloudWinner.sessionId;
-          room.cloudNextCallback = next;
+    // Alle Spezial-Fähigkeiten (Jongleur, Hexe, Wolke) bleiben aktiv (auch bei Bombe oder Einhorn!)
+    const hadJuggler = room.currentTrick.some(t => t.card && (t.card.type === 'juggler' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'juggler')));
+    const hadCloud = room.currentTrick.some(t => t.card && (t.card.type === 'cloud' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'cloud')));
+    const hadWitch = room.currentTrick.some(t => t.card && t.card.type === 'witch');
 
-          io.to(normalizedCode).emit('cloudBidAdjustmentPending', {
+    setRoomTimeout(room, () => {
+      // Pipeline: Wolke -> Hexe -> Jongleur -> Stich aufräumen & weiter
+      function stepCloud(next) {
+        if (!hadCloud) return next();
+        const targetSessionId = trickResult.winnerPlayerId || trickResult.nextLeadPlayerId;
+        const cloudWinner = room.players.find(p => p.sessionId === targetSessionId);
+        if (!cloudWinner || !cloudWinner.connected) return next();
+
+        if (cloudWinner.isBot) {
+          const delta = (cloudWinner.tricksWon > (cloudWinner.bid !== null ? cloudWinner.bid : 0)) ? 1 : -1;
+          const oldBid = cloudWinner.bid !== null ? cloudWinner.bid : 0;
+          const newBid = Math.max(0, oldBid + delta);
+          cloudWinner.bid = newBid;
+
+          io.to(room.roomCode).emit('cloudBidAdjusted', {
             playerName: cloudWinner.name,
-            playerSessionId: cloudWinner.sessionId
+            oldBid: oldBid,
+            newBid: newBid
           });
+          io.to(room.roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
 
+          setRoomTimeout(room, () => next(), 800);
+          return;
+        }
+
+        room.gameState = 'cloud_adjust_bid';
+        room.cloudPlayerSessionId = cloudWinner.sessionId;
+        room.cloudNextCallback = next;
+
+        io.to(room.roomCode).emit('cloudBidAdjustmentPending', {
+          playerName: cloudWinner.name,
+          playerSessionId: cloudWinner.sessionId
+        });
+
+        if (cloudWinner.socketId) {
           io.to(cloudWinner.socketId).emit('cloudBidAdjustmentPrompt', {
             currentBid: cloudWinner.bid !== null ? cloudWinner.bid : 0
           });
-
-          io.to(normalizedCode).emit('turnChanged', {
-            activePlayerSessionId: cloudWinner.sessionId,
-            gameState: 'cloud_adjust_bid'
-          });
         }
 
-        function stepWitch(next) {
-          if (!hadWitch) return next();
-          const witchEntry = room.currentTrick.find(t => t.card && t.card.type === 'witch');
-          const witchPlayer = witchEntry ? room.players.find(p => p.sessionId === witchEntry.playerSessionId) : null;
+        io.to(room.roomCode).emit('turnChanged', {
+          activePlayerSessionId: cloudWinner.sessionId,
+          gameState: 'cloud_adjust_bid'
+        });
+      }
 
-          const swappableTrickCards = room.currentTrick.some(t => t.card && t.card.type !== 'witch');
-          const canSwap = witchPlayer && witchPlayer.connected && witchPlayer.hand && witchPlayer.hand.length > 0 && swappableTrickCards;
+      function stepWitch(next) {
+        if (!hadWitch) return next();
+        const witchEntry = room.currentTrick.find(t => t.card && t.card.type === 'witch');
+        const witchPlayer = witchEntry ? room.players.find(p => p.sessionId === witchEntry.playerSessionId) : null;
 
-          if (!canSwap) return next();
+        const swappableTrickCards = room.currentTrick.some(t => t.card && t.card.type !== 'witch');
+        const canSwap = witchPlayer && witchPlayer.connected && witchPlayer.hand && witchPlayer.hand.length > 0 && swappableTrickCards;
 
-          room.gameState = 'witch_swap';
-          room.witchPlayerSessionId = witchPlayer.sessionId;
-          room.witchNextCallback = next;
+        if (!canSwap) return next();
 
-          io.to(normalizedCode).emit('witchSwapPending', {
-            playerName: witchPlayer.name,
-            playerSessionId: witchPlayer.sessionId
-          });
+        if (witchPlayer.isBot) {
+          setRoomTimeout(room, () => next(), 600);
+          return;
+        }
 
+        room.gameState = 'witch_swap';
+        room.witchPlayerSessionId = witchPlayer.sessionId;
+        room.witchNextCallback = next;
+
+        io.to(room.roomCode).emit('witchSwapPending', {
+          playerName: witchPlayer.name,
+          playerSessionId: witchPlayer.sessionId
+        });
+
+        if (witchPlayer.socketId) {
           io.to(witchPlayer.socketId).emit('witchSwapPrompt', {
             trickCards: room.currentTrick,
             handCards: witchPlayer.hand
           });
-
-          io.to(normalizedCode).emit('turnChanged', {
-            activePlayerSessionId: witchPlayer.sessionId,
-            gameState: 'witch_swap'
-          });
         }
 
-        function stepJuggler(next) {
-          const anyPlayerHasCards = room.players.some(p => p.hand && p.hand.length > 0);
-          if (!hadJuggler || !anyPlayerHasCards) return next();
+        io.to(room.roomCode).emit('turnChanged', {
+          activePlayerSessionId: witchPlayer.sessionId,
+          gameState: 'witch_swap'
+        });
+      }
 
-          room.gameState = 'juggler_passing';
-          room.jugglerPassSelections = {};
-          room.jugglerNextLeadSessionId = nextLeadSessionId;
-          room.jugglerNextCallback = next;
+      function stepJuggler(next) {
+        const anyPlayerHasCards = room.players.some(p => p.hand && p.hand.length > 0);
+        if (!hadJuggler || !anyPlayerHasCards) return next();
 
-          io.to(normalizedCode).emit('trickUpdated', []);
-          room.players.forEach(p => {
-            if (p.connected && p.hand && p.hand.length > 0) {
-              io.to(p.socketId).emit('jugglerPassPrompt', {
-                message: 'Der Jongleur fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.',
-                hand: p.hand
-              });
-            }
-          });
-          io.to(normalizedCode).emit('turnChanged', { activePlayerSessionId: null, gameState: 'juggler_passing' });
-        }
+        room.gameState = 'juggler_passing';
+        room.jugglerPassSelections = {};
+        room.jugglerNextLeadSessionId = nextLeadSessionId;
+        room.jugglerNextCallback = next;
 
-        function stepFinish() {
-          if (winner) {
-            if (!winner.wonCards) winner.wonCards = [];
-            winner.wonCards.push(...room.currentTrick.map(t => t.card));
+        io.to(room.roomCode).emit('trickUpdated', []);
+
+        // Bots wählen sofort eine Handkarte zum Weitergeben
+        room.players.forEach(p => {
+          if (p.isBot && p.hand && p.hand.length > 0) {
+            room.jugglerPassSelections[p.sessionId] = 0;
           }
-          room.currentTrick = [];
+        });
 
-          const anyPlayerHasCards = room.players.some(p => p.hand && p.hand.length > 0);
-          if (!anyPlayerHasCards) {
-            finishRoundScoring(normalizedCode);
-          } else {
-            room.gameState = 'playing_tricks';
-            const nextIndex = room.players.findIndex(p => p.sessionId === nextLeadSessionId);
-            room.currentTurnIndex = nextIndex !== -1 ? nextIndex : 0;
-            io.to(normalizedCode).emit('trickUpdated', room.currentTrick);
-            notifyTurn(normalizedCode);
-          }
+        const activePlayers = room.players.filter(p => p.connected && p.hand && p.hand.length > 0);
+        const allSelected = activePlayers.every(p => room.jugglerPassSelections[p.sessionId] !== undefined);
+
+        if (allSelected) {
+          setRoomTimeout(room, () => executeJugglerPassing(room.roomCode), 600);
+          return;
         }
 
-        // Starte Pipeline: Wolke -> Hexe -> Jongleur -> Finish
-        stepCloud(() => {
-          stepWitch(() => {
-            stepJuggler(() => {
-              stepFinish();
+        room.players.forEach(p => {
+          if (!p.isBot && p.connected && p.hand && p.hand.length > 0 && p.socketId) {
+            io.to(p.socketId).emit('jugglerPassPrompt', {
+              message: 'Der Jongleur fordert seinen Tribut! Wähle 1 Handkarte zum verdeckten Weitergeben.',
+              hand: p.hand
             });
+          }
+        });
+        io.to(room.roomCode).emit('turnChanged', { activePlayerSessionId: null, gameState: 'juggler_passing' });
+      }
+
+      function stepFinish() {
+        if (winner) {
+          if (!winner.wonCards) winner.wonCards = [];
+          winner.wonCards.push(...room.currentTrick.map(t => t.card));
+        }
+        room.currentTrick = [];
+
+        const anyPlayerHasCards = room.players.some(p => p.hand && p.hand.length > 0);
+        if (!anyPlayerHasCards) {
+          finishRoundScoring(room.roomCode);
+        } else {
+          room.gameState = 'playing_tricks';
+          const nextIndex = room.players.findIndex(p => p.sessionId === nextLeadSessionId);
+          room.currentTurnIndex = nextIndex !== -1 ? nextIndex : 0;
+          io.to(room.roomCode).emit('trickUpdated', room.currentTrick);
+          notifyTurn(room.roomCode);
+        }
+      }
+
+      // Starte Pipeline: Wolke -> Hexe -> Jongleur -> Finish
+      stepCloud(() => {
+        stepWitch(() => {
+          stepJuggler(() => {
+            stepFinish();
           });
         });
-      }, 1200);
+      });
+    }, 1200);
 
-      io.to(normalizedCode).emit('turnChanged', { activePlayerSessionId: null, gameState: 'evaluating_trick' });
-    } else {
-      notifyTurn(normalizedCode);
+    io.to(room.roomCode).emit('turnChanged', { activePlayerSessionId: null, gameState: 'evaluating_trick' });
+  }
+
+  // Spieler spielt eine Karte aus (Socket Handler)
+  socket.on('playCard', ({ roomCode, cardIndex, chosenRole, chosenSuit, witchSwap }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room || room.gameState !== 'playing_tricks' || room.isPaused) return;
+
+    const currentPlayer = room.players[room.currentTurnIndex];
+    if (!currentPlayer || socket.id !== currentPlayer.socketId) return;
+
+    const result = handlePlayerPlayCard(room, currentPlayer.sessionId, cardIndex, chosenRole, chosenSuit, witchSwap);
+    if (result && !result.success && result.message) {
+      socket.emit(result.errorType || 'actionError', { message: result.message });
     }
   });
 
@@ -1456,9 +1944,12 @@ io.on('connection', (socket) => {
     }
 
     if (room.gameState === 'lobby') {
-      io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
+      io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
     } else {
       // Während des Spiels verlassen:
+      if (room.isRanked && leavingPlayer.userId) {
+        dbModule.applyLeaverPenalty(leavingPlayer.userId);
+      }
       if (room.players.length >= 3) {
         reDealCurrentRound(normalizedCode, `${leavingPlayer.name} hat das Spiel verlassen. Runde ${room.round} wird neu gestartet.`);
       } else {
@@ -1469,6 +1960,7 @@ io.on('connection', (socket) => {
 
   // Verbindungsabbruch
   socket.on('disconnect', () => {
+    unregisterUserSocket(socket);
     for (const code in rooms) {
       const room = rooms[code];
       const player = room.players.find(p => p.socketId === socket.id);
@@ -1492,7 +1984,7 @@ io.on('connection', (socket) => {
           });
         }
 
-        io.to(code).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId));
+        io.to(code).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
         checkRoomCleanup(code);
         break;
       }
@@ -1529,6 +2021,70 @@ io.on('connection', (socket) => {
       gameState: room.gameState,
       forbiddenBid: forbiddenBid
     });
+
+    // Bot-Automatisierung für aktive Züge
+    if (activePlayer && activePlayer.isBot && !room.isPaused) {
+      triggerBotTurn(room, activePlayer);
+    }
+  }
+
+  function triggerBotTurn(room, bot) {
+    if (room.gameState === 'choose_trump') {
+      let bestSuit = 'red';
+      if (bot.hand && bot.hand.length > 0) {
+        const counts = { red: 0, blue: 0, green: 0, yellow: 0 };
+        bot.hand.forEach(c => {
+          if (c && c.type === 'color' && counts[c.suit] !== undefined) {
+            counts[c.suit]++;
+          }
+        });
+        let maxCount = -1;
+        for (const s of ['red', 'blue', 'green', 'yellow']) {
+          if (counts[s] > maxCount) {
+            maxCount = counts[s];
+            bestSuit = s;
+          }
+        }
+      }
+      setRoomTimeout(room, () => {
+        handleSelectTrumpSuit(room, bot.sessionId, bestSuit);
+      }, 600);
+    } else if (room.gameState === 'bidding') {
+      let currentTrumpSuit = 'none';
+      if (room.trumpCard) {
+        currentTrumpSuit = room.trumpCard.chosenSuit || (room.trumpCard.type === 'color' ? room.trumpCard.suit : 'none');
+      }
+      const isDealer = (room.currentTurnIndex === room.dealerIndex);
+      const playerBids = room.players.map(p => p.bid);
+      const botBid = calculateBotBid(bot.hand, room.trumpCard, currentTrumpSuit, playerBids, isDealer, room.round);
+
+      setRoomTimeout(room, () => {
+        handlePlayerBid(room, bot.sessionId, botBid);
+      }, 600);
+    } else if (room.gameState === 'playing_tricks') {
+      const botDecision = chooseBotCard(
+        bot.hand,
+        room.currentTrick,
+        room.trumpCard,
+        bot.bid !== null ? bot.bid : 0,
+        bot.tricksWon,
+        room.round
+      );
+
+      const cardIdx = (typeof botDecision === 'object' && botDecision !== null) ? botDecision.cardIndex : botDecision;
+      const card = bot.hand[cardIdx];
+      let chosenRole = (botDecision && botDecision.chosenRole) ? botDecision.chosenRole : 'wizard';
+      let chosenSuit = (botDecision && botDecision.chosenSuit) ? botDecision.chosenSuit : ((room.trumpSuit && room.trumpSuit !== 'none') ? room.trumpSuit : 'red');
+
+      if (card && card.type === 'shapeshifter' && !botDecision.chosenRole) {
+        const needsTricks = (bot.bid !== null ? bot.bid : 0) > bot.tricksWon;
+        chosenRole = needsTricks ? 'wizard' : 'jester';
+      }
+
+      setRoomTimeout(room, () => {
+        handlePlayerPlayCard(room, bot.sessionId, cardIdx, chosenRole, chosenSuit);
+      }, 700);
+    }
   }
 
   function getSanitizedPlayers(players, dealerIndex, hostSessionId, room = null) {
@@ -1545,7 +2101,9 @@ io.on('connection', (socket) => {
         handCount: p.hand ? p.hand.length : 0,
         userId: p.userId || null,
         avatarId: p.avatarId || 'wizard_blue',
-        title: p.title || null
+        title: p.title || null,
+        skillRating: p.skillRating || (p.rank ? p.rank.sr : 1000),
+        rank: p.rank || dbModule.getRankDetailsFromSR(p.skillRating || 1000)
       };
       if (room && room.round === 1 && p.hand && p.hand[0]) {
         pData.round1Card = p.hand[0];

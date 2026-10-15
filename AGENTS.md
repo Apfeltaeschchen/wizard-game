@@ -1,6 +1,34 @@
 # Wizard Online – Subagenten & Experten-Flotte
 
-Diese Datei dokumentiert die spezialisierten Subagenten, die für das Projekt **Wizard Online** konzipiert und eingerichtet wurden. Sie unterstützen den Entwickler und den Haupt-Agenten bei gezielten Aufgaben, Qualitätsprüfungen und Funktionserweiterungen.
+Diese Datei dokumentiert die spezialisierten Subagenten und die verbindlichen Handlungsmaximen für das Projekt **Wizard Online**.
+
+---
+
+## Solo-Developer Core Directives
+
+Bei jeder Aufgabe gelten ausnahmslos folgende Prinzipien zur maximalen Entlastung des Solo-Entwicklers:
+
+1. **Context First (Erst lesen, dann schreiben)**:
+   - Vor jeder Datei-Modifikation oder Architektur-Entscheidung werden relevante Dateien mit `view_file` oder dedizierten Suchwerkzeugen analysiert.
+   - Variablennamen, Importe und Schnittstellen werden vorab verifiziert und niemals erraten.
+
+2. **MCP-Integrationen priorisieren**:
+   - Vor Rückfragen an den Entwickler zu DB-Strukturen, API-Docs oder Logs werden alle verfügbaren MCP-Tools und angebundenen Services eigenständig ausgeschöpft.
+
+3. **Proaktive Problemlösung (Self-Healing)**:
+   - Bei fehlschlagenden Terminal-Befehlen oder Linter-/Test-Fehlern wird der Stacktrace selbstständig analysiert, der Code korrigiert und ein neuer Versuch unternommen, ohne den Entwickler unnötig zu unterbrechen.
+
+4. **Planung vor Zerstörung**:
+   - Größere Features oder Refactorings starten im Planungs-Modus (`/plan`) mit strukturiertem Implementierungsplan als Artefakt. Änderungen erfolgen erst nach solider architektonischer Durchdringung.
+
+5. **Chirurgische Code-Änderungen**:
+   - Gezielte Hunk-Ersetzungen via `replace_file_content` statt blindem Überschreiben ganzer Dateien, um Token zu sparen und Seiteneffekte zu vermeiden.
+
+6. **Clean Code & Security**:
+   - Modularer, stark typisierter und selbstdokumentierender Code. Zero-Trust-Validierung auf dem Server. Niemals Secrets oder API-Keys hardcoden, sondern konsequent Umgebungsvariablen (`.env`) einbinden.
+
+7. **Roadmap & Kontinuität**:
+   - Die Datei `ROADMAP.md` im Projekt-Root enthält den verbindlichen Master-Fahrplan und die exakte Reihenfolge aller anstehenden Phasen und Etappen. Bei Fragen zum aktuellen Stand oder nächsten Schritten wird immer primär `ROADMAP.md` konsultiert.
 
 ---
 

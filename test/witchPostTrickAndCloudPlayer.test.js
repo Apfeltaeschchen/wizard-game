@@ -39,8 +39,8 @@ console.log('1. Test: Wolke - Der Stichgewinner passt seinen Tipp an...');
   console.log('✓ Wolken-Stichgewinner p2 wird korrekt ermittelt und passt seinen eigenen Tipp an');
 }
 
-// 2. Test: Wolke bei Bombe wird neutralisiert
-console.log('\n2. Test: Bombe neutralisiert Wolke...');
+// 2. Test: Wolke bei Bombe bleibt aktiv (nächster Aufspieler passt an)
+console.log('\n2. Test: Wolke bei Bombe bleibt aktiv...');
 {
   const trickWithBomb = [
     { playerId: 'p1_cloud', card: { type: 'cloud', chosenSuit: 'green' } },
@@ -51,9 +51,11 @@ console.log('\n2. Test: Bombe neutralisiert Wolke...');
   const res = evaluateTrickDetails(trickWithBomb, { type: 'color', suit: 'blue' });
   assert.strictEqual(res.isBombed, true);
 
-  const hadCloud = !res.isBombed && trickWithBomb.some(t => t.card && t.card.type === 'cloud');
-  assert.strictEqual(hadCloud, false, 'Wolke bei gebombtem Stich neutralisiert');
-  console.log('✓ Wolke wird bei Bombe ordnungsgemäß neutralisiert');
+  const hadCloud = trickWithBomb.some(t => t.card && t.card.type === 'cloud');
+  assert.strictEqual(hadCloud, true, 'Wolke bleibt bei gebombtem Stich aktiv');
+  const targetSessionId = res.winnerPlayerId || res.nextLeadPlayerId;
+  assert.strictEqual(targetSessionId, 'p3_color', 'Nächster Aufspieler p3 passt Tipp an');
+  console.log('✓ Wolke bleibt bei Bombe aktiv und nächster Aufspieler passt Tipp an');
 }
 
 // 3. Test: Hexe - Zählt im Stich als Narr (Wert 0) und gewinnt nicht

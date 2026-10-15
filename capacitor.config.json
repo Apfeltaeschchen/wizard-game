@@ -1,0 +1,12 @@
+{
+  "appId": "de.grimoire.online",
+  "appName": "Grimoire",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Haptics": {}
+  }
+}

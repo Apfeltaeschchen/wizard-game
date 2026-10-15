@@ -99,6 +99,150 @@ assert.strictEqual(isStrong({ type: 'shapeshifter', selectedType: 'jester' }), f
 assert.strictEqual(isStrong({ type: 'color', value: 12 }), false, 'Farbe 12 darf NICHT stark sein');
 console.log('✓ 6. Tisch-Aufprall, Staubwolke & isStrongCard Regellogik verifiziert');
 
+// 7. Validiere fehlerfreie Ausführung von public/client.js im DOM-Mock
+const vm = require('vm');
+
+const idRegex = /id=["']([^"']+)["']/g;
+const htmlIds = new Set();
+let matchId;
+while ((matchId = idRegex.exec(html)) !== null) {
+  htmlIds.add(matchId[1]);
+}
+
+const listenersMap = new Map();
+
+function createMockElement(tag = 'div', id = '') {
+  const el = {
+    tagName: tag.toUpperCase(),
+    id: id,
+    style: {},
+    classList: {
+      _classes: new Set(),
+      add: (c) => el.classList._classes.add(c),
+      remove: (c) => el.classList._classes.delete(c),
+      toggle: (c, force) => {
+        if (force === undefined) {
+          if (el.classList._classes.has(c)) el.classList._classes.delete(c);
+          else el.classList._classes.add(c);
+        } else if (force) {
+          el.classList._classes.add(c);
+        } else {
+          el.classList._classes.delete(c);
+        }
+      },
+      contains: (c) => el.classList._classes.has(c)
+    },
+    children: [],
+    innerHTML: '',
+    innerText: '',
+    value: '',
+    disabled: false,
+    addEventListener: (evt, fn) => {
+      if (!listenersMap.has(id)) listenersMap.set(id, []);
+      listenersMap.get(id).push({ evt, fn });
+    },
+    removeEventListener: () => {},
+    setAttribute: () => {},
+    getAttribute: () => null,
+    removeAttribute: () => {},
+    focus: () => {},
+    appendChild: (child) => child,
+    removeChild: () => {},
+    querySelectorAll: () => [],
+    querySelector: () => null,
+    getBoundingClientRect: () => ({ top: 0, left: 0, width: 100, height: 100 })
+  };
+  return el;
+}
+
+const mockElements = {};
+for (const id of htmlIds) {
+  mockElements[id] = createMockElement('div', id);
+}
+
+const sandbox = {
+  window: {
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+    innerWidth: 1280,
+    innerHeight: 800,
+    Audio: function() {
+      return { play: () => Promise.resolve(), pause: () => {}, addEventListener: () => {}, volume: 1, load: () => {} };
+    }
+  },
+  document: {
+    getElementById: (id) => mockElements[id] || null,
+    querySelector: () => createMockElement(),
+    querySelectorAll: () => [createMockElement()],
+    createElement: (tag) => createMockElement(tag),
+    addEventListener: () => {},
+    body: createMockElement('body')
+  },
+  sessionStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+  localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+  navigator: { clipboard: { writeText: () => Promise.resolve() } },
+  Audio: function() {
+    return { play: () => Promise.resolve(), pause: () => {}, addEventListener: () => {}, volume: 1, load: () => {} };
+  },
+  io: () => ({ on: () => {}, emit: () => {} }),
+  fetch: () => Promise.resolve({ json: () => Promise.resolve({}) }),
+  alert: () => {},
+  confirm: () => true,
+  setTimeout: setTimeout,
+  clearTimeout: clearTimeout,
+  setInterval: setInterval,
+  clearInterval: clearInterval,
+  console: console
+};
+sandbox.window.document = sandbox.document;
+
+// Führe unmodifiziertes client.js aus
+let clientInitError = null;
+try {
+  vm.createContext(sandbox);
+  vm.runInContext(js, sandbox);
+} catch (err) {
+  clientInitError = err;
+}
+
+assert.strictEqual(clientInitError, null, `public/client.js darf beim Laden keine Exception werfen: ${clientInitError ? clientInitError.stack : ''}`);
+const authObj = (sandbox.window && sandbox.window.WizardAuth) || sandbox.WizardAuth;
+assert.ok(authObj, 'WizardAuth muss nach Laden von client.js definiert sein');
+assert.strictEqual(typeof authObj.openLeaderboard, 'function', 'WizardAuth.openLeaderboard muss eine Funktion sein');
+assert.strictEqual(typeof authObj.closeLeaderboard, 'function', 'WizardAuth.closeLeaderboard muss eine Funktion sein');
+assert.strictEqual(typeof authObj.getCachedUser, 'function', 'WizardAuth.getCachedUser muss eine Funktion sein');
+assert.strictEqual(typeof authObj.setCachedUser, 'function', 'WizardAuth.setCachedUser muss eine Funktion sein');
+
+// Verifiziere CompanionsManager & Audio-Trigger
+const companionsObj = (sandbox.window && sandbox.window.CompanionsManager) || sandbox.CompanionsManager;
+assert.ok(companionsObj, 'CompanionsManager muss definiert sein');
+assert.strictEqual(typeof companionsObj.open, 'function', 'CompanionsManager.open muss existieren');
+assert.strictEqual(typeof companionsObj.close, 'function', 'CompanionsManager.close muss existieren');
+
+const audioObj = (sandbox.window && sandbox.window.WizardAudio) || sandbox.WizardAudio;
+assert.ok(audioObj, 'WizardAudio muss definiert sein');
+assert.strictEqual(typeof audioObj.playInviteChime, 'function', 'WizardAudio.playInviteChime muss existieren');
+
+// Verifiziere Event-Listener auf wichtigen Buttons
+assert.ok(listenersMap.has('createGameBtn'), 'createGameBtn muss Event-Listener registriert haben');
+assert.ok(listenersMap.has('joinBtn'), 'joinBtn muss Event-Listener registriert haben');
+assert.ok(listenersMap.has('btnPenaltyNoticeAck'), 'btnPenaltyNoticeAck muss Event-Listener registriert haben');
+assert.ok(listenersMap.has('waitingRoomStartBtn'), 'waitingRoomStartBtn muss Event-Listener registriert haben');
+assert.ok(listenersMap.has('btnOpenCompanionsGuest'), 'btnOpenCompanionsGuest muss Event-Listener registriert haben');
+assert.ok(listenersMap.has('btnOpenCompanionsUser'), 'btnOpenCompanionsUser muss Event-Listener registriert haben');
+assert.ok(listenersMap.has('btnOpenCompanionsWaiting'), 'btnOpenCompanionsWaiting muss Event-Listener registriert haben');
+assert.ok(listenersMap.has('btnAcceptInvite'), 'btnAcceptInvite muss Event-Listener registriert haben');
+assert.ok(listenersMap.has('btnDeclineInvite'), 'btnDeclineInvite muss Event-Listener registriert haben');
+
+// Teste das Auslösen des btnPenaltyNoticeAck Klicks
+const penaltyAckListeners = listenersMap.get('btnPenaltyNoticeAck') || [];
+assert.ok(penaltyAckListeners.length > 0, 'btnPenaltyNoticeAck hat Klick-Listener');
+penaltyAckListeners[0].fn({ target: mockElements['btnPenaltyNoticeAck'] });
+
+console.log('✓ 7. Vollständige fehlerfreie client.js Browser-Ausführung, Grimoire der Gefährten & Button-Bindings verifiziert');
+
 console.log('\n======================================================');
 console.log('ALLE FRONTEND UI & AUTH INTEGRATIONSTESTS BESTANDEN!');
 console.log('======================================================\n');

@@ -1,0 +1,19 @@
+{
+  "name": "Grimoire Online – Das Magische Kartenspiel der Zitadelle",
+  "short_name": "Grimoire",
+  "description": "Erlebe das taktische Kartenspiel der Zitadelle: Biete deine Stiche voraus, entfessle Erzmagier und Lindwürmer und triumphiere über deine Gefährten.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#100702",
+  "theme_color": "#100702",
+  "icons": [
+    {
+      "src": "/images/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

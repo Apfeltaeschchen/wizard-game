@@ -27,6 +27,7 @@ function createDeck(edition = 'classic') {
     deck.push({ type: 'werewolf', suit: 'none', value: 0 });
     deck.push({ type: 'witch', suit: 'none', value: 0 });
     deck.push({ type: 'juggler', suit: 'none', value: 7.5 });
+    deck.push({ type: 'unicorn', suit: 'none', value: 0 });
   }
 
   return deck;
@@ -127,8 +128,61 @@ function evaluateTrickDetails(trickCards, trumpCard) {
     }
   }
 
-  // 3. Prüfen, ob eine Bombe im Stich liegt (auch wenn Vampir die Bombe kopiert)
-  const hasBomb = effEntries.some(t => t.card.type === 'bomb');
+  // 3. Uralte Rivalen: Prüfen auf Bombe und Einhorn
+  const unicornIdx = effEntries.findIndex(t => t.card.type === 'unicorn');
+  const bombIdx = effEntries.findIndex(t => t.card.type === 'bomb');
+
+  const hasUnicorn = unicornIdx !== -1;
+  const hasBomb = bombIdx !== -1;
+
+  let isUnicornActive = false;
+  let isBombActive = false;
+
+  if (hasUnicorn && hasBomb) {
+    // Beide Rivalen im selben Stich: Die als ZWEITES (später) gespielte Karte setzt sich durch!
+    if (bombIdx > unicornIdx) {
+      isBombActive = true;
+      isUnicornActive = false;
+    } else {
+      isUnicornActive = true;
+      isBombActive = false;
+    }
+  } else if (hasUnicorn) {
+    isUnicornActive = true;
+  } else if (hasBomb) {
+    isBombActive = true;
+  }
+
+  // Fall A: Einhorn ist aktiv (Weißer Wal-Effekt: alle Sonderkarten entkräftet, reine Zahlenwerte zählen)
+  if (isUnicornActive) {
+    const colorEntries = effEntries.filter(t => t.card.type === 'color');
+    if (colorEntries.length > 0) {
+      // Höchste Farbkarte nach reinem Zahlenwert 1-13 (bei Gleichstand die zuerst gespielte)
+      let highestColorEntry = colorEntries[0];
+      for (let i = 1; i < colorEntries.length; i++) {
+        if (colorEntries[i].card.value > highestColorEntry.card.value) {
+          highestColorEntry = colorEntries[i];
+        }
+      }
+      return {
+        winnerPlayerId: highestColorEntry.playerId,
+        nextLeadPlayerId: highestColorEntry.playerId,
+        isBombed: false,
+        isUnicornActive: true
+      };
+    } else {
+      // Nur Sonderkarten im Stich: Stich wird komplett abgeworfen/neutralisiert!
+      // Der Einhorn-Spieler eröffnet den nächsten Stich.
+      const unicornLeadPlayerId = effEntries[unicornIdx].playerId;
+      return {
+        winnerPlayerId: null,
+        nextLeadPlayerId: unicornLeadPlayerId,
+        isBombed: false,
+        isUnicornActive: true,
+        isUnicornVoided: true
+      };
+    }
+  }
 
   // Interne Ermittlung der höchsten Karte (ohne Bomben-Neutralisierung)
   function getHighestEntry(entries) {
@@ -181,7 +235,8 @@ function evaluateTrickDetails(trickCards, trumpCard) {
     return entries[0];
   }
 
-  if (hasBomb) {
+  // Fall B: Bombe ist aktiv (und nicht durch ein späteres Einhorn neutralisiert)
+  if (isBombActive) {
     // Stich ist durch die Bombe zerstört/neutralisiert (kein Stichgewinner!)
     const nonBombEntries = effEntries.filter(t => t.card.type !== 'bomb');
     let nextLeadPlayerId;
@@ -215,7 +270,7 @@ function evaluateTrick(trickCards, trumpCard) {
 // Prüft, ob ein Zug den offiziellen Regeln entspricht
 function isValidMove(cardToPlay, hand, currentTrick) {
   // 1. Sonderkarten dürfen IMMER gespielt werden.
-  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb', 'shapeshifter', 'cloud', 'vampire', 'werewolf', 'witch', 'juggler'].includes(cardToPlay.type)) {
+  if (['wizard', 'jester', 'dragon', 'fairy', 'bomb', 'shapeshifter', 'cloud', 'vampire', 'werewolf', 'witch', 'juggler', 'unicorn'].includes(cardToPlay.type)) {
     return true;
   }
 
@@ -276,7 +331,7 @@ function calculatePoints(bid, tricksWon) {
 
 // Berechnet die maximale Rundenanzahl für eine gegebene Spieleranzahl (3 bis 6) und Edition
 function getMaxRounds(playerCount, edition = 'classic') {
-  const deckSize = (edition === 'anniversary_30') ? 69 : 60;
+  const deckSize = (edition === 'anniversary_30') ? 70 : 60;
   if (!playerCount || playerCount < 1) return Math.floor(deckSize / 3);
   return Math.floor(deckSize / playerCount);
 }
@@ -295,8 +350,9 @@ function isForbiddenBid(bid, currentRound, totalBidsSoFar, isLastPlayer) {
 // 4. Gestaltenwandler (0.1), Wolke (0.2), Vampir (0.3), Werwolf (0.4), Hexe (0.5), Jongleur (0.6)
 // 5. Reguläre Farben: Gelb -> Rot -> Grün -> Blau (aufsteigend nach Wert 1-13)
 // 6. Trumpf-Farbkarten (aufsteigend nach Wert 1-13)
-// 7. Zauberer (14)
-// 8. Drache (15)
+// 7. Einhorn (13.5)
+// 8. Zauberer (14)
+// 9. Drache (15)
 function sortCards(cards, trumpSuit = 'none') {
   if (!cards || !Array.isArray(cards)) return [];
   const colorOrder = { yellow: 1, red: 2, green: 3, blue: 4 };
@@ -311,6 +367,7 @@ function sortCards(cards, trumpSuit = 'none') {
     werewolf: 0.4,
     witch: 0.5,
     juggler: 0.6,
+    unicorn: 13.5,
     wizard: 14,
     dragon: 15
   };
@@ -328,9 +385,9 @@ function sortCards(cards, trumpSuit = 'none') {
     if (aSpecial !== undefined && aSpecial <= 1) return -1;
     if (bSpecial !== undefined && bSpecial <= 1) return 1;
 
-    // Eine ist rechte Sonderkarte (Zauberer, Drache >= 14)
-    if (aSpecial !== undefined && aSpecial >= 14) return 1;
-    if (bSpecial !== undefined && bSpecial >= 14) return -1;
+    // Eine ist rechte Sonderkarte (Einhorn, Zauberer, Drache >= 13.5)
+    if (aSpecial !== undefined && aSpecial >= 13.5) return 1;
+    if (bSpecial !== undefined && bSpecial >= 13.5) return -1;
 
     // Beide Karten sind reguläre Farbkarten:
     const aIsTrump = (trumpSuit && trumpSuit !== 'none' && a.suit === trumpSuit);

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="appBgGrad" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#2a1406" />
+      <stop offset="50%" stop-color="#140a03" />
+      <stop offset="100%" stop-color="#070301" />
+    </radialGradient>
+    <linearGradient id="tomeCover" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#581c87" />
+      <stop offset="50%" stop-color="#2e0854" />
+      <stop offset="100%" stop-color="#140224" />
+    </linearGradient>
+    <linearGradient id="goldGleam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="35%" stop-color="#eab308" />
+      <stop offset="70%" stop-color="#ca8a04" />
+      <stop offset="100%" stop-color="#854d0e" />
+    </linearGradient>
+    <filter id="auraGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14" result="glow" />
+      <feComposite in="SourceGraphic" in2="glow" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- App Rounded Background -->
+  <rect width="512" height="512" rx="104" fill="url(#appBgGrad)" />
+  <rect x="8" y="8" width="496" height="496" rx="98" fill="none" stroke="url(#goldGleam)" stroke-width="6" opacity="0.4" />
+
+  <!-- The Grimoire (Magical Tome) -->
+  <g transform="translate(106, 76)">
+    <!-- Book Shadow -->
+    <rect x="18" y="22" width="270" height="340" rx="20" fill="rgba(0,0,0,0.6)" filter="url(#auraGlow)" />
+    <!-- Book Leather Backing -->
+    <rect x="0" y="0" width="300" height="360" rx="24" fill="url(#tomeCover)" stroke="url(#goldGleam)" stroke-width="8" />
+    <!-- Ornate Book Corners -->
+    <path d="M 0,60 L 60,0 L 0,0 Z" fill="url(#goldGleam)" />
+    <path d="M 300,60 L 240,0 L 300,0 Z" fill="url(#goldGleam)" />
+    <path d="M 0,300 L 60,360 L 0,360 Z" fill="url(#goldGleam)" />
+    <path d="M 300,300 L 240,360 L 300,360 Z" fill="url(#goldGleam)" />
+
+    <!-- Spine details -->
+    <line x1="42" y1="0" x2="42" y2="360" stroke="url(#goldGleam)" stroke-width="4" opacity="0.6" />
+    <line x1="48" y1="0" x2="48" y2="360" stroke="#000" stroke-width="2" opacity="0.5" />
+
+    <!-- Central Mystic Seal / Star -->
+    <g transform="translate(170, 180)" filter="url(#auraGlow)">
+      <circle cx="0" cy="0" r="68" fill="none" stroke="url(#goldGleam)" stroke-width="5" stroke-dasharray="14 5" />
+      <circle cx="0" cy="0" r="52" fill="#1e0638" stroke="url(#goldGleam)" stroke-width="3" />
+      <!-- 8-Pointed Star -->
+      <path d="M 0,-40 L 10,-12 L 38,-12 L 16,6 L 24,34 L 0,18 L -24,34 L -16,6 L -38,-12 L -10,-12 Z" fill="url(#goldGleam)" />
+      <!-- Gem in Center -->
+      <circle cx="0" cy="0" r="9" fill="#67e8f9" stroke="#fff" stroke-width="2" />
+    </g>
+
+    <!-- Runes/Embellishments -->
+    <circle cx="170" cy="65" r="8" fill="url(#goldGleam)" />
+    <circle cx="170" cy="295" r="8" fill="url(#goldGleam)" />
+    <line x1="90" y1="65" x2="150" y2="65" stroke="url(#goldGleam)" stroke-width="3" stroke-linecap="round" />
+    <line x1="190" y1="65" x2="250" y2="65" stroke="url(#goldGleam)" stroke-width="3" stroke-linecap="round" />
+    <line x1="90" y1="295" x2="150" y2="295" stroke="url(#goldGleam)" stroke-width="3" stroke-linecap="round" />
+    <line x1="190" y1="295" x2="250" y2="295" stroke="url(#goldGleam)" stroke-width="3" stroke-linecap="round" />
+  </g>
+</svg>

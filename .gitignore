@@ -1,5 +1,20 @@
 node_modules/
 server/data/*.db-wal
 server/data/*.db-shm
+test/*.db*
 .DS_Store
 Thumbs.db
+
+# Android & Capacitor Build Caches
+android/.gradle/
+android/build/
+android/app/build/
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+
+
