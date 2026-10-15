@@ -431,7 +431,7 @@
       border-radius: 10px;
       border: 1.5px solid var(--gold-antique);
       box-shadow: 0 4px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12);
-      gap: 12px;
+      gap: 10px;
       position: relative;
       z-index: 250;
       flex-shrink: 0;
@@ -446,15 +446,52 @@
 
     .top-nav-center {
       flex: 1;
-      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       overflow: hidden;
     }
 
     .top-nav-right {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       flex-shrink: 0;
+    }
+
+    .room-round-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(14, 8, 4, 0.85);
+      border: 1.5px solid var(--gold-antique);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-family: var(--font-medieval);
+      font-size: 13px;
+      color: #d6be90;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.6);
+      transition: all 0.15s ease;
+    }
+    .room-round-pill:hover {
+      border-color: var(--gold-bright);
+      color: #fff;
+    }
+    .room-round-pill:active {
+      transform: scale(0.96);
+      background: rgba(240, 195, 85, 0.2);
+    }
+    .pill-divider {
+      color: var(--gold-antique);
+      opacity: 0.6;
+    }
+    .pill-copy-icon {
+      font-size: 12px;
+      opacity: 0.85;
+      margin-left: 2px;
     }
 
     .room-round-info {
@@ -1320,14 +1357,14 @@
     .card-corner.bottom-right { bottom: 4px; right: 5px; transform: rotate(180deg); }
 
     .card-val {
-      font-size: 15px;
+      font-size: clamp(10px, calc(var(--card-w) * 0.18), 15px);
       font-weight: 900;
       text-shadow: 0 1px 1px rgba(255,255,255,0.4);
     }
 
     .card-mini-icon {
-      width: 12px;
-      height: 12px;
+      width: clamp(8px, calc(var(--card-w) * 0.14), 12px);
+      height: clamp(8px, calc(var(--card-w) * 0.14), 12px);
       margin-top: 1px;
     }
 
@@ -1342,15 +1379,15 @@
     }
 
     .card-center-val {
-      font-size: 28px;
+      font-size: clamp(14px, calc(var(--card-w) * 0.32), 28px);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -1px;
     }
 
     .card-center-crest {
-      width: 36px;
-      height: 36px;
+      width: clamp(18px, calc(var(--card-w) * 0.42), 36px);
+      height: clamp(18px, calc(var(--card-w) * 0.42), 36px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2139,28 +2176,62 @@
         flex: 1;
         min-height: 0;
       }
-      .card-center-val { font-size: 22px; }
-      .card-center-crest { width: 26px; height: 26px; }
-      .card-val { font-size: 12px; }
-      .card-mini-icon { width: 9px; height: 9px; }
-      .top-nav-bar { padding: 5px 8px; gap: 6px; }
-      .room-round-info { font-size: 11px; }
+      .top-nav-bar {
+        padding: 4px 8px;
+        gap: 8px;
+        height: 44px;
+        max-height: 44px;
+        box-sizing: border-box;
+      }
+      .top-nav-left { flex-shrink: 0; }
+      .top-nav-center { flex: 1; min-width: 0; }
+      .top-nav-right { flex-shrink: 0; }
+
+      .room-round-pill {
+        padding: 3px 8px;
+        font-size: 11px;
+        gap: 5px;
+        max-width: 100%;
+      }
+      .pill-copy-icon { font-size: 10px; }
+
+      .btn-top-nav-action {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+      }
+      .btn-top-nav-action .score-toggle-text,
+      .btn-top-nav-action .game-menu-toggle-text {
+        display: none !important;
+      }
+      .btn-top-nav-action .score-toggle-icon,
+      .btn-top-nav-action .game-menu-toggle-icon {
+        display: inline-block !important;
+        font-size: 17px !important;
+        line-height: 1;
+      }
+
       #status-message { display: none !important; }
 
-      .score-toggle-text, .rules-toggle-text { display: none; }
-      .score-toggle-icon, .rules-toggle-icon { display: inline-block; font-size: 16px; line-height: 1; }
-      .btn-score-toggle { padding: 6px 10px; font-size: 14px; margin: 0; }
-      .btn-leave { padding: 5px 8px; font-size: 11px; }
+      #opponents-container { gap: 4px; padding: 2px 2px; }
+      .player-seat { padding: 3px 5px; gap: 4px; }
+      .seat-avatar { width: 26px; height: 28px; font-size: 11px; }
+      .seat-name { font-size: 11px; max-width: 62px; }
+      .seat-stats { font-size: 9.5px; }
 
-      #opponents-container { gap: 6px; }
-      .player-seat { padding: 4px 6px; gap: 4px; }
-      .seat-avatar { width: 28px; height: 30px; font-size: 11px; }
-      .seat-name { font-size: 11px; max-width: 65px; }
-      .seat-stats { font-size: 10px; }
-
-      #score-board-drawer, #rules-drawer {
-        width: 86vw;
-        max-width: 330px;
+      #score-board-drawer,
+      #rules-drawer,
+      #companions-drawer,
+      #profile-drawer {
+        width: min(88vw, 340px) !important;
+        max-width: 88vw !important;
+        z-index: 1500 !important;
       }
       .drawer-header { padding: 10px 14px; }
       .drawer-scroll { padding: 8px; }
@@ -3246,6 +3317,153 @@
       justify-content: center;
     }
 
+    /* CONSOLIDATED IN-GAME CITADEL MENU (#game-menu-modal) */
+    .game-menu-card {
+      max-width: 380px !important;
+      width: 92% !important;
+      padding: 20px 22px !important;
+      border: 1.5px solid var(--gold-antique);
+      animation: dialogPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      box-sizing: border-box;
+    }
+    .game-menu-actions-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      width: 100%;
+    }
+    .game-menu-item-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid rgba(212, 163, 89, 0.25);
+      border-radius: 8px;
+      color: #ebd7af;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.16s ease;
+      box-sizing: border-box;
+      outline: none;
+    }
+    .game-menu-item-btn:hover,
+    .game-menu-item-btn:active {
+      background: rgba(212, 163, 89, 0.12);
+      border-color: var(--gold-bright);
+      transform: translateY(-1px);
+    }
+    .game-menu-item-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+      width: 26px;
+      text-align: center;
+      line-height: 1;
+    }
+    .game-menu-item-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+    }
+    .game-menu-item-title {
+      font-family: var(--font-subheading);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.3px;
+    }
+    .game-menu-item-desc {
+      font-size: 11px;
+      color: #b89a67;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .game-menu-item-chevron {
+      font-size: 20px;
+      color: var(--gold-antique);
+      flex-shrink: 0;
+      margin-left: 4px;
+      line-height: 1;
+    }
+    .game-menu-item-danger {
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.04);
+    }
+    .game-menu-item-danger:hover,
+    .game-menu-item-danger:active {
+      background: rgba(239, 68, 68, 0.16);
+      border-color: #f87171;
+    }
+    .game-menu-item-danger .game-menu-item-title {
+      color: #fca5a5;
+    }
+    .game-menu-item-danger .game-menu-item-desc {
+      color: #f87171;
+    }
+
+    /* SPERRE QUERFORMAT AUF MOBILGERÄTEN (LANDSCAPE BLOCKER) */
+    #rotate-device-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: radial-gradient(circle at center, #1b0d06 0%, #080402 100%);
+      z-index: 999999;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    @media screen and (orientation: landscape) and (max-height: 550px) {
+      #rotate-device-overlay {
+        display: flex !important;
+      }
+    }
+    .rotate-device-content {
+      max-width: 340px;
+      background: rgba(28, 16, 8, 0.96);
+      border: 2px solid var(--gold-bright);
+      border-radius: 16px;
+      padding: 26px 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .rotate-device-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      line-height: 1;
+      animation: phoneSpin 2.5s infinite ease-in-out;
+    }
+    @keyframes phoneSpin {
+      0%, 20% { transform: rotate(90deg); }
+      50%, 70% { transform: rotate(0deg); }
+      100% { transform: rotate(90deg); }
+    }
+    .rotate-device-title {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      color: var(--gold-bright);
+      margin: 0 0 8px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    }
+    .rotate-device-desc {
+      font-size: 12.5px;
+      color: #ebd7af;
+      line-height: 1.45;
+      margin: 0;
+    }
+
     /* --- SPIELMODUS-SCHALTER (LOBBY) --- */
     .game-mode-toggle-container {
       margin: 12px 0 14px;
@@ -3336,8 +3554,8 @@
     }
 
     .rank-crest-svg {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
       flex-shrink: 0;
       vertical-align: middle;
@@ -3345,15 +3563,32 @@
     .player-rank-badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 1px 7px;
+      gap: 3px;
+      padding: 1px 6px;
       border-radius: 4px;
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 700;
       border: 1px solid currentColor;
       background: rgba(0, 0, 0, 0.4);
-      margin-left: 5px;
+      margin-left: 4px;
       vertical-align: middle;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.2;
+    }
+    .player-rank-badge-table {
+      font-family: var(--font-subheading);
+      letter-spacing: 0.3px;
+      font-size: 9.5px;
+      padding: 1px 5px;
+      margin-left: 3px;
+      border-width: 1px;
+    }
+    .player-rank-badge .rank-crest-svg {
+      width: 13px !important;
+      height: 13px !important;
+      display: block !important;
+      filter: none !important;
     }
 
     /* --- GAME OVER: OVERWATCH RANKED PROGRESS --- */
@@ -3936,31 +4171,33 @@
   <!-- SCREEN 3: SPIELTISCH SCREEN -->
   <div id="game-screen">
     
-    <!-- OBERE INFOBAR -->
+    <!-- OBERE INFOBAR: 3 AUSGEWOGENE ELEMENTE (BUCH | RAT & RUNDE | MENÜ) -->
     <div class="top-nav-bar">
+      <!-- LINKS: BUCH DER WAHRHEIT (PUNKTEBLOCK) -->
       <div class="top-nav-left">
-        <button id="btnLeaveGame" class="btn-leave" title="Spiel verlassen">Verlassen</button>
-        <div class="room-round-info">
-          Rat: <b id="displayRoomCode" style="color: var(--gold-bright);">-</b> <button id="btnCopyGameCode" class="btn-copy-small" type="button" title="Code kopieren">📋</button> | Runde: <b id="displayRound" style="color: var(--gold-bright);">-</b>/<b id="displayMaxRounds" style="color: var(--gold-bright);">-</b>
-        </div>
-      </div>
-
-      <div class="top-nav-center">
-        <div id="status-message">Warte auf Spielstart...</div>
-      </div>
-
-      <div class="top-nav-right" style="display: flex; gap: 6px; align-items: center;">
-        <button id="audio-settings-toggle" class="btn-score-toggle" title="Klang &amp; Musik">
-          <span class="score-toggle-text">Klang</span>
-          <span class="score-toggle-icon">🔊</span>
-        </button>
-        <button id="rules-drawer-toggle" class="btn-score-toggle" title="Grimoire der Regeln &amp; Karten">
-          <span class="rules-toggle-text">Regelwerk</span>
-          <span class="rules-toggle-icon">📜</span>
-        </button>
-        <button id="score-drawer-toggle" class="btn-score-toggle" title="Buch der Wahrheit">
-          <span class="score-toggle-text">Buch der Wahrheit</span>
+        <button id="score-drawer-toggle" class="btn-score-toggle btn-top-nav-action" title="Buch der Wahrheit (Punkteblock) öffnen">
           <span class="score-toggle-icon">📖</span>
+          <span class="score-toggle-text">Buch der Wahrheit</span>
+        </button>
+      </div>
+
+      <!-- MITTE: RATSSIEGEL & RUNDE (ANTIPPEN ZUM KOPIEREN) -->
+      <div class="top-nav-center">
+        <div id="displayRoomCodePill" class="room-round-pill" title="Tippen zum Kopieren des Ratssiegels">
+          <span class="pill-round-label">Runde <b id="displayRound" style="color: var(--gold-bright);">-</b>/<b id="displayMaxRounds" style="color: var(--gold-bright);">-</b></span>
+          <span class="pill-divider">•</span>
+          <span class="pill-code-label">Rat: <b id="displayRoomCode" style="color: var(--gold-bright);">-</b></span>
+          <span class="pill-copy-icon">📋</span>
+        </div>
+        <button id="btnCopyGameCode" type="button" style="display: none;" title="Code kopieren"></button>
+        <div id="status-message" style="display: none;">Warte auf Spielstart...</div>
+      </div>
+
+      <!-- RECHTS: ZENTRALES EINSTELLUNGS- & ZITADELLEN-MENÜ -->
+      <div class="top-nav-right">
+        <button id="btnOpenGameMenu" class="btn-score-toggle btn-top-nav-action" title="Zitadellen-Menü &amp; Einstellungen öffnen">
+          <span class="game-menu-toggle-icon">⚙️</span>
+          <span class="game-menu-toggle-text">Menü</span>
         </button>
       </div>
     </div>
@@ -4837,6 +5074,61 @@
     </div>
   </div>
 
+  <!-- ZENTRALES EINSTELLUNGS- & ZITADELLEN-MENÜ (INGAME CONSOLIDATED MENU) -->
+  <div id="game-menu-modal" class="modal-overlay" style="display: none; z-index: 100000;">
+    <div class="auth-modal-card game-menu-card">
+      <div class="auth-modal-header" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">⚙️</span>
+          <h3 style="margin: 0; font-family: var(--font-heading); color: var(--gold-bright); font-size: 17px;">Zitadellen-Menü</h3>
+        </div>
+        <button id="btnCloseGameMenu" type="button" class="drawer-close-btn" style="line-height: 1;">&times;</button>
+      </div>
+
+      <div class="game-menu-actions-grid">
+        <!-- 1. AUDIO & SOUND -->
+        <button id="btnMenuAudioSettings" type="button" class="game-menu-item-btn">
+          <span class="game-menu-item-icon">🔊</span>
+          <div class="game-menu-item-content">
+            <span class="game-menu-item-title">Klang &amp; Musik</span>
+            <span class="game-menu-item-desc">Lautstärke &amp; Effekte anpassen</span>
+          </div>
+          <span class="game-menu-item-chevron">›</span>
+        </button>
+
+        <!-- 2. REGELWERK & KARTENLEXIKON -->
+        <button id="btnMenuRules" type="button" class="game-menu-item-btn">
+          <span class="game-menu-item-icon">📜</span>
+          <div class="game-menu-item-content">
+            <span class="game-menu-item-title">Regeln &amp; Karten</span>
+            <span class="game-menu-item-desc">Grimoire &amp; Bestiarium einsehen</span>
+          </div>
+          <span class="game-menu-item-chevron">›</span>
+        </button>
+
+        <!-- 3. SERVER & NETZWERK -->
+        <button id="btnMenuServerSettings" type="button" class="game-menu-item-btn btn-open-server-settings">
+          <span class="game-menu-item-icon">🌐</span>
+          <div class="game-menu-item-content">
+            <span class="game-menu-item-title">Server &amp; Verbindung</span>
+            <span class="game-menu-item-desc">Server-Adresse &amp; Status</span>
+          </div>
+          <span class="game-menu-item-chevron">›</span>
+        </button>
+
+        <!-- 4. PARTIE VERLASSEN -->
+        <button id="btnLeaveGame" type="button" class="game-menu-item-btn game-menu-item-danger">
+          <span class="game-menu-item-icon">🚪</span>
+          <div class="game-menu-item-content">
+            <span class="game-menu-item-title">Partie verlassen</span>
+            <span class="game-menu-item-desc">Zurück zur Zitadelle</span>
+          </div>
+          <span class="game-menu-item-chevron">›</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- GRIMOIRE DIALOG MODAL (CUSTOM ALERT & CONFIRM) -->
   <div id="grimoire-dialog-modal" class="modal-overlay" style="display: none; z-index: 200000;">
     <div class="auth-modal-card grimoire-dialog-card">
@@ -4847,6 +5139,17 @@
         <button id="dialogCancelBtn" type="button" class="btn-auth-bar">Abbrechen</button>
         <button id="dialogConfirmBtn" type="button" class="btn-auth-bar btn-auth-gold">Bestätigen</button>
       </div>
+    </div>
+  </div>
+
+  <!-- SPERRE QUERFORMAT AUF MOBILGERÄTEN (LANDSCAPE BLOCKER) -->
+  <div id="rotate-device-overlay">
+    <div class="rotate-device-content">
+      <div class="rotate-device-icon">📱</div>
+      <h3 class="rotate-device-title">Bitte Smartphone aufrichten</h3>
+      <p class="rotate-device-desc">
+        Grimoire Online ist für das <b>Hochformat</b> geschmiedet. Bitte drehe dein Smartphone wieder in die aufrechte Haltung, um die Ratskammer zu betreten!
+      </p>
     </div>
   </div>
 

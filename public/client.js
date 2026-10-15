@@ -3032,6 +3032,9 @@ socket.on('editionChanged', ({ edition }) => {
 });
 
 async function confirmAndLeaveRoom() {
+  if (typeof GrimoireGameMenu !== 'undefined' && GrimoireGameMenu.close) {
+    GrimoireGameMenu.close();
+  }
   const confirmed = await GrimoireDialog.confirm({
     title: 'Kammer verlassen',
     message: 'Möchtest du den Spielbund wirklich verlassen und zur Zitadelle zurückkehren?',
@@ -3041,6 +3044,9 @@ async function confirmAndLeaveRoom() {
     danger: true
   });
   if (confirmed) {
+    if (typeof GrimoireGameMenu !== 'undefined' && GrimoireGameMenu.close) {
+      GrimoireGameMenu.close();
+    }
     socket.emit('leaveRoom', { roomCode: currentRoomCode });
     sessionStorage.removeItem('wizard_last_room');
     currentRoomCode = '';
@@ -3152,9 +3158,9 @@ function updateWaitingRoomView(amIHost) {
     if (p.rank && (p.userId || p.isBot)) {
       const crestSvg = RANK_CRESTS[p.rank.tier] || '';
       rankBadgeHtml = `
-        <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${p.rank.divisionName} (${p.skillRating || 0} SR)">
-          <span style="display:inline-block; width:16px; height:16px; vertical-align:middle;">${crestSvg}</span>
-          ${p.rank.divisionName}
+        <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${escapeHtml(p.rank.divisionName)} (${p.skillRating || 0} SR)">
+          <span style="display:inline-flex; width:13px; height:13px; align-items:center; justify-content:center; flex-shrink:0;">${crestSvg}</span>
+          ${escapeHtml(p.rank.divisionName)}
         </span>
       `;
     }
@@ -4133,11 +4139,9 @@ function renderOpponents() {
 
     let rankBadgeHtml = '';
     if (p.rank && (p.userId || p.isBot)) {
-      const crestSvg = RANK_CRESTS[p.rank.tier] || '';
       rankBadgeHtml = `
-        <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${p.rank.divisionName} (${p.skillRating || 0} SR)">
-          <span style="display:inline-block; width:14px; height:14px; vertical-align:middle;">${crestSvg}</span>
-          ${p.rank.divisionName}
+        <span class="player-rank-badge player-rank-badge-table" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${escapeHtml(p.rank.divisionName)} (${p.skillRating || 0} SR)">
+          ${escapeHtml(p.rank.divisionName)}
         </span>
       `;
     }
@@ -5249,11 +5253,152 @@ function setupResizableDrawers() {
   });
 }
 
+// --- ZENTRALES INGAME-MENÜ & EINSTELLUNGEN (CITADEL GAME MENU) ---
+const GrimoireGameMenu = {
+  modal: null,
+
+  init() {
+    this.modal = document.getElementById('game-menu-modal');
+
+    const openBtn = document.getElementById('btnOpenGameMenu');
+    const closeBtn = document.getElementById('btnCloseGameMenu');
+    const audioBtn = document.getElementById('btnMenuAudioSettings');
+    const rulesBtn = document.getElementById('btnMenuRules');
+    const serverBtn = document.getElementById('btnMenuServerSettings');
+    const pill = document.getElementById('displayRoomCodePill');
+
+    if (openBtn && !openBtn._hasGameMenuListener) {
+      openBtn._hasGameMenuListener = true;
+      openBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.open();
+      });
+    }
+
+    if (closeBtn && !closeBtn._hasGameMenuListener) {
+      closeBtn._hasGameMenuListener = true;
+      closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close();
+      });
+    }
+
+    if (this.modal && !this.modal._hasGameMenuListener) {
+      this.modal._hasGameMenuListener = true;
+      this.modal.addEventListener('click', (e) => {
+        if (e.target === this.modal) {
+          this.close();
+        }
+      });
+    }
+
+    // Escape-Taste zum Schließen des Zitadellen-Menüs
+    if (typeof document !== 'undefined' && !document._hasGameMenuEscListener) {
+      document._hasGameMenuEscListener = true;
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.modal && this.modal.style.display !== 'none') {
+          this.close();
+        }
+      });
+    }
+
+    if (audioBtn && !audioBtn._hasGameMenuListener) {
+      audioBtn._hasGameMenuListener = true;
+      audioBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close();
+        const lobbyAudio = document.getElementById('lobby-audio-toggle');
+        const audioSettingsToggle = document.getElementById('audio-settings-toggle');
+        if (audioSettingsToggle) {
+          audioSettingsToggle.click();
+        } else if (lobbyAudio) {
+          lobbyAudio.click();
+        }
+      });
+    }
+
+    if (rulesBtn && !rulesBtn._hasGameMenuListener) {
+      rulesBtn._hasGameMenuListener = true;
+      rulesBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close();
+        if (typeof openRulesDrawer === 'function') {
+          openRulesDrawer();
+        }
+      });
+    }
+
+    if (serverBtn && !serverBtn._hasGameMenuListener) {
+      serverBtn._hasGameMenuListener = true;
+      serverBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close();
+        if (typeof GrimoireServerSettings !== 'undefined' && GrimoireServerSettings.openModal) {
+          GrimoireServerSettings.openModal();
+        }
+      });
+    }
+
+    // Antippen des Ratssiegel-Pills kopiert den Code sofort in die Zwischenablage
+    if (pill && !pill._hasPillListener) {
+      pill._hasPillListener = true;
+      pill.addEventListener('click', () => {
+        if (!currentRoomCode || currentRoomCode === '-') return;
+        const copyText = currentRoomCode;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(copyText).then(() => {
+            showToast(`Ratssiegel ${copyText} kopiert! ✨`);
+            if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
+          }).catch(() => {
+            fallbackCopyPill(copyText);
+          });
+        } else {
+          fallbackCopyPill(copyText);
+        }
+      });
+    }
+
+    function fallbackCopyPill(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast(`Ratssiegel ${text} kopiert! ✨`);
+        if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
+      } catch (err) {}
+      document.body.removeChild(ta);
+    }
+  },
+
+  open() {
+    if (!this.modal) this.modal = document.getElementById('game-menu-modal');
+    if (this.modal) {
+      this.modal.style.display = 'flex';
+      if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
+    }
+  },
+
+  close() {
+    if (this.modal) {
+      this.modal.style.display = 'none';
+    }
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.GrimoireGameMenu = GrimoireGameMenu;
+}
+
 // Initialer Zustand: Haupt-Lobby, Audio-Bindings, Auth & Drawer-Resizing einrichten
 setupAudioSettingsUI();
 setupResizableDrawers();
 GrimoireDialog.init();
 GrimoireServerSettings.init();
+GrimoireGameMenu.init();
 WizardAuth.init();
 CompanionsManager.init();
 switchScreen('lobby');
