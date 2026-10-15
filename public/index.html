@@ -433,6 +433,7 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12);
       gap: 12px;
       position: relative;
+      z-index: 250;
       flex-shrink: 0;
     }
 
@@ -1125,11 +1126,14 @@
 
     #hand-container.swipeable {
       overflow-x: auto;
-      justify-content: center;
-      scroll-snap-type: x mandatory;
-      padding-left: 12px;
-      padding-right: 12px;
+      justify-content: flex-start !important;
+      scroll-snap-type: x proximity;
+      padding: 6px 16px calc(var(--safe-bottom) + 8px);
       -webkit-overflow-scrolling: touch;
+    }
+    #hand-container.swipeable .card {
+      margin: 0 4px !important;
+      flex-shrink: 0;
     }
 
     /* BLIND-KARTE (STIRN-WIZARD RUNDE 1) */
@@ -2199,26 +2203,28 @@
       }
       #bid-overlay {
         position: absolute;
-        top: 50%;
-        left: auto;
-        right: 8px;
-        transform: translateY(-50%);
-        width: calc(100% - 100px);
-        max-width: 275px;
-        z-index: 110;
+        bottom: calc(var(--card-h) + 26px);
+        top: auto;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        width: 92%;
+        max-width: 330px;
+        z-index: 500;
       }
       #bid-box {
-        padding: 10px 12px;
+        padding: 8px 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.95);
       }
       #bid-buttons {
-        max-height: 140px;
-        gap: 5px;
+        max-height: 130px;
+        gap: 6px;
       }
       .bid-btn {
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        font-size: 14px;
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 15px;
         padding: 0;
       }
     }
@@ -2227,7 +2233,7 @@
        AUTHENTIFIZIERUNG, PROFIL, STATISTIKEN & LEADERBOARD (DARK FANTASY UI)
        ========================================================================== */
 
-    /* 1. STATUSBEREICH & HEADER IN DER HAUPT-LOBBY (#auth-lobby-bar / .lobby-header-bar) */
+    /* 1. STATUSBEREICH & HEADER IN DER HAUPT-LOBBY & WARTERAUM */
     .lobby-header-bar {
       position: relative;
       width: 100%;
@@ -2238,8 +2244,35 @@
       gap: 12px;
       padding: 0 4px 10px;
       box-sizing: border-box;
-      z-index: 120;
+      z-index: 250;
       flex-shrink: 0;
+    }
+
+    .waiting-header-bar {
+      position: relative;
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px 10px;
+      box-sizing: border-box;
+      z-index: 250;
+      flex-shrink: 0;
+    }
+
+    .waiting-header-title {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      letter-spacing: 1.5px;
+    }
+
+    .waiting-header-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
     }
 
     .auth-lobby-bar {
@@ -3122,20 +3155,26 @@
       .waiting-room-actions button {
         width: 100%;
       }
-      #waiting-audio-toggle {
-        position: absolute;
-        top: calc(var(--safe-top) + 10px);
-        right: calc(var(--safe-right) + 12px);
+      .waiting-header-bar {
+        padding: 0 2px 6px;
+      }
+      .waiting-header-right .btn-header-action {
         padding: 6px 8px;
         min-width: 38px;
         min-height: 38px;
+        box-sizing: border-box;
       }
-      #waiting-audio-toggle .score-toggle-text {
+      .waiting-header-right .btn-header-action .score-toggle-text {
         display: none;
       }
-      #waiting-audio-toggle .score-toggle-icon {
+      .waiting-header-right .btn-header-action .score-toggle-icon {
         font-size: 17px;
         margin: 0;
+      }
+      #playerName, #roomCode {
+        min-height: 44px;
+        font-size: 16px;
+        box-sizing: border-box;
       }
       #host-bot-controls {
         flex-direction: column;
@@ -3442,13 +3481,19 @@
       font-size: 13px;
       font-weight: 700;
       text-align: center;
-      z-index: 800;
+      z-index: 900;
       box-shadow: 0 4px 20px rgba(0,0,0,0.8);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 8px;
       animation: bannerSlideDown 0.3s ease-out;
+    }
+    body.has-active-banner .fullscreen-screen {
+      padding-top: calc(var(--safe-top) + 54px) !important;
+    }
+    body.has-active-banner #game-screen {
+      padding-top: 52px !important;
     }
     @keyframes bannerSlideDown {
       from { transform: translateY(-100%); opacity: 0; }
@@ -3826,12 +3871,18 @@
 
   <!-- SCREEN 2: SEPARATER WARTERAUM (VOLLBILD) -->
   <div id="waiting-room-screen" class="fullscreen-screen" style="display: none;">
-    <button id="waiting-audio-toggle" class="btn-score-toggle" style="position: absolute; top: 14px; right: 16px; margin: 0;" title="Klang &amp; Musik">
-      <span class="score-toggle-icon">🔊</span>
-      <span class="score-toggle-text">Klang</span>
-    </button>
+    <header class="waiting-header-bar">
+      <div class="waiting-header-left">
+        <span class="waiting-header-title">🏰 DIE RATSKAMMER</span>
+      </div>
+      <div class="waiting-header-right">
+        <button id="waiting-audio-toggle" type="button" class="btn-score-toggle btn-header-action" title="Klang &amp; Musik">
+          <span class="score-toggle-icon">🔊</span>
+          <span class="score-toggle-text">Klang</span>
+        </button>
+      </div>
+    </header>
     <div class="glass-card" style="max-width: 540px;">
-      <div style="font-size: 13px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-bright); letter-spacing: 1.5px;">DIE RATSKAMMER</div>
       <div id="waitingRoomModeBadge" class="waiting-mode-badge mode-quickplay" style="margin-top: 6px;">🍻 Schnellspiel (Normal)</div>
       
       <div class="room-code-badge-container">

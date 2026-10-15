@@ -173,15 +173,19 @@ const GrimoireDialog = {
 
   requireAuth(featureName = 'ranked') {
     const isRanked = featureName === 'ranked';
-    const title = 'Magier-Siegel erforderlich';
-    const message = isRanked
-      ? 'Für Ranglistenspiele und das Sammeln von Siegel-Rangpunkten (SR) im Buch der Meister musst du im Magier-Register angemeldet sein.'
-      : 'Für diese geheime Kunst musst du ein eingetragenes Magier-Siegel besitzen. Melde dich jetzt an oder erschaffe ein neues Konto!';
+    const isCompanions = featureName === 'companions';
+    const title = isCompanions ? 'Gefährten-Bund erfordert Siegel' : 'Magier-Siegel erforderlich';
+    let message = 'Für diese geheime Kunst musst du ein eingetragenes Magier-Siegel besitzen. Melde dich jetzt an oder erschaffe ein neues Konto!';
+    if (isRanked) {
+      message = 'Für Ranglistenspiele und das Sammeln von Siegel-Rangpunkten (SR) im Buch der Meister musst du im Magier-Register angemeldet sein.';
+    } else if (isCompanions) {
+      message = 'Für das Grimoire der Gefährten und gemeinsame Einladungen musst du im Magier-Register eingetragen sein. Melde dich jetzt an oder registriere dich kostenlos!';
+    }
 
     return this.confirm({
       title,
       message,
-      icon: isRanked ? '⚔️' : '✨',
+      icon: isRanked ? '⚔️' : (isCompanions ? '👥' : '✨'),
       confirmText: '✨ Jetzt Anmelden / Registrieren',
       cancelText: 'Zurück',
       danger: false
@@ -408,6 +412,9 @@ function showConnectionStatus(message, isError = true) {
     connectionBanner.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; flex-wrap: wrap;"><span>⚠️</span><span>${safeHtml}</span>${serverSettingsBtnHtml}</div>${closeBtnHtml}`;
     if (!isBannerDismissedByUser) {
       connectionBanner.style.display = 'flex';
+      if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.add('has-active-banner');
+      }
     }
     if (isError) {
       connectionBanner.classList.add('error');
@@ -429,6 +436,9 @@ function hideConnectionStatus() {
   }
   if (lobbyStatusMsg) {
     lobbyStatusMsg.style.display = 'none';
+  }
+  if (typeof document !== 'undefined' && document.body) {
+    document.body.classList.remove('has-active-banner');
   }
 }
 
@@ -2343,9 +2353,22 @@ const CompanionsManager = (() => {
     const userOpenBtn = document.getElementById('btnOpenCompanionsUser');
     const waitingOpenBtn = document.getElementById('btnOpenCompanionsWaiting');
 
-    if (guestOpenBtn) guestOpenBtn.addEventListener('click', () => openCompanions());
-    if (userOpenBtn) userOpenBtn.addEventListener('click', () => openCompanions());
-    if (waitingOpenBtn) waitingOpenBtn.addEventListener('click', () => openCompanions());
+    function checkAuthAndOpen() {
+      const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
+      if (!user) {
+        if (typeof GrimoireDialog !== 'undefined' && GrimoireDialog.requireAuth) {
+          GrimoireDialog.requireAuth('companions');
+        } else if (typeof WizardAuth !== 'undefined' && WizardAuth.openAuthModal) {
+          WizardAuth.openAuthModal('login');
+        }
+        return;
+      }
+      openCompanions();
+    }
+
+    if (guestOpenBtn) guestOpenBtn.addEventListener('click', checkAuthAndOpen);
+    if (userOpenBtn) userOpenBtn.addEventListener('click', checkAuthAndOpen);
+    if (waitingOpenBtn) waitingOpenBtn.addEventListener('click', checkAuthAndOpen);
 
     if (closeBtn) closeBtn.addEventListener('click', closeCompanions);
 
@@ -2409,6 +2432,10 @@ const CompanionsManager = (() => {
       renderFriendsList();
     });
 
+    socket.on('friendsError', ({ message }) => {
+      showToast('⚠️ ' + (message || 'Gefährten-Grimoire nicht verfügbar.'));
+    });
+
     socket.on('friendActionSuccess', ({ message }) => {
       showToast(message || 'Aktion erfolgreich!');
       const msgEl = document.getElementById('companionActionMessage');
@@ -2437,6 +2464,16 @@ const CompanionsManager = (() => {
   }
 
   function openCompanions() {
+    const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
+    if (!user) {
+      if (typeof GrimoireDialog !== 'undefined' && GrimoireDialog.requireAuth) {
+        GrimoireDialog.requireAuth('companions');
+      } else if (typeof WizardAuth !== 'undefined' && WizardAuth.openAuthModal) {
+        WizardAuth.openAuthModal('login');
+      }
+      return;
+    }
+
     // Andere Drawers schließen
     if (typeof closeScoreDrawer === 'function') closeScoreDrawer();
     if (typeof closeRulesDrawer === 'function') closeRulesDrawer();
@@ -2444,21 +2481,15 @@ const CompanionsManager = (() => {
       WizardAuth.closeProfileDrawer();
     }
 
-    const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
     const guestView = document.getElementById('companions-guest-view');
     const userView = document.getElementById('companions-user-view');
     const drawer = document.getElementById('companions-drawer');
     const backdrop = document.getElementById('drawer-backdrop');
 
-    if (!user) {
-      if (guestView) guestView.style.display = 'block';
-      if (userView) userView.style.display = 'none';
-    } else {
-      if (guestView) guestView.style.display = 'none';
-      if (userView) userView.style.display = 'block';
-      if (socket && typeof socket.emit === 'function') {
-        socket.emit('getFriends', { token: WizardAuth.getToken() });
-      }
+    if (guestView) guestView.style.display = 'none';
+    if (userView) userView.style.display = 'block';
+    if (socket && typeof socket.emit === 'function') {
+      socket.emit('getFriends', { token: WizardAuth.getToken() });
     }
 
     if (drawer) drawer.classList.add('open');
@@ -3118,7 +3149,7 @@ function updateWaitingRoomView(amIHost) {
     const titleHtml = p.title ? `<div style="font-size: 11px; color: #d6be90; font-style: italic;">${escapeHtml(p.title)}</div>` : '';
 
     let rankBadgeHtml = '';
-    if (p.rank) {
+    if (p.rank && (p.userId || p.isBot)) {
       const crestSvg = RANK_CRESTS[p.rank.tier] || '';
       rankBadgeHtml = `
         <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${p.rank.divisionName} (${p.skillRating || 0} SR)">
@@ -4101,7 +4132,7 @@ function renderOpponents() {
     const titleHtml = p.title ? `<div class="seat-title">${escapeHtml(p.title)}</div>` : '';
 
     let rankBadgeHtml = '';
-    if (p.rank) {
+    if (p.rank && (p.userId || p.isBot)) {
       const crestSvg = RANK_CRESTS[p.rank.tier] || '';
       rankBadgeHtml = `
         <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${p.rank.divisionName} (${p.skillRating || 0} SR)">
@@ -4345,16 +4376,19 @@ function renderHand(isNewDeal = false) {
   const total = myCurrentHand.length;
   const mid = (total - 1) / 2;
   const isMobile = window.innerWidth <= 768;
+  const isSwipeable = isMobile && total >= 8;
 
   let dynamicMargin = '3px';
-  if (total > 5) {
+  if (isSwipeable) {
+    dynamicMargin = '4px';
+  } else if (total > 5) {
     if (total <= 8) dynamicMargin = '-8px';
     else if (total <= 12) dynamicMargin = '-18px';
     else if (total <= 16) dynamicMargin = '-26px';
     else dynamicMargin = '-34px';
   }
 
-  if (isMobile && total >= 10) {
+  if (isSwipeable) {
     handContainer.classList.add('swipeable');
   } else {
     handContainer.classList.remove('swipeable');
@@ -4369,7 +4403,7 @@ function renderHand(isNewDeal = false) {
     const offsetY = 0;
 
     cardElement.style.marginLeft = (index === 0) ? '0px' : dynamicMargin;
-    cardElement.style.marginRight = '0px';
+    cardElement.style.marginRight = isSwipeable ? '4px' : '0px';
     cardElement.style.zIndex = index + 1;
 
     if (inspectedCardIndex === index) {

@@ -482,8 +482,8 @@ io.on('connection', (socket) => {
       name: cleanName,
       avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
       title: authUser ? authUser.title : null,
-      skillRating: authUser ? (authUser.skill_rating || 1000) : 1000,
-      rank: authUser ? authUser.rank : dbModule.getRankDetailsFromSR(1000),
+      skillRating: authUser ? (authUser.skill_rating || 1000) : null,
+      rank: authUser ? authUser.rank : null,
       hand: [],
       bid: null,
       tricksWon: 0,
@@ -703,8 +703,8 @@ io.on('connection', (socket) => {
       name: cleanName,
       avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
       title: authUser ? authUser.title : null,
-      skillRating: authUser ? (authUser.skill_rating || 1000) : 1000,
-      rank: authUser ? authUser.rank : dbModule.getRankDetailsFromSR(1000),
+      skillRating: authUser ? (authUser.skill_rating || 1000) : null,
+      rank: authUser ? authUser.rank : null,
       hand: [],
       bid: null,
       tricksWon: 0,
@@ -2120,10 +2120,9 @@ io.on('connection', (socket) => {
         isHost: p.sessionId === hostSessionId,
         handCount: p.hand ? p.hand.length : 0,
         userId: p.userId || null,
-        avatarId: p.avatarId || 'wizard_blue',
-        title: p.title || null,
-        skillRating: p.skillRating || (p.rank ? p.rank.sr : 1000),
-        rank: p.rank || dbModule.getRankDetailsFromSR(p.skillRating || 1000)
+        isBot: !!p.isBot,
+        skillRating: p.isBot ? p.skillRating : (p.userId ? (p.skillRating || (p.rank ? p.rank.sr : 1000)) : null),
+        rank: p.isBot ? p.rank : (p.userId ? (p.rank || dbModule.getRankDetailsFromSR(p.skillRating || 1000)) : null)
       };
       if (room && room.round === 1 && p.hand && p.hand[0]) {
         pData.round1Card = p.hand[0];
