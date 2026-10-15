@@ -14,12 +14,12 @@ const js = fs.readFileSync(jsPath, 'utf8');
 const serverCode = fs.readFileSync(serverPath, 'utf8');
 
 // 1. Prüfe HTML-Optionen im Dropdown
-assert.ok(html.includes('https://wizard-game-efok.onrender.com'), 'Render-URL in index.html vorhanden');
-assert.ok(html.includes('🌐 Offizieller Server (Render – Standard)'), 'Offizieller Server Label vorhanden');
+assert.ok(html.includes('https://grimoire-cardgame.onrender.com'), 'Render-URL in index.html vorhanden');
+assert.ok(html.includes('🌐 Offizieller Server (Grimoire – Standard)'), 'Offizieller Server Label vorhanden');
 console.log('✓ 1. HTML Dropdown enthält Render als primäre Standard-Option');
 
 // 2. Prüfe Client.js Standard-Server & Kaltstart-Logik
-assert.ok(js.includes("const DEFAULT_PRODUCTION_SERVER = 'https://wizard-game-efok.onrender.com';"), 'DEFAULT_PRODUCTION_SERVER definiert');
+assert.ok(js.includes("const DEFAULT_PRODUCTION_SERVER = 'https://grimoire-cardgame.onrender.com';"), 'DEFAULT_PRODUCTION_SERVER definiert');
 assert.ok(js.includes('function isCapacitorNativeApp()'), 'isCapacitorNativeApp Helferfunktion definiert');
 assert.ok(js.includes('onrender.com'), 'Render-Erkennung in connect_error aktiv');
 assert.ok(js.includes('magischen Meditation'), 'Kaltstart-Hinweis für Render vorhanden');
@@ -39,14 +39,14 @@ function simulateGetGrimoireServerUrl(customStorage, env) {
   }
   const isCap = (env.isCapacitor || env.protocol === 'capacitor:' || (env.hostname === 'localhost' && !env.port));
   if (isCap) {
-    return 'https://wizard-game-efok.onrender.com';
+    return 'https://grimoire-cardgame.onrender.com';
   }
   return '';
 }
 
 // Case A: Android APK frisch installiert (kein localStorage Eintrag)
 const apkDefault = simulateGetGrimoireServerUrl(null, { isCapacitor: true, protocol: 'http:', hostname: 'localhost', port: '' });
-assert.strictEqual(apkDefault, 'https://wizard-game-efok.onrender.com', 'APK verbindet standardmäßig mit Render');
+assert.strictEqual(apkDefault, 'https://grimoire-cardgame.onrender.com', 'APK verbindet standardmäßig mit Render');
 
 // Case B: Browser lokal auf Port 3000 (Entwickler)
 const devBrowser = simulateGetGrimoireServerUrl(null, { isCapacitor: false, protocol: 'http:', hostname: 'localhost', port: '3000' });

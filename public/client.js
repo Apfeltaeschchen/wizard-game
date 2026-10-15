@@ -4,7 +4,7 @@ const savedAuthToken = (function() {
 const connectionBanner = document.getElementById('connection-status-banner');
 const lobbyStatusMsg = document.getElementById('lobby-status-message');
 
-const DEFAULT_PRODUCTION_SERVER = 'https://wizard-game-efok.onrender.com';
+const DEFAULT_PRODUCTION_SERVER = 'https://grimoire-cardgame.onrender.com';
 
 function isCapacitorNativeApp() {
   if (typeof window === 'undefined') return false;
