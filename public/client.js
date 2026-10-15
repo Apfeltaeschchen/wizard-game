@@ -4,6 +4,23 @@ const savedAuthToken = (function() {
 const connectionBanner = document.getElementById('connection-status-banner');
 const lobbyStatusMsg = document.getElementById('lobby-status-message');
 
+const DEFAULT_PRODUCTION_SERVER = 'https://wizard-game-efok.onrender.com';
+
+function isCapacitorNativeApp() {
+  if (typeof window === 'undefined') return false;
+  if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
+    return true;
+  }
+  if (window.location) {
+    if (window.location.protocol === 'capacitor:') return true;
+    // Android WebView serviert über http://localhost ohne separaten Dev-Port (3000)
+    if (window.location.hostname === 'localhost' && (!window.location.port || window.location.port === '' || window.location.port === '80')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function getGrimoireServerUrl() {
   try {
     const custom = localStorage.getItem('grimoire_server_url');
@@ -11,6 +28,11 @@ function getGrimoireServerUrl() {
       return custom.trim().replace(/\/+$/, '');
     }
   } catch (e) {}
+
+  // Native Android-App (Capacitor) verbindet standardmäßig direkt mit Render
+  if (isCapacitorNativeApp()) {
+    return DEFAULT_PRODUCTION_SERVER;
+  }
   return '';
 }
 
@@ -297,7 +319,11 @@ const GrimoireServerSettings = {
     if (rawVal) {
       // Automatische Korrektur: Protokoll ergänzen falls vergessen
       if (!rawVal.startsWith('http://') && !rawVal.startsWith('https://')) {
-        rawVal = 'http://' + rawVal;
+        if (rawVal.includes('localhost') || /^(\d{1,3}\.){3}\d{1,3}/.test(rawVal)) {
+          rawVal = 'http://' + rawVal;
+        } else {
+          rawVal = 'https://' + rawVal;
+        }
       }
       // Falls Port vergessen wurde (z. B. nur IP wie 192.168.188.162 oder localhost), :3000 anfügen
       try {
@@ -326,9 +352,11 @@ const GrimoireServerSettings = {
   reset() {
     try {
       localStorage.removeItem('grimoire_server_url');
-      if (this.input) this.input.value = '';
-      if (this.presetSelect) this.presetSelect.selectedIndex = 0;
-      this.showFeedback('Standard-Server wiederhergestellt! Seite lädt neu...', false);
+      const defaultUrl = isCapacitorNativeApp() ? DEFAULT_PRODUCTION_SERVER : '';
+      if (this.input) this.input.value = defaultUrl;
+      this.syncPresetWithInput();
+      const targetLabel = isCapacitorNativeApp() ? 'Offizieller Render-Server' : 'Standard-Server';
+      this.showFeedback(`${targetLabel} wiederhergestellt! Seite lädt neu...`, false);
       setTimeout(() => {
         window.location.reload();
       }, 600);
@@ -414,16 +442,31 @@ if (typeof io !== 'undefined') {
   };
   socket = savedServerUrl ? io(savedServerUrl, socketOpts) : io(socketOpts);
 
+  let renderWakeupAttempts = 0;
+
   socket.on('connect', () => {
+    renderWakeupAttempts = 0;
     hideConnectionStatus();
   });
 
   socket.on('connect_error', () => {
-    const isCap = (typeof window !== 'undefined' && (window.Capacitor || (window.location && (window.location.protocol === 'capacitor:' || window.location.hostname === 'localhost'))));
-    const hint = (isCap && !savedServerUrl)
-      ? '⚠️ Verbindung zum Spielserver verloren oder nicht erreichbar. Auf Mobilgeräten trage bitte die Netzwerk-IP deines PCs ein.'
+    const currentTarget = getGrimoireServerUrl();
+    const isRender = (currentTarget && currentTarget.includes('onrender.com')) || (typeof window !== 'undefined' && window.location && window.location.hostname && window.location.hostname.includes('onrender.com'));
+
+    if (isRender) {
+      renderWakeupAttempts++;
+      const waitHint = renderWakeupAttempts > 1
+        ? '⏳ Der Grimoire-Server auf Render erwacht aus der magischen Meditation... (Kaltstart dauert ca. 30–50 Sek.). Bitte kurz warten!'
+        : '🔮 Verbinde mit Grimoire Online auf Render... (Falls der Server schläft, wacht er gerade auf)';
+      showConnectionStatus(waitHint, false);
+      return;
+    }
+
+    const isCap = isCapacitorNativeApp();
+    const hint = isCap
+      ? '⚠️ Verbindung zum Spielserver verloren oder nicht erreichbar. Prüfe deine Internetverbindung oder wähle im Zahnrad-Menü den offiziellen Render-Server.'
       : '⚠️ Verbindung zum Spielserver verloren oder nicht erreichbar. Bitte prüfen, ob der Node-Server läuft.';
-    showConnectionStatus(hint);
+    showConnectionStatus(hint, true);
   });
 
   socket.on('disconnect', (reason) => {

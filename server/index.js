@@ -19,6 +19,26 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
+// CORS für mobile Apps (Capacitor) und plattformübergreifende API-Aufrufe
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'Grimoire Server',
+    uptime: Math.floor(process.uptime()),
+    timestamp: Date.now()
+  });
+});
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
