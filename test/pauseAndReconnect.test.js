@@ -27,12 +27,13 @@ async function run() {
 
   try {
     c1.on('actionError', (e) => console.log('Action error c1:', e));
-    c1.emit('joinRoom', { playerName: 'Alice', roomCode: 'PAUSEROOM', sessionId: 's_alice' });
-    await wait(150);
+    await new Promise((resolve) => {
+      c1.emit('createRoom', { playerName: 'Alice', roomCode: 'PAUSEROOM', sessionId: 's_alice' });
+      c1.on('roomCreated', resolve);
+    });
+
     c2.emit('joinRoom', { playerName: 'Bob', roomCode: 'PAUSEROOM', sessionId: 's_bob' });
-    await wait(150);
     c3.emit('joinRoom', { playerName: 'Charlie', roomCode: 'PAUSEROOM', sessionId: 's_charlie' });
-    await wait(150);
     c4.emit('joinRoom', { playerName: 'Dave', roomCode: 'PAUSEROOM', sessionId: 's_dave' });
 
     await new Promise((resolve) => {

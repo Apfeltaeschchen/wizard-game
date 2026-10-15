@@ -42,25 +42,33 @@ async function run() {
     console.log(`✓ Raum ${roomCode} von Host erstellt`);
 
     // 2. Nicht-Host versucht setEdition -> muss fehlschlagen
-    player2Client.emit('joinRoom', { playerName: 'Gauckler', roomCode, sessionId: p2SessionId });
-    await wait(200);
+    await new Promise((resolve) => {
+      player2Client.on('roomUpdated', resolve);
+      player2Client.emit('joinRoom', { playerName: 'Gauckler', roomCode, sessionId: p2SessionId });
+    });
 
-    let actionErrorReceived = false;
-    player2Client.on('actionError', (err) => {
-      actionErrorReceived = true;
+    const actionErrorPromise = new Promise((resolve) => {
+      player2Client.on('actionError', () => resolve(true));
     });
     player2Client.emit('setEdition', { roomCode, edition: 'anniversary_30' });
-    await wait(200);
+    const actionErrorReceived = await Promise.race([
+      actionErrorPromise,
+      wait(2000).then(() => false)
+    ]);
     assert.strictEqual(actionErrorReceived, true, 'Nicht-Host darf Edition nicht ändern');
     console.log('✓ Schutz: Nicht-Host darf Edition nicht ändern');
 
     // 3. Host ändert Edition auf 'anniversary_30'
-    let editionChangedReceived = false;
-    player2Client.on('editionChanged', ({ edition }) => {
-      if (edition === 'anniversary_30') editionChangedReceived = true;
+    const editionChangedPromise = new Promise((resolve) => {
+      player2Client.on('editionChanged', ({ edition }) => {
+        if (edition === 'anniversary_30') resolve(true);
+      });
     });
     hostClient.emit('setEdition', { roomCode, edition: 'anniversary_30' });
-    await wait(200);
+    const editionChangedReceived = await Promise.race([
+      editionChangedPromise,
+      wait(2000).then(() => false)
+    ]);
     assert.strictEqual(editionChangedReceived, true, 'editionChanged Event an alle Spieler gesendet');
     console.log('✓ Host hat Edition erfolgreich auf anniversary_30 geändert');
 

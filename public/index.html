@@ -939,6 +939,14 @@
     }
     #drawer-backdrop.open { display: block; }
 
+    @media (min-width: 769px) {
+      #drawer-backdrop,
+      #drawer-backdrop.open {
+        display: none !important;
+        pointer-events: none !important;
+      }
+    }
+
     /* TABELLE DES BUCHS DER WAHRHEIT (OPTIMIERTER KONTRAST & ZEBRAS) */
     .score-table {
       width: 100%;
@@ -1080,6 +1088,12 @@
       height: 28px;
       box-sizing: border-box;
       white-space: nowrap;
+      cursor: pointer;
+    }
+    .player-seat:hover {
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 12px rgba(240, 195, 85, 0.45);
+      transform: translateY(-1px);
     }
 
     /* VERGRÖSSERTE PULS-AURA (2s TIEFER KRÄFTIGER ATMUNGSEFFEKT) */
@@ -1120,6 +1134,27 @@
       flex-shrink: 0;
       border: 1px solid var(--gold-antique);
       box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    .seat-dealer-pin {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #d4a359 0%, #7a4c04 100%);
+      color: #1a0f02;
+      font-weight: 900;
+      font-size: 8.5px;
+      font-family: var(--font-medieval);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #fef08a;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.8);
+      z-index: 5;
     }
 
     .seat-avatar.disconnected {
@@ -1172,6 +1207,66 @@
 
     .seat-stats {
       display: none;
+    }
+
+    /* SCHWEBENDE STIRNKARTE IN RUNDE 1 ("DRITTES MAGIE-AUGE") */
+    @keyframes foreheadCardFloat {
+      0%, 100% {
+        transform: translateY(0);
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.85)) drop-shadow(0 0 8px rgba(240, 195, 85, 0.45));
+      }
+      50% {
+        transform: translateY(-5px);
+        filter: drop-shadow(0 8px 14px rgba(0,0,0,0.95)) drop-shadow(0 0 14px rgba(240, 195, 85, 0.7));
+      }
+    }
+    .forehead-floating-card {
+      position: absolute;
+      bottom: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%);
+      animation: foreheadCardFloat 2.6s ease-in-out infinite;
+      z-index: 35;
+      pointer-events: none;
+    }
+    .forehead-floating-card .card {
+      width: calc(var(--card-w) * 0.65) !important;
+      height: calc(var(--card-h) * 0.65) !important;
+      transform: none !important;
+      margin: 0 !important;
+      border-width: 1.5px !important;
+      border-color: var(--gold-bright) !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 10px rgba(240, 195, 85, 0.4) !important;
+    }
+    .forehead-floating-card .card .card-center-val {
+      font-size: 15px !important;
+    }
+    .forehead-floating-card .card .card-center-crest {
+      width: 18px !important;
+      height: 18px !important;
+    }
+    .forehead-floating-card .card .card-val {
+      font-size: 9px !important;
+    }
+    .forehead-floating-card .card .card-name-label {
+      display: none !important;
+    }
+
+    /* MAGIER-PROFIL AVATAR GROSSANSICHT */
+    .player-detail-avatar-large {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #374151 0%, #111827 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-medieval);
+      font-size: 26px;
+      font-weight: bold;
+      color: var(--gold-bright);
+      border: 2px solid var(--gold-bright);
+      box-shadow: 0 0 18px rgba(240, 195, 85, 0.4), inset 0 0 8px rgba(0,0,0,0.8);
     }
 
     /* KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS GEDOCKT) */
@@ -2545,35 +2640,53 @@
       #status-message { display: none !important; }
 
       #opponents-container {
-        gap: 4px !important;
+        gap: 6px !important;
         padding: 2px 2px !important;
-        max-height: 68px !important;
-        overflow-y: auto !important;
+        max-height: 54px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        flex-wrap: nowrap !important;
+        justify-content: center !important;
       }
       .player-seat {
-        padding: 2px 6px 2px 3px !important;
-        gap: 4px !important;
-        height: 26px !important;
-        border-radius: 16px !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        height: auto !important;
+        width: auto !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2px !important;
+        flex-shrink: 0 !important;
       }
-      .seat-avatar {
-        width: 18px !important;
-        height: 18px !important;
-        font-size: 10px !important;
+      .player-seat .seat-name-row,
+      .player-seat .seat-name,
+      .player-seat .seat-title,
+      .player-seat .player-rank-badge,
+      .player-seat .seat-bot-pill {
+        display: none !important;
       }
-      .seat-name {
-        font-size: 10.5px !important;
-        max-width: 52px !important;
+      .player-seat .seat-avatar {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 13px !important;
+        position: relative !important;
+        border-width: 1.5px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.85) !important;
       }
-      .seat-bid-pill {
-        font-size: 9.5px !important;
+      .player-seat .seat-bid-pill {
+        font-size: 9px !important;
         padding: 0 4px !important;
+        border-radius: 8px !important;
+        margin-top: -4px !important;
+        z-index: 2 !important;
       }
-      .seat-title {
+      .player-seat .seat-stats {
         display: none !important;
       }
-      .seat-stats {
-        display: none !important;
+      .forehead-floating-card {
+        bottom: calc(100% + 2px) !important;
       }
 
       #score-board-drawer,
@@ -5245,6 +5358,51 @@
   </div>
 
   <div id="drawer-backdrop"></div>
+
+  <!-- MAGIER-PROFIL & SPIELER-DETAILS MODAL -->
+  <div id="player-detail-modal" class="modal-overlay" style="display: none; z-index: 1700;">
+    <div class="auth-modal-card player-detail-card" style="max-width: 400px; width: 92%; position: relative;">
+      <button id="playerDetailModalClose" class="drawer-close-btn" style="position: absolute; top: 12px; right: 14px; font-size: 24px;">&times;</button>
+      
+      <!-- HEADER: AVATAR & NAME -->
+      <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 12px;">
+        <div id="playerDetailAvatar" class="player-detail-avatar-large">?</div>
+        <h3 id="playerDetailName" style="margin: 8px 0 2px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 20px;">Magier</h3>
+        <div id="playerDetailTitle" style="color: #d6be90; font-size: 12px; font-style: italic; margin-bottom: 4px;">-</div>
+        <div id="playerDetailStatus" style="font-size: 11px; margin-top: 2px;"></div>
+      </div>
+
+      <!-- RANG & DIVISION -->
+      <div id="playerDetailRankBox" class="profile-section-box" style="margin-bottom: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div id="playerDetailCrest" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;"></div>
+          <div>
+            <div id="playerDetailDivision" style="font-weight: bold; font-size: 13.5px; color: var(--gold-bright); font-family: var(--font-subheading);">-</div>
+            <div id="playerDetailSR" style="font-size: 11px; color: #a89070;">1000 SR</div>
+          </div>
+        </div>
+        <div id="playerDetailBotDiff" style="font-size: 11px;"></div>
+      </div>
+
+      <!-- STATISTIKEN (INGAME ODER KARRIERE) -->
+      <div class="profile-section-box" style="margin-bottom: 14px; padding: 12px;">
+        <div id="playerDetailStatsTitle" class="profile-section-title" style="margin-bottom: 8px; font-size: 13px;">Statistiken</div>
+        <div id="playerDetailStatsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+          <!-- Dynamisch befüllte Kacheln -->
+        </div>
+      </div>
+
+      <!-- AKTIONEN -->
+      <div id="playerDetailActions" style="display: flex; flex-direction: column; gap: 8px;">
+        <button id="btnPlayerDetailAddFriend" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; justify-content: center; padding: 9px 12px; font-size: 13px;">
+          ✨ Als Gefährten hinzufügen
+        </button>
+        <button id="btnPlayerDetailClose" type="button" class="btn-leave" style="width: 100%; padding: 8px 12px; font-size: 12.5px;">
+          Schließen
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- AUTH-MODAL: ANMELDEN & REGISTRIEREN -->
   <div id="auth-modal" class="modal-overlay" style="display: none;">

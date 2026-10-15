@@ -2663,6 +2663,9 @@ const CompanionsManager = (() => {
     cachedFriends.forEach(friend => {
       const card = document.createElement('div');
       card.className = 'companion-card';
+      card.setAttribute('data-id', friend.id);
+      card.style.cursor = 'pointer';
+      card.title = `Klicke, um Magier-Profil von ${escapeHtml(friend.username)} zu öffnen`;
 
       const statusMap = {
         citadel: { label: 'In der Zitadelle', dot: '🟢', color: '#86efac' },
@@ -2708,9 +2711,22 @@ const CompanionsManager = (() => {
       listEl.appendChild(card);
     });
 
+    // Klick auf Begleiter-Karte öffnet Magier-Profil
+    listEl.querySelectorAll('.companion-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-companion-action') || e.target.closest('.btn-companion-remove')) return;
+        const id = card.getAttribute('data-id');
+        const friend = cachedFriends.find(f => String(f.id) === String(id));
+        if (friend && typeof openPlayerDetailModal === 'function') {
+          openPlayerDetailModal(friend, 'friends');
+        }
+      });
+    });
+
     // Event listener bindings
     listEl.querySelectorAll('.btn-invite-companion').forEach(btn => {
       btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = btn.getAttribute('data-id');
         socket.emit('inviteFriendToRoom', { friendId: id, roomCode: currentRoomCode, token: WizardAuth.getToken() });
       });
@@ -2718,6 +2734,7 @@ const CompanionsManager = (() => {
 
     listEl.querySelectorAll('.btn-join-companion').forEach(btn => {
       btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const code = btn.getAttribute('data-code');
         closeCompanions();
         joinRoomWithCode(code);
@@ -2726,6 +2743,7 @@ const CompanionsManager = (() => {
 
     listEl.querySelectorAll('.btn-companion-remove').forEach(btn => {
       btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = btn.getAttribute('data-id');
         const name = btn.getAttribute('data-name');
         GrimoireDialog.confirm({
@@ -2822,6 +2840,225 @@ const CompanionsManager = (() => {
   };
 })();
 if (typeof window !== 'undefined') window.CompanionsManager = CompanionsManager;
+
+// --- MAGIER-PROFIL & SPIELER-DETAILS MODAL (SPIELTISCH & GRIMOIRE DER GEFÄHRTEN) ---
+function openPlayerDetailModal(data, source = 'table') {
+  const modal = document.getElementById('player-detail-modal');
+  if (!modal || !data) return;
+
+  const isTable = (source === 'table');
+  const isFriendSource = (source === 'friends');
+
+  const avatarEl = document.getElementById('playerDetailAvatar');
+  const nameEl = document.getElementById('playerDetailName');
+  const titleEl = document.getElementById('playerDetailTitle');
+  const statusEl = document.getElementById('playerDetailStatus');
+  const divisionEl = document.getElementById('playerDetailDivision');
+  const srEl = document.getElementById('playerDetailSR');
+  const crestEl = document.getElementById('playerDetailCrest');
+  const botDiffEl = document.getElementById('playerDetailBotDiff');
+  const statsTitleEl = document.getElementById('playerDetailStatsTitle');
+  const statsGridEl = document.getElementById('playerDetailStatsGrid');
+  const btnAddFriend = document.getElementById('btnPlayerDetailAddFriend');
+  const btnClose = document.getElementById('btnPlayerDetailClose');
+  const modalClose = document.getElementById('playerDetailModalClose');
+
+  const name = isFriendSource ? data.username : data.name;
+  const initial = isFriendSource ? (data.username ? data.username.charAt(0).toUpperCase() : '?') : (data.isBot ? '🤖' : (data.name ? data.name.charAt(0).toUpperCase() : '?'));
+  const title = data.title || (data.isBot ? 'Virtueller Zitadellen-Gefährte' : 'Magier der Zitadelle');
+
+  if (avatarEl) avatarEl.innerText = initial;
+  if (nameEl) nameEl.innerText = name || 'Magier';
+  if (titleEl) titleEl.innerText = title;
+
+  // Status
+  if (statusEl) {
+    if (isFriendSource) {
+      const statusMap = {
+        citadel: { label: 'In der Zitadelle', color: '#86efac' },
+        waiting_room: { label: data.liveStatusText || 'Im Warteraum', color: '#fde047' },
+        in_game: { label: data.liveStatusText || 'Im Duell', color: '#f87171' },
+        offline: { label: 'Abwesend', color: '#94a3b8' }
+      };
+      const st = statusMap[data.liveStatus] || statusMap.offline;
+      statusEl.innerHTML = `<span style="color: ${st.color}; font-weight: bold;">● ${escapeHtml(st.label)}</span>`;
+    } else if (data.isBot) {
+      statusEl.innerHTML = '<span style="color: #c084fc; font-weight: bold;">🤖 Virtueller Rat</span>';
+    } else {
+      statusEl.innerHTML = data.connected === false
+        ? '<span style="color: #f87171; font-weight: bold;">● Getrennt</span>'
+        : '<span style="color: #86efac; font-weight: bold;">● Am Spieltisch</span>';
+    }
+  }
+
+  // Rang
+  const sr = isFriendSource ? (data.skill_rating || 1000) : (data.skillRating || (data.rank ? data.rank.skillRating : 1000) || 1000);
+  const rank = data.rank || (typeof getRankDetailsFromSR === 'function' ? getRankDetailsFromSR(sr) : null);
+  const divName = rank ? rank.divisionName : (data.userId || data.isBot ? 'Novize V' : 'Gast-Magier');
+  const tierKey = rank ? rank.tierKey : 'novice';
+  const crestSvg = (typeof RANK_CRESTS !== 'undefined' && RANK_CRESTS[tierKey]) ? RANK_CRESTS[tierKey] : '';
+
+  if (divisionEl) {
+    divisionEl.innerText = divName;
+    if (rank && rank.color) divisionEl.style.color = rank.color;
+  }
+  if (srEl) {
+    srEl.innerText = (data.userId || data.isBot || isFriendSource) ? `${sr} SR` : 'Nicht gewertet';
+  }
+  if (crestEl) {
+    crestEl.innerHTML = (data.userId || data.isBot || isFriendSource) ? crestSvg : '🔮';
+  }
+
+  // Bot-Schwierigkeit
+  if (botDiffEl) {
+    if (data.isBot) {
+      const diff = data.difficulty || 'master';
+      const label = diff === 'novice' ? 'Novize' : (diff === 'archmage' ? 'Erzmagier' : 'Meister');
+      botDiffEl.innerHTML = `<span class="seat-bot-pill bot-pill-${diff}">${label}</span>`;
+      botDiffEl.style.display = 'block';
+    } else {
+      botDiffEl.innerHTML = '';
+      botDiffEl.style.display = 'none';
+    }
+  }
+
+  // Statistiken Grid
+  if (statsGridEl) {
+    statsGridEl.innerHTML = '';
+    if (isTable) {
+      if (statsTitleEl) statsTitleEl.innerText = 'Runden-Statistiken (Aktuelle Partie)';
+      const bidVal = (data.bid !== null && data.bid !== undefined) ? data.bid : '-';
+      const wonVal = (data.tricksWon !== undefined) ? data.tricksWon : 0;
+      let totalPts = 0;
+      if (typeof cachedScoreHistory !== 'undefined' && Array.isArray(cachedScoreHistory)) {
+        cachedScoreHistory.forEach(entry => {
+          if (entry.scores && entry.scores[data.sessionId] !== undefined) {
+            totalPts += entry.scores[data.sessionId];
+          }
+        });
+      }
+
+      statsGridEl.innerHTML = `
+        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+          <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${bidVal}</div>
+          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Prophezeiung</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+          <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${wonVal}</div>
+          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Erzielte Stiche</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+          <div style="font-size: 15px; font-weight: 900; color: ${totalPts >= 0 ? '#86efac' : '#f87171'}; font-family: var(--font-medieval);">${totalPts}</div>
+          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Gesamtpunkte</div>
+        </div>
+      `;
+    } else {
+      // Karriere-Statistiken aus dem Grimoire der Gefährten
+      if (statsTitleEl) statsTitleEl.innerText = 'Karriere-Statistiken';
+      const played = data.games_played || 0;
+      const won = data.games_won || 0;
+      const winRate = played > 0 ? Math.round((won / played) * 100) : 0;
+      const high = data.highest_score || 0;
+
+      statsGridEl.innerHTML = `
+        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+          <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${played}</div>
+          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Partien</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+          <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${won} (${winRate}%)</div>
+          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Siege</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+          <div style="font-size: 15px; font-weight: 900; color: #fde047; font-family: var(--font-medieval);">${high}</div>
+          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Highscore</div>
+        </div>
+      `;
+    }
+  }
+
+  // Aktionen
+  if (btnAddFriend) {
+    const isMe = (!isFriendSource && data.sessionId === mySessionId);
+    const isBot = (!isFriendSource && data.isBot);
+    const isFriend = Array.isArray(cachedFriends) && cachedFriends.some(f => f.username.toLowerCase() === (name || '').toLowerCase());
+
+    if (isMe) {
+      btnAddFriend.style.display = 'none';
+    } else if (isBot) {
+      btnAddFriend.style.display = 'block';
+      btnAddFriend.disabled = true;
+      btnAddFriend.style.opacity = '0.5';
+      btnAddFriend.style.cursor = 'default';
+      btnAddFriend.innerText = '🤖 Virtueller Rat (Kein Gefährte)';
+      btnAddFriend.onclick = null;
+    } else if (isFriend) {
+      if (isFriendSource) {
+        btnAddFriend.style.display = 'block';
+        btnAddFriend.disabled = false;
+        btnAddFriend.style.opacity = '1';
+        btnAddFriend.style.cursor = 'pointer';
+        if (data.liveStatus === 'waiting_room' && data.liveRoomCode) {
+          btnAddFriend.innerText = '🚀 Warteraum beitreten';
+          btnAddFriend.onclick = () => {
+            modal.style.display = 'none';
+            if (typeof CompanionsManager !== 'undefined') CompanionsManager.close();
+            joinRoomWithCode(data.liveRoomCode);
+          };
+        } else {
+          btnAddFriend.innerText = '✉️ In Warteraum einladen';
+          const canInvite = (currentGameState === 'lobby' && currentRoomCode && data.liveStatus !== 'offline' && data.liveStatus !== 'in_game');
+          btnAddFriend.disabled = !canInvite;
+          btnAddFriend.style.opacity = canInvite ? '1' : '0.5';
+          btnAddFriend.onclick = () => {
+            if (canInvite) {
+              socket.emit('inviteFriendToRoom', { friendId: data.id, roomCode: currentRoomCode, token: WizardAuth.getToken() });
+              showToast(`Einladung an ${data.username} gesendet! ✉️`);
+              modal.style.display = 'none';
+            }
+          };
+        }
+      } else {
+        btnAddFriend.style.display = 'block';
+        btnAddFriend.disabled = true;
+        btnAddFriend.style.opacity = '0.7';
+        btnAddFriend.style.cursor = 'default';
+        btnAddFriend.innerText = '✅ Bereits dein Gefährte';
+        btnAddFriend.onclick = null;
+      }
+    } else {
+      // Neuer Freund hinzufügen
+      btnAddFriend.style.display = 'block';
+      btnAddFriend.disabled = false;
+      btnAddFriend.style.opacity = '1';
+      btnAddFriend.style.cursor = 'pointer';
+      btnAddFriend.innerText = '✨ Als Gefährten hinzufügen';
+      btnAddFriend.onclick = () => {
+        const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
+        if (!user) {
+          modal.style.display = 'none';
+          if (typeof GrimoireDialog !== 'undefined' && GrimoireDialog.requireAuth) {
+            GrimoireDialog.requireAuth('companions');
+          }
+          return;
+        }
+        socket.emit('addFriend', { friendUsername: name, token: WizardAuth.getToken() });
+        btnAddFriend.disabled = true;
+        btnAddFriend.innerText = '✨ Anfrage gesendet!';
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 1200);
+      };
+    }
+  }
+
+  const closeModal = () => { modal.style.display = 'none'; };
+  if (btnClose) btnClose.onclick = closeModal;
+  if (modalClose) modalClose.onclick = closeModal;
+
+  modal.style.display = 'flex';
+}
+if (typeof window !== 'undefined') window.openPlayerDetailModal = openPlayerDetailModal;
 
 // Screen-Manager zur sauberen Umschaltung zwischen den 3 Screens
 function switchScreen(screenName) {
@@ -2930,8 +3167,20 @@ if (drawerBackdrop) {
     closeScoreDrawer();
     closeRulesDrawer();
     if (typeof WizardAuth !== 'undefined') WizardAuth.closeProfileDrawer();
+    if (typeof CompanionsManager !== 'undefined' && CompanionsManager.close) CompanionsManager.close();
   });
 }
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (typeof closeScoreDrawer === 'function') closeScoreDrawer();
+    if (typeof closeRulesDrawer === 'function') closeRulesDrawer();
+    if (typeof WizardAuth !== 'undefined' && WizardAuth.closeProfileDrawer) WizardAuth.closeProfileDrawer();
+    if (typeof CompanionsManager !== 'undefined' && CompanionsManager.close) CompanionsManager.close();
+    const playerModal = document.getElementById('player-detail-modal');
+    if (playerModal) playerModal.style.display = 'none';
+  }
+});
 
 // --- SPIELMODUS-WAHL (LOBBY) ---
 const btnModeQuickplay = document.getElementById('btnModeQuickplay');
@@ -4343,7 +4592,7 @@ function renderOpponents() {
     const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
     const disconnectedClass = !p.connected ? 'disconnected' : '';
     const hostBadge = p.isHost ? '<span class="host-badge">Host</span>' : '';
-    const dealerBadge = p.isDealer ? '<span class="dealer-badge">Geber</span>' : '';
+    const dealerPinHtml = p.isDealer ? '<div class="seat-dealer-pin" title="Geber dieser Runde">D</div>' : '';
 
     const bidText = p.bid !== null ? p.bid : '-';
     const wonText = p.tricksWon !== undefined ? p.tricksWon : 0;
@@ -4352,13 +4601,11 @@ function renderOpponents() {
     if (currentRound === 1 && p.round1Card) {
       const cardEl = renderCard(p.round1Card);
       foreheadCardHtml = `
-        <div class="forehead-card-wrapper" title="Stirn-Karte von ${escapeHtml(p.name)}">
+        <div class="forehead-floating-card" title="Stirnkarte von ${escapeHtml(p.name)}">
           ${cardEl.outerHTML}
         </div>
       `;
     }
-
-    const titleHtml = p.title ? `<div class="seat-title">${escapeHtml(p.title)}</div>` : '';
 
     let rankBadgeHtml = '';
     if (p.rank && (p.userId || p.isBot)) {
@@ -4379,17 +4626,28 @@ function renderOpponents() {
     const bidPillHtml = `<span class="seat-bid-pill" title="Gebot: ${bidText} | Gewonnen: ${wonText}">🎯 ${bidText}/${wonText}</span>`;
 
     seatEl.innerHTML = `
-      <div class="seat-avatar ${disconnectedClass}">${initial}</div>
+      ${foreheadCardHtml}
+      <div class="seat-avatar ${disconnectedClass}">
+        ${initial}
+        ${dealerPinHtml}
+      </div>
       <div class="seat-details">
         <div class="seat-name-row">
           <span class="seat-name">${escapeHtml(p.name)}</span>
-          ${hostBadge}${dealerBadge}${botDiffHtml}${rankBadgeHtml}
+          ${hostBadge}${botDiffHtml}${rankBadgeHtml}
         </div>
         ${bidPillHtml}
-        <div class="seat-stats" style="display: none;">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>
       </div>
-      ${foreheadCardHtml}
     `;
+
+    // Interaktives Magier-Profil Modal beim Klick auf den Sitz
+    seatEl.style.cursor = 'pointer';
+    seatEl.setAttribute('title', `${escapeHtml(p.name)} – Klicken für Profil & Details`);
+    seatEl.addEventListener('click', () => {
+      if (typeof openPlayerDetailModal === 'function') {
+        openPlayerDetailModal(p, 'table');
+      }
+    });
 
     opponentsContainer.appendChild(seatEl);
   });
@@ -4399,12 +4657,25 @@ function updateMyStatsHUD() {
   const me = cachedPlayers.find(p => p.sessionId === mySessionId);
   const bidEl = document.getElementById('my-hud-bid');
   const tricksEl = document.getElementById('my-hud-tricks');
+  const hudContainer = document.getElementById('my-stats-hud');
 
   const bidVal = (me && me.bid !== null && me.bid !== undefined) ? me.bid : '-';
   const tricksVal = (me && me.tricksWon !== undefined) ? me.tricksWon : 0;
 
   if (bidEl) bidEl.innerText = bidVal;
   if (tricksEl) tricksEl.innerText = tricksVal;
+
+  if (hudContainer && !hudContainer.dataset.detailBound) {
+    hudContainer.dataset.detailBound = 'true';
+    hudContainer.style.cursor = 'pointer';
+    hudContainer.setAttribute('title', 'Klicken für dein Magier-Profil & Rundenstatistiken');
+    hudContainer.addEventListener('click', () => {
+      const currentMe = cachedPlayers.find(p => p.sessionId === mySessionId);
+      if (currentMe && typeof openPlayerDetailModal === 'function') {
+        openPlayerDetailModal(currentMe, 'table');
+      }
+    });
+  }
 }
 
 // --- AAA FLIP 3D-KARTENFLUGBAHN, RICHTUNGSWINKEL & AUFPRALL-EFFEKTE ---

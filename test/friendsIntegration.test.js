@@ -41,7 +41,20 @@ async function registerViaHttp(username, password) {
 }
 
 async function runTests() {
-  await wait(1400); // Server hochfahren lassen
+  const startWait = Date.now();
+  let serverReady = false;
+  while (Date.now() - startWait < 6000) {
+    try {
+      const ping = await fetch(`${SERVER_URL}/api/auth/me`);
+      if (ping) {
+        serverReady = true;
+        break;
+      }
+    } catch (e) {
+      await wait(150);
+    }
+  }
+  if (!serverReady) await wait(1500);
 
   let clientA;
   let clientB;

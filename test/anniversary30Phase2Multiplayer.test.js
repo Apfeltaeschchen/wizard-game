@@ -48,16 +48,19 @@ async function run() {
     // 3. Spieler 2 & 3 treten bei
     p2Client.emit('joinRoom', { playerName: 'Gauckler', roomCode, sessionId: p2SessionId });
     p3Client.emit('joinRoom', { playerName: 'Waldlaeufer', roomCode, sessionId: p3SessionId });
-    await wait(300);
+    await wait(600);
 
     // 4. Spiel starten (Runde 1) -> 23 Runden bei 3 Spielern
-    let startedMaxRounds = null;
-    p1Client.on('gameStarted', (data) => {
-      startedMaxRounds = data.maxRounds;
+    const gameStartedPromise = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Timeout waiting for gameStarted')), 3000);
+      p1Client.on('gameStarted', (data) => {
+        clearTimeout(timer);
+        resolve(data);
+      });
     });
     p1Client.emit('startGame', { roomCode });
-    await wait(400);
-    assert.strictEqual(startedMaxRounds, 23, '3 Spieler haben 23 Runden bei 69 Karten');
+    const startedData = await gameStartedPromise;
+    assert.strictEqual(startedData.maxRounds, 23, '3 Spieler haben 23 Runden bei 69 Karten');
     console.log('✓ Spiel gestartet mit 23 Runden');
 
     // 5. Test von submitCloudBidAdjustment
