@@ -247,12 +247,20 @@
       height: 100dvh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
-      padding: calc(var(--safe-top) + 20px) calc(var(--safe-right) + 20px) calc(var(--safe-bottom) + 20px) calc(var(--safe-left) + 20px);
+      padding: calc(var(--safe-top) + 10px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 36px) calc(var(--safe-left) + 12px);
       z-index: 100;
       overflow-y: auto;
-      overscroll-behavior-y: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      box-sizing: border-box;
+    }
+
+    #lobby-screen > .glass-card,
+    #waiting-room-screen > .glass-card {
+      margin-top: auto;
+      margin-bottom: auto;
     }
 
     #lobby-screen {
@@ -2101,7 +2109,7 @@
       }
 
       .fullscreen-screen {
-        padding: 12px 8px;
+        padding: calc(var(--safe-top) + 8px) calc(var(--safe-right) + 8px) calc(var(--safe-bottom) + 36px) calc(var(--safe-left) + 8px);
       }
       .fullscreen-card {
         padding: 18px 14px;
@@ -2219,16 +2227,45 @@
        AUTHENTIFIZIERUNG, PROFIL, STATISTIKEN & LEADERBOARD (DARK FANTASY UI)
        ========================================================================== */
 
-    /* 1. STATUSBEREICH OBEN LINKS IN DER HAUPT-LOBBY (#auth-lobby-bar) */
-    .auth-lobby-bar {
-      position: absolute;
-      top: 14px;
-      left: 16px;
+    /* 1. STATUSBEREICH & HEADER IN DER HAUPT-LOBBY (#auth-lobby-bar / .lobby-header-bar) */
+    .lobby-header-bar {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 0 4px 10px;
+      box-sizing: border-box;
       z-index: 120;
+      flex-shrink: 0;
+    }
+
+    .auth-lobby-bar {
+      /* Abwaertskompatibilitaet fuer Selektoren */
+    }
+
+    .lobby-header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
-      max-width: calc(100% - 110px);
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .lobby-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-header-action {
+      margin: 0 !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
     }
 
     .auth-bar-group {
@@ -2354,8 +2391,10 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: calc(var(--safe-top) + 14px) 12px calc(var(--safe-bottom) + 20px);
       box-sizing: border-box;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .auth-modal-card {
@@ -2370,6 +2409,8 @@
       box-shadow: 0 16px 50px rgba(0, 0, 0, 0.95), inset 0 0 30px rgba(200, 154, 56, 0.1);
       position: relative;
       box-sizing: border-box;
+      max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 32px);
+      overflow-y: auto;
     }
 
     .auth-tabs {
@@ -3004,36 +3045,166 @@
       flex-shrink: 0;
     }
 
-    /* RESPONSIVE ANPASSUNGEN */
+    /* RESPONSIVE ANPASSUNGEN (MOBILE & TABLET OVERHAUL) */
     @media (max-width: 640px) {
-      .auth-lobby-bar {
-        position: static;
-        max-width: 100%;
-        margin-bottom: 12px;
-        justify-content: center;
+      .fullscreen-screen {
+        padding-top: calc(var(--safe-top) + 8px);
+        padding-bottom: calc(var(--safe-bottom) + 44px);
+        padding-left: calc(var(--safe-left) + 8px);
+        padding-right: calc(var(--safe-right) + 8px);
       }
-      .btn-auth-bar {
-        padding: 5px 9px;
+      #lobby-screen > .glass-card,
+      #waiting-room-screen > .glass-card {
+        margin-top: 6px;
+        margin-bottom: 24px;
+      }
+      .lobby-header-bar {
+        padding: 0 2px 6px;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .lobby-header-left {
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .lobby-header-right {
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+      .lobby-header-right .btn-header-action {
+        padding: 6px 8px;
+        min-width: 38px;
+        min-height: 38px;
+        box-sizing: border-box;
+      }
+      .lobby-header-right .btn-header-action .score-toggle-text {
+        display: none;
+      }
+      .lobby-header-right .btn-header-action .score-toggle-icon {
+        font-size: 17px;
+        margin: 0;
+      }
+      .lobby-header-left .btn-auth-bar {
+        padding: 6px 8px;
         font-size: 11px;
+        min-height: 36px;
       }
       .user-crest-pill {
-        padding: 3px 10px 3px 4px;
+        padding: 3px 8px 3px 4px;
+        max-width: 140px;
       }
       .user-pill-avatar {
-        width: 28px;
-        height: 28px;
+        width: 26px;
+        height: 26px;
       }
       .user-pill-name {
-        font-size: 11.5px;
-        max-width: 90px;
+        font-size: 11px;
+        max-width: 75px;
       }
       .user-pill-title {
-        font-size: 9px;
-        max-width: 90px;
+        font-size: 8.5px;
+        max-width: 75px;
       }
       .profile-stats-grid {
         grid-template-columns: 1fr;
       }
+      .glass-card {
+        padding: 18px 14px;
+      }
+      .game-mode-options {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .waiting-room-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+      .waiting-room-actions button {
+        width: 100%;
+      }
+      #waiting-audio-toggle {
+        position: absolute;
+        top: calc(var(--safe-top) + 10px);
+        right: calc(var(--safe-right) + 12px);
+        padding: 6px 8px;
+        min-width: 38px;
+        min-height: 38px;
+      }
+      #waiting-audio-toggle .score-toggle-text {
+        display: none;
+      }
+      #waiting-audio-toggle .score-toggle-icon {
+        font-size: 17px;
+        margin: 0;
+      }
+      #host-bot-controls {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .lobby-header-left .btn-auth-bar {
+        padding: 5px 6px;
+        font-size: 10px;
+        min-height: 34px;
+      }
+      .lobby-header-right .btn-header-action {
+        padding: 4px 6px;
+        min-width: 34px;
+        min-height: 34px;
+      }
+      .lobby-header-right .btn-header-action .score-toggle-icon {
+        font-size: 15px;
+      }
+    }
+
+    /* GRIMOIRE CUSTOM DIALOG (#grimoire-dialog-modal) */
+    .grimoire-dialog-card {
+      position: relative;
+      max-width: 420px;
+      width: 90%;
+      padding: 26px 22px 20px;
+      animation: dialogPop 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      box-sizing: border-box;
+    }
+    @keyframes dialogPop {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .dialog-rune-icon {
+      font-size: 38px;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 10px rgba(240, 195, 85, 0.5));
+      line-height: 1;
+    }
+    .dialog-title {
+      font-family: var(--font-heading);
+      color: var(--gold-bright);
+      font-size: 20px;
+      margin: 0 0 10px;
+      letter-spacing: 0.8px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    }
+    .dialog-message {
+      font-family: var(--font-subheading);
+      color: #d6be90;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 20px;
+      word-break: break-word;
+    }
+    .dialog-actions-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .dialog-actions-row .btn-auth-bar {
+      min-width: 120px;
+      padding: 10px 18px;
+      font-size: 13px;
+      justify-content: center;
     }
 
     /* --- SPIELMODUS-SCHALTER (LOBBY) --- */
@@ -3538,9 +3709,9 @@
     <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; flex-wrap: wrap;">
       <span style="font-size: 16px;">⚠️</span>
       <span id="connection-status-text">Keine Verbindung zum Magier-Turm (Server).</span>
-      <button type="button" class="btn-auth-bar" style="margin-left: 6px; padding: 3px 10px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique);" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server einstellen</button>
+      <button type="button" id="btnBannerOpenServerSettings" class="btn-auth-bar btn-open-server-settings" style="margin-left: 6px; padding: 3px 10px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique);" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server einstellen</button>
     </div>
-    <button type="button" id="btnDismissConnectionBanner" style="background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 8px; line-height: 1; display: flex; align-items: center;" title="Hinweis schließen" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.dismissBanner()">&times;</button>
+    <button type="button" id="btnDismissConnectionBanner" class="btn-dismiss-banner" style="background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 8px; line-height: 1; display: flex; align-items: center;" title="Hinweis schließen" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.dismissBanner()">&times;</button>
   </div>
 
   <!-- TOAST-BANNER: DU BIST DRAN (OBERTES DRITTEL) -->
@@ -3552,42 +3723,65 @@
 
   <!-- SCREEN 1: HAUPT-LOBBY (VOLLBILD) -->
   <div id="lobby-screen" class="fullscreen-screen">
-    <!-- STATUSBEREICH OBEN LINKS: AUTH / PROFIL / BESTENLISTE -->
-    <div id="auth-lobby-bar" class="auth-lobby-bar">
-      <!-- GAST-MODUS (UNANGEMELDET) -->
-      <div id="auth-guest-controls" class="auth-bar-group">
-        <button id="btnOpenLogin" type="button" class="btn-auth-bar">👤 Anmelden</button>
-        <button id="btnOpenRegister" type="button" class="btn-auth-bar btn-auth-gold">✨ Registrieren</button>
-        <button id="btnOpenCompanionsGuest" type="button" class="btn-auth-bar" title="Grimoire der Gefährten öffnen">👥 Gefährten</button>
-        <button id="btnOpenLeaderboardGuest" type="button" class="btn-auth-bar">🏆 Bestenliste</button>
-      </div>
-
-      <!-- ANGEMELDET-MODUS -->
-      <div id="auth-user-controls" class="auth-bar-group" style="display: none;">
-        <div id="authUserPill" class="user-crest-pill" title="Profil &amp; Statistiken öffnen">
-          <div id="lobbyUserAvatarShield" class="seat-avatar" style="width: 28px; height: 32px; font-size: 13px; margin: 0; box-shadow: none;">M</div>
-          <div class="user-pill-text">
-            <span id="lobbyUserName" class="user-pill-name">Magier</span>
-            <span id="lobbyUserTitle" class="user-pill-title">Zauberlehrling</span>
-          </div>
+    <!-- EINHEITLICHE LOBBY-HEADERBAR (RESPONSIV FÜR DESKTOP & SMARTPHONE) -->
+    <header id="auth-lobby-bar" class="lobby-header-bar auth-lobby-bar">
+      <!-- LINKS: BENUTZERSTATUS & ANMELDUNG -->
+      <div class="lobby-header-left">
+        <!-- GAST-MODUS (UNANGEMELDET) -->
+        <div id="auth-guest-controls" class="auth-bar-group">
+          <button id="btnOpenLogin" type="button" class="btn-auth-bar" title="Im Magier-Register anmelden">👤 Anmelden</button>
+          <button id="btnOpenRegister" type="button" class="btn-auth-bar btn-auth-gold" title="Neues Magier-Siegel registrieren">✨ Registrieren</button>
         </div>
-        <button id="btnOpenCompanionsUser" type="button" class="btn-auth-bar btn-auth-gold" title="Grimoire der Gefährten öffnen">👥 Gefährten</button>
-        <button id="btnOpenProfile" type="button" class="btn-auth-bar" title="Profil &amp; Statistiken einsehen">📊 Profil &amp; Stats</button>
-        <button id="btnOpenLeaderboardUser" type="button" class="btn-auth-bar" title="Bestenliste einsehen">🏆 Bestenliste</button>
-        <button id="btnLogout" type="button" class="btn-auth-bar btn-auth-danger" title="Abmelden">🚪 Abmelden</button>
-      </div>
-    </div>
 
-    <div style="position: absolute; top: calc(var(--safe-top) + 14px); right: calc(var(--safe-right) + 16px); display: flex; gap: 8px; z-index: 900;">
-      <button id="btnOpenServerSettings" class="btn-score-toggle" style="margin: 0;" title="Server-Verbindung &amp; IP konfigurieren">
-        <span class="score-toggle-icon">⚙️</span>
-        <span class="score-toggle-text">Server</span>
-      </button>
-      <button id="lobby-audio-toggle" class="btn-score-toggle" style="margin: 0;" title="Klang &amp; Musik">
-        <span class="score-toggle-icon">🔊</span>
-        <span class="score-toggle-text">Klang</span>
-      </button>
-    </div>
+        <!-- ANGEMELDET-MODUS -->
+        <div id="auth-user-controls" class="auth-bar-group" style="display: none;">
+          <div id="authUserPill" class="user-crest-pill" title="Profil &amp; Statistiken öffnen">
+            <div id="lobbyUserAvatarShield" class="seat-avatar" style="width: 28px; height: 32px; font-size: 13px; margin: 0; box-shadow: none;">M</div>
+            <div class="user-pill-text">
+              <span id="lobbyUserName" class="user-pill-name">Magier</span>
+              <span id="lobbyUserTitle" class="user-pill-title">Zauberlehrling</span>
+            </div>
+          </div>
+          <button id="btnOpenProfile" type="button" class="btn-auth-bar" title="Profil &amp; Statistiken einsehen">📊 Profil &amp; Stats</button>
+          <button id="btnLogout" type="button" class="btn-auth-bar btn-auth-danger" title="Abmelden">🚪 Abmelden</button>
+        </div>
+      </div>
+
+      <!-- RECHTS: AKTIONEN & EINSTELLUNGEN -->
+      <div class="lobby-header-right">
+        <!-- GEFÄHRTEN -->
+        <button id="btnOpenCompanionsGuest" type="button" class="btn-score-toggle btn-header-action" title="Grimoire der Gefährten öffnen">
+          <span class="score-toggle-icon">👥</span>
+          <span class="score-toggle-text">Gefährten</span>
+        </button>
+        <button id="btnOpenCompanionsUser" type="button" class="btn-score-toggle btn-header-action btn-auth-gold" style="display: none;" title="Grimoire der Gefährten öffnen">
+          <span class="score-toggle-icon">👥</span>
+          <span class="score-toggle-text">Gefährten</span>
+        </button>
+
+        <!-- BESTENLISTE -->
+        <button id="btnOpenLeaderboardGuest" type="button" class="btn-score-toggle btn-header-action" title="Bestenliste einsehen">
+          <span class="score-toggle-icon">🏆</span>
+          <span class="score-toggle-text">Bestenliste</span>
+        </button>
+        <button id="btnOpenLeaderboardUser" type="button" class="btn-score-toggle btn-header-action" style="display: none;" title="Bestenliste einsehen">
+          <span class="score-toggle-icon">🏆</span>
+          <span class="score-toggle-text">Bestenliste</span>
+        </button>
+
+        <!-- SERVER EINSTELLUNGEN -->
+        <button id="btnOpenServerSettings" type="button" class="btn-score-toggle btn-header-action btn-open-server-settings" title="Server-Verbindung &amp; IP konfigurieren">
+          <span class="score-toggle-icon">⚙️</span>
+          <span class="score-toggle-text">Server</span>
+        </button>
+
+        <!-- AUDIO TOGGLE -->
+        <button id="lobby-audio-toggle" type="button" class="btn-score-toggle btn-header-action" title="Klang &amp; Musik">
+          <span class="score-toggle-icon">🔊</span>
+          <span class="score-toggle-text">Klang</span>
+        </button>
+      </div>
+    </header>
     <div class="glass-card">
       <h1 style="color: var(--gold-bright); font-family: var(--font-heading); text-shadow: 0 2px 10px rgba(0,0,0,0.9); font-size: 32px; margin: 0 0 6px;">Grimoire Online</h1>
       <p style="color: #d6be90; font-style: italic; font-size: 14px; margin: 0 0 18px;">Betrete die Zitadelle oder stifte einen neuen Spielbund</p>
@@ -4555,6 +4749,8 @@
         <div id="inviteTimerLabel" class="invite-timer-label">15s</div>
       </div>
     </div>
+  </div>
+
   <!-- SERVER-EINSTELLUNGEN MODAL (CAPACITOR & MOBILE NETZWERK) -->
   <div id="server-settings-modal" class="modal-overlay" style="display: none; z-index: 100000;">
     <div class="auth-modal-card" style="max-width: 460px; width: 92%;">
@@ -4585,6 +4781,19 @@
       <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px;">
         <button id="btnResetServerUrl" type="button" class="btn-auth-bar" style="background: rgba(255,255,255,0.1);">↺ Standard</button>
         <button id="btnSaveServerUrl" type="button" class="btn-auth-bar btn-auth-gold">⚔️ Speichern &amp; Verbinden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRIMOIRE DIALOG MODAL (CUSTOM ALERT & CONFIRM) -->
+  <div id="grimoire-dialog-modal" class="modal-overlay" style="display: none; z-index: 200000;">
+    <div class="auth-modal-card grimoire-dialog-card">
+      <div id="dialogIcon" class="dialog-rune-icon">🔮</div>
+      <h3 id="dialogTitle" class="dialog-title">Titel</h3>
+      <p id="dialogMessage" class="dialog-message">Nachrichtentext...</p>
+      <div id="dialogActions" class="dialog-actions-row">
+        <button id="dialogCancelBtn" type="button" class="btn-auth-bar">Abbrechen</button>
+        <button id="dialogConfirmBtn" type="button" class="btn-auth-bar btn-auth-gold">Bestätigen</button>
       </div>
     </div>
   </div>

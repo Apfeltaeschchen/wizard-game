@@ -22,10 +22,359 @@ function getApiUrl(endpoint) {
 
 let isBannerDismissedByUser = false;
 
+// ==========================================================================
+// GRIMOIRE CUSTOM DIALOG SYSTEM (EDLES DARK-FANTASY POPUP SYSTEM)
+// ==========================================================================
+const GrimoireDialog = {
+  modal: null,
+  iconEl: null,
+  titleEl: null,
+  messageEl: null,
+  confirmBtn: null,
+  cancelBtn: null,
+  resolvePromise: null,
+
+  init() {
+    this.modal = document.getElementById('grimoire-dialog-modal');
+    this.iconEl = document.getElementById('dialogIcon');
+    this.titleEl = document.getElementById('dialogTitle');
+    this.messageEl = document.getElementById('dialogMessage');
+    this.confirmBtn = document.getElementById('dialogConfirmBtn');
+    this.cancelBtn = document.getElementById('dialogCancelBtn');
+
+    if (this.confirmBtn && !this.confirmBtn._hasDialogListener) {
+      this.confirmBtn._hasDialogListener = true;
+      this.confirmBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close(true);
+      });
+    }
+
+    if (this.cancelBtn && !this.cancelBtn._hasDialogListener) {
+      this.cancelBtn._hasDialogListener = true;
+      this.cancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close(false);
+      });
+    }
+
+    if (this.modal && !this.modal._hasDialogListener) {
+      this.modal._hasDialogListener = true;
+      this.modal.addEventListener('click', (e) => {
+        if (e.target === this.modal) {
+          this.close(false);
+        }
+      });
+    }
+
+    if (typeof document !== 'undefined' && !document._hasDialogEscListener) {
+      document._hasDialogEscListener = true;
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.modal && this.modal.style.display !== 'none') {
+          this.close(false);
+        }
+      });
+    }
+  },
+
+  close(result) {
+    if (this.modal) {
+      this.modal.style.display = 'none';
+    }
+    if (typeof this.resolvePromise === 'function') {
+      const res = this.resolvePromise;
+      this.resolvePromise = null;
+      res(result);
+    }
+  },
+
+  alert: function(options) {
+    return new Promise((resolve) => {
+      if (!this.modal) this.init();
+      if (typeof this.resolvePromise === 'function') {
+        const prev = this.resolvePromise;
+        this.resolvePromise = null;
+        prev(false);
+      }
+      const opts = (typeof options === 'string') ? { message: options } : (options || {});
+      this.resolvePromise = resolve;
+
+      if (this.iconEl) this.iconEl.innerText = opts.icon || '📜';
+      if (this.titleEl) this.titleEl.innerText = opts.title || 'Hinweis des Grimoires';
+      if (this.messageEl) this.messageEl.innerText = opts.message || '';
+      if (this.confirmBtn) {
+        this.confirmBtn.innerText = opts.confirmText || 'Verstanden';
+        this.confirmBtn.className = 'btn-auth-bar btn-auth-gold';
+      }
+      if (this.cancelBtn) {
+        this.cancelBtn.style.display = 'none';
+      }
+
+      if (this.modal) {
+        this.modal.style.display = 'flex';
+      } else {
+        resolve(true);
+      }
+    });
+  },
+
+  confirm: function(options) {
+    return new Promise((resolve) => {
+      if (!this.modal) this.init();
+      if (typeof this.resolvePromise === 'function') {
+        const prev = this.resolvePromise;
+        this.resolvePromise = null;
+        prev(false);
+      }
+      const opts = (typeof options === 'string') ? { message: options } : (options || {});
+      this.resolvePromise = resolve;
+
+      if (this.iconEl) this.iconEl.innerText = opts.icon || '🔮';
+      if (this.titleEl) this.titleEl.innerText = opts.title || 'Bestätigung erbeten';
+      if (this.messageEl) this.messageEl.innerText = opts.message || '';
+      if (this.confirmBtn) {
+        this.confirmBtn.innerText = opts.confirmText || 'Bestätigen';
+        this.confirmBtn.className = opts.danger ? 'btn-auth-bar btn-auth-danger' : 'btn-auth-bar btn-auth-gold';
+      }
+      if (this.cancelBtn) {
+        this.cancelBtn.style.display = 'inline-flex';
+        this.cancelBtn.innerText = opts.cancelText || 'Abbrechen';
+      }
+
+      if (this.modal) {
+        this.modal.style.display = 'flex';
+      } else {
+        resolve(false);
+      }
+    });
+  },
+
+  requireAuth(featureName = 'ranked') {
+    const isRanked = featureName === 'ranked';
+    const title = 'Magier-Siegel erforderlich';
+    const message = isRanked
+      ? 'Für Ranglistenspiele und das Sammeln von Siegel-Rangpunkten (SR) im Buch der Meister musst du im Magier-Register angemeldet sein.'
+      : 'Für diese geheime Kunst musst du ein eingetragenes Magier-Siegel besitzen. Melde dich jetzt an oder erschaffe ein neues Konto!';
+
+    return this.confirm({
+      title,
+      message,
+      icon: isRanked ? '⚔️' : '✨',
+      confirmText: '✨ Jetzt Anmelden / Registrieren',
+      cancelText: 'Zurück',
+      danger: false
+    }).then((proceed) => {
+      const auth = (typeof window !== 'undefined' && window.WizardAuth) ? window.WizardAuth : ((typeof WizardAuth !== 'undefined') ? WizardAuth : null);
+      if (proceed && auth && typeof auth.openAuthModal === 'function') {
+        auth.openAuthModal('login');
+      }
+      return proceed;
+    });
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.GrimoireDialog = GrimoireDialog;
+}
+
+// ==========================================================================
+// SPIELSERVER- & NETZWERK-EINSTELLUNGEN (CAPACITOR & MOBILE)
+// ==========================================================================
+const GrimoireServerSettings = {
+  modal: null,
+  input: null,
+  feedback: null,
+  presetSelect: null,
+
+  init() {
+    this.modal = document.getElementById('server-settings-modal');
+    this.input = document.getElementById('inputCustomServerUrl');
+    this.feedback = document.getElementById('serverSettingsFeedback');
+    this.presetSelect = document.getElementById('serverPresetSelect');
+
+    const openBtn = document.getElementById('btnOpenServerSettings');
+    const closeBtn = document.getElementById('btnCloseServerSettings');
+    const saveBtn = document.getElementById('btnSaveServerUrl');
+    const resetBtn = document.getElementById('btnResetServerUrl');
+    const dismissBtn = document.getElementById('btnDismissConnectionBanner');
+
+    if (openBtn && !openBtn._hasServerSettingListener) {
+      openBtn._hasServerSettingListener = true;
+      openBtn.addEventListener('click', (e) => { e.preventDefault(); this.openModal(); });
+    }
+    if (closeBtn && !closeBtn._hasServerSettingListener) {
+      closeBtn._hasServerSettingListener = true;
+      closeBtn.addEventListener('click', (e) => { e.preventDefault(); this.closeModal(); });
+    }
+    if (saveBtn && !saveBtn._hasServerSettingListener) {
+      saveBtn._hasServerSettingListener = true;
+      saveBtn.addEventListener('click', (e) => { e.preventDefault(); this.save(); });
+    }
+    if (resetBtn && !resetBtn._hasServerSettingListener) {
+      resetBtn._hasServerSettingListener = true;
+      resetBtn.addEventListener('click', (e) => { e.preventDefault(); this.reset(); });
+    }
+    if (dismissBtn && !dismissBtn._hasServerSettingListener) {
+      dismissBtn._hasServerSettingListener = true;
+      dismissBtn.addEventListener('click', (e) => { e.preventDefault(); this.dismissBanner(); });
+    }
+
+    if (this.presetSelect && !this.presetSelect._hasServerSettingListener) {
+      this.presetSelect._hasServerSettingListener = true;
+      this.presetSelect.addEventListener('change', () => {
+        const val = this.presetSelect.value;
+        if (val && val !== 'custom') {
+          if (this.input) this.input.value = val;
+        } else if (val === 'custom') {
+          if (this.input) {
+            this.input.focus();
+          }
+        }
+      });
+    }
+
+    if (this.input && !this.input._hasServerSettingListener) {
+      this.input._hasServerSettingListener = true;
+      this.input.addEventListener('input', () => {
+        this.syncPresetWithInput();
+      });
+    }
+
+    if (this.modal && !this.modal._hasServerSettingListener) {
+      this.modal._hasServerSettingListener = true;
+      this.modal.addEventListener('click', (e) => {
+        if (e.target === this.modal) this.closeModal();
+      });
+    }
+  },
+
+  syncPresetWithInput() {
+    if (!this.presetSelect || !this.input) return;
+    const currentVal = this.input.value.trim().replace(/\/+$/, '');
+    let matched = false;
+    for (let i = 0; i < this.presetSelect.options.length; i++) {
+      const optVal = this.presetSelect.options[i].value;
+      if (optVal && optVal !== 'custom' && optVal.replace(/\/+$/, '') === currentVal) {
+        this.presetSelect.selectedIndex = i;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      this.presetSelect.value = currentVal ? 'custom' : '';
+    }
+  },
+
+  dismissBanner() {
+    isBannerDismissedByUser = true;
+    hideConnectionStatus();
+  },
+
+  openModal() {
+    if (!this.modal) this.init();
+    const currentUrl = getGrimoireServerUrl();
+    if (this.input) {
+      this.input.value = currentUrl;
+    }
+    this.syncPresetWithInput();
+    if (this.feedback) {
+      this.feedback.style.display = 'none';
+    }
+    if (this.modal) {
+      this.modal.style.display = 'flex';
+    }
+  },
+
+  closeModal() {
+    if (this.modal) {
+      this.modal.style.display = 'none';
+    }
+  },
+
+  save() {
+    if (!this.input) return;
+    let rawVal = this.input.value.trim();
+    if (rawVal) {
+      // Automatische Korrektur: Protokoll ergänzen falls vergessen
+      if (!rawVal.startsWith('http://') && !rawVal.startsWith('https://')) {
+        rawVal = 'http://' + rawVal;
+      }
+      // Falls Port vergessen wurde (z. B. nur IP wie 192.168.188.162 oder localhost), :3000 anfügen
+      try {
+        const u = new URL(rawVal);
+        if (!u.port && (u.hostname === 'localhost' || /^(\d{1,3}\.){3}\d{1,3}$/.test(u.hostname))) {
+          u.port = '3000';
+          rawVal = u.origin;
+        }
+      } catch (err) {}
+
+      const cleanUrl = rawVal.replace(/\/+$/, '');
+      try {
+        localStorage.setItem('grimoire_server_url', cleanUrl);
+        this.showFeedback('Gespeichert! Verbinde neu mit ' + cleanUrl + '...', false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 600);
+      } catch (e) {
+        this.showFeedback('Fehler beim Speichern: ' + e.message, true);
+      }
+    } else {
+      this.reset();
+    }
+  },
+
+  reset() {
+    try {
+      localStorage.removeItem('grimoire_server_url');
+      if (this.input) this.input.value = '';
+      if (this.presetSelect) this.presetSelect.selectedIndex = 0;
+      this.showFeedback('Standard-Server wiederhergestellt! Seite lädt neu...', false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 600);
+    } catch (e) {
+      this.showFeedback('Fehler beim Zurücksetzen: ' + e.message, true);
+    }
+  },
+
+  showFeedback(msg, isError) {
+    if (!this.feedback) return;
+    this.feedback.textContent = msg;
+    this.feedback.style.display = 'block';
+    this.feedback.style.background = isError ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)';
+    this.feedback.style.color = isError ? '#fca5a5' : '#86efac';
+    this.feedback.style.border = isError ? '1px solid #ef4444' : '1px solid #22c55e';
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.GrimoireServerSettings = GrimoireServerSettings;
+}
+
+// Globales Event-Delegation für Server-Settings & Dismiss-Banner
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    const serverTrigger = e.target && e.target.closest && e.target.closest('#btnOpenServerSettings, .btn-open-server-settings, #open-server-config-btn, #btnBannerOpenServerSettings');
+    if (serverTrigger) {
+      e.preventDefault();
+      e.stopPropagation();
+      GrimoireServerSettings.openModal();
+      return;
+    }
+    const bannerDismiss = e.target && e.target.closest && e.target.closest('#btnDismissConnectionBanner, .btn-dismiss-banner');
+    if (bannerDismiss) {
+      e.preventDefault();
+      e.stopPropagation();
+      GrimoireServerSettings.dismissBanner();
+      return;
+    }
+  });
+}
+
 function showConnectionStatus(message, isError = true) {
   let safeHtml = String(message).replace(/(https?:\/\/localhost:3000)/g, '<a href="$1" style="color: #fde047; text-decoration: underline; font-weight: bold;">$1</a>');
-  const serverSettingsBtnHtml = ' <button type="button" class="btn-auth-bar" style="margin-left: 6px; padding: 3px 10px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique); cursor: pointer;" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server einstellen</button>';
-  const closeBtnHtml = ' <button type="button" id="btnDismissConnectionBanner" style="background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 8px; line-height: 1; display: flex; align-items: center;" title="Hinweis schließen" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.dismissBanner()">&times;</button>';
+  const serverSettingsBtnHtml = ' <button type="button" id="btnBannerOpenServerSettings" class="btn-auth-bar btn-open-server-settings" style="margin-left: 6px; padding: 3px 10px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique); cursor: pointer;" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server einstellen</button>';
+  const closeBtnHtml = ' <button type="button" id="btnDismissConnectionBanner" class="btn-dismiss-banner" style="background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 8px; line-height: 1; display: flex; align-items: center;" title="Hinweis schließen" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.dismissBanner()">&times;</button>';
   
   if (connectionBanner) {
     connectionBanner.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; flex-wrap: wrap;"><span>⚠️</span><span>${safeHtml}</span>${serverSettingsBtnHtml}</div>${closeBtnHtml}`;
@@ -38,7 +387,8 @@ function showConnectionStatus(message, isError = true) {
       connectionBanner.classList.remove('error');
     }
   }
-  if (lobbyStatusMsg && (!lobbyScreen || lobbyScreen.style.display !== 'none')) {
+  const currentLobbyScreen = document.getElementById('lobby-screen');
+  if (lobbyStatusMsg && (!currentLobbyScreen || currentLobbyScreen.style.display !== 'none')) {
     lobbyStatusMsg.innerHTML = safeHtml + serverSettingsBtnHtml;
     lobbyStatusMsg.style.display = 'block';
     lobbyStatusMsg.style.color = isError ? '#f87171' : '#fde047';
@@ -1254,6 +1604,11 @@ const WizardAuth = (() => {
     const userTitleEl = document.getElementById('lobbyUserTitle');
     const userAvatarEl = document.getElementById('lobbyUserAvatarShield') || document.getElementById('lobbyUserAvatar');
 
+    const companionsGuest = document.getElementById('btnOpenCompanionsGuest');
+    const companionsUser = document.getElementById('btnOpenCompanionsUser');
+    const lbGuest = document.getElementById('btnOpenLeaderboardGuest');
+    const lbUser = document.getElementById('btnOpenLeaderboardUser');
+
     if (currentUser) {
       if (guestGroup) guestGroup.style.display = 'none';
       if (userGroup) userGroup.style.display = 'flex';
@@ -1262,9 +1617,17 @@ const WizardAuth = (() => {
       if (userAvatarEl) {
         userAvatarEl.innerText = (currentUser.username || '?').charAt(0).toUpperCase();
       }
+      if (companionsGuest) companionsGuest.style.display = 'none';
+      if (companionsUser) companionsUser.style.display = 'inline-flex';
+      if (lbGuest) lbGuest.style.display = 'none';
+      if (lbUser) lbUser.style.display = 'inline-flex';
     } else {
       if (guestGroup) guestGroup.style.display = 'flex';
       if (userGroup) userGroup.style.display = 'none';
+      if (companionsGuest) companionsGuest.style.display = 'inline-flex';
+      if (companionsUser) companionsUser.style.display = 'none';
+      if (lbGuest) lbGuest.style.display = 'inline-flex';
+      if (lbUser) lbUser.style.display = 'none';
     }
   }
 
@@ -2047,9 +2410,18 @@ const CompanionsManager = (() => {
       btn.addEventListener('click', (e) => {
         const id = btn.getAttribute('data-id');
         const name = btn.getAttribute('data-name');
-        if (confirm(`Möchtest du ${name} wirklich aus deinem Grimoire der Gefährten entfernen?`)) {
-          socket.emit('removeFriend', { friendId: id, token: WizardAuth.getToken() });
-        }
+        GrimoireDialog.confirm({
+          title: 'Gefährten verbannen',
+          message: `Möchtest du ${name} wirklich aus deinem Grimoire der Gefährten entfernen?`,
+          icon: '👥',
+          confirmText: 'Ja, entfernen',
+          cancelText: 'Behalten',
+          danger: true
+        }).then((confirmed) => {
+          if (confirmed) {
+            socket.emit('removeFriend', { friendId: id, token: WizardAuth.getToken() });
+          }
+        });
       });
     });
   }
@@ -2250,8 +2622,7 @@ const btnModeRanked = document.getElementById('btnModeRanked');
 function setGameMode(mode) {
   if (mode === 'ranked') {
     if (typeof WizardAuth !== 'undefined' && !WizardAuth.getToken()) {
-      alert('Für Ranglistenspiele musst du im Magier-Register angemeldet sein!');
-      if (typeof WizardAuth !== 'undefined') WizardAuth.openAuthModal('login');
+      GrimoireDialog.requireAuth('ranked');
       return;
     }
     selectedGameMode = 'ranked';
@@ -2474,8 +2845,16 @@ socket.on('editionChanged', ({ edition }) => {
   updateRulesTabForEdition(edition);
 });
 
-function confirmAndLeaveRoom() {
-  if (confirm('Möchtest du den Raum wirklich verlassen?')) {
+async function confirmAndLeaveRoom() {
+  const confirmed = await GrimoireDialog.confirm({
+    title: 'Kammer verlassen',
+    message: 'Möchtest du den Spielbund wirklich verlassen und zur Zitadelle zurückkehren?',
+    icon: '🚪',
+    confirmText: 'Ja, verlassen',
+    cancelText: 'Hierbleiben',
+    danger: true
+  });
+  if (confirmed) {
     socket.emit('leaveRoom', { roomCode: currentRoomCode });
     sessionStorage.removeItem('wizard_last_room');
     currentRoomCode = '';
@@ -2522,7 +2901,11 @@ socket.on('lobbyError', ({ message }) => {
 });
 
 socket.on('actionError', ({ message }) => {
-  alert(message);
+  GrimoireDialog.alert({
+    title: 'Aktion abgewiesen',
+    message: message || 'Diese Handlung konnte nicht ausgeführt werden.',
+    icon: '⚠️'
+  });
   if (waitingRoomStartBtn) waitingRoomStartBtn.disabled = false;
 });
 
@@ -3360,7 +3743,11 @@ socket.on('biddingFinished', () => {
 });
 
 socket.on('invalidMove', ({ message }) => {
-  alert(`Regelverstoß: ${message}`);
+  GrimoireDialog.alert({
+    title: 'Regelverstoß',
+    message: message || 'Dieser Spielzug verstößt gegen die Regeln der Zauberer.',
+    icon: '⚡'
+  });
   isMyTurn = true;
   renderHand();
 });
@@ -3489,8 +3876,12 @@ socket.on('roundReDealt', ({ message, round, maxRounds: mr, trumpCard, gameState
   renderScoreBoard();
 });
 
-socket.on('gameResetToLobby', ({ message, players, roomCode }) => {
-  alert(message || 'Zurück zur Lobby!');
+socket.on('gameResetToLobby', async ({ message, players, roomCode }) => {
+  await GrimoireDialog.alert({
+    title: 'Runde beendet',
+    message: message || 'Die Versammlung wurde aufgelöst. Zurück zur Zitadelle!',
+    icon: '🏛️'
+  });
   gameOverModal.style.display = 'none';
   pauseOverlay.style.display = 'none';
   tableArea.style.display = 'none';
@@ -4669,162 +5060,10 @@ function setupResizableDrawers() {
   });
 }
 
-// --- SPIELSERVER- & NETZWERK-EINSTELLUNGEN (CAPACITOR & MOBILE) ---
-const GrimoireServerSettings = {
-  modal: null,
-  input: null,
-  feedback: null,
-  presetSelect: null,
-
-  init() {
-    this.modal = document.getElementById('server-settings-modal');
-    this.input = document.getElementById('inputCustomServerUrl');
-    this.feedback = document.getElementById('serverSettingsFeedback');
-    this.presetSelect = document.getElementById('serverPresetSelect');
-
-    const openBtn = document.getElementById('btnOpenServerSettings');
-    const closeBtn = document.getElementById('btnCloseServerSettings');
-    const saveBtn = document.getElementById('btnSaveServerUrl');
-    const resetBtn = document.getElementById('btnResetServerUrl');
-    const dismissBtn = document.getElementById('btnDismissConnectionBanner');
-
-    if (openBtn) openBtn.addEventListener('click', (e) => { e.preventDefault(); this.openModal(); });
-    if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault(); this.closeModal(); });
-    if (saveBtn) saveBtn.addEventListener('click', (e) => { e.preventDefault(); this.save(); });
-    if (resetBtn) resetBtn.addEventListener('click', (e) => { e.preventDefault(); this.reset(); });
-    if (dismissBtn) dismissBtn.addEventListener('click', (e) => { e.preventDefault(); this.dismissBanner(); });
-
-    if (this.presetSelect) {
-      this.presetSelect.addEventListener('change', () => {
-        const val = this.presetSelect.value;
-        if (val && val !== 'custom') {
-          if (this.input) this.input.value = val;
-        } else if (val === 'custom') {
-          if (this.input) {
-            this.input.focus();
-          }
-        }
-      });
-    }
-
-    if (this.input) {
-      this.input.addEventListener('input', () => {
-        this.syncPresetWithInput();
-      });
-    }
-
-    if (this.modal) {
-      this.modal.addEventListener('click', (e) => {
-        if (e.target === this.modal) this.closeModal();
-      });
-    }
-  },
-
-  syncPresetWithInput() {
-    if (!this.presetSelect || !this.input) return;
-    const currentVal = this.input.value.trim().replace(/\/+$/, '');
-    let matched = false;
-    for (let i = 0; i < this.presetSelect.options.length; i++) {
-      const optVal = this.presetSelect.options[i].value;
-      if (optVal && optVal !== 'custom' && optVal.replace(/\/+$/, '') === currentVal) {
-        this.presetSelect.selectedIndex = i;
-        matched = true;
-        break;
-      }
-    }
-    if (!matched) {
-      this.presetSelect.value = currentVal ? 'custom' : '';
-    }
-  },
-
-  dismissBanner() {
-    isBannerDismissedByUser = true;
-    hideConnectionStatus();
-  },
-
-  openModal() {
-    if (!this.modal) this.init();
-    const currentUrl = getGrimoireServerUrl();
-    if (this.input) {
-      this.input.value = currentUrl;
-    }
-    this.syncPresetWithInput();
-    if (this.feedback) {
-      this.feedback.style.display = 'none';
-    }
-    if (this.modal) {
-      this.modal.style.display = 'flex';
-    }
-  },
-
-  closeModal() {
-    if (this.modal) {
-      this.modal.style.display = 'none';
-    }
-  },
-
-  save() {
-    if (!this.input) return;
-    let rawVal = this.input.value.trim();
-    if (rawVal) {
-      // Automatische Korrektur: Protokoll ergänzen falls vergessen
-      if (!rawVal.startsWith('http://') && !rawVal.startsWith('https://')) {
-        rawVal = 'http://' + rawVal;
-      }
-      // Falls Port vergessen wurde (z. B. nur IP wie 192.168.188.162 oder localhost), :3000 anfügen
-      try {
-        const u = new URL(rawVal);
-        if (!u.port && (u.hostname === 'localhost' || /^(\d{1,3}\.){3}\d{1,3}$/.test(u.hostname))) {
-          u.port = '3000';
-          rawVal = u.origin;
-        }
-      } catch (err) {}
-
-      const cleanUrl = rawVal.replace(/\/+$/, '');
-      try {
-        localStorage.setItem('grimoire_server_url', cleanUrl);
-        this.showFeedback('Gespeichert! Verbinde neu mit ' + cleanUrl + '...', false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 600);
-      } catch (e) {
-        this.showFeedback('Fehler beim Speichern: ' + e.message, true);
-      }
-    } else {
-      this.reset();
-    }
-  },
-
-  reset() {
-    try {
-      localStorage.removeItem('grimoire_server_url');
-      if (this.input) this.input.value = '';
-      if (this.presetSelect) this.presetSelect.selectedIndex = 0;
-      this.showFeedback('Standard-Server wiederhergestellt! Seite lädt neu...', false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 600);
-    } catch (e) {
-      this.showFeedback('Fehler beim Zurücksetzen: ' + e.message, true);
-    }
-  },
-
-  showFeedback(msg, isError) {
-    if (!this.feedback) return;
-    this.feedback.textContent = msg;
-    this.feedback.style.display = 'block';
-    this.feedback.style.background = isError ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)';
-    this.feedback.style.color = isError ? '#fca5a5' : '#86efac';
-    this.feedback.style.border = isError ? '1px solid #ef4444' : '1px solid #22c55e';
-  }
-};
-if (typeof window !== 'undefined') {
-  window.GrimoireServerSettings = GrimoireServerSettings;
-}
-
 // Initialer Zustand: Haupt-Lobby, Audio-Bindings, Auth & Drawer-Resizing einrichten
 setupAudioSettingsUI();
 setupResizableDrawers();
+GrimoireDialog.init();
 GrimoireServerSettings.init();
 WizardAuth.init();
 CompanionsManager.init();
