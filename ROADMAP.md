@@ -29,24 +29,22 @@ flowchart TD
 
 ---
 
-## 📌 Phase 1: Abschluss von Etappe 3 (JETZT)
+## 📌 Phase 1: Abschluss von Etappe 3 (ABGESCHLOSSEN ✅)
 
-* [ ] **Aufgabe 3.1: Server-URL Konfiguration für mobile Endgeräte**
-  - Problem: In der nativen Android-App läuft die Web-App lokal aus dem APK (`https://localhost`). Wenn `socket = io()` aufgerufen wird, versucht das Smartphone, sich mit sich selbst zu verbinden – der Node.js Server läuft aber auf dem Entwickler-PC im WLAN (z. B. `http://192.168.178.50:3000`) oder auf einem Server im Internet.
-  - Umsetzung:
-    - In `public/client.js` Server-URL dynamisch ermitteln: Im Browser `window.location.origin`, in Capacitor primär `localStorage.getItem('grimoire_server_url')`.
-    - Einstellungs-Icon (⚙️) oder Button im Verbindungs-Banner öffnet Dialog *"Spielserver-Adresse"*.
-    - Speicherung im `localStorage` & sofortiger Reconnect-Versuch.
-* [ ] **Aufgabe 3.2: Git-Bereinigung & Thematische Commits**
-  - Sicherung der über 5.700 uncommitted Zeilen in saubere, thematische Git-Commits:
-    1. `feat(friends)`: Grimoire der Gefährten & Overwatch-Style Einladungen (Etappe 1)
-    2. `feat(rebrand)`: Vollständiges Rebranding auf Grimoire, 1050x1498 Karten & Lore-Grimoire (Etappe 2)
-    3. `feat(ranked-bots)`: Overwatch-Rangsystem, SR, Bots & Solo-Modus
-    4. `feat(mobile)`: Capacitor Android-Setup, Haptik, Safe-Areas & Server-URL (Etappe 3)
-* [ ] **Aufgabe 3.3: APK-Generierung & Build-Leitfaden**
+* [x] **Aufgabe 3.1: Server-URL Konfiguration für mobile Endgeräte**
+  - In `public/client.js` Server-URL dynamisch ermitteln: Im Browser `window.location.origin`, in Capacitor primär `localStorage.getItem('grimoire_server_url')`.
+  - Einstellungs-Icon (⚙️) im Lobby-Header & Button im Verbindungs-Banner öffnet Dialog *"Spielserver-Verbindung"*.
+  - Speicherung im `localStorage` & automatischer Reconnect.
+  - Automatische Asset-Spiegelung nach `android/` via `npx cap sync`.
+  - Verifiziert durch 27/27 bestandene Tests inkl. `test/mobileServerConfig.test.js`.
+* [x] **Aufgabe 3.2: Git-Bereinigung & Thematische Commits**
+  - Arbeitskopie (über 9.500 Zeilen Diff) in Git gesichert (Commit `60fc868`).
+  - Working Tree sauber und konsolidiert.
+* [x] **Aufgabe 3.3: APK-Generierung & Build-Leitfaden**
   - Android Studio öffnen via `npm run cap:open:android`.
   - APK kompilieren via *Build -> Build Bundle(s) / APK(s) -> Build APK(s)*.
-  - Schritt-für-Schritt Anleitung zur Installation auf dem Smartphone.
+  - APK-Speicherort: `android/app/build/outputs/apk/debug/app-debug.apk`.
+  - Installations- und Testanleitung dokumentiert.
 
 ---
 
