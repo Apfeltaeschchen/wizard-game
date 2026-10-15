@@ -885,8 +885,8 @@
       width: 100%;
       max-width: 100%;
       margin: 0 auto;
-      padding: 8px 12px 6px;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.22), 0 12px 35px rgba(0,0,0,0.85);
+      padding: 8px 10px 6px;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6);
       position: relative;
       flex: 1;
       min-height: 0;
@@ -896,6 +896,18 @@
       justify-content: space-between;
       transition: box-shadow 0.3s ease;
       overflow: hidden;
+    }
+
+    /* MATHEMATISCH ZENTRIERTE, VOLLKOMMEN SYMMETRISCHE TISCH-VIGNETTE */
+    .poker-table::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.42) 85%, rgba(0, 0, 0, 0.72) 100%);
+      box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.7);
+      z-index: 5;
     }
 
     /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (2s TIEFER ATEM) */
@@ -917,30 +929,36 @@
       outline: none !important;
     }
 
-    /* MITSPIELER-SITZE (SCHMIEDEEISERNE HALTER MIT WAPPEN) */
+    /* MITSPIELER-SITZE (KOMPAKTES HORIZONTALES BADGE-SYSTEM) */
     #opponents-container {
       display: flex;
-      justify-content: space-around;
+      justify-content: center;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
-      padding: 2px 6px;
-      margin-bottom: 4px;
+      gap: 6px;
+      padding: 2px 4px;
+      margin-bottom: 2px;
       z-index: 15;
       flex-shrink: 0;
+      max-height: 80px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .player-seat {
-      background: linear-gradient(180deg, rgba(28, 18, 11, 0.92) 0%, rgba(14, 9, 5, 0.95) 100%);
+      background: linear-gradient(180deg, rgba(28, 18, 11, 0.94) 0%, rgba(14, 9, 5, 0.97) 100%);
       border: 1.5px solid #5a371c;
-      border-radius: 12px;
-      padding: 6px 10px;
-      display: flex;
+      border-radius: 18px;
+      padding: 3px 8px 3px 4px;
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.65), inset 0 0 10px rgba(0,0,0,0.5);
-      transition: all 0.25s ease;
+      gap: 5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.65), inset 0 0 6px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
       position: relative;
+      height: 28px;
+      box-sizing: border-box;
+      white-space: nowrap;
     }
 
     /* VERGRÖSSERTE PULS-AURA (2s TIEFER KRÄFTIGER ATMUNGSEFFEKT) */
@@ -960,28 +978,27 @@
     }
 
     .player-seat.seat-active-turn {
-      border-color: var(--gold-bright);
+      border-color: var(--gold-bright) !important;
+      box-shadow: 0 0 14px rgba(240, 195, 85, 0.65) !important;
       animation: deepTurnBreath 2s ease-in-out infinite;
-      transform: scale(1.05);
       z-index: 25;
     }
 
-    /* WAPPENSCHILD-AVATAR VIA CLIP-PATH */
     .seat-avatar {
-      width: 34px;
-      height: 38px;
-      clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
       background: linear-gradient(180deg, #374151 0%, #111827 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       font-family: var(--font-medieval);
-      font-size: 14px;
+      font-size: 11px;
       color: var(--gold-bright);
       flex-shrink: 0;
-      border: none;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      border: 1px solid var(--gold-antique);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
 
     .seat-avatar.disconnected {
@@ -992,66 +1009,107 @@
 
     .seat-details {
       text-align: left;
-      line-height: 1.2;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .seat-name-row {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 5px;
-      flex-wrap: wrap;
+      gap: 4px;
     }
 
     .seat-name {
       font-family: var(--font-subheading);
-      font-size: 12px;
-      font-weight: bold;
+      font-size: 11px;
+      font-weight: 700;
       color: #f7eedb;
-      max-width: 105px;
+      max-width: 65px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      line-height: 1;
+    }
+
+    .seat-bid-pill {
+      font-family: var(--font-medieval);
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--gold-bright);
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(212, 163, 89, 0.45);
+      border-radius: 10px;
+      padding: 1px 5px;
+      letter-spacing: 0.3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      line-height: 1;
     }
 
     .seat-stats {
-      font-family: var(--font-medieval);
-      font-size: 11px;
-      color: #cbd5e1;
-      margin-top: 2px;
+      display: none;
     }
 
-    /* TISCHMITTE */
+    /* KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS GEDOCKT) */
+    .trump-section-fixed {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 30;
+      background: rgba(18, 10, 5, 0.94);
+      border: 1.5px solid var(--gold-antique);
+      border-radius: 10px;
+      padding: 4px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.7), inset 0 0 8px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .trump-section-fixed:hover {
+      border-color: var(--gold-bright);
+      box-shadow: 0 4px 18px rgba(240, 195, 85, 0.4);
+    }
+    .trump-label {
+      font-size: 9px;
+      font-weight: bold;
+      font-family: var(--font-subheading);
+      color: var(--gold-antique);
+      margin-bottom: 2px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .trump-card-compact {
+      --card-w: clamp(38px, 9vw, 48px) !important;
+      --card-h: calc(var(--card-w) * (1498 / 1050)) !important;
+      margin: 0 !important;
+      cursor: pointer !important;
+    }
+
+    /* TISCHMITTE (100% BREITE FÜR STICHKARTEN ZENTRIERT) */
     .table-center-row {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       width: 100%;
-      margin: 4px 0;
+      margin: 2px 0;
       position: relative;
       z-index: 20;
       flex: 1;
       min-height: 0;
     }
 
-    .trump-section-fixed {
-      background: rgba(18, 10, 5, 0.88);
-      border: 1.5px solid var(--gold-antique);
-      border-radius: 12px;
-      padding: 6px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.7), inset 0 0 10px rgba(0,0,0,0.5);
-      flex-shrink: 0;
-    }
-
     .trick-area-center {
-      flex-grow: 1;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: calc(var(--card-h) + 24px);
+      min-height: calc(var(--card-h) + 16px);
       perspective: 1200px;
     }
 
@@ -2219,11 +2277,37 @@
 
       #status-message { display: none !important; }
 
-      #opponents-container { gap: 4px; padding: 2px 2px; }
-      .player-seat { padding: 3px 5px; gap: 4px; }
-      .seat-avatar { width: 26px; height: 28px; font-size: 11px; }
-      .seat-name { font-size: 11px; max-width: 62px; }
-      .seat-stats { font-size: 9.5px; }
+      #opponents-container {
+        gap: 4px !important;
+        padding: 2px 2px !important;
+        max-height: 68px !important;
+        overflow-y: auto !important;
+      }
+      .player-seat {
+        padding: 2px 6px 2px 3px !important;
+        gap: 4px !important;
+        height: 26px !important;
+        border-radius: 16px !important;
+      }
+      .seat-avatar {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 10px !important;
+      }
+      .seat-name {
+        font-size: 10.5px !important;
+        max-width: 52px !important;
+      }
+      .seat-bid-pill {
+        font-size: 9.5px !important;
+        padding: 0 4px !important;
+      }
+      .seat-title {
+        display: none !important;
+      }
+      .seat-stats {
+        display: none !important;
+      }
 
       #score-board-drawer,
       #rules-drawer,
@@ -2270,7 +2354,18 @@
       }
 
       .trump-section-fixed {
+        top: 6px !important;
+        left: 6px !important;
+        padding: 3px 5px !important;
+        border-radius: 8px !important;
         z-index: 120 !important;
+      }
+      .trump-label {
+        font-size: 8px !important;
+        margin-bottom: 1px !important;
+      }
+      .trump-card-compact {
+        --card-w: clamp(32px, 8vw, 40px) !important;
       }
       #bid-overlay {
         position: absolute;
@@ -4440,21 +4535,19 @@
     <!-- DER VERWITTERTE EICHENTISCH -->
     <div id="table-area" class="poker-table">
       
+      <!-- KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS SCHWEBEND) -->
+      <div class="trump-section-fixed" id="trump-wrapper" title="Aufgedeckte Trumpfkarte der Runde">
+        <div class="trump-label">Trumpf</div>
+        <div id="trump-container"></div>
+      </div>
+
       <!-- VIRTUELLE MITSPIELER-SITZE -->
       <div id="opponents-container"></div>
 
-      <!-- TISCHMITTE: TRUMPF (LINKS) & STICHKARTEN (MITTE) -->
+      <!-- TISCHMITTE: 100% ZENTRIERTE STICHKARTEN -->
       <div class="table-center-row">
-        
-        <!-- TRUMPF-SEKTION -->
-        <div class="trump-section-fixed" id="trump-wrapper">
-          <div style="font-size: 10px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-antique); margin-bottom: 2px;">Trumpf</div>
-          <div id="trump-container"></div>
-        </div>
-
-        <!-- STICHKARTEN MITTE -->
         <div class="trick-area-center">
-          <div id="trick-container" style="display: flex; gap: 8px; justify-content: center; align-items: center; min-height: 140px;"></div>
+          <div id="trick-container" style="display: flex; gap: 8px; justify-content: center; align-items: center; min-height: 120px;"></div>
         </div>
       </div>
 
@@ -5106,7 +5199,17 @@
           <span class="game-menu-item-chevron">›</span>
         </button>
 
-        <!-- 3. SERVER & NETZWERK -->
+        <!-- 3. GRIMOIRE DER GEFÄHRTEN (FREUNDE & EINLADUNGEN) -->
+        <button id="btnMenuCompanions" type="button" class="game-menu-item-btn">
+          <span class="game-menu-item-icon">👥</span>
+          <div class="game-menu-item-content">
+            <span class="game-menu-item-title">Grimoire der Gefährten</span>
+            <span class="game-menu-item-desc">Freunde, Status &amp; Einladungen</span>
+          </div>
+          <span class="game-menu-item-chevron">›</span>
+        </button>
+
+        <!-- 4. SERVER & NETZWERK -->
         <button id="btnMenuServerSettings" type="button" class="game-menu-item-btn btn-open-server-settings">
           <span class="game-menu-item-icon">🌐</span>
           <div class="game-menu-item-content">

@@ -54,11 +54,13 @@ flowchart TD
         S1["1. Schritt: APK bauen & Smartphone-Test"]
         S2["2. Schritt: Erweiterung B: AAA 3D-Karten-Animationen & Effekte"]
         S2A["Optional: Erweiterung A: Automatisches Ranked-Matchmaking"]
+        S2D["Optional: Erweiterung D: Mehrstufige KI-Schwierigkeitsgrade"]
         S3["3. Schritt: Etappe 4: F-Droid Veröffentlichung (FOSS & GPLv3)"]
     end
 
     P1 --> S1 --> S2 --> S3
     S2 -.-> S2A
+    S2 -.-> S2D
 ```
 
 ---
@@ -110,6 +112,21 @@ flowchart TD
 * **Docker & Container**: `Dockerfile` und `docker-compose.yml` für schnelles Deployment.
 * **SSL/WSS**: Sichere WebSocket-Verschlüsselung mit Nginx Reverse Proxy.
 * **Umgebungsvariablen**: Konsequente Trennung von `.env` (Port, JWT Secret, DB-Pfad).
+
+### 5. ERWEITERUNG D: Mehrstufige KI-Schwierigkeitsgrade (Solo- & Bot-Entwicklung)
+* **Stufe 1: Novize (Lehrling - Casual & Anfänger)**:
+  - Spielt nach elementaren Grundregeln (Farbbedienung, Zauberer/Narr).
+  - Bietet rein nach Faustformel ohne tiefes Mitzählen gegnerischer Gebote.
+  - Legt zufällige legale Karten ab, wenn die angespielte Farbe nicht bedient werden kann.
+* **Stufe 2: Meister (Magier - Taktisch & Ausbalanciert)**:
+  - Taktische Biet-Heuristiken unter Berücksichtigung von Trumpffarbe, Zauberern und dem Geber-Gesetz (+/- 1 Regel).
+  - Farbabwurf-Strategie: Wirft gezielt hohe Fehlfarben ab, wenn das eigene Gebot bereits erfüllt ist; unterbietet Stiche mit niedrigen Zahlen.
+  - Schätzt das Risiko von Narren und Scharlatanen realistisch ein.
+* **Stufe 3: Erzmagier (Oberster Rat - Hardcore & E-Sport)**:
+  - **Probability Tracking (Kartenzählen)**: Weiß exakt, welche Zauberer, Narren, Drachen und Trümpfe noch im Deck bzw. auf fremden Händen sein können.
+  - **Sonderkarten-Perfektion**: Meistert Vorrangregeln (Lindwurm vs. Waldnymphe, Einhorn-Entzauberung gegen Magiekollaps, Schattenhexe-Ritualtausch zur Maximierung der Handkartenqualität).
+  - **Sabotage-Taktik**: Erkennt führende Spieler und zerstört deren Vorhersagen durch forciertes Stiche-Übertragen.
+  - **Monte-Carlo-Stichsimulation (MCTS)**: Simuliert vor jedem Ausspielen hunderte Stichverläufe für die mathematisch optimale Karte.
 
 ---
 

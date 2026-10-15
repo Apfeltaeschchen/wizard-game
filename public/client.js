@@ -4146,6 +4146,8 @@ function renderOpponents() {
       `;
     }
 
+    const bidPillHtml = `<span class="seat-bid-pill" title="Gebot: ${bidText} | Gewonnen: ${wonText}">🎯 ${bidText}/${wonText}</span>`;
+
     seatEl.innerHTML = `
       <div class="seat-avatar ${disconnectedClass}">${initial}</div>
       <div class="seat-details">
@@ -4153,8 +4155,8 @@ function renderOpponents() {
           <span class="seat-name">${escapeHtml(p.name)}</span>
           ${hostBadge}${dealerBadge}${rankBadgeHtml}
         </div>
-        ${titleHtml}
-        <div class="seat-stats">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>
+        ${bidPillHtml}
+        <div class="seat-stats" style="display: none;">T: <b>${bidText}</b> | G: <b>${wonText}</b></div>
       </div>
       ${foreheadCardHtml}
     `;
@@ -4216,7 +4218,7 @@ function renderTrickCards(trickCards, animateLast = true) {
   });
 }
 
-// --- TRUMPFKARTE RENDERN ---
+// --- TRUMPFKARTE RENDERN (KOMPAKTER TALISMAN-DOCK) ---
 function renderTrumpCard(trumpCard) {
   trumpContainer.innerHTML = '';
 
@@ -4229,33 +4231,36 @@ function renderTrumpCard(trumpCard) {
 
   if (!trumpCard) {
     const emptyCard = document.createElement('div');
-    emptyCard.classList.add('card');
+    emptyCard.classList.add('card', 'trump-card-compact');
     emptyCard.style.background = 'rgba(24, 14, 8, 0.7)';
     emptyCard.style.borderColor = '#5a371c';
-    emptyCard.innerHTML = '<span style="font-size: 20px; color: var(--gold-antique); font-family: var(--font-medieval);">-</span>';
+    emptyCard.innerHTML = '<span style="font-size: 16px; color: var(--gold-antique); font-family: var(--font-medieval);">-</span>';
 
     const subText = document.createElement('div');
     subText.style.fontStyle = 'italic';
-    subText.style.fontSize = '11px';
+    subText.style.fontSize = '9px';
     subText.style.color = '#d6be90';
-    subText.style.marginTop = '4px';
+    subText.style.marginTop = '2px';
     subText.style.fontFamily = 'var(--font-subheading)';
     subText.innerText = 'Kein Trumpf';
 
     wrap.appendChild(emptyCard);
     wrap.appendChild(subText);
+    wrap.title = 'Kein Trumpf in dieser Runde';
     trumpContainer.appendChild(wrap);
     return;
   }
 
   const el = renderCard(trumpCard);
+  el.classList.add('trump-card-compact');
   wrap.appendChild(el);
 
   const subText = document.createElement('div');
   subText.style.fontWeight = 'bold';
-  subText.style.fontSize = '11px';
-  subText.style.marginTop = '4px';
+  subText.style.fontSize = '9.5px';
+  subText.style.marginTop = '2px';
   subText.style.fontFamily = 'var(--font-subheading)';
+  subText.style.whiteSpace = 'nowrap';
 
   if (trumpCard.type === 'werewolf_trump_pending') {
     subText.style.color = '#f59e0b';
@@ -4263,7 +4268,7 @@ function renderTrumpCard(trumpCard) {
   } else if (trumpCard.type === 'werewolf_trump') {
     const sName = suitNames[trumpCard.chosenSuit || trumpCard.suit] || 'Unbekannt';
     subText.style.color = 'var(--gold-bright)';
-    subText.innerText = `Werwolf-Trumpf: ${sName}`;
+    subText.innerText = `Werwolf: ${sName}`;
   } else if (['wizard', 'dragon', 'shapeshifter', 'cloud', 'vampire'].includes(trumpCard.type)) {
     if (trumpCard.chosenSuit) {
       subText.style.color = 'var(--gold-bright)';
@@ -4277,8 +4282,14 @@ function renderTrumpCard(trumpCard) {
     subText.innerText = 'Kein Trumpf';
   } else if (trumpCard.type === 'color') {
     subText.style.color = '#f7eedb';
-    subText.innerText = `Trumpf: ${suitNames[trumpCard.suit] || trumpCard.suit}`;
+    subText.innerText = `${suitNames[trumpCard.suit] || trumpCard.suit} ${trumpCard.value || ''}`;
   }
+
+  wrap.title = `Aufgedeckter Trumpf: ${subText.innerText}`;
+  wrap.addEventListener('click', () => {
+    showToast(`Aufgedeckter Trumpf: ${subText.innerText}`);
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
+  });
 
   wrap.appendChild(subText);
   trumpContainer.appendChild(wrap);
@@ -5264,6 +5275,7 @@ const GrimoireGameMenu = {
     const closeBtn = document.getElementById('btnCloseGameMenu');
     const audioBtn = document.getElementById('btnMenuAudioSettings');
     const rulesBtn = document.getElementById('btnMenuRules');
+    const companionsBtn = document.getElementById('btnMenuCompanions');
     const serverBtn = document.getElementById('btnMenuServerSettings');
     const pill = document.getElementById('displayRoomCodePill');
 
@@ -5324,6 +5336,17 @@ const GrimoireGameMenu = {
         this.close();
         if (typeof openRulesDrawer === 'function') {
           openRulesDrawer();
+        }
+      });
+    }
+
+    if (companionsBtn && !companionsBtn._hasGameMenuListener) {
+      companionsBtn._hasGameMenuListener = true;
+      companionsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close();
+        if (typeof CompanionsManager !== 'undefined' && CompanionsManager.open) {
+          CompanionsManager.open();
         }
       });
     }

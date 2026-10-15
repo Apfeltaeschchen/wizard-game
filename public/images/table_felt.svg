@@ -6,46 +6,38 @@
       <feColorMatrix type="matrix" values="0 0 0 0 0.26   0 0 0 0 0.14   0 0 0 0 0.06  0 0 0 0.35 0" />
     </filter>
 
-    <!-- Bohlen-Farbverläufe für natürliche Holzwölbung -->
+    <!-- Bohlen-Farbverläufe für natürliche, gleichmäßige Holzwölbung -->
     <linearGradient id="plankGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2d170a" />
-      <stop offset="50%" stop-color="#3b2010" />
-      <stop offset="100%" stop-color="#261307" />
-    </linearGradient>
-    <linearGradient id="plankGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#321b0d" />
-      <stop offset="50%" stop-color="#412413" />
-      <stop offset="100%" stop-color="#2c160a" />
-    </linearGradient>
-    <linearGradient id="plankGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#381f10" />
-      <stop offset="50%" stop-color="#462715" />
-      <stop offset="100%" stop-color="#30190c" />
-    </linearGradient>
-    <linearGradient id="plankGrad4" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#301a0c" />
-      <stop offset="50%" stop-color="#3e2211" />
+      <stop offset="0%" stop-color="#2c160a" />
+      <stop offset="50%" stop-color="#3a1f10" />
       <stop offset="100%" stop-color="#281408" />
     </linearGradient>
+    <linearGradient id="plankGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e170b" />
+      <stop offset="50%" stop-color="#3d2112" />
+      <stop offset="100%" stop-color="#2a1509" />
+    </linearGradient>
+    <linearGradient id="plankGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#30190c" />
+      <stop offset="50%" stop-color="#3e2213" />
+      <stop offset="100%" stop-color="#2b160a" />
+    </linearGradient>
+    <linearGradient id="plankGrad4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e170b" />
+      <stop offset="50%" stop-color="#3d2112" />
+      <stop offset="100%" stop-color="#2a1509" />
+    </linearGradient>
     <linearGradient id="plankGrad5" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2a1508" />
-      <stop offset="50%" stop-color="#381d0e" />
-      <stop offset="100%" stop-color="#231005" />
+      <stop offset="0%" stop-color="#2c160a" />
+      <stop offset="50%" stop-color="#3a1f10" />
+      <stop offset="100%" stop-color="#281408" />
     </linearGradient>
 
     <!-- Warmes sanftes Deckenlicht im Tischzentrum -->
     <radialGradient id="tableCenterCandle" cx="50%" cy="50%" r="65%">
-      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.12" />
-      <stop offset="50%" stop-color="#b45309" stop-opacity="0.04" />
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.08" />
+      <stop offset="50%" stop-color="#b45309" stop-opacity="0.02" />
       <stop offset="100%" stop-color="#000000" stop-opacity="0" />
-    </radialGradient>
-
-    <!-- Hauchzarte Rand-Vignette: Bleibt bis 84% komplett transparent (0%), dunkelt erst ganz außen dezent ab -->
-    <radialGradient id="tableEdgeVignette" cx="50%" cy="50%" r="52%">
-      <stop offset="0%" stop-color="#050201" stop-opacity="0" />
-      <stop offset="84%" stop-color="#050201" stop-opacity="0" />
-      <stop offset="94%" stop-color="#050201" stop-opacity="0.14" />
-      <stop offset="100%" stop-color="#050201" stop-opacity="0.30" />
     </radialGradient>
   </defs>
 
@@ -118,7 +110,4 @@
 
   <!-- SANFTES KERZENLICHT IM ZENTRUM -->
   <rect width="1600" height="1000" fill="url(#tableCenterCandle)" />
-
-  <!-- HAUCHZARTE, MINIMALE RAND-VIGNETTE (NUR GANZ AUSSEN) -->
-  <rect width="1600" height="1000" fill="url(#tableEdgeVignette)" />
 </svg>

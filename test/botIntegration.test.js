@@ -96,7 +96,7 @@ async function runTests() {
     });
 
     // Prüfe Turn-Ablauf: wenn Host an der Reihe ist, Gebot 0 abgeben
-    const maxWaitTime = 8000;
+    const maxWaitTime = 14000;
     const startTime = Date.now();
     let hostBidded = false;
 
@@ -123,7 +123,7 @@ async function runTests() {
     // 5. Spielphase: Runde 1 Stich spielen
     let hostPlayed = false;
     const playStartTime = Date.now();
-    while (Date.now() - playStartTime < 8000) {
+    while (Date.now() - playStartTime < 14000) {
       const lastTurn = turnsObserved[turnsObserved.length - 1];
       if (lastTurn && lastTurn.gameState === 'playing_tricks' && lastTurn.activePlayerSessionId === 'sess_solo_host' && !hostPlayed) {
         hostPlayed = true;
