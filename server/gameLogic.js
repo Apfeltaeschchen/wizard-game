@@ -10,10 +10,22 @@ function createDeck(edition = 'classic') {
     }
   });
 
-  // 4 Zauberer (Z) und 4 Narren (N)
+  // 4 Zauberer (Erzmagier) und 4 Narren (Scharlatane) mit Varianten 1..4
   for (let i = 0; i < 4; i++) {
-    deck.push({ type: 'wizard', suit: 'none', value: 14 });
-    deck.push({ type: 'jester', suit: 'none', value: 0 });
+    deck.push({ 
+      type: 'wizard', 
+      suit: 'none', 
+      value: 14, 
+      variant: i + 1, 
+      variantSuit: suits[i] 
+    });
+    deck.push({ 
+      type: 'jester', 
+      suit: 'none', 
+      value: 0, 
+      variant: i + 1, 
+      variantSuit: suits[i] 
+    });
   }
 
   // Sonderkarten der 30-Jahre-Jubiläumsedition

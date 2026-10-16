@@ -5114,10 +5114,9 @@ document.addEventListener('click', () => {
 // (Heraldische Wappen & Rang-Icons wurden nach oben vor den Spielzustand verlegt)
 
 // Karten-Renderer (Old Medieval Fantasy Style)
-// Artwork-Dateizuordnung für 1050 × 1498 px Artworks (mit .svg Fallbacks & alternativen Namen)
 const CARD_ARTWORK_FILES = {
-  wizard: ['archmage.png', 'archmage.svg', 'wizard.png'],
-  jester: ['charlatan.png', 'charlatan.svg', 'jester.png'],
+  wizard: ['archmage_1.png', 'archmage.png', 'archmage.svg', 'wizard.png'],
+  jester: ['charlatan_1.png', 'charlatan.png', 'charlatan.svg', 'jester.png'],
   unicorn: ['unicorn.png', 'unicorn.svg', 'horned_beast.png', 'horned_beast.svg'],
   dragon: ['lindwurm.png', 'lindwurm.svg', 'wyrm.png', 'wyrm.svg', 'dragon.png'],
   fairy: ['waldnymphe.png', 'waldnymphe.svg', 'sylph.png', 'sylph.svg', 'fairy.png'],
@@ -5132,13 +5131,46 @@ const CARD_ARTWORK_FILES = {
   juggler: ['trickster.png', 'trickster.svg', 'gaukler.png', 'gaukler.svg', 'juggler.png']
 };
 
+function getCardArtworkFiles(card) {
+  if (!card) return [];
+  if (card.type === 'wizard') {
+    const v = card.variant || 1;
+    const candidates = [
+      `archmage_${v}.png`,
+      `archmage_${v}.webp`,
+      `wizard_${v}.png`,
+      `wizard_${v}.webp`
+    ];
+    if (card.variantSuit) {
+      candidates.push(`archmage_${card.variantSuit}.png`, `wizard_${card.variantSuit}.png`);
+    }
+    candidates.push('archmage.png', 'archmage.webp', 'wizard.png', 'archmage.svg');
+    return candidates;
+  }
+  if (card.type === 'jester') {
+    const v = card.variant || 1;
+    const candidates = [
+      `charlatan_${v}.png`,
+      `charlatan_${v}.webp`,
+      `jester_${v}.png`,
+      `jester_${v}.webp`
+    ];
+    if (card.variantSuit) {
+      candidates.push(`charlatan_${card.variantSuit}.png`, `jester_${card.variantSuit}.png`);
+    }
+    candidates.push('charlatan.png', 'charlatan.webp', 'jester.png', 'charlatan.svg');
+    return candidates;
+  }
+  return CARD_ARTWORK_FILES[card.type] || [];
+}
+
 // Karten-Renderer (Old Medieval Fantasy Style mit 1050 × 1498 px Artwork-Support)
 function renderCard(card) {
   const div = document.createElement('div');
   div.classList.add('card');
 
   // Prüfe, ob für diese Spezialkarte ein Artwork vorhanden ist
-  const artFiles = CARD_ARTWORK_FILES[card.type];
+  const artFiles = getCardArtworkFiles(card);
   if (artFiles && !card.isBlind && card.type !== 'blind_card') {
     div.classList.add('card-has-artwork');
     const artImg = document.createElement('img');
