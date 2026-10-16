@@ -61,19 +61,7 @@ async function runTests() {
     assert.strictEqual(botPlayers.length, 2, 'Es müssen genau 2 KI-Magier im Raum sein.');
     console.log('✓ 2 Bots erfolgreich zum Warteraum hinzugefügt: ' + botPlayers.map(b => b.name).join(', '));
 
-    // 3. Spiel starten (Host startet für 3 Spieler)
-    let handReceived = null;
-    client.on('handDealt', (hand) => {
-      handReceived = hand;
-    });
-
-    client.emit('startGame', { roomCode });
-    await wait(400);
-
-    assert(handReceived !== null, 'Host muss Handkarten für Runde 1 erhalten haben.');
-    console.log('✓ Spiel erfolgreich gestartet!');
-
-    // 4. Biet- und Spielablauf: Bots müssen automatisch ziehen
+    // 4. Biet- und Spielablauf Listener registrieren VOR startGame (verhindert Race Condition)
     let turnsObserved = [];
     let biddingFinished = false;
     let trickCompleted = false;
@@ -94,6 +82,18 @@ async function runTests() {
       console.log('✓ biddingFinished Event empfangen');
       biddingFinished = true;
     });
+
+    // 3. Spiel starten (Host startet für 3 Spieler)
+    let handReceived = null;
+    client.on('handDealt', (hand) => {
+      handReceived = hand;
+    });
+
+    client.emit('startGame', { roomCode });
+    await wait(400);
+
+    assert(handReceived !== null, 'Host muss Handkarten für Runde 1 erhalten haben.');
+    console.log('✓ Spiel erfolgreich gestartet!');
 
     // Prüfe Turn-Ablauf: wenn Host an der Reihe ist, Gebot 0 abgeben
     const maxWaitTime = 20000;
