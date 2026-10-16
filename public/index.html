@@ -134,7 +134,7 @@
       overscroll-behavior: none;
     }
 
-    /* GESCHMIEDETE EISENKNÖPFE MIT MESSINGKANTEN */
+    /* GESCHMIEDETE EISENKNÖPFE MIT MESSINGKANTEN & WCAG 44PX TARGETS */
     input, button {
       font-family: inherit;
       padding: 9px 16px;
@@ -158,6 +158,26 @@
       font-weight: 700;
       text-shadow: 0 1px 3px rgba(0,0,0,0.8);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 4px 10px rgba(0,0,0,0.65);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 44px; /* WCAG 2.1 AA Mindest-Touch-Target */
+      box-sizing: border-box;
+    }
+
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15em;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .btn-text {
+      display: inline-block;
+      line-height: 1.2;
     }
 
     button:hover:not(:disabled) {
@@ -3764,16 +3784,48 @@
       }
     }
 
+    /* RESPONSIVE HYBRID BUTTONS & ERGONOMIE (BENCIUM CONTROLLED UX) */
+    @media (max-width: 420px) {
+      .btn-hybrid-compact .btn-text {
+        display: none !important;
+      }
+      .btn-hybrid-compact {
+        padding: 8px 12px;
+        min-width: 44px;
+        min-height: 44px;
+        justify-content: center;
+      }
+      .waiting-room-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        width: 100%;
+      }
+      #waitingRoomLeaveBtn.btn-hybrid-compact {
+        flex: 0 0 auto;
+        padding: 10px 14px;
+      }
+      #waitingRoomStartBtn {
+        flex: 1 1 auto;
+        font-size: 13px;
+        padding: 11px 12px;
+      }
+      .trump-buttons-grid, .suit-buttons-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+      }
+    }
+
     @media (max-width: 380px) {
       .lobby-header-left .btn-auth-bar {
         padding: 5px 6px;
         font-size: 10px;
-        min-height: 34px;
+        min-height: 36px;
       }
       .lobby-header-right .btn-header-action {
         padding: 4px 6px;
-        min-width: 34px;
-        min-height: 34px;
+        min-width: 36px;
+        min-height: 36px;
       }
       .lobby-header-right .btn-header-action .score-toggle-icon {
         font-size: 15px;
@@ -4522,8 +4574,8 @@
       <div class="lobby-header-left">
         <!-- GAST-MODUS (UNANGEMELDET) -->
         <div id="auth-guest-controls" class="auth-bar-group">
-          <button id="btnOpenLogin" type="button" class="btn-auth-bar" title="Im Magier-Register anmelden">👤 Anmelden</button>
-          <button id="btnOpenRegister" type="button" class="btn-auth-bar btn-auth-gold" title="Neues Magier-Siegel registrieren">✨ Registrieren</button>
+          <button id="btnOpenLogin" type="button" class="btn-auth-bar" title="Im Magier-Register anmelden" aria-label="Anmelden"><span class="btn-icon" aria-hidden="true">🔑</span><span class="btn-text">Anmelden</span></button>
+          <button id="btnOpenRegister" type="button" class="btn-auth-bar btn-auth-gold" title="Neues Magier-Siegel registrieren" aria-label="Registrieren"><span class="btn-icon" aria-hidden="true">✨</span><span class="btn-text">Registrieren</span></button>
         </div>
 
         <!-- ANGEMELDET-MODUS -->
@@ -4535,8 +4587,8 @@
               <span id="lobbyUserTitle" class="user-pill-title">Zauberlehrling</span>
             </div>
           </div>
-          <button id="btnOpenProfile" type="button" class="btn-auth-bar" title="Profil &amp; Statistiken einsehen">📊 Profil &amp; Stats</button>
-          <button id="btnLogout" type="button" class="btn-auth-bar btn-auth-danger" title="Abmelden">🚪 Abmelden</button>
+          <button id="btnOpenProfile" type="button" class="btn-auth-bar" title="Profil &amp; Statistiken einsehen" aria-label="Profil und Statistiken"><span class="btn-icon" aria-hidden="true">📊</span><span class="btn-text">Profil &amp; Stats</span></button>
+          <button id="btnLogout" type="button" class="btn-auth-bar btn-auth-danger" title="Abmelden" aria-label="Abmelden"><span class="btn-icon" aria-hidden="true">🚪</span><span class="btn-text">Abmelden</span></button>
         </div>
       </div>
 
@@ -4599,8 +4651,9 @@
         </div>
       </div>
 
-      <button id="createGameBtn" type="button" style="background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border-color: var(--gold-bright); width: 100%; margin: 12px 0 0; padding: 14px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,0.8);">
-        📜 Neues Spiel gründen
+      <button id="createGameBtn" type="button" aria-label="Neues Spiel gründen" style="background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border-color: var(--gold-bright); width: 100%; margin: 12px 0 0; padding: 14px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,0.8);">
+        <span class="btn-icon" aria-hidden="true">📜</span>
+        <span class="btn-text">Neues Spiel gründen</span>
       </button>
       
       <div class="lobby-divider">
@@ -4609,8 +4662,9 @@
 
       <input type="text" id="roomCode" placeholder="6-stelliger Zahlencode" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="letter-spacing: 5px; font-size: 20px; text-align: center; font-weight: bold; font-family: var(--font-medieval);" />
       
-      <button id="joinBtn" type="button" style="background: linear-gradient(180deg, #2c3442 0%, #151a22 100%); color: var(--gold-bright); width: 100%; margin: 8px 0 0; padding: 13px; font-size: 14px; font-weight: 700;">
-         Dem Bunde beitreten
+      <button id="joinBtn" type="button" aria-label="Dem Bunde beitreten" style="background: linear-gradient(180deg, #2c3442 0%, #151a22 100%); color: var(--gold-bright); width: 100%; margin: 8px 0 0; padding: 13px; font-size: 14px; font-weight: 700;">
+        <span class="btn-icon" aria-hidden="true">⚔️</span>
+        <span class="btn-text">Dem Bunde beitreten</span>
       </button>
 
       <div id="lobby-status-message" style="display: none; margin-top: 10px; font-size: 13px; color: var(--gold-bright); font-family: var(--font-subheading); text-align: center;"></div>
@@ -4637,8 +4691,9 @@
         <div style="font-size: 11px; color: #d6be90; font-family: var(--font-subheading); letter-spacing: 1px; margin-bottom: 4px;">Ratssiegel-Zahlencode</div>
         <div class="room-code-row">
           <span id="waitingRoomCode" class="room-code-digits">------</span>
-          <button id="btnCopyWaitingCode" class="btn-copy" type="button" title="Code in Zwischenablage kopieren">
-            Kopieren 📋
+          <button id="btnCopyWaitingCode" class="btn-copy" type="button" title="Code in Zwischenablage kopieren" aria-label="Code kopieren">
+            <span class="btn-icon" aria-hidden="true">📋</span>
+            <span class="btn-text">Kopieren</span>
           </button>
         </div>
       </div>
@@ -4665,8 +4720,9 @@
       <!-- KI-Magier Steuerung für den Host (Solo- & Übungsmodus) -->
       <div id="host-bot-controls" style="display: none; margin: 6px 0 14px; gap: 8px; position: relative;">
         <div class="bot-dropdown-wrapper" style="flex: 1; position: relative;">
-          <button id="btnAddBot" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; padding: 9px; font-size: 12.5px; justify-content: center;">
-            🤖 KI hinzufügen ▾
+          <button id="btnAddBot" type="button" class="btn-auth-bar btn-auth-gold" aria-label="KI hinzufügen" style="width: 100%; padding: 9px; font-size: 12.5px; justify-content: center;">
+            <span class="btn-icon" aria-hidden="true">🤖</span>
+            <span class="btn-text">KI hinzufügen ▾</span>
           </button>
           <div id="botDifficultyMenu" class="bot-difficulty-dropdown" style="display: none;">
             <button type="button" class="bot-diff-option" data-diff="novice">
@@ -4692,20 +4748,28 @@
             </button>
           </div>
         </div>
-        <button id="btnRemoveBot" type="button" class="btn-auth-bar btn-auth-danger" style="flex: 1; padding: 9px; font-size: 12.5px; justify-content: center;">
-          ❌ KI entfernen
+        <button id="btnRemoveBot" type="button" class="btn-auth-bar btn-auth-danger btn-hybrid-compact" title="KI entfernen" aria-label="KI entfernen" style="flex: 1; padding: 9px; font-size: 12.5px; justify-content: center;">
+          <span class="btn-icon" aria-hidden="true">❌</span>
+          <span class="btn-text">KI entfernen</span>
         </button>
       </div>
 
       <!-- Gefährten einladen Button -->
-      <button id="btnOpenCompanionsWaiting" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 4px 0 12px; padding: 10px; font-size: 13.5px;" title="Gefährten aus deinem Grimoire einladen">
-        👥 Gefährten rufen / einladen
+      <button id="btnOpenCompanionsWaiting" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 4px 0 12px; padding: 10px; font-size: 13.5px;" title="Gefährten aus deinem Grimoire einladen" aria-label="Gefährten einladen">
+        <span class="btn-icon" aria-hidden="true">👥</span>
+        <span class="btn-text">Gefährten rufen / einladen</span>
       </button>
 
       <!-- Aktionen: Raum verlassen & Spiel starten -->
       <div class="waiting-room-actions">
-        <button id="waitingRoomLeaveBtn" class="btn-leave" type="button">Kammer verlassen</button>
-        <button id="waitingRoomStartBtn" type="button" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border-color: var(--gold-bright);">Partie jetzt beginnen (Runde 1)</button>
+        <button id="waitingRoomLeaveBtn" class="btn-leave btn-hybrid-compact" type="button" title="Kammer verlassen" aria-label="Kammer verlassen">
+          <span class="btn-icon" aria-hidden="true">🚪</span>
+          <span class="btn-text">Kammer verlassen</span>
+        </button>
+        <button id="waitingRoomStartBtn" type="button" aria-label="Partie jetzt beginnen" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border-color: var(--gold-bright);">
+          <span class="btn-icon" aria-hidden="true">⚔️</span>
+          <span class="btn-text">Partie jetzt beginnen (Runde 1)</span>
+        </button>
       </div>
     </div>
   </div>
@@ -5003,10 +5067,22 @@
       <div id="trump-selection-area" style="display: none; margin: 4px auto; padding: 12px 16px; background: rgba(20, 11, 6, 0.95); border-radius: 12px; border: 2px solid var(--gold-bright); z-index: 80; max-width: 380px; box-shadow: 0 8px 30px rgba(0,0,0,0.9);">
         <h4 id="trump-selection-title" style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 13px;">Du bist der Geber! Wähle die Trumpffarbe:</h4>
         <div class="trump-buttons-grid">
-          <button class="trump-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border-color: #fca5a5;" data-suit="red">Rot</button>
-          <button class="trump-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border-color: #bae6fd;" data-suit="blue">Blau</button>
-          <button class="trump-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border-color: #86efac;" data-suit="green">Grün</button>
-          <button class="trump-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border-color: #fef08a; font-weight: 900;" data-suit="yellow">Gelb</button>
+          <button class="trump-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border-color: #fca5a5;" data-suit="red" aria-label="Trumpffarbe Rot">
+            <span class="btn-icon" aria-hidden="true">🔥</span>
+            <span class="btn-text">Rot</span>
+          </button>
+          <button class="trump-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border-color: #bae6fd;" data-suit="blue" aria-label="Trumpffarbe Blau">
+            <span class="btn-icon" aria-hidden="true">💧</span>
+            <span class="btn-text">Blau</span>
+          </button>
+          <button class="trump-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border-color: #86efac;" data-suit="green" aria-label="Trumpffarbe Grün">
+            <span class="btn-icon" aria-hidden="true">🌿</span>
+            <span class="btn-text">Grün</span>
+          </button>
+          <button class="trump-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border-color: #fef08a; font-weight: 900;" data-suit="yellow" aria-label="Trumpffarbe Gelb">
+            <span class="btn-icon" aria-hidden="true">⚡</span>
+            <span class="btn-text">Gelb</span>
+          </button>
         </div>
       </div>
 
@@ -5014,13 +5090,18 @@
       <div id="shapeshifter-modal" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 14px 18px; background: rgba(14, 9, 5, 0.96); border-radius: 12px; border: 2px solid var(--gold-bright); z-index: 130; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 10px 32px rgba(0,0,0,0.95);">
         <h4 style="margin: 0 0 10px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 14px;">Doppelgänger: Gestalt wählen:</h4>
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          <button id="btnShapeshifterWizard" type="button" style="background: linear-gradient(180deg, #581c87, #2e0847); color: var(--gold-bright); border-color: var(--gold-bright); padding: 10px; font-weight: bold;">
-            🧙‍♂️ Als Erzmagier spielen (E)
+          <button id="btnShapeshifterWizard" type="button" aria-label="Als Erzmagier spielen" style="background: linear-gradient(180deg, #581c87, #2e0847); color: var(--gold-bright); border-color: var(--gold-bright); padding: 10px; font-weight: bold;">
+            <span class="btn-icon" aria-hidden="true">🧙‍♂️</span>
+            <span class="btn-text">Als Erzmagier spielen (E)</span>
           </button>
-          <button id="btnShapeshifterJester" type="button" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border-color: #94a3b8; padding: 10px; font-weight: bold;">
-            🎭 Als Scharlatan spielen (S)
+          <button id="btnShapeshifterJester" type="button" aria-label="Als Scharlatan spielen" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border-color: #94a3b8; padding: 10px; font-weight: bold;">
+            <span class="btn-icon" aria-hidden="true">🎭</span>
+            <span class="btn-text">Als Scharlatan spielen (S)</span>
           </button>
-          <button id="btnShapeshifterCancel" type="button" class="btn-leave" style="margin-top: 4px; padding: 6px;">Abbrechen</button>
+          <button id="btnShapeshifterCancel" type="button" class="btn-leave" aria-label="Abbrechen" style="margin-top: 4px; padding: 6px;">
+            <span class="btn-icon" aria-hidden="true">❌</span>
+            <span class="btn-text">Abbrechen</span>
+          </button>
         </div>
       </div>
 
@@ -5029,12 +5110,27 @@
         <h4 style="margin: 0 0 6px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 14px;">Himmelsschleier (Wert 9 ¾) Farbe wählen:</h4>
         <p style="font-size: 11px; color: #d6be90; margin: 0 0 10px; font-style: italic;">Der Himmelsschleier nimmt diese Farbe für den Stich an.</p>
         <div class="suit-buttons-grid" style="margin-bottom: 6px;">
-          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border-color: #fca5a5;" data-suit="red">Rot</button>
-          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border-color: #bae6fd;" data-suit="blue">Blau</button>
-          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border-color: #86efac;" data-suit="green">Grün</button>
-          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border-color: #fef08a; font-weight: 900;" data-suit="yellow">Gelb</button>
+          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border-color: #fca5a5;" data-suit="red" aria-label="Farbe Rot">
+            <span class="btn-icon" aria-hidden="true">🔥</span>
+            <span class="btn-text">Rot</span>
+          </button>
+          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border-color: #bae6fd;" data-suit="blue" aria-label="Farbe Blau">
+            <span class="btn-icon" aria-hidden="true">💧</span>
+            <span class="btn-text">Blau</span>
+          </button>
+          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border-color: #86efac;" data-suit="green" aria-label="Farbe Grün">
+            <span class="btn-icon" aria-hidden="true">🌿</span>
+            <span class="btn-text">Grün</span>
+          </button>
+          <button class="cloud-suit-btn trump-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border-color: #fef08a; font-weight: 900;" data-suit="yellow" aria-label="Farbe Gelb">
+            <span class="btn-icon" aria-hidden="true">⚡</span>
+            <span class="btn-text">Gelb</span>
+          </button>
         </div>
-        <button id="btnCloudCancel" type="button" class="btn-leave" style="margin-top: 10px; padding: 6px 14px;">Abbrechen</button>
+        <button id="btnCloudCancel" type="button" class="btn-leave" aria-label="Abbrechen" style="margin-top: 10px; padding: 6px 14px;">
+          <span class="btn-icon" aria-hidden="true">❌</span>
+          <span class="btn-text">Abbrechen</span>
+        </button>
       </div>
 
       <!-- TASCHENSPIELER FARBWAHL -->
@@ -5042,12 +5138,27 @@
         <h4 style="margin: 0 0 6px; color: #cffafe; font-family: var(--font-heading); font-size: 14px;">Taschenspieler (Wert 7 ½) Farbe wählen:</h4>
         <p style="font-size: 11px; color: #d6be90; margin: 0 0 10px; font-style: italic;">Der Taschenspieler nimmt diese Farbe für den Stich an.</p>
         <div class="suit-buttons-grid" style="margin-bottom: 6px;">
-          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border: 1.5px solid #fca5a5; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="red">Rot</button>
-          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border: 1.5px solid #bae6fd; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="blue">Blau</button>
-          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border: 1.5px solid #86efac; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="green">Grün</button>
-          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border: 1.5px solid #fef08a; padding: 8px 14px; border-radius: 6px; font-weight: 900; cursor: pointer;" data-suit="yellow">Gelb</button>
+          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #9e1f23, #550c0f); color: #fff; border: 1.5px solid #fca5a5; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="red" aria-label="Farbe Rot">
+            <span class="btn-icon" aria-hidden="true">🔥</span>
+            <span class="btn-text">Rot</span>
+          </button>
+          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #1b457e, #0c2b54); color: #fff; border: 1.5px solid #bae6fd; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="blue" aria-label="Farbe Blau">
+            <span class="btn-icon" aria-hidden="true">💧</span>
+            <span class="btn-text">Blau</span>
+          </button>
+          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #18522a, #0b2b14); color: #fff; border: 1.5px solid #86efac; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer;" data-suit="green" aria-label="Farbe Grün">
+            <span class="btn-icon" aria-hidden="true">🌿</span>
+            <span class="btn-text">Grün</span>
+          </button>
+          <button class="juggler-suit-btn" style="background: linear-gradient(180deg, #cfa823, #7a4c04); color: #1a0f02; border: 1.5px solid #fef08a; padding: 8px 14px; border-radius: 6px; font-weight: 900; cursor: pointer;" data-suit="yellow" aria-label="Farbe Gelb">
+            <span class="btn-icon" aria-hidden="true">⚡</span>
+            <span class="btn-text">Gelb</span>
+          </button>
         </div>
-        <button id="btnJugglerCancel" type="button" class="btn-leave" style="margin-top: 10px; padding: 6px 14px;">Abbrechen</button>
+        <button id="btnJugglerCancel" type="button" class="btn-leave" aria-label="Abbrechen" style="margin-top: 10px; padding: 6px 14px;">
+          <span class="btn-icon" aria-hidden="true">❌</span>
+          <span class="btn-text">Abbrechen</span>
+        </button>
       </div>
 
       <!-- ASTROLABIUM BIET-PANEL IN DER TISCHMITTE -->
@@ -5085,10 +5196,19 @@
       <div style="margin: 16px 0; font-size: 28px;">⏳</div>
       <div id="host-pause-controls" style="display: none; border-top: 1px solid rgba(240, 195, 85, 0.25); padding-top: 14px; margin-top: 12px;">
         <p style="font-size: 12px; color: var(--gold-bright); margin-bottom: 6px;">Du führst diesen Bund. Falls der Magier nicht wiederkehrt:</p>
-        <button id="btnHostReDeal" style="background: linear-gradient(180deg, #8a5a14 0%, #442a06 100%); color: var(--gold-bright); width: 100%; margin: 4px 0;">Runde neu austeilen (ohne Getrennte)</button>
-        <button id="btnHostAbortToWaiting" style="background: rgba(200, 154, 56, 0.15); border: 1.5px solid var(--gold-antique); color: var(--gold-bright); width: 100%; margin: 4px 0; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer;">Partie abbrechen &amp; zurück in die Ratskammer</button>
+        <button id="btnHostReDeal" type="button" aria-label="Runde neu austeilen" style="background: linear-gradient(180deg, #8a5a14 0%, #442a06 100%); color: var(--gold-bright); width: 100%; margin: 4px 0;">
+          <span class="btn-icon" aria-hidden="true">🔄</span>
+          <span class="btn-text">Runde neu austeilen (ohne Getrennte)</span>
+        </button>
+        <button id="btnHostAbortToWaiting" type="button" aria-label="Partie abbrechen und zurückkehren" style="background: rgba(200, 154, 56, 0.15); border: 1.5px solid var(--gold-antique); color: var(--gold-bright); width: 100%; margin: 4px 0; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer;">
+          <span class="btn-icon" aria-hidden="true">🏛️</span>
+          <span class="btn-text">Partie abbrechen &amp; zurück in die Ratskammer</span>
+        </button>
       </div>
-      <button id="btnPauseLeaveGame" class="btn-leave" style="width: 100%; margin-top: 10px; padding: 10px;">Bund verlassen</button>
+      <button id="btnPauseLeaveGame" class="btn-leave" type="button" aria-label="Bund verlassen" style="width: 100%; margin-top: 10px; padding: 10px;">
+        <span class="btn-icon" aria-hidden="true">🚪</span>
+        <span class="btn-text">Bund verlassen</span>
+      </button>
     </div>
   </div>
 
@@ -5101,11 +5221,13 @@
         Der Himmelsschleier verhüllt das Schicksal! Du <b>musst</b> deine Vorhersage jetzt zwingend um <b>+1</b> oder <b>-1</b> anpassen:
       </p>
       <div style="display: flex; justify-content: center; gap: 10px;">
-        <button id="btnCloudMinus" type="button" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border: 1.5px solid #94a3b8; font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; flex: 1;">
-          -1
+        <button id="btnCloudMinus" type="button" aria-label="Vorhersage um 1 Stich senken" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border: 1.5px solid #94a3b8; font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; flex: 1;">
+          <span class="btn-icon" aria-hidden="true">➖</span>
+          <span class="btn-text">-1 Stich</span>
         </button>
-        <button id="btnCloudPlus" type="button" style="background: linear-gradient(180deg, #3d2a13, #1f1408); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; flex: 1;">
-          +1
+        <button id="btnCloudPlus" type="button" aria-label="Vorhersage um 1 Stich erhöhen" style="background: linear-gradient(180deg, #3d2a13, #1f1408); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; flex: 1;">
+          <span class="btn-icon" aria-hidden="true">➕</span>
+          <span class="btn-text">+1 Stich</span>
         </button>
       </div>
     </div>
@@ -5128,7 +5250,10 @@
           <div id="werewolf-new-card-container" class="werewolf-swap-anim"></div>
         </div>
       </div>
-      <button id="btnWerewolfInfoClose" type="button" style="background: linear-gradient(180deg, #3d2a13, #1f1408); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 9px 22px; font-size: 13px; border-radius: 8px; cursor: pointer; margin-top: 10px;">Verstanden</button>
+      <button id="btnWerewolfInfoClose" type="button" aria-label="Verstanden" style="background: linear-gradient(180deg, #3d2a13, #1f1408); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 9px 22px; font-size: 13px; border-radius: 8px; cursor: pointer; margin-top: 10px;">
+        <span class="btn-icon" aria-hidden="true">👁️</span>
+        <span class="btn-text">Verstanden</span>
+      </button>
     </div>
   </div>
 
@@ -5145,7 +5270,10 @@
       <div style="text-align: left; font-size: 11px; font-weight: bold; color: #c084fc; margin-bottom: 4px;">2. Eigene Handkarte zum Hineinlegen wählen:</div>
       <div id="witch-hand-cards" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; max-height: 180px; overflow-y: auto; padding: 4px;"></div>
       <div style="display: flex; justify-content: center; gap: 10px;">
-        <button id="btnWitchSwapExecute" type="button" disabled style="background: linear-gradient(180deg, #7e22ce, #581c87); color: #f3e8ff; border: 1.5px solid #c084fc; font-weight: bold; padding: 10px 24px; font-size: 13px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;">Ritualtausch vollziehen</button>
+        <button id="btnWitchSwapExecute" type="button" disabled aria-label="Ritualtausch vollziehen" style="background: linear-gradient(180deg, #7e22ce, #581c87); color: #f3e8ff; border: 1.5px solid #c084fc; font-weight: bold; padding: 10px 24px; font-size: 13px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;">
+          <span class="btn-icon" aria-hidden="true">🔮</span>
+          <span class="btn-text">Ritualtausch vollziehen</span>
+        </button>
       </div>
     </div>
   </div>
@@ -5180,7 +5308,10 @@
         Wähle <b>1 Handkarte</b>, die du verdeckt an deinen linken Nachbarn weitergibst. Niemand erfährt, welche Karte du abgibst!
       </p>
       <div id="juggler-pass-hand" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; max-height: 240px; overflow-y: auto; padding: 4px;"></div>
-      <button id="btnJugglerPassConfirm" type="button" disabled style="background: linear-gradient(180deg, #0e7490, #083344); color: #cffafe; border: 1.5px solid #06b6d4; font-weight: bold; padding: 10px 24px; font-size: 14px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;">Karte verdeckt weitergeben</button>
+      <button id="btnJugglerPassConfirm" type="button" disabled aria-label="Karte verdeckt weitergeben" style="background: linear-gradient(180deg, #0e7490, #083344); color: #cffafe; border: 1.5px solid #06b6d4; font-weight: bold; padding: 10px 24px; font-size: 14px; border-radius: 8px; cursor: not-allowed; opacity: 0.5;">
+        <span class="btn-icon" aria-hidden="true">🎭</span>
+        <span class="btn-text">Karte verdeckt weitergeben</span>
+      </button>
     </div>
   </div>
 
@@ -5193,7 +5324,10 @@
         Du hast verdeckt eine neue Karte von deinem rechten Nachbarn erhalten:
       </p>
       <div id="juggler-received-card-container" style="display: flex; justify-content: center; margin-bottom: 16px;"></div>
-      <button id="btnJugglerReceivedClose" type="button" style="background: linear-gradient(180deg, #0e7490, #083344); color: #cffafe; border: 1.5px solid #06b6d4; font-weight: bold; padding: 10px 24px; font-size: 14px; border-radius: 8px; cursor: pointer;">In die Hand nehmen</button>
+      <button id="btnJugglerReceivedClose" type="button" aria-label="In die Hand nehmen" style="background: linear-gradient(180deg, #0e7490, #083344); color: #cffafe; border: 1.5px solid #06b6d4; font-weight: bold; padding: 10px 24px; font-size: 14px; border-radius: 8px; cursor: pointer;">
+        <span class="btn-icon" aria-hidden="true">✋</span>
+        <span class="btn-text">In die Hand nehmen</span>
+      </button>
     </div>
   </div>
 
@@ -5207,8 +5341,9 @@
       <div id="ranked-gameover-container" style="display: none;"></div>
 
       <div id="podium-list" style="margin: 16px 0; text-align: left;"></div>
-      <button id="resetGameBtn" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 12px 24px; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 14px rgba(0,0,0,0.7);">
-        Neuen Bund stiften &amp; erneut spielen
+      <button id="resetGameBtn" type="button" aria-label="Neuen Bund stiften &amp; erneut spielen" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 12px 24px; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 14px rgba(0,0,0,0.7);">
+        <span class="btn-icon" aria-hidden="true">🔄</span>
+        <span class="btn-text">Neuen Bund stiften &amp; erneut spielen</span>
       </button>
     </div>
   </div>
@@ -5432,11 +5567,13 @@
 
       <!-- AKTIONEN -->
       <div id="playerDetailActions" style="display: flex; flex-direction: column; gap: 8px;">
-        <button id="btnPlayerDetailAddFriend" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; justify-content: center; padding: 9px 12px; font-size: 13px;">
-          ✨ Als Gefährten hinzufügen
+        <button id="btnPlayerDetailAddFriend" type="button" class="btn-auth-bar btn-auth-gold" aria-label="Als Gefährten schwören" style="width: 100%; justify-content: center; padding: 9px 12px; font-size: 13px;">
+          <span class="btn-icon" aria-hidden="true">✨</span>
+          <span class="btn-text">Als Gefährten hinzufügen</span>
         </button>
-        <button id="btnPlayerDetailClose" type="button" class="btn-leave" style="width: 100%; padding: 8px 12px; font-size: 12.5px;">
-          Schließen
+        <button id="btnPlayerDetailClose" type="button" class="btn-leave" aria-label="Schließen" style="width: 100%; padding: 8px 12px; font-size: 12.5px;">
+          <span class="btn-icon" aria-hidden="true">🚪</span>
+          <span class="btn-text">Schließen</span>
         </button>
       </div>
     </div>
@@ -5455,8 +5592,14 @@
 
       <!-- REITER: [ANMELDEN] UND [REGISTRIEREN] -->
       <div class="auth-tabs">
-        <button type="button" id="tabLoginBtn" class="auth-tab-btn active">Anmelden</button>
-        <button type="button" id="tabRegisterBtn" class="auth-tab-btn">Registrieren</button>
+        <button type="button" id="tabLoginBtn" class="auth-tab-btn active" aria-label="Anmelden">
+          <span class="btn-icon" aria-hidden="true">🔑</span>
+          <span class="btn-text">Anmelden</span>
+        </button>
+        <button type="button" id="tabRegisterBtn" class="auth-tab-btn" aria-label="Registrieren">
+          <span class="btn-icon" aria-hidden="true">✨</span>
+          <span class="btn-text">Registrieren</span>
+        </button>
       </div>
 
       <!-- FEHLERMELDUNGSBEREICH -->
@@ -5469,10 +5612,14 @@
         <div style="text-align: left; margin-bottom: 4px; font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-bright); letter-spacing: 0.8px;">Passwort</div>
         <input type="password" id="authPasswordInput" class="auth-input" placeholder="Geheimes Losungswort (mind. 6 Zeichen)" autocomplete="current-password" />
 
-
-
-        <button id="authSubmitBtn" type="button" class="btn-auth-submit">Einloggen</button>
-        <button id="authGuestBtn" type="button" class="btn-auth-guest">Als Gast fortfahren</button>
+        <button id="authSubmitBtn" type="button" class="btn-auth-submit" aria-label="Einloggen">
+          <span class="btn-icon" aria-hidden="true">🗝️</span>
+          <span class="btn-text">Einloggen</span>
+        </button>
+        <button id="authGuestBtn" type="button" class="btn-auth-guest" aria-label="Als Gast fortfahren">
+          <span class="btn-icon" aria-hidden="true">👤</span>
+          <span class="btn-text">Als Gast fortfahren</span>
+        </button>
       </form>
     </div>
   </div>
@@ -5490,8 +5637,14 @@
 
       <!-- TABS: RUHMESHALLE (ALLTIME) VS. MAGIER-RANGLISTE (RANKED) -->
       <div class="leaderboard-tab-bar">
-        <button type="button" id="tabLeaderboardAlltime" class="leaderboard-tab-btn active">🏆 Ruhmeshalle (Alltime)</button>
-        <button type="button" id="tabLeaderboardRanked" class="leaderboard-tab-btn">⚔️ Magier-Rangliste (Ranked)</button>
+        <button type="button" id="tabLeaderboardAlltime" class="leaderboard-tab-btn active" aria-label="Ruhmeshalle Alltime">
+          <span class="btn-icon" aria-hidden="true">🏆</span>
+          <span class="btn-text">Ruhmeshalle (Alltime)</span>
+        </button>
+        <button type="button" id="tabLeaderboardRanked" class="leaderboard-tab-btn" aria-label="Magier-Rangliste Ranked">
+          <span class="btn-icon" aria-hidden="true">⚔️</span>
+          <span class="btn-text">Magier-Rangliste (Ranked)</span>
+        </button>
       </div>
 
       <div class="leaderboard-table-container">
@@ -5516,7 +5669,10 @@
 
       <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: #b89a67;">
         <span>Live synchronisiert mit dem Reichsarchiv</span>
-        <button id="btnRefreshLeaderboard" type="button" class="btn-auth-bar" style="padding: 4px 10px; font-size: 11px;">🔄 Aktualisieren</button>
+        <button id="btnRefreshLeaderboard" type="button" class="btn-auth-bar" aria-label="Bestenliste aktualisieren" style="padding: 4px 10px; font-size: 11px;">
+          <span class="btn-icon" aria-hidden="true">🔄</span>
+          <span class="btn-text">Aktualisieren</span>
+        </button>
       </div>
     </div>
   </div>
@@ -5534,8 +5690,9 @@
         <div style="font-size: 26px; font-weight: 800; color: #ef4444; margin: 4px 0;">-50 SR</div>
         <div id="penaltyNewSR" style="font-size: 13px; color: #fecaca;">Neues Rating: ---- SR</div>
       </div>
-      <button id="btnPenaltyNoticeAck" type="button" class="btn-auth-submit" style="background: linear-gradient(180deg, #991b1b, #450a0a); border-color: #f87171; font-size: 14px; padding: 12px 20px;">
-        Strafe anerkennen &amp; fortfahren
+      <button id="btnPenaltyNoticeAck" type="button" class="btn-auth-submit" aria-label="Strafe anerkennen &amp; fortfahren" style="background: linear-gradient(180deg, #991b1b, #450a0a); border-color: #f87171; font-size: 14px; padding: 12px 20px;">
+        <span class="btn-icon" aria-hidden="true">⚖️</span>
+        <span class="btn-text">Strafe anerkennen &amp; fortfahren</span>
       </button>
     </div>
   </div>
@@ -5558,8 +5715,9 @@
         <p style="color: #ebd7af; font-size: 13.5px; line-height: 1.5; margin: 0 0 20px;">
           Nur wer einen Eid im Hohen Rat geleistet hat, vermag das Grimoire der Gefährten zu führen. Melde dich an oder registriere dich, um deinen Bund zu stiften!
         </p>
-        <button id="btnCompanionsGuestRegister" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 12px 20px; font-size: 14px; width: 100%;">
-          ✨ Jetzt anmelden / registrieren
+        <button id="btnCompanionsGuestRegister" type="button" class="btn-auth-bar btn-auth-gold" aria-label="Jetzt anmelden oder registrieren" style="padding: 12px 20px; font-size: 14px; width: 100%;">
+          <span class="btn-icon" aria-hidden="true">✨</span>
+          <span class="btn-text">Jetzt anmelden / registrieren</span>
         </button>
       </div>
 
@@ -5571,7 +5729,10 @@
           </div>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="inputAddFriendName" placeholder="Magiername eingeben..." maxlength="18" style="flex: 1; padding: 8px 10px; background: #120a05; color: #fff; border: 1px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px;" />
-            <button id="btnAddFriend" type="button" class="btn-auth-bar btn-auth-gold" style="margin: 0; padding: 8px 14px; font-size: 13px;">+ Hinzufügen</button>
+            <button id="btnAddFriend" type="button" class="btn-auth-bar btn-auth-gold" aria-label="Gefährten hinzufügen" style="margin: 0; padding: 8px 14px; font-size: 13px;">
+              <span class="btn-icon" aria-hidden="true">➕</span>
+              <span class="btn-text">Hinzufügen</span>
+            </button>
           </div>
           <div id="companionActionMessage" style="display: none; font-size: 12px; margin-top: 6px;"></div>
         </div>
@@ -5607,11 +5768,13 @@
       </div>
 
       <div class="invite-actions">
-        <button id="btnAcceptInvite" type="button" class="btn-auth-bar btn-auth-gold invite-btn-accept">
-          ⚔️ Beitreten
+        <button id="btnAcceptInvite" type="button" class="btn-auth-bar btn-auth-gold invite-btn-accept" aria-label="Duell beitreten">
+          <span class="btn-icon" aria-hidden="true">⚔️</span>
+          <span class="btn-text">Beitreten</span>
         </button>
-        <button id="btnDeclineInvite" type="button" class="btn-auth-bar btn-auth-danger invite-btn-decline">
-          Ablehnen
+        <button id="btnDeclineInvite" type="button" class="btn-auth-bar btn-auth-danger invite-btn-decline" aria-label="Duell ablehnen">
+          <span class="btn-icon" aria-hidden="true">❌</span>
+          <span class="btn-text">Ablehnen</span>
         </button>
       </div>
 
@@ -5654,8 +5817,14 @@
       <input type="text" id="inputCustomServerUrl" placeholder="z. B. https://grimoire-cardgame.onrender.com" style="width: 100%; box-sizing: border-box; margin-bottom: 12px; padding: 10px 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique); color: #fff; border-radius: 6px; font-family: monospace; font-size: 13px;" />
       <div id="serverSettingsFeedback" style="display: none; font-size: 12px; margin-bottom: 12px; padding: 8px; border-radius: 4px;"></div>
       <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px;">
-        <button id="btnResetServerUrl" type="button" class="btn-auth-bar" style="background: rgba(255,255,255,0.1);">↺ Standard</button>
-        <button id="btnSaveServerUrl" type="button" class="btn-auth-bar btn-auth-gold">⚔️ Speichern &amp; Verbinden</button>
+        <button id="btnResetServerUrl" type="button" class="btn-auth-bar" aria-label="Standard-Server wiederherstellen" style="background: rgba(255,255,255,0.1);">
+          <span class="btn-icon" aria-hidden="true">↺</span>
+          <span class="btn-text">Standard</span>
+        </button>
+        <button id="btnSaveServerUrl" type="button" class="btn-auth-bar btn-auth-gold" aria-label="Server-Adresse speichern und verbinden">
+          <span class="btn-icon" aria-hidden="true">⚔️</span>
+          <span class="btn-text">Speichern &amp; Verbinden</span>
+        </button>
       </div>
     </div>
   </div>
@@ -5732,8 +5901,8 @@
       <h3 id="dialogTitle" class="dialog-title">Titel</h3>
       <p id="dialogMessage" class="dialog-message">Nachrichtentext...</p>
       <div id="dialogActions" class="dialog-actions-row">
-        <button id="dialogCancelBtn" type="button" class="btn-auth-bar">Abbrechen</button>
-        <button id="dialogConfirmBtn" type="button" class="btn-auth-bar btn-auth-gold">Bestätigen</button>
+        <button id="dialogCancelBtn" type="button" class="btn-auth-bar" aria-label="Abbrechen"><span class="btn-icon" aria-hidden="true">❌</span><span class="btn-text">Abbrechen</span></button>
+        <button id="dialogConfirmBtn" type="button" class="btn-auth-bar btn-auth-gold" aria-label="Bestätigen"><span class="btn-icon" aria-hidden="true">✅</span><span class="btn-text">Bestätigen</span></button>
       </div>
     </div>
   </div>

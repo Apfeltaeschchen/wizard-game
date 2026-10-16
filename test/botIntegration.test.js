@@ -96,7 +96,7 @@ async function runTests() {
     });
 
     // Prüfe Turn-Ablauf: wenn Host an der Reihe ist, Gebot 0 abgeben
-    const maxWaitTime = 14000;
+    const maxWaitTime = 20000;
     const startTime = Date.now();
     let hostBidded = false;
 

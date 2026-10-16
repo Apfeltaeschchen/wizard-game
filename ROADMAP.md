@@ -1,8 +1,8 @@
 # Grimoire Online – Projekt-Roadmap & Arbeitsstand
 
-> **FOKUS FÜR MORGEN**:  
-> 🎯 **Prio 1 (Benutzervorgabe)**: Durchgängige Icons für ALLE Buttons & mobile Erkennbarkeit auf kleinen Bildschirmen (damit man auf Smartphones immer sofort erkennt, welcher Button was tut).  
-> 📱 **Schritt 1**: Android APK bauen & auf Smartphone testen  
+> **FOKUS AKTUELL**:  
+> ✅ **Prio 1 (Benutzervorgabe) ABGESCHLOSSEN**: Durchgängige Icons für ALLE Buttons & mobile Ergonomie (`bencium-controlled-ux-designer`, WCAG 44px, Responsive Hybrid).  
+> 📱 **Nächster Schritt (Schritt 1)**: Android APK bauen & auf Smartphone testen (Anleitung unten)  
 > 📦 **Schritt 2**: F-Droid Veröffentlichung (Etappe 4: FOSS-Metadaten, GPLv3-Lizenz, Fastlane)  
 > ⚔️ **Schritt 3**: Erweiterung A: Automatisches Ranked-Matchmaking (1-Klick Queue)  
 
@@ -52,16 +52,15 @@ flowchart TD
     end
 
     subgraph P2["PHASE 2: HEUTIGER ABLAUF"]
+        P_ICONS["✅ Prio 1: Durchgängige Button-Icons & Mobile Ergonomie"]
         S1["1. Schritt: APK bauen & Smartphone-Test"]
-        S2["2. Schritt: Erweiterung B: AAA 3D-Karten-Animationen & Effekte"]
-        S2A["Optional: Erweiterung A: Automatisches Ranked-Matchmaking"]
-        S2D["Optional: Erweiterung D: Mehrstufige KI-Schwierigkeitsgrade"]
+        S2["2. Schritt: Erweiterung B: AAA 3D-Karten-Animationen (Fertig ✅)"]
+        S2D["Erweiterung D: Mehrstufige KI-Schwierigkeitsgrade (Fertig ✅)"]
         S3["3. Schritt: Etappe 4: F-Droid Veröffentlichung (FOSS & GPLv3)"]
+        S2A["Schritt 4: Erweiterung A: Automatisches Ranked-Matchmaking"]
     end
 
-    P1 --> S1 --> S2 --> S3
-    S2 -.-> S2A
-    S2 -.-> S2D
+    P1 --> P_ICONS --> S1 --> S3 --> S2A
 ```
 
 ---
@@ -85,43 +84,18 @@ flowchart TD
 
 ---
 
-## 📌 Phase 2: Nach Wiederkehr des Entwicklers
+## 📌 Phase 2: Aktuelle Aufgaben & Status
 
-### 0. 🎯 PRIORITÄT FÜR MORGEN: Durchgängige Icons für alle Buttons & Mobile Erkennbarkeit
-> [!IMPORTANT]
-> **Benutzervorgabe**:
-> *"merk dir für morgen, dass die buttons für alles keine icons haben und man somit nicht sehen kann welcher button das ist (der wenn der bildschirm so klein ist)"*
-
-* **Problem & Ziel**:
-  Auf kleinen Smartphone-Bildschirmen (z. B. Portrait-Modus oder schmale Breiten $\le$ 640px / $\le$ 380px) sind Buttons entweder abgeschnitten oder wenn Beschriftungen ausgeblendet/kompaktiert werden, ununterscheidbar, weil viele Buttons noch keinen visuellen Icon-Anker besitzen.
-* **Geplante Umsetzung**:
-  1. **Lobby & Beitritt**:
-     - `createGameBtn`: 📜 `Neues Spiel gründen` (Icon optisch hervorheben)
-     - `joinBtn`: 🚪 / ⚔️ `Dem Bunde beitreten` (bislang ohne Icon!)
-     - Modus-Wahlschalter: ⚡ `Schnellspiel` vs. 🏆 `Rangliste`
-  2. **Warteraum & Bots**:
-     - `waitingRoomLeaveBtn`: 🚪 `Kammer verlassen` (bislang ohne Icon!)
-     - `waitingRoomStartBtn`: ⚔️ `Partie beginnen` (bislang ohne Icon!)
-     - `btnAddBot`: 🤖 `Bot hinzufügen`
-     - `btnRemoveBot`: ❌ `Bot entfernen`
-     - `btnOpenCompanionsWaiting`: 👥 `Gefährten einladen`
-     - `btnCopyWaitingCode`: 📋 `Code kopieren`
-  3. **In-Game Menüs, Buch der Wahrheit & Profile**:
-     - Magier-Detailmodal: ✨ `Als Gefährten hinzufügen`, 🚪 `Schließen`
-     - Zitadellen-Spielmenü: einheitliche, klar differenzierbare Icons für Klang (🎵), Regeln (📜), Gefährten (👥), Server (⚙️), Spiel verlassen (🚪/🚩)
-     - Pausen-/Game-Over-Buttons: 🚪 `Bund verlassen`, 🔄 `Neue Runde`
-  4. **Modale & Dialoge (GrimoireDialog & Auth)**:
-     - `dialogConfirmBtn`: ✅ `Bestätigen`
-     - `dialogCancelBtn`: ❌ `Abbrechen`
-     - Auth-Tabs: 🔑 `Anmelden`, ✨ `Registrieren`
-     - Auth-Aktionen: 🗝️ `Einloggen`, 👤 `Als Gast fortfahren`
-  5. **Sonderkarten-Dialoge**:
-     - Werwolf: 👁️ `Verstanden`
-     - Hexe: 🔮 `Ritualtausch vollziehen`
-     - Jongleur: 🎭 `Karte weitergeben` / ✋ `In die Hand nehmen`
-  6. **Mobile CSS Struktur**:
-     - Alle Button-Beschriftungen sauber in `<span class="btn-text">` und Icons in `<span class="btn-icon">` kapseln.
-     - Bei extremer Kompaktierung auf Smartphones (`@media (max-width: 480px)` bzw. `@media (max-width: 380px)`) bleibt das prägnante Icon immer mittig zentriert sichtbar (`display: inline-block`), mit `title` und `aria-label` für volle Barrierefreiheit und intuitive Erkennbarkeit.
+### 0. ✅ PRIO 1: Durchgängige Icons für alle Buttons & Mobile Erkennbarkeit (Abgeschlossen)
+* **Design-Richtlinie**: Implementiert gemäß Skill `bencium-controlled-ux-designer` (Dark-Fantasy Emojis, WCAG 2.1 AA 44×44px Mindest-Touch-Target, Responsive Hybrid Kapselung).
+* **Umsetzung**:
+  1. **Lobby & Beitritt**: `createGameBtn` (📜), `joinBtn` (⚔️), Modus-Schalter (🍻 / ⚔️), Auth-Bar (🔑, ✨, 📊, 🚪).
+  2. **Warteraum & Bots**: `waitingRoomLeaveBtn` (🚪 `Kammer verlassen`), `waitingRoomStartBtn` (⚔️ `Partie beginnen`), `btnAddBot` (🤖), `btnRemoveBot` (❌), `btnOpenCompanionsWaiting` (👥), `btnCopyWaitingCode` (📋).
+  3. **In-Game Menüs & Zitadelle**: Einheitliche Menü-Items, `resetGameBtn` (🔄), `btnPauseLeaveGame` (🚪), `btnHostReDeal` (🔄), `btnHostAbortToWaiting` (🏛️).
+  4. **Modale & Dialoge**: GrimoireDialog (`✅ Bestätigen`, `❌ Abbrechen`), Profil-Modal (`✨ Als Gefährten schwören`, `🚪 Schließen`), Auth (`🗝️ Einloggen`, `👤 Gast`).
+  5. **Sonderkarten**: Farbwahl & Trümpfe (🔥 Rubin, 💧 Saphir, 🌿 Smaragd, ⚡ Topas), Doppelgänger (🧙‍♂️, 🎭, ❌), Hexe (🔮), Jongleur (🎭, ✋), Werwolf (👁️), Wolke (➖, ➕).
+  6. **Mobile CSS Struktur**: Kapselung in `<span class="btn-icon">` und `<span class="btn-text">`. Bei $\le$ 420px schrumpfen Sekundärbuttons (`.btn-hybrid-compact`) sauber zu quadratischen 44×44px Icon-Pills mit vollem `title`/`aria-label`.
+* **Verifikation**: 100% grün via `test/buttonIconsAccessibility.test.js` und Gesamt-Suite `npm test`. Assets nach `android/` synchronisiert via `npx cap sync`.
 
 ### 1. ETAPPE 4: F-Droid Veröffentlichung (FOSS & 100% Kostenlos)
 * **Lizenzierung**: Saubere Open-Source-Lizenzdatei (`LICENSE`, z. B. GPLv3 oder MIT) im Root anlegen.

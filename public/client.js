@@ -405,7 +405,7 @@ if (typeof document !== 'undefined') {
 
 function showConnectionStatus(message, isError = true) {
   let safeHtml = String(message).replace(/(https?:\/\/localhost:3000)/g, '<a href="$1" style="color: #fde047; text-decoration: underline; font-weight: bold;">$1</a>');
-  const serverSettingsBtnHtml = ' <button type="button" id="btnBannerOpenServerSettings" class="btn-auth-bar btn-open-server-settings" style="margin-left: 6px; padding: 3px 10px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique); cursor: pointer;" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()">⚙️ Server einstellen</button>';
+  const serverSettingsBtnHtml = ' <button type="button" id="btnBannerOpenServerSettings" class="btn-auth-bar btn-open-server-settings" style="margin-left: 6px; padding: 3px 10px; font-size: 11px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold-antique); cursor: pointer;" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.openModal()"><span class="btn-icon" aria-hidden="true">⚙️</span><span class="btn-text">Server einstellen</span></button>';
   const closeBtnHtml = ' <button type="button" id="btnDismissConnectionBanner" class="btn-dismiss-banner" style="background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 8px; line-height: 1; display: flex; align-items: center;" title="Hinweis schließen" onclick="window.GrimoireServerSettings && window.GrimoireServerSettings.dismissBanner()">&times;</button>';
   
   if (connectionBanner) {
@@ -2685,12 +2685,12 @@ const CompanionsManager = (() => {
       let actionButtons = '';
       const inWaitingRoom = (currentGameState === 'lobby' && currentRoomCode);
       if (inWaitingRoom && friend.liveStatus !== 'in_game' && friend.liveStatus !== 'offline') {
-        actionButtons += `<button class="btn-companion-action btn-invite-companion" data-id="${friend.id}" title="In Warteraum einladen">✉️ Einladen</button>`;
+        actionButtons += `<button class="btn-companion-action btn-invite-companion btn-hybrid-compact" data-id="${friend.id}" title="In Warteraum einladen" aria-label="In Warteraum einladen"><span class="btn-icon" aria-hidden="true">✉️</span><span class="btn-text">Einladen</span></button>`;
       }
       if (friend.liveStatus === 'waiting_room' && friend.liveRoomCode) {
-        actionButtons += `<button class="btn-companion-action btn-join-companion" data-code="${friend.liveRoomCode}" title="Raum beitreten">🚀 Beitreten</button>`;
+        actionButtons += `<button class="btn-companion-action btn-join-companion btn-hybrid-compact" data-code="${friend.liveRoomCode}" title="Raum beitreten" aria-label="Raum beitreten"><span class="btn-icon" aria-hidden="true">🚀</span><span class="btn-text">Beitreten</span></button>`;
       }
-      actionButtons += `<button class="btn-companion-remove" data-id="${friend.id}" data-name="${escapeHtml(friend.username)}" title="Aus Grimoire entfernen">✕</button>`;
+      actionButtons += `<button class="btn-companion-remove" data-id="${friend.id}" data-name="${escapeHtml(friend.username)}" title="Aus Grimoire entfernen" aria-label="Aus Grimoire entfernen"><span class="btn-icon" aria-hidden="true">✕</span></button>`;
 
       card.innerHTML = `
         <div class="companion-avatar-wrap">
