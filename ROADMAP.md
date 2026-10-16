@@ -1,8 +1,10 @@
 # Grimoire Online – Projekt-Roadmap & Arbeitsstand
 
 > **FOKUS AKTUELL**:  
-> ✅ **Prio 1 (Benutzervorgabe) ABGESCHLOSSEN**: Durchgängige Icons für ALLE Buttons & mobile Ergonomie (`bencium-controlled-ux-designer`, WCAG 44px, Responsive Hybrid).  
-> 📱 **Nächster Schritt (Schritt 1)**: Android APK bauen & auf Smartphone testen (Anleitung unten)  
+> 📌 **Vorgemerkt / Nächster Schritt nach Rückkehr**: [forehead_cards_and_corner_letters_fix_plan.md](file:///C:/Users/Jamin/.gemini/antigravity-cli/brain/ad78525d-19e8-4e54-b2f9-db415a3f786c/forehead_cards_and_corner_letters_fix_plan.md)  
+>   - 1. Stirnkarten-Sichtbarkeit für Spezialkarten (leuchtende Badges & Glüh-Rahmen für Zauberer, Narr, Drache etc., damit nichts mehr schwarz bleibt).  
+>   - 2. Bereinigung der E/S-Ecken auf die klassischen Original-Kürzel **Z** (Zauberer) und **N** (Narr) in SVGs und Code.  
+> 📱 **Schritt 1**: Android APK bauen & auf Smartphone testen  
 > 📦 **Schritt 2**: F-Droid Veröffentlichung (Etappe 4: FOSS-Metadaten, GPLv3-Lizenz, Fastlane)  
 > ⚔️ **Schritt 3**: Erweiterung A: Automatisches Ranked-Matchmaking (1-Klick Queue)  
 
