@@ -1277,6 +1277,9 @@
       animation: foreheadCardFloat 2.6s ease-in-out infinite;
       z-index: 35;
       pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .forehead-floating-card .card {
       width: calc(var(--card-w) * 0.58) !important;
@@ -1284,8 +1287,28 @@
       transform: none !important;
       margin: 0 !important;
       border-width: 1.5px !important;
-      border-color: var(--gold-bright) !important;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 10px rgba(240, 195, 85, 0.4) !important;
+      border-color: var(--gold-bright);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 10px rgba(240, 195, 85, 0.4);
+    }
+    .forehead-floating-card .card.card-red,
+    .forehead-floating-card.forehead-card-red .card {
+      border-color: #f87171 !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 12px rgba(239, 68, 68, 0.75) !important;
+    }
+    .forehead-floating-card .card.card-blue,
+    .forehead-floating-card.forehead-card-blue .card {
+      border-color: #60a5fa !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 12px rgba(59, 130, 246, 0.75) !important;
+    }
+    .forehead-floating-card .card.card-green,
+    .forehead-floating-card.forehead-card-green .card {
+      border-color: #4ade80 !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 12px rgba(34, 197, 94, 0.75) !important;
+    }
+    .forehead-floating-card .card.card-yellow,
+    .forehead-floating-card.forehead-card-yellow .card {
+      border-color: #fde047 !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 12px rgba(234, 179, 8, 0.75) !important;
     }
     .forehead-floating-card .card .card-center-val {
       font-size: 15px !important;
@@ -1311,6 +1334,56 @@
     }
     .forehead-floating-card .card .card-name-label {
       display: none !important;
+    }
+
+    /* DEUTLICHES FARBWAPPEN-BADGE AUF STIRNKARTEN */
+    .forehead-suit-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 2px;
+      padding: 1px 5px;
+      border-radius: 8px;
+      font-family: var(--font-medieval), 'Cinzel', Georgia, serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      line-height: 1.1;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.85);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .forehead-suit-badge .forehead-suit-icon {
+      width: 10px;
+      height: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .forehead-suit-badge .forehead-suit-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+    .forehead-suit-badge.forehead-suit-red {
+      background: rgba(185, 28, 28, 0.95);
+      color: #fff7ed;
+      border-color: #fca5a5;
+    }
+    .forehead-suit-badge.forehead-suit-blue {
+      background: rgba(29, 78, 216, 0.95);
+      color: #eff6ff;
+      border-color: #93c5fd;
+    }
+    .forehead-suit-badge.forehead-suit-green {
+      background: rgba(21, 128, 61, 0.95);
+      color: #f0fdf4;
+      border-color: #86efac;
+    }
+    .forehead-suit-badge.forehead-suit-yellow {
+      background: rgba(234, 179, 8, 0.95);
+      color: #1a0a01;
+      border-color: #fef08a;
     }
 
     /* MAGIER-PROFIL AVATAR GROSSANSICHT */
@@ -1647,12 +1720,7 @@
       display: none !important;
     }
     .card.card-has-artwork .card-corner {
-      z-index: 4;
-      background: rgba(13, 10, 20, 0.75);
-      padding: 1px 4px;
-      border-radius: 4px;
-      border: 1px solid rgba(240, 195, 85, 0.45);
-      backdrop-filter: blur(2px);
+      display: none !important;
     }
 
     /* BRANDRAND & PERGAMENT-TEXTUREN */
@@ -1698,6 +1766,8 @@
     }
 
     .card-mini-icon {
+      width: clamp(8px, calc(var(--card-w) * 0.14), 12px);
+      height: clamp(8px, calc(var(--card-w) * 0.14), 12px);
       display: none !important;
     }
 
@@ -2750,6 +2820,15 @@
       .forehead-floating-card .card {
         width: 28px !important;
         height: 40px !important;
+      }
+      .forehead-suit-badge {
+        font-size: 8px !important;
+        padding: 0 4px !important;
+        margin-top: 1px !important;
+      }
+      .forehead-suit-badge .forehead-suit-icon {
+        width: 8px !important;
+        height: 8px !important;
       }
       #opponents-container.round-1-opponents {
         margin-top: 60px !important;

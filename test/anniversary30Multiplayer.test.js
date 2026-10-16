@@ -75,22 +75,28 @@ async function run() {
     // 4. Spieler 3 tritt bei und erhält syncGameState mit anniversary_30
     let syncEdition = null;
     let syncMaxRounds = null;
-    player3Client.on('syncGameState', (data) => {
-      syncEdition = data.edition;
-      syncMaxRounds = data.maxRounds;
+    await new Promise((resolve) => {
+      player3Client.on('syncGameState', (data) => {
+        syncEdition = data.edition;
+        syncMaxRounds = data.maxRounds;
+        resolve();
+      });
+      player3Client.emit('joinRoom', { playerName: 'Alchemist', roomCode, sessionId: p3SessionId });
+      setTimeout(resolve, 3000);
     });
-    player3Client.emit('joinRoom', { playerName: 'Alchemist', roomCode, sessionId: p3SessionId });
-    await wait(300);
     assert.strictEqual(syncEdition, 'anniversary_30', 'Neuer Spieler synchronisiert mit anniversary_30');
     console.log('✓ Neuer Spieler empfängt anniversary_30 im GameState');
 
     // 5. Host startet Spiel (3 Spieler -> maxRounds = 23 für 69 Karten)
     let startedMaxRounds = null;
-    hostClient.on('gameStarted', (data) => {
-      startedMaxRounds = data.maxRounds;
+    await new Promise((resolve) => {
+      hostClient.on('gameStarted', (data) => {
+        startedMaxRounds = data.maxRounds;
+        resolve();
+      });
+      hostClient.emit('startGame', { roomCode });
+      setTimeout(resolve, 3000);
     });
-    hostClient.emit('startGame', { roomCode });
-    await wait(400);
     assert.strictEqual(startedMaxRounds, 23, '3 Spieler in 30-Jahre-Edition haben genau 23 Runden (69/3)');
     console.log('✓ Spiel gestartet: Rundenanzahl ist 23 für 3 Spieler (69 Karten)');
 

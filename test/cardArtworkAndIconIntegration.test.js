@@ -85,6 +85,34 @@ assert(html.includes('.forehead-floating-card .card .card-corner'), 'index.html 
 console.log('     ✅ getCardArtworkFiles() Controller & saubere Ecken ohne Mini-Symbole erfolgreich verifiziert!');
 
 
+// 6. Test: Prüfe Karten-UI-Feinschliff, reine Artwork-Karten & Flacker-Schutz
+console.log('  6. Prüfe Farbkarten-Bereinigung, 100% reine Artworks & Flacker-Eliminierung...');
+// a) Keine Namens-Labels mehr auf Zahlenkarten
+assert(!clientJs.includes('${sName} ${card.value}'), 'client.js darf kein card-name-label (${sName} ${card.value}) mehr auf Farbkarten rendern.');
+
+// b) 100% reine Kunstwerke: Ecken auf Artwork-Karten ausgeblendet
+assert(
+  html.includes('.card.card-has-artwork .card-corner') &&
+  html.includes('display: none !important;'),
+  'index.html muss .card.card-has-artwork .card-corner auf display: none !important setzen.'
+);
+
+// c) Farberkennung für Stirnkarten
+assert(clientJs.includes('forehead-suit-badge'), 'client.js muss forehead-suit-badge für Stirnkarten in Runde 1 generieren.');
+assert(clientJs.includes('forehead-suit-${p.round1Card.suit}'), 'client.js muss Stirnkarten mit Farbwappen forehead-suit-${p.round1Card.suit} versehen.');
+assert(html.includes('.forehead-suit-badge'), 'index.html muss .forehead-suit-badge stylen.');
+assert(html.includes('.forehead-floating-card .card.card-red'), 'index.html muss heraldische Glühfarben für Stirnkarten definieren.');
+
+// d) Flacker-Schutz: DOM-sichere Bild-Montage & Intelligentes Hand-Rendering
+assert(clientJs.includes('div.prepend(artImg)'), 'client.js muss artImg DOM-sicher via div.prepend(artImg) montieren.');
+assert(clientJs.includes('getCardKey(card)'), 'client.js muss getCardKey() für intelligentes Hand-Re-Rendering definieren.');
+assert(clientJs.includes('card.copiedCard ?'), 'client.js getCardKey muss copiedCard für Blutfürst/Vampir berücksichtigen.');
+assert(clientJs.includes('inspectedCardIndex = null;'), 'client.js onHandCardClick muss inspectedCardIndex zurücksetzen können.');
+const trickUpdatedBlock = clientJs.match(/socket\.on\('trickUpdated'[\s\S]*?\}\);/);
+assert(trickUpdatedBlock && !trickUpdatedBlock[0].includes('renderHand()'), 'trickUpdated darf kein überflüssiges renderHand() ausführen.');
+
+console.log('     ✅ Alle 4 Feinschliff- & Flacker-Kriterien erfolgreich verifiziert!');
+
 console.log('\n======================================================');
 console.log('🏆 ALLE KARTEN-ARTWORK & APP-ICON TESTS BESTANDEN!');
 console.log('======================================================\n');

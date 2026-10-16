@@ -4362,7 +4362,6 @@ socket.on('invalidMove', ({ message }) => {
 socket.on('trickUpdated', (trickCards) => {
   currentTrick = trickCards;
   renderTrickCards(trickCards, true);
-  renderHand();
   renderOpponents();
 });
 
@@ -4603,9 +4602,26 @@ function renderOpponents() {
     let foreheadCardHtml = '';
     if (currentRound === 1 && p.round1Card) {
       const cardEl = renderCard(p.round1Card);
+      const isColorCard = (p.round1Card.type === 'color');
+      const suit = isColorCard ? p.round1Card.suit : p.round1Card.type;
+      const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+      const sName = suitNames[p.round1Card.suit] || '';
+      const crestSvg = isColorCard ? (MEDIEVAL_ICONS[p.round1Card.suit] || '') : '';
+
+      let badgeHtml = '';
+      if (isColorCard) {
+        badgeHtml = `
+          <div class="forehead-suit-badge forehead-suit-${p.round1Card.suit}" title="${sName}">
+            <span class="forehead-suit-icon">${crestSvg}</span>
+            <span class="forehead-suit-text">${sName}</span>
+          </div>
+        `;
+      }
+
       foreheadCardHtml = `
         <div class="forehead-floating-card" title="Stirnkarte von ${escapeHtml(p.name)}">
           ${cardEl.outerHTML}
+          ${badgeHtml}
         </div>
       `;
     }
@@ -4943,15 +4959,101 @@ function isCardPlayable(cardToPlay, hand, trick) {
   return !hasLeadSuit;
 }
 
-// --- HANDKARTEN RENDERN ---
+// --- HANDKARTEN RENDERN & INTELLIGENTES RE-RENDERING ---
+function getCardKey(card) {
+  if (!card) return '';
+  const copyKey = card.copiedCard ? `_copy(${getCardKey(card.copiedCard)})` : '';
+  return `${card.type}_${card.suit || ''}_${card.value !== undefined ? card.value : ''}_${card.variant || ''}_${card.variantSuit || ''}_${card.chosenRole || ''}_${card.chosenSuit || ''}_${card.isBlind ? 'blind' : ''}${copyKey}`;
+}
+
+function onHandCardClick(e) {
+  e.stopPropagation();
+  const cardElement = e.currentTarget;
+  const index = parseInt(cardElement.getAttribute('data-index'), 10);
+  if (isNaN(index) || index < 0 || index >= myCurrentHand.length) return;
+  const card = myCurrentHand[index];
+  if (!card) return;
+
+  const isTouchDevice = ('ontouchstart' in window) && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+
+  if (isTouchDevice && inspectedCardIndex !== index) {
+    inspectedCardIndex = index;
+    GrimoireHaptics.selection();
+    renderHand();
+    return;
+  }
+
+  const isPlayingPhase = (currentGameState === 'playing_tricks');
+  const playable = isMyTurn && isPlayingPhase && isCardPlayable(card, myCurrentHand, currentTrick);
+  if (!playable) {
+    if (isTouchDevice && inspectedCardIndex === index) {
+      inspectedCardIndex = null;
+      renderHand();
+    }
+    return;
+  }
+
+  if (cardElement && cardElement.getBoundingClientRect) {
+    const r = cardElement.getBoundingClientRect();
+    lastPlayedCardOrigin = {
+      left: r.left,
+      top: r.top,
+      width: r.width,
+      height: r.height,
+      timestamp: Date.now()
+    };
+  }
+
+  if (card.type === 'bomb') {
+    GrimoireHaptics.impact('heavy');
+  } else if (card.type === 'wizard' || card.type === 'dragon') {
+    GrimoireHaptics.impact('medium');
+  } else {
+    GrimoireHaptics.impact('light');
+  }
+
+  if (card.isBlind || card.type === 'blind_card') {
+    socket.emit('playCard', { roomCode: currentRoomCode, cardIndex: index });
+    isMyTurn = false;
+    inspectedCardIndex = null;
+    renderHand();
+    return;
+  }
+  if (card.type === 'shapeshifter') {
+    pendingCardPlayIndex = index;
+    if (shapeshifterModal) shapeshifterModal.style.display = 'block';
+    return;
+  }
+  if (card.type === 'cloud') {
+    pendingCardPlayIndex = index;
+    if (cloudSuitModal) cloudSuitModal.style.display = 'block';
+    return;
+  }
+  if (card.type === 'juggler') {
+    pendingCardPlayIndex = index;
+    if (jugglerModal) jugglerModal.style.display = 'block';
+    return;
+  }
+  if (card.type === 'witch') {
+    socket.emit('playCard', { roomCode: currentRoomCode, cardIndex: index });
+    isMyTurn = false;
+    inspectedCardIndex = null;
+    renderHand();
+    return;
+  }
+
+  socket.emit('playCard', { roomCode: currentRoomCode, cardIndex: index });
+  isMyTurn = false;
+  inspectedCardIndex = null;
+  renderHand();
+}
+
 function renderHand(isNewDeal = false) {
   if (isDealingAnimationPending && !isNewDeal) {
     return;
   }
-  handContainer.innerHTML = '';
 
   const total = myCurrentHand.length;
-  const mid = (total - 1) / 2;
   const isMobile = window.innerWidth <= 768;
   const isSwipeable = isMobile && total >= 8;
 
@@ -4971,14 +5073,54 @@ function renderHand(isNewDeal = false) {
     handContainer.classList.remove('swipeable');
   }
 
+  const isPlayingPhase = (currentGameState === 'playing_tricks');
+  const existingChildren = Array.from(handContainer.children);
+  const isSameHand = !isNewDeal && existingChildren.length === total && total > 0 &&
+    existingChildren.every((el, idx) => el.getAttribute('data-card-key') === getCardKey(myCurrentHand[idx]));
+
+  if (isSameHand) {
+    existingChildren.forEach((cardElement, index) => {
+      const card = myCurrentHand[index];
+      const playable = isMyTurn && isPlayingPhase && isCardPlayable(card, myCurrentHand, currentTrick);
+
+      cardElement.setAttribute('data-index', index);
+      cardElement.style.marginLeft = (index === 0) ? '0px' : dynamicMargin;
+      cardElement.style.marginRight = isSwipeable ? '4px' : '0px';
+      cardElement.style.zIndex = index + 1;
+
+      if (inspectedCardIndex === index) {
+        cardElement.classList.add('card-inspected');
+      } else {
+        cardElement.classList.remove('card-inspected');
+        cardElement.style.transform = 'translateY(0px) rotate(0deg)';
+      }
+
+      cardElement.classList.toggle('card-playable', playable);
+      if (playable) {
+        cardElement.style.filter = 'brightness(1)';
+        cardElement.style.opacity = '1';
+      } else if (isMyTurn && isPlayingPhase) {
+        cardElement.style.filter = 'brightness(0.35)';
+        cardElement.style.opacity = '0.45';
+      } else {
+        cardElement.style.filter = 'brightness(1)';
+        cardElement.style.opacity = '1';
+      }
+    });
+    return;
+  }
+
+  handContainer.innerHTML = '';
+
   myCurrentHand.forEach((card, index) => {
     const cardElement = renderCard(card);
-    const isPlayingPhase = (currentGameState === 'playing_tricks');
     const playable = isMyTurn && isPlayingPhase && isCardPlayable(card, myCurrentHand, currentTrick);
 
     const angle = 0;
     const offsetY = 0;
 
+    cardElement.setAttribute('data-card-key', getCardKey(card));
+    cardElement.setAttribute('data-index', index);
     cardElement.style.marginLeft = (index === 0) ? '0px' : dynamicMargin;
     cardElement.style.marginRight = isSwipeable ? '4px' : '0px';
     cardElement.style.zIndex = index + 1;
@@ -4992,7 +5134,6 @@ function renderHand(isNewDeal = false) {
 
     if (isNewDeal) {
       cardElement.classList.add('card-fly-up');
-      const total = myCurrentHand.length;
       const staggerMs = Math.min(35, Math.max(16, Math.floor(260 / Math.max(total, 1))));
       cardElement.style.animationDelay = `${index * staggerMs}ms`;
       setTimeout(() => {
@@ -5012,75 +5153,10 @@ function renderHand(isNewDeal = false) {
 
     if (playable) {
       cardElement.classList.add('card-playable');
-      cardElement.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!isMyTurn || currentGameState !== 'playing_tricks') return;
-
-        const isTouchDevice = ('ontouchstart' in window) && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-
-        if (isTouchDevice && inspectedCardIndex !== index) {
-          inspectedCardIndex = index;
-          GrimoireHaptics.selection();
-          renderHand();
-        } else {
-          if (cardElement && cardElement.getBoundingClientRect) {
-            const r = cardElement.getBoundingClientRect();
-            lastPlayedCardOrigin = {
-              left: r.left,
-              top: r.top,
-              width: r.width,
-              height: r.height,
-              timestamp: Date.now()
-            };
-          }
-
-          if (card.type === 'bomb') {
-            GrimoireHaptics.impact('heavy');
-          } else if (card.type === 'wizard' || card.type === 'dragon') {
-            GrimoireHaptics.impact('medium');
-          } else {
-            GrimoireHaptics.impact('light');
-          }
-
-          if (card.isBlind || card.type === 'blind_card') {
-            socket.emit('playCard', { roomCode: currentRoomCode, cardIndex: index });
-            isMyTurn = false;
-            inspectedCardIndex = null;
-            renderHand();
-            return;
-          }
-          if (card.type === 'shapeshifter') {
-            pendingCardPlayIndex = index;
-            if (shapeshifterModal) shapeshifterModal.style.display = 'block';
-            return;
-          }
-          if (card.type === 'cloud') {
-            pendingCardPlayIndex = index;
-            if (cloudSuitModal) cloudSuitModal.style.display = 'block';
-            return;
-          }
-          if (card.type === 'juggler') {
-            pendingCardPlayIndex = index;
-            if (jugglerModal) jugglerModal.style.display = 'block';
-            return;
-          }
-          if (card.type === 'witch') {
-            socket.emit('playCard', { roomCode: currentRoomCode, cardIndex: index });
-            isMyTurn = false;
-            inspectedCardIndex = null;
-            renderHand();
-            return;
-          }
-
-          socket.emit('playCard', { roomCode: currentRoomCode, cardIndex: index });
-          isMyTurn = false;
-          inspectedCardIndex = null;
-          renderHand();
-        }
-      });
+      cardElement.style.filter = 'brightness(1)';
+      cardElement.style.opacity = '1';
     } else {
       cardElement.classList.remove('card-playable');
-
       if (isMyTurn && isPlayingPhase) {
         cardElement.style.filter = 'brightness(0.35)';
         cardElement.style.opacity = '0.45';
@@ -5088,18 +5164,9 @@ function renderHand(isNewDeal = false) {
         cardElement.style.filter = 'brightness(1)';
         cardElement.style.opacity = '1';
       }
-
-      cardElement.addEventListener('click', (e) => {
-        const isTouchDevice = ('ontouchstart' in window) && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-        if (isTouchDevice && inspectedCardIndex !== index) {
-          e.stopPropagation();
-          inspectedCardIndex = index;
-          GrimoireHaptics.selection();
-          renderHand();
-        }
-      });
     }
 
+    cardElement.addEventListener('click', onHandCardClick);
     handContainer.appendChild(cardElement);
   });
 }
@@ -5171,9 +5238,10 @@ function renderCard(card) {
 
   // Prüfe, ob für diese Spezialkarte ein Artwork vorhanden ist
   const artFiles = getCardArtworkFiles(card);
+  let artImg = null;
   if (artFiles && artFiles.length > 0 && !card.isBlind && card.type !== 'blind_card') {
     div.classList.add('card-has-artwork');
-    const artImg = document.createElement('img');
+    artImg = document.createElement('img');
     artImg.className = 'card-art-img';
     artImg.alt = card.type;
     let fileIdx = 0;
@@ -5203,7 +5271,6 @@ function renderCard(card) {
         div.classList.remove('card-has-artwork');
       }
     };
-    div.appendChild(artImg);
   }
 
   if (card.isBlind || card.type === 'blind_card') {
@@ -5459,8 +5526,6 @@ function renderCard(card) {
   } else {
     div.classList.add(`card-${card.suit}`);
     const iconSvg = MEDIEVAL_ICONS[card.suit] || '';
-    const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
-    const sName = suitNames[card.suit] || card.suit;
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">${card.value}</span>
@@ -5468,12 +5533,15 @@ function renderCard(card) {
       <div class="card-center">
         <div class="card-center-val">${card.value}</div>
         <div class="card-center-crest">${iconSvg}</div>
-        <div class="card-name-label"><em>${sName} ${card.value}</em></div>
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">${card.value}</span>
       </div>
     `;
+  }
+
+  if (artImg) {
+    div.prepend(artImg);
   }
 
   return div;
