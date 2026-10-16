@@ -73,13 +73,17 @@ const hasPngIcon = manifest.icons.some(i => i.src === '/images/icon.png' && i.ty
 assert(hasPngIcon, 'manifest.json muss /images/icon.png im icons-Array enthalten.');
 console.log('     ✅ HTML & Manifest Verknüpfungen für icon.png erfolgreich verifiziert!');
 
-// 5. Test: Prüfe client.js getCardArtworkFiles Logik
-console.log('  5. Prüfe getCardArtworkFiles() in client.js...');
+// 5. Test: Prüfe client.js getCardArtworkFiles Logik & Bereinigung von card-mini-icon
+console.log('  5. Prüfe getCardArtworkFiles() & Bereinigung der Ecksymbole in client.js...');
 const clientJs = fs.readFileSync(path.join(__dirname, '../public/client.js'), 'utf8');
 assert(clientJs.includes('function getCardArtworkFiles(card)'), 'client.js muss getCardArtworkFiles() definieren.');
 assert(clientJs.includes('archmage_${v}.png'), 'client.js muss archmage_${v}.png auflösen.');
 assert(clientJs.includes('charlatan_${v}.png'), 'client.js muss charlatan_${v}.png auflösen.');
-console.log('     ✅ getCardArtworkFiles() Controller & Fallback-Kette erfolgreich verifiziert!');
+assert(!clientJs.includes('<div class="card-mini-icon">'), 'client.js darf keine card-mini-icon Elemente mehr in den Kartenecken rendern.');
+assert(html.includes('.card-mini-icon') && html.includes('display: none !important;'), 'index.html muss .card-mini-icon auf display: none setzen.');
+assert(html.includes('.forehead-floating-card .card .card-corner'), 'index.html muss kompakte Ecken für Stirnkarten definieren.');
+console.log('     ✅ getCardArtworkFiles() Controller & saubere Ecken ohne Mini-Symbole erfolgreich verifiziert!');
+
 
 console.log('\n======================================================');
 console.log('🏆 ALLE KARTEN-ARTWORK & APP-ICON TESTS BESTANDEN!');

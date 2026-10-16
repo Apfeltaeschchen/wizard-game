@@ -5171,13 +5171,29 @@ function renderCard(card) {
 
   // Prüfe, ob für diese Spezialkarte ein Artwork vorhanden ist
   const artFiles = getCardArtworkFiles(card);
-  if (artFiles && !card.isBlind && card.type !== 'blind_card') {
+  if (artFiles && artFiles.length > 0 && !card.isBlind && card.type !== 'blind_card') {
     div.classList.add('card-has-artwork');
     const artImg = document.createElement('img');
     artImg.className = 'card-art-img';
     artImg.alt = card.type;
     let fileIdx = 0;
     artImg.src = `/images/cards/${artFiles[fileIdx]}`;
+    artImg.setAttribute('data-candidates', JSON.stringify(artFiles));
+    artImg.setAttribute('data-idx', '0');
+    artImg.setAttribute('onerror', `
+      try {
+        var alts = JSON.parse(this.getAttribute('data-candidates') || '[]');
+        var idx = parseInt(this.getAttribute('data-idx') || '0', 10) + 1;
+        if (idx < alts.length) {
+          this.setAttribute('data-idx', idx);
+          this.src = '/images/cards/' + alts[idx];
+        } else {
+          var p = this.closest('.card');
+          if (p) p.classList.remove('card-has-artwork');
+          this.remove();
+        }
+      } catch(e) { this.remove(); }
+    `);
     artImg.onerror = function() {
       fileIdx++;
       if (fileIdx < artFiles.length) {
@@ -5213,7 +5229,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">E</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.wizard}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.wizard}</div>
@@ -5222,7 +5237,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">E</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.wizard}</div>
       </div>
     `;
   } else if (card.type === 'jester') {
@@ -5230,7 +5244,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">S</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.jester}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.jester}</div>
@@ -5239,7 +5252,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">S</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.jester}</div>
       </div>
     `;
   } else if (card.type === 'dragon') {
@@ -5247,7 +5259,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">L</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.dragon}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.dragon}</div>
@@ -5256,7 +5267,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">L</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.dragon}</div>
       </div>
     `;
   } else if (card.type === 'fairy') {
@@ -5264,7 +5274,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">F</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.fairy}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.fairy}</div>
@@ -5273,7 +5282,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">F</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.fairy}</div>
       </div>
     `;
   } else if (card.type === 'bomb') {
@@ -5281,7 +5289,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">K</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.bomb}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.bomb}</div>
@@ -5290,7 +5297,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">K</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.bomb}</div>
       </div>
     `;
   } else if (card.type === 'unicorn') {
@@ -5298,7 +5304,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">H</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.unicorn}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.unicorn}</div>
@@ -5307,7 +5312,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">H</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.unicorn}</div>
       </div>
     `;
   } else if (card.type === 'shapeshifter') {
@@ -5316,7 +5320,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">D</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.shapeshifter}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.shapeshifter}</div>
@@ -5325,7 +5328,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">D</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.shapeshifter}</div>
       </div>
     `;
   } else if (card.type === 'vampire') {
@@ -5354,7 +5356,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">B</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.vampire}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.vampire}</div>
@@ -5364,7 +5365,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">B</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.vampire}</div>
       </div>
     `;
   } else if (card.type === 'cloud') {
@@ -5374,7 +5374,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val" style="font-size: 13px;">9¾</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.cloud}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.cloud}</div>
@@ -5384,7 +5383,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val" style="font-size: 13px;">9¾</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.cloud}</div>
       </div>
     `;
   } else if (card.type === 'werewolf' || card.type === 'werewolf_trump_pending') {
@@ -5392,7 +5390,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">M</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.werewolf}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.werewolf}</div>
@@ -5401,7 +5398,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">M</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.werewolf}</div>
       </div>
     `;
   } else if (card.type === 'werewolf_trump') {
@@ -5414,7 +5410,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">M</span>
-        <div class="card-mini-icon">${suitIcon}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest" style="display: flex; gap: 3px; align-items: center; justify-content: center;">
@@ -5426,7 +5421,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">M</span>
-        <div class="card-mini-icon">${suitIcon}</div>
       </div>
     `;
   } else if (card.type === 'witch') {
@@ -5434,7 +5428,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">X</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.witch}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.witch}</div>
@@ -5443,7 +5436,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">X</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.witch}</div>
       </div>
     `;
   } else if (card.type === 'juggler') {
@@ -5453,7 +5445,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val" style="font-size: 13px;">7½</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.juggler}</div>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.juggler}</div>
@@ -5463,7 +5454,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val" style="font-size: 13px;">7½</span>
-        <div class="card-mini-icon">${MEDIEVAL_ICONS.juggler}</div>
       </div>
     `;
   } else {
@@ -5474,7 +5464,6 @@ function renderCard(card) {
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">${card.value}</span>
-        <div class="card-mini-icon">${iconSvg}</div>
       </div>
       <div class="card-center">
         <div class="card-center-val">${card.value}</div>
@@ -5483,7 +5472,6 @@ function renderCard(card) {
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">${card.value}</span>
-        <div class="card-mini-icon">${iconSvg}</div>
       </div>
     `;
   }

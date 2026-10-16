@@ -1295,7 +1295,19 @@
       height: 18px !important;
     }
     .forehead-floating-card .card .card-val {
-      font-size: 9px !important;
+      font-size: 8px !important;
+      line-height: 1 !important;
+    }
+    .forehead-floating-card .card .card-corner {
+      padding: 0 2px !important;
+      min-width: 9px !important;
+      top: 1px !important;
+      left: 1px !important;
+      border-radius: 2px !important;
+    }
+    .forehead-floating-card .card .card-corner.bottom-right {
+      bottom: 1px !important;
+      right: 1px !important;
     }
     .forehead-floating-card .card .card-name-label {
       display: none !important;
@@ -1686,9 +1698,7 @@
     }
 
     .card-mini-icon {
-      width: clamp(8px, calc(var(--card-w) * 0.14), 12px);
-      height: clamp(8px, calc(var(--card-w) * 0.14), 12px);
-      margin-top: 1px;
+      display: none !important;
     }
 
     .card-center {
