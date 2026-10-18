@@ -113,6 +113,41 @@ assert(trickUpdatedBlock && !trickUpdatedBlock[0].includes('renderHand()'), 'tri
 
 console.log('     ✅ Alle 4 Feinschliff- & Flacker-Kriterien erfolgreich verifiziert!');
 
+// 7. Test: Prüfe klassische Z/N Eckenkürzel & Stirnkarten-Wappen für Spezialkarten
+console.log('  7. Prüfe Z/N Eckenkürzel (SVGs & client.js) & Stirnkarten-Sichtbarkeit für Spezialkarten...');
+const archmageSvg = fs.readFileSync(path.join(cardsDir, 'archmage.svg'), 'utf8');
+const charlatanSvg = fs.readFileSync(path.join(cardsDir, 'charlatan.svg'), 'utf8');
+
+// a) SVG Vektorbuchstaben müssen Z und N sein (kein altes E oder S)
+assert(archmageSvg.includes('>Z<'), 'archmage.svg muss Vektorbuchstabe Z enthalten.');
+assert(!archmageSvg.includes('>E<'), 'archmage.svg darf kein altes E mehr enthalten.');
+assert(charlatanSvg.includes('>N<'), 'charlatan.svg muss Vektorbuchstabe N enthalten.');
+assert(!charlatanSvg.includes('>S<'), 'charlatan.svg darf kein altes S mehr enthalten.');
+
+// b) client.js renderCard() muss Z für Zauberer und N für Narr/Scharlatan rendern
+assert(clientJs.includes('<span class="card-val">Z</span>'), 'client.js muss Z als Eckenkürzel für Zauberer rendern.');
+assert(clientJs.includes('<span class="card-val">N</span>'), 'client.js muss N als Eckenkürzel für Narr rendern.');
+
+// c) client.js renderOpponents() muss Stirnkarten-Badges auch für Spezialkarten generieren
+assert(clientJs.includes('specialCardInfo'), 'client.js muss specialCardInfo für Stirnkarten-Wappen definieren.');
+assert(clientJs.includes('forehead-suit-${cardTypeClass}'), 'client.js muss forehead-suit-${cardTypeClass} für Spezialkarten-Wappen nutzen.');
+
+// d) index.html muss Glüh-Rahmen und Badges für Zauberer, Narr und Sonderkarten stylen
+assert(html.includes('.forehead-floating-card .card.card-wizard'), 'index.html muss goldenen Glührahmen für Zauberer-Stirnkarten definieren.');
+assert(html.includes('.forehead-floating-card .card.card-jester'), 'index.html muss silbernen Glührahmen für Narren-Stirnkarten definieren.');
+assert(html.includes('.forehead-suit-badge.forehead-suit-wizard'), 'index.html muss .forehead-suit-wizard Badge definieren.');
+assert(html.includes('.forehead-suit-badge.forehead-suit-jester'), 'index.html muss .forehead-suit-jester Badge definieren.');
+
+// e) Shapeshifter / Doppelgänger Modal & Drawer Konsistenz (Z/N statt E/S)
+assert(html.includes('Als Erzmagier spielen (Z)'), 'index.html muss Z im Shapeshifter-Button verwenden.');
+assert(html.includes('Als Scharlatan spielen (N)'), 'index.html muss N im Shapeshifter-Button verwenden.');
+assert(!html.includes('Als Erzmagier spielen (E)'), 'index.html darf kein altes (E) im Shapeshifter-Button haben.');
+assert(!html.includes('Als Scharlatan spielen (S)'), 'index.html darf kein altes (S) im Shapeshifter-Button haben.');
+assert(html.includes('>Z/N<'), 'index.html Doppelgänger-Icon muss Z/N enthalten.');
+assert(clientJs.includes("card.chosenRole === 'wizard' ? ' (Z)' : (card.chosenRole === 'jester' ? ' (N)'"), 'client.js muss Shapeshifter chosenRole mit (Z) und (N) anzeigen.');
+
+console.log('     ✅ Z/N Eckenkürzel & Stirnkarten-Wappen für alle Spezialkarten erfolgreich verifiziert!');
+
 console.log('\n======================================================');
 console.log('🏆 ALLE KARTEN-ARTWORK & APP-ICON TESTS BESTANDEN!');
 console.log('======================================================\n');

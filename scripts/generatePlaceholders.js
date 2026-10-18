@@ -7,8 +7,8 @@ if (!fs.existsSync(targetDir)) {
 }
 
 const cards = [
-  { file: 'archmage.svg', name: 'Erzmagier', symbol: 'E', color1: '#3b0764', color2: '#1e0338', border: '#c084fc', desc: 'Hüter der arkanen Siegel des Hohen Rates' },
-  { file: 'charlatan.svg', name: 'Scharlatan', symbol: 'S', color1: '#334155', color2: '#0f172a', border: '#94a3b8', desc: 'Maskierter Gaukler & Schattengänger' },
+  { file: 'archmage.svg', name: 'Erzmagier', symbol: 'Z', color1: '#3b0764', color2: '#1e0338', border: '#c084fc', desc: 'Hüter der arkanen Siegel des Hohen Rates' },
+  { file: 'charlatan.svg', name: 'Scharlatan', symbol: 'N', color1: '#334155', color2: '#0f172a', border: '#94a3b8', desc: 'Maskierter Gaukler & Schattengänger' },
   { file: 'unicorn.svg', name: 'Einhorn', symbol: 'H', color1: '#4c1d95', color2: '#1e1b4b', border: '#f0abfc', desc: 'Kosmisches Urwesen aus reinem Sternenlicht' },
   { file: 'lindwurm.svg', name: 'Lindwurm', symbol: 'L', color1: '#7f1d1d', color2: '#450a0a', border: '#f59e0b', desc: 'Ältester Schrecken der Ascheberge' },
   { file: 'sylph.svg', name: 'Waldnymphe', symbol: 'F', color1: '#0369a1', color2: '#082f49', border: '#38bdf8', desc: 'Ätherische Lichtgestalt des Weltenbaums' },

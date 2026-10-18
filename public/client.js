@@ -4608,12 +4608,38 @@ function renderOpponents() {
       const sName = suitNames[p.round1Card.suit] || '';
       const crestSvg = isColorCard ? (MEDIEVAL_ICONS[p.round1Card.suit] || '') : '';
 
+      const specialCardInfo = {
+        wizard: { name: 'Zauberer', icon: MEDIEVAL_ICONS.wizard || '🧙‍♂️' },
+        jester: { name: 'Narr', icon: MEDIEVAL_ICONS.jester || '🃏' },
+        dragon: { name: 'Drache', icon: MEDIEVAL_ICONS.dragon || '🐉' },
+        fairy: { name: 'Fee', icon: MEDIEVAL_ICONS.fairy || '🧚' },
+        bomb: { name: 'Bombe', icon: MEDIEVAL_ICONS.bomb || '💣' },
+        unicorn: { name: 'Einhorn', icon: MEDIEVAL_ICONS.unicorn || '🦄' },
+        shapeshifter: { name: 'Wandler', icon: MEDIEVAL_ICONS.shapeshifter || '🎭' },
+        vampire: { name: 'Vampir', icon: MEDIEVAL_ICONS.vampire || '🧛' },
+        cloud: { name: 'Wolke', icon: MEDIEVAL_ICONS.cloud || '☁️' },
+        werewolf: { name: 'Werwolf', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
+        werewolf_trump: { name: 'Werwolf', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
+        werewolf_trump_pending: { name: 'Werwolf', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
+        witch: { name: 'Hexe', icon: MEDIEVAL_ICONS.witch || '🧙‍♀️' },
+        juggler: { name: 'Jongleur', icon: MEDIEVAL_ICONS.juggler || '🤹' }
+      };
+
       let badgeHtml = '';
       if (isColorCard) {
         badgeHtml = `
           <div class="forehead-suit-badge forehead-suit-${p.round1Card.suit}" title="${sName}">
             <span class="forehead-suit-icon">${crestSvg}</span>
             <span class="forehead-suit-text">${sName}</span>
+          </div>
+        `;
+      } else if (specialCardInfo[p.round1Card.type]) {
+        const spec = specialCardInfo[p.round1Card.type];
+        const cardTypeClass = p.round1Card.type.startsWith('werewolf') ? 'werewolf' : p.round1Card.type;
+        badgeHtml = `
+          <div class="forehead-suit-badge forehead-suit-${cardTypeClass}" title="${spec.name}">
+            <span class="forehead-suit-icon">${spec.icon}</span>
+            <span class="forehead-suit-text">${spec.name}</span>
           </div>
         `;
       }
@@ -5295,30 +5321,30 @@ function renderCard(card) {
     div.classList.add('card-wizard');
     div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">E</span>
+        <span class="card-val">Z</span>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.wizard}</div>
-        <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">E</div>
+        <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">Z</div>
         <div class="card-name-label"><em>Erzmagier</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">E</span>
+        <span class="card-val">Z</span>
       </div>
     `;
   } else if (card.type === 'jester') {
     div.classList.add('card-jester');
     div.innerHTML += `
       <div class="card-corner top-left">
-        <span class="card-val">S</span>
+        <span class="card-val">N</span>
       </div>
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.jester}</div>
-        <div class="card-center-val" style="font-size: 26px; color: #f8fafc; margin-top: 2px;">S</div>
+        <div class="card-center-val" style="font-size: 26px; color: #f8fafc; margin-top: 2px;">N</div>
         <div class="card-name-label"><em>Scharlatan</em></div>
       </div>
       <div class="card-corner bottom-right">
-        <span class="card-val">S</span>
+        <span class="card-val">N</span>
       </div>
     `;
   } else if (card.type === 'dragon') {
@@ -5383,7 +5409,7 @@ function renderCard(card) {
     `;
   } else if (card.type === 'shapeshifter') {
     div.classList.add('card-shapeshifter');
-    const roleSub = card.chosenRole === 'wizard' ? ' (E)' : (card.chosenRole === 'jester' ? ' (S)' : '');
+    const roleSub = card.chosenRole === 'wizard' ? ' (Z)' : (card.chosenRole === 'jester' ? ' (N)' : '');
     div.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">D</span>
