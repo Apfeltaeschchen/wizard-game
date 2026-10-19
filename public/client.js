@@ -523,6 +523,17 @@ const waitingRoomLeaveBtn = document.getElementById('waitingRoomLeaveBtn');
 const hostEditionControls = document.getElementById('host-edition-controls');
 const guestEditionDisplay = document.getElementById('guest-edition-display');
 const editionSelect = document.getElementById('editionSelect');
+const hostFormatControls = document.getElementById('host-format-controls');
+const guestFormatDisplay = document.getElementById('guest-format-display');
+const btnFormatFFA = document.getElementById('btnFormatFFA');
+const btnFormat2v2 = document.getElementById('btnFormat2v2');
+const waitingRoomTeamsContainer = document.getElementById('waitingRoomTeamsContainer');
+const teamPlayersListA = document.getElementById('teamPlayersListA');
+const teamPlayersListB = document.getElementById('teamPlayersListB');
+const teamCountA = document.getElementById('teamCountA');
+const teamCountB = document.getElementById('teamCountB');
+const btnJoinTeamA = document.getElementById('btnJoinTeamA');
+const btnJoinTeamB = document.getElementById('btnJoinTeamB');
 
 // Screen 3: Spieltisch
 const btnLeaveGame = document.getElementById('btnLeaveGame');
@@ -563,6 +574,10 @@ const btnHostReDeal = document.getElementById('btnHostReDeal');
 const gameOverModal = document.getElementById('game-over-modal');
 const podiumList = document.getElementById('podium-list');
 const resetGameBtn = document.getElementById('resetGameBtn');
+const btnClaimGlory = document.getElementById('btnClaimGlory');
+const btnGameOverStay = document.getElementById('btnGameOverStay');
+const btnGameOverClose = document.getElementById('btnGameOverClose');
+const btnReopenGameOver = document.getElementById('btnReopenGameOver');
 
 // Modals: 30 Jahre Jubiläumsedition Phase 2
 const shapeshifterModal = document.getElementById('shapeshifter-modal');
@@ -848,6 +863,11 @@ let currentRoomCode = '';
 let currentRound = 1;
 let maxRounds = 20;
 let currentEdition = 'classic';
+let currentMatchFormat = 'ffa';
+let currentTeams = {
+  team_a: { name: 'Allianz des Sonnenfeuers', score: 0 },
+  team_b: { name: 'Allianz der Mondschatten', score: 0 }
+};
 let currentIsRanked = false;
 let selectedGameMode = 'quickplay';
 let cachedRankedResults = null;
@@ -1074,6 +1094,7 @@ const WizardAudio = (() => {
   let masterGain = null;
   let sfxGain = null;
   let musicGain = null;
+  let musicCompressor = null;
   let wasPlayingBeforeHide = false;
   let isAppInBackground = false;
 
@@ -1103,7 +1124,36 @@ const WizardAudio = (() => {
         musicGain = ctx.createGain();
 
         sfxGain.connect(masterGain);
-        musicGain.connect(masterGain);
+
+        // Sanfter DynamicsCompressorNode zur Abfederung von Dynamikspitzen und Pegelangleichung
+        if (typeof ctx.createDynamicsCompressor === 'function') {
+          try {
+            musicCompressor = ctx.createDynamicsCompressor();
+            const t = ctx.currentTime || 0;
+            if (musicCompressor.threshold && typeof musicCompressor.threshold.setValueAtTime === 'function') {
+              musicCompressor.threshold.setValueAtTime(-24, t);
+            }
+            if (musicCompressor.knee && typeof musicCompressor.knee.setValueAtTime === 'function') {
+              musicCompressor.knee.setValueAtTime(20, t);
+            }
+            if (musicCompressor.ratio && typeof musicCompressor.ratio.setValueAtTime === 'function') {
+              musicCompressor.ratio.setValueAtTime(6, t);
+            }
+            if (musicCompressor.attack && typeof musicCompressor.attack.setValueAtTime === 'function') {
+              musicCompressor.attack.setValueAtTime(0.005, t);
+            }
+            if (musicCompressor.release && typeof musicCompressor.release.setValueAtTime === 'function') {
+              musicCompressor.release.setValueAtTime(0.150, t);
+            }
+            musicGain.connect(musicCompressor);
+            musicCompressor.connect(masterGain);
+          } catch (e) {
+            musicGain.connect(masterGain);
+          }
+        } else {
+          musicGain.connect(masterGain);
+        }
+
         masterGain.connect(ctx.destination);
 
         applyVolumeSettings();
@@ -1116,20 +1166,24 @@ const WizardAudio = (() => {
   }
 
   function applyVolumeSettings() {
+    const currentTrack = (typeof MUSIC_PLAYLIST !== 'undefined' && MUSIC_PLAYLIST && MUSIC_PLAYLIST[currentTrackIdx]) ? MUSIC_PLAYLIST[currentTrackIdx] : null;
+    const trackGain = (currentTrack && typeof currentTrack.gainFactor === 'number') ? currentTrack.gainFactor : 1.0;
+
     if (ctx) {
       const t = ctx.currentTime;
-      if (masterGain) {
+      if (masterGain && masterGain.gain && typeof masterGain.gain.setValueAtTime === 'function') {
         masterGain.gain.setValueAtTime(settings.master, t);
       }
-      if (sfxGain) {
+      if (sfxGain && sfxGain.gain && typeof sfxGain.gain.setValueAtTime === 'function') {
         sfxGain.gain.setValueAtTime(settings.sfxMuted ? 0 : settings.sfx, t);
       }
-      if (musicGain) {
-        musicGain.gain.setValueAtTime(settings.musicMuted ? 0 : settings.music, t);
+      if (musicGain && musicGain.gain && typeof musicGain.gain.setValueAtTime === 'function') {
+        const effectiveMusic = (settings.musicMuted ? 0 : settings.music) * trackGain;
+        musicGain.gain.setValueAtTime(effectiveMusic, t);
       }
     }
     if (musicAudio && !musicSourceNode) {
-      const effective = (settings.musicMuted || settings.master <= 0) ? 0 : (settings.music * settings.master);
+      const effective = (settings.musicMuted || settings.master <= 0) ? 0 : (settings.music * settings.master * trackGain);
       musicAudio.volume = Math.max(0, Math.min(1, effective));
     }
   }
@@ -1298,10 +1352,11 @@ const WizardAudio = (() => {
   }
 
   // --- HINTERGRUNDMUSIK-ENGINE (MEHRTEILIGE TAVERNEN-PLAYLIST: RANDOMMIND CC0) ---
+  // Mit mathematisch kalibrierten gainFactor-Werten gegen Lautstärkesprünge (RMS-Normalisierung auf ~ -20 dB)
   const MUSIC_PLAYLIST = [
-    { title: 'The Old Tower Inn', url: '/audio/tavern_music.mp3' },
-    { title: "King's Feast", url: '/audio/Kings_Feast.mp3' },
-    { title: 'Market Day', url: '/audio/Market_Day.mp3' }
+    { title: 'The Old Tower Inn', url: '/audio/tavern_music.mp3', gainFactor: 1.0 },
+    { title: "King's Feast", url: '/audio/Kings_Feast.mp3', gainFactor: 0.62 },
+    { title: 'Market Day', url: '/audio/Market_Day.mp3', gainFactor: 0.35 }
   ];
   let currentTrackIdx = 0;
   let musicAudio = null;
@@ -1485,6 +1540,12 @@ const WizardAudio = (() => {
       playNextTrack();
     },
     getCurrentTrackTitle: () => MUSIC_PLAYLIST[currentTrackIdx].title,
+    getCurrentTrackGainFactor: () => {
+      const t = MUSIC_PLAYLIST[currentTrackIdx];
+      return (t && typeof t.gainFactor === 'number') ? t.gainFactor : 1.0;
+    },
+    getPlaylist: () => MUSIC_PLAYLIST.map(track => ({ ...track })),
+    getCompressorNode: () => musicCompressor,
     isMusicPlaying: () => isMusicPlaying || !!(musicAudio && !musicAudio.paused && !settings.musicMuted && settings.music > 0),
     getSettings: () => ({ ...settings }),
     setMasterVolume: (val) => {
@@ -1632,33 +1693,127 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
+// --- MULTI-LAYER STORAGE ENGINE (MEMORY + LOCALSTORAGE + SESSIONSTORAGE + INDEXEDDB) ---
+const GrimoireStorage = (() => {
+  const DB_NAME = 'GrimoireVault';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'auth';
+
+  function openDB() {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined' || !window.indexedDB) {
+        return resolve(null);
+      }
+      try {
+        const req = window.indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME);
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  }
+
+  async function get(key) {
+    const db = await openDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  }
+
+  async function set(key, val) {
+    const db = await openDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.put(val, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch (e) {
+        resolve();
+      }
+    });
+  }
+
+  async function remove(key) {
+    const db = await openDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch (e) {
+        resolve();
+      }
+    });
+  }
+
+  return { get, set, remove };
+})();
+
 // --- WIZARD AUTH & PROFIL-MODUL ---
 const WizardAuth = (() => {
   let currentUser = null;
+  let inMemoryToken = null;
   let selectedRegisterAvatar = 'wizard_blue';
   let activeAuthTab = 'login';
 
   function getToken() {
+    if (inMemoryToken) return inMemoryToken;
     try {
-      return localStorage.getItem('wizard_auth_token');
-    } catch (e) {
-      return null;
-    }
+      const fromLocal = localStorage.getItem('wizard_auth_token');
+      if (fromLocal) {
+        inMemoryToken = fromLocal;
+        return fromLocal;
+      }
+      const fromSession = sessionStorage.getItem('wizard_auth_token');
+      if (fromSession) {
+        inMemoryToken = fromSession;
+        try { localStorage.setItem('wizard_auth_token', fromSession); } catch (e) {}
+        return fromSession;
+      }
+    } catch (e) {}
+    return null;
   }
 
   function setToken(token) {
+    inMemoryToken = token || null;
     try {
       if (token) {
         localStorage.setItem('wizard_auth_token', token);
+        sessionStorage.setItem('wizard_auth_token', token);
+        GrimoireStorage.set('token', token).catch(() => {});
       } else {
         localStorage.removeItem('wizard_auth_token');
+        sessionStorage.removeItem('wizard_auth_token');
+        GrimoireStorage.remove('token').catch(() => {});
       }
     } catch (e) {}
   }
 
   function getCachedUser() {
     try {
-      const raw = localStorage.getItem('wizard_cached_user');
+      const raw = localStorage.getItem('wizard_cached_user') || sessionStorage.getItem('wizard_cached_user');
       return raw ? JSON.parse(raw) : null;
     } catch (e) {
       return null;
@@ -1668,15 +1823,34 @@ const WizardAuth = (() => {
   function setCachedUser(user) {
     try {
       if (user) {
-        localStorage.setItem('wizard_cached_user', JSON.stringify(user));
+        const json = JSON.stringify(user);
+        localStorage.setItem('wizard_cached_user', json);
+        sessionStorage.setItem('wizard_cached_user', json);
+        GrimoireStorage.set('user', user).catch(() => {});
       } else {
         localStorage.removeItem('wizard_cached_user');
+        sessionStorage.removeItem('wizard_cached_user');
+        GrimoireStorage.remove('user').catch(() => {});
       }
     } catch (e) {}
   }
 
   async function checkSession() {
-    const token = getToken();
+    let token = getToken();
+    // Falls Token im localStorage/sessionStorage fehlt (z. B. nach Android Update/Cache-Wipe),
+    // versuche die Wiederherstellung aus der persistenten IndexedDB:
+    if (!token && typeof GrimoireStorage !== 'undefined') {
+      try {
+        const idbToken = await GrimoireStorage.get('token');
+        if (idbToken) {
+          token = idbToken;
+          setToken(idbToken);
+          const idbUser = await GrimoireStorage.get('user');
+          if (idbUser) setCachedUser(idbUser);
+        }
+      } catch (e) {}
+    }
+
     if (!token) {
       currentUser = null;
       setCachedUser(null);
@@ -1894,6 +2068,15 @@ const WizardAuth = (() => {
     } catch (e) {}
   }
 
+  function safeSetDisplay(el, val) {
+    if (!el || !el.style) return;
+    if (typeof el.style.setProperty === 'function') {
+      el.style.setProperty('display', val, 'important');
+    } else {
+      el.style.display = val;
+    }
+  }
+
   function renderLobbyBar() {
     const guestGroup = document.getElementById('auth-guest-controls');
     const userGroup = document.getElementById('auth-user-controls');
@@ -1907,24 +2090,24 @@ const WizardAuth = (() => {
     const lbUser = document.getElementById('btnOpenLeaderboardUser');
 
     if (currentUser) {
-      if (guestGroup) guestGroup.style.display = 'none';
-      if (userGroup) userGroup.style.display = 'flex';
+      safeSetDisplay(guestGroup, 'none');
+      safeSetDisplay(userGroup, 'flex');
       if (userNameEl) userNameEl.innerText = currentUser.username;
       if (userTitleEl) userTitleEl.innerText = currentUser.title || 'Zauberlehrling';
       if (userAvatarEl) {
         userAvatarEl.innerText = (currentUser.username || '?').charAt(0).toUpperCase();
       }
-      if (companionsGuest) companionsGuest.style.display = 'none';
-      if (companionsUser) companionsUser.style.display = 'inline-flex';
-      if (lbGuest) lbGuest.style.display = 'none';
-      if (lbUser) lbUser.style.display = 'inline-flex';
+      safeSetDisplay(companionsGuest, 'none');
+      safeSetDisplay(companionsUser, 'inline-flex');
+      safeSetDisplay(lbGuest, 'none');
+      safeSetDisplay(lbUser, 'inline-flex');
     } else {
-      if (guestGroup) guestGroup.style.display = 'flex';
-      if (userGroup) userGroup.style.display = 'none';
-      if (companionsGuest) companionsGuest.style.display = 'inline-flex';
-      if (companionsUser) companionsUser.style.display = 'none';
-      if (lbGuest) lbGuest.style.display = 'inline-flex';
-      if (lbUser) lbUser.style.display = 'none';
+      safeSetDisplay(guestGroup, 'flex');
+      safeSetDisplay(userGroup, 'none');
+      safeSetDisplay(companionsGuest, 'inline-flex');
+      safeSetDisplay(companionsUser, 'none');
+      safeSetDisplay(lbGuest, 'inline-flex');
+      safeSetDisplay(lbUser, 'none');
     }
   }
 
@@ -1943,6 +2126,63 @@ const WizardAuth = (() => {
     }
   }
 
+  let checkUsernameTimeout = null;
+  let isUsernameAvailableStatus = true;
+
+  async function checkLiveUsername(username) {
+    const feedbackEl = document.getElementById('authUsernameFeedback');
+    if (!feedbackEl) return;
+    if (activeAuthTab !== 'register') {
+      feedbackEl.style.display = 'none';
+      return;
+    }
+    const raw = (username || '').trim();
+    if (!raw) {
+      feedbackEl.style.display = 'none';
+      feedbackEl.innerText = '';
+      isUsernameAvailableStatus = false;
+      return;
+    }
+    if (raw.length < 3 || raw.length > 18) {
+      feedbackEl.style.display = 'block';
+      feedbackEl.style.color = '#f87171';
+      feedbackEl.innerHTML = '✗ Name muss 3 bis 18 Zeichen lang sein';
+      isUsernameAvailableStatus = false;
+      return;
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(raw)) {
+      feedbackEl.style.display = 'block';
+      feedbackEl.style.color = '#f87171';
+      feedbackEl.innerHTML = '✗ Nur Buchstaben, Zahlen, _ und - erlaubt';
+      isUsernameAvailableStatus = false;
+      return;
+    }
+
+    feedbackEl.style.display = 'block';
+    feedbackEl.style.color = '#94a3b8';
+    feedbackEl.innerHTML = '⏳ Prüfe Gilden-Register...';
+
+    try {
+      const resp = await fetch(getApiUrl(`/api/auth/check-username?username=${encodeURIComponent(raw)}`));
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.available) {
+        feedbackEl.style.display = 'block';
+        feedbackEl.style.color = '#4ade80';
+        feedbackEl.innerHTML = '✓ Magier-Name ist frei!';
+        isUsernameAvailableStatus = true;
+        clearAuthError();
+      } else {
+        feedbackEl.style.display = 'block';
+        feedbackEl.style.color = '#f87171';
+        feedbackEl.innerHTML = `✗ ${data.error || 'Name bereits vergeben'}`;
+        isUsernameAvailableStatus = false;
+      }
+    } catch (e) {
+      feedbackEl.style.display = 'none';
+    }
+  }
+
   function openAuthModal(tab = 'login') {
     activeAuthTab = tab;
     clearAuthError();
@@ -1952,6 +2192,7 @@ const WizardAuth = (() => {
     const submitBtn = document.getElementById('authSubmitBtn');
     const titleEl = document.getElementById('authModalTitle');
 
+    const feedbackEl = document.getElementById('authUsernameFeedback');
     if (tab === 'register') {
       if (tabLogin) tabLogin.classList.remove('active');
       if (tabReg) tabReg.classList.add('active');
@@ -1962,12 +2203,16 @@ const WizardAuth = (() => {
       if (tabReg) tabReg.classList.remove('active');
       if (submitBtn) submitBtn.innerText = 'Einloggen';
       if (titleEl) titleEl.innerText = 'Gilden-Register';
+      if (feedbackEl) feedbackEl.style.display = 'none';
     }
 
     if (modal) modal.style.display = 'flex';
     const uInput = document.getElementById('authUsernameInput');
     if (uInput && !uInput.value.trim() && typeof nameInput !== 'undefined' && nameInput && nameInput.value.trim()) {
       uInput.value = nameInput.value.trim();
+    }
+    if (tab === 'register' && uInput && uInput.value.trim()) {
+      checkLiveUsername(uInput.value.trim());
     }
     if (uInput) setTimeout(() => uInput.focus(), 50);
   }
@@ -1977,6 +2222,11 @@ const WizardAuth = (() => {
     if (modal) modal.style.display = 'none';
     const pInput = document.getElementById('authPasswordInput');
     if (pInput) pInput.value = '';
+    const feedbackEl = document.getElementById('authUsernameFeedback');
+    if (feedbackEl) {
+      feedbackEl.style.display = 'none';
+      feedbackEl.innerText = '';
+    }
     clearAuthError();
   }
 
@@ -2371,6 +2621,10 @@ const WizardAuth = (() => {
       const u = uInput ? uInput.value.trim() : '';
       const p = pInput ? pInput.value : '';
       if (activeAuthTab === 'register') {
+        if (!isUsernameAvailableStatus && u.length >= 3) {
+          showAuthError('Dieser Magier-Name ist nicht verfügbar oder ungültig.');
+          return;
+        }
         register(u, p);
       } else {
         login(u, p);
@@ -2378,7 +2632,20 @@ const WizardAuth = (() => {
     }
 
     if (authSubmitBtn) authSubmitBtn.addEventListener('click', submitAuth);
-    if (uInput) uInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
+    if (uInput) {
+      uInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
+      uInput.addEventListener('input', () => {
+        if (activeAuthTab === 'register') {
+          clearTimeout(checkUsernameTimeout);
+          checkUsernameTimeout = setTimeout(() => {
+            checkLiveUsername(uInput.value);
+          }, 250);
+        } else {
+          const feedbackEl = document.getElementById('authUsernameFeedback');
+          if (feedbackEl) feedbackEl.style.display = 'none';
+        }
+      });
+    }
     if (pInput) pInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAuth(); });
 
     // Profile-Drawer Controls
@@ -3060,6 +3327,58 @@ function openPlayerDetailModal(data, source = 'table') {
 }
 if (typeof window !== 'undefined') window.openPlayerDetailModal = openPlayerDetailModal;
 
+// --- RUNDE 1 STIRNKARTEN-INSPEKTION (GROSSES ARTWORK & EFFEKT-INFO) ---
+function openForeheadInspectModal(player) {
+  const modal = document.getElementById('forehead-inspect-modal');
+  const titleEl = document.getElementById('foreheadInspectTitle');
+  const cardContainer = document.getElementById('foreheadInspectCardContainer');
+  const descEl = document.getElementById('foreheadInspectCardDesc');
+  if (!modal || !player || !player.round1Card) return;
+
+  if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+
+  if (titleEl) titleEl.innerText = `🔮 Stirnkarte von ${player.name || 'Magier'}`;
+  if (cardContainer) {
+    cardContainer.innerHTML = '';
+    const largeCard = renderCard(player.round1Card);
+    largeCard.style.transform = 'scale(1.35)';
+    largeCard.style.margin = '16px auto';
+    largeCard.style.boxShadow = '0 16px 36px rgba(0,0,0,0.95), 0 0 20px var(--gold-bright)';
+    largeCard.classList.remove('card-fly-up');
+    cardContainer.appendChild(largeCard);
+  }
+
+  const card = player.round1Card;
+  let desc = '';
+  if (card.type === 'wizard') desc = 'Erzmagier: Höchste Zauberkraft, gewinnt jeden Stich.';
+  else if (card.type === 'jester') desc = 'Scharlatan: Völlig machtlos, unterliegt jeder Karte.';
+  else if (card.type === 'dragon') desc = 'Drache: Verschlingt alle Zauberer, unterliegt nur der Fee.';
+  else if (card.type === 'fairy') desc = 'Fee: Verzaubert und besiegt den Drachen.';
+  else if (card.type === 'bomb') desc = 'Magiekollaps: Zerstört den Stich vollkommen.';
+  else if (card.type === 'color') {
+    const sNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+    const suitName = sNames[card.suit] || card.suit;
+    desc = `Farbkarte ${suitName} mit Wert ${card.value}`;
+  } else {
+    desc = card.name || 'Sonderkarte der Zitadelle';
+  }
+  if (descEl) descEl.innerText = desc;
+
+  modal.style.display = 'flex';
+}
+if (typeof window !== 'undefined') window.openForeheadInspectModal = openForeheadInspectModal;
+
+const foreheadModalEl = document.getElementById('forehead-inspect-modal');
+const foreheadModalCloseBtn = document.getElementById('foreheadInspectModalClose');
+if (foreheadModalCloseBtn && foreheadModalEl) {
+  foreheadModalCloseBtn.addEventListener('click', () => {
+    foreheadModalEl.style.display = 'none';
+  });
+  foreheadModalEl.addEventListener('click', (e) => {
+    if (e.target === foreheadModalEl) foreheadModalEl.style.display = 'none';
+  });
+}
+
 // Screen-Manager zur sauberen Umschaltung zwischen den 3 Screens
 function switchScreen(screenName) {
   lobbyScreen.style.display = (screenName === 'lobby') ? 'flex' : 'none';
@@ -3376,6 +3695,43 @@ if (btnCopyGameCode) {
 // --- SCREEN 2: SEPARATER WARTERAUM ---
 if (waitingRoomStartBtn) {
   waitingRoomStartBtn.addEventListener('click', () => {
+    const connectedCount = (cachedPlayers || []).filter(p => p.connected).length;
+    if (currentMatchFormat === 'team_2v2') {
+      if (connectedCount !== 4) {
+        if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+        GrimoireDialog.alert({
+          title: '2vs2 Allianzen: 4 Magier benötigt',
+          message: `Für den 2vs2 Allianzen-Modus werden genau 4 aktive Magier benötigt (aktuell: ${connectedCount}/4)!\n\nBitte füge Bots hinzu (🤖 KI hinzufügen) oder lade Gefährten in die Kammer ein.`,
+          icon: '🤝',
+          confirmText: 'Verstanden'
+        });
+        return;
+      }
+      const teamAPlayers = (cachedPlayers || []).filter(p => p.connected && p.team === 'team_a');
+      const teamBPlayers = (cachedPlayers || []).filter(p => p.connected && p.team === 'team_b');
+      if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2) {
+        if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+        GrimoireDialog.alert({
+          title: 'Allianzen nicht ausgeglichen',
+          message: `Beide Allianzen müssen genau 2 Magier zählen (Sonnenfeuer: ${teamAPlayers.length}/2, Mondschatten: ${teamBPlayers.length}/2)!\n\nNutze die 'Beitreten'-Schaltflächen, um die Teams gleichmäßig aufzuteilen.`,
+          icon: '⚖️',
+          confirmText: 'Verstanden'
+        });
+        return;
+      }
+    } else {
+      if (connectedCount < 3) {
+        if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+        GrimoireDialog.alert({
+          title: 'Mindestens 3 Magier benötigt',
+          message: `Für eine klassische Partie werden mindestens 3 Magier benötigt (aktuell: ${connectedCount}/3)!\n\nBitte lade Gefährten ein oder füge Bots hinzu.`,
+          icon: '📜',
+          confirmText: 'Verstanden'
+        });
+        return;
+      }
+    }
+
     waitingRoomStartBtn.disabled = true;
     socket.emit('startGame', { roomCode: currentRoomCode });
   });
@@ -3435,11 +3791,80 @@ async function confirmAndLeaveRoom() {
     switchScreen('lobby');
     if (pauseOverlay) pauseOverlay.style.display = 'none';
     if (gameOverModal) gameOverModal.style.display = 'none';
+    if (btnReopenGameOver) btnReopenGameOver.style.display = 'none';
   }
 }
 
 if (waitingRoomLeaveBtn) waitingRoomLeaveBtn.addEventListener('click', confirmAndLeaveRoom);
 if (btnLeaveGame) btnLeaveGame.addEventListener('click', confirmAndLeaveRoom);
+
+function claimGloryAndLeave() {
+  if (typeof WizardAudio !== 'undefined') {
+    if (typeof WizardAudio.playLevelUp === 'function') {
+      WizardAudio.playLevelUp();
+    } else if (typeof WizardAudio.playCardSnap === 'function') {
+      WizardAudio.playCardSnap();
+    }
+  }
+
+  // Profil-Daten im Hintergrund synchronisieren
+  if (typeof WizardAuth !== 'undefined' && WizardAuth.refreshUser) {
+    WizardAuth.refreshUser();
+  }
+
+  if (currentRoomCode) {
+    socket.emit('leaveRoom', { roomCode: currentRoomCode });
+  }
+
+  sessionStorage.removeItem('wizard_last_room');
+  currentRoomCode = '';
+  currentGameState = 'lobby';
+
+  if (gameOverModal) gameOverModal.style.display = 'none';
+  if (btnReopenGameOver) btnReopenGameOver.style.display = 'none';
+  if (pauseOverlay) pauseOverlay.style.display = 'none';
+  if (tableArea) tableArea.style.display = 'none';
+
+  switchScreen('lobby');
+}
+
+if (btnClaimGlory) {
+  btnClaimGlory.addEventListener('click', claimGloryAndLeave);
+}
+
+if (btnGameOverClose) {
+  btnGameOverClose.addEventListener('click', () => {
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+      WizardAudio.playCardSnap();
+    }
+    if (gameOverModal) gameOverModal.style.display = 'none';
+    if (btnReopenGameOver) btnReopenGameOver.style.display = 'inline-flex';
+  });
+}
+
+if (btnReopenGameOver) {
+  btnReopenGameOver.addEventListener('click', () => {
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+      WizardAudio.playCardSnap();
+    }
+    if (gameOverModal) gameOverModal.style.display = 'flex';
+    if (btnReopenGameOver) btnReopenGameOver.style.display = 'none';
+  });
+}
+
+if (btnGameOverStay) {
+  btnGameOverStay.addEventListener('click', () => {
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+      WizardAudio.playCardSnap();
+    }
+    if (gameOverModal) gameOverModal.style.display = 'none';
+    if (btnReopenGameOver) btnReopenGameOver.style.display = 'inline-flex';
+    if (statusMessage) {
+      statusMessage.style.display = 'block';
+      statusMessage.innerText = 'Ehre verbucht! Warte im Saal auf die nächste Runde...';
+    }
+  });
+}
 
 if (resetGameBtn) {
   resetGameBtn.addEventListener('click', () => {
@@ -3518,10 +3943,185 @@ if (btnRemoveBot) {
   });
 }
 
+if (btnFormatFFA) {
+  btnFormatFFA.addEventListener('click', () => {
+    if (currentMatchFormat === 'ffa' && btnFormatFFA.classList.contains('active')) return;
+    if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+    btnFormatFFA.classList.add('active');
+    if (btnFormat2v2) btnFormat2v2.classList.remove('active');
+    currentMatchFormat = 'ffa';
+    const amIHost = (cachedPlayers || []).some(p => p.sessionId === mySessionId && p.isHost);
+    updateWaitingRoomView(amIHost);
+    socket.emit('setMatchFormat', { roomCode: currentRoomCode, matchFormat: 'ffa' });
+  });
+}
+
+if (btnFormat2v2) {
+  btnFormat2v2.addEventListener('click', () => {
+    if (currentMatchFormat === 'team_2v2' && btnFormat2v2.classList.contains('active')) return;
+    if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+    btnFormat2v2.classList.add('active');
+    if (btnFormatFFA) btnFormatFFA.classList.remove('active');
+    currentMatchFormat = 'team_2v2';
+    const amIHost = (cachedPlayers || []).some(p => p.sessionId === mySessionId && p.isHost);
+    updateWaitingRoomView(amIHost);
+    socket.emit('setMatchFormat', { roomCode: currentRoomCode, matchFormat: 'team_2v2' });
+    const count = (cachedPlayers || []).filter(p => p.connected).length;
+    if (count < 4) {
+      showToast(`🤝 2vs2 Allianzen gewählt: Genau 4 Magier benötigt (aktuell: ${count}/4).`);
+    } else if (count > 4) {
+      showToast(`⚠️ 2vs2 Allianzen unterstützt maximal 4 Magier (aktuell: ${count}).`);
+    }
+  });
+}
+
+if (btnJoinTeamA) {
+  btnJoinTeamA.addEventListener('click', () => {
+    socket.emit('switchTeam', { roomCode: currentRoomCode, team: 'team_a' });
+  });
+}
+
+if (btnJoinTeamB) {
+  btnJoinTeamB.addEventListener('click', () => {
+    socket.emit('switchTeam', { roomCode: currentRoomCode, team: 'team_b' });
+  });
+}
+
+socket.on('matchFormatChanged', ({ matchFormat, teams }) => {
+  currentMatchFormat = matchFormat;
+  if (teams) currentTeams = teams;
+  const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
+  updateWaitingRoomView(amIHost);
+});
+
+// Hilfsfunktion: Erstellt ein Spieler-Element für den Warteraum
+function createPlayerWaitingItem(p, isHostUser) {
+  const isMe = (p.sessionId === mySessionId);
+  const isHost = (typeof isHostUser === 'boolean')
+    ? isHostUser
+    : (cachedPlayers && cachedPlayers.some(player => player.sessionId === mySessionId && player.isHost));
+
+  const item = document.createElement('div');
+  item.style.display = 'flex';
+  item.style.alignItems = 'center';
+  item.style.justifyContent = 'space-between';
+  item.style.background = isMe ? 'rgba(241, 196, 15, 0.18)' : 'rgba(255, 255, 255, 0.05)';
+  item.style.padding = '10px 14px';
+  item.style.borderRadius = '8px';
+  item.style.border = isMe ? '1px solid #f1c40f' : '1px solid rgba(255,255,255,0.1)';
+
+  const hostBadge = p.isHost ? '<span class="host-badge">Host</span>' : '';
+  let botBadge = '';
+  if (p.isBot) {
+    const diff = p.difficulty || 'master';
+    if (diff === 'novice') {
+      botBadge = '<span class="bot-badge bot-badge-novice" title="Schwierigkeitsstufe: Novize (Lehrling)">🟢 Novize</span>';
+    } else if (diff === 'archmage') {
+      botBadge = '<span class="bot-badge bot-badge-archmage" title="Schwierigkeitsstufe: Erzmagier (Oberster Rat)">🟣 Erzmagier</span>';
+    } else {
+      botBadge = '<span class="bot-badge bot-badge-master" title="Schwierigkeitsstufe: Meister (Magier)">🔵 Meister</span>';
+    }
+  }
+  const statusText = p.isBot
+    ? '<span style="color: #c084fc; font-size: 12px; font-weight: bold;">● KI-Bereit</span>'
+    : (p.connected
+      ? '<span style="color: #2ecc71; font-size: 12px; font-weight: bold;">● Bereit</span>'
+      : '<span style="color: #e74c3c; font-size: 12px; font-weight: bold;">● Getrennt</span>');
+
+  const initial = p.isBot ? '🤖' : (p.name ? p.name.charAt(0).toUpperCase() : '?');
+  const titleHtml = p.title ? `<div style="font-size: 11px; color: #d6be90; font-style: italic;">${escapeHtml(p.title)}</div>` : '';
+
+  let rankBadgeHtml = '';
+  if (p.rank && (p.userId || p.isBot)) {
+    const crestSvg = RANK_CRESTS[p.rank.tier] || '';
+    rankBadgeHtml = `
+      <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${escapeHtml(p.rank.divisionName)} (${p.skillRating || 0} SR)">
+        <span style="display:inline-flex; width:13px; height:13px; align-items:center; justify-content:center; flex-shrink:0;">${crestSvg}</span>
+        ${escapeHtml(p.rank.divisionName)}
+      </span>
+    `;
+  }
+
+  let actionHtml = '';
+  if (isHost && !isMe) {
+    if (p.isBot) {
+      actionHtml = `
+        <button type="button" class="btn-kick-bot" data-bot-id="${escapeHtml(p.sessionId)}" title="${escapeHtml(p.name)} entfernen" aria-label="Bot entfernen">
+          <span class="btn-icon" aria-hidden="true">❌</span>
+          <span class="btn-text">Bot kicken</span>
+        </button>
+      `;
+    } else {
+      actionHtml = `
+        <button type="button" class="btn-kick-player" data-player-id="${escapeHtml(p.sessionId)}" title="${escapeHtml(p.name)} aus der Kammer verweisen" aria-label="Mitspieler kicken">
+          <span class="btn-icon" aria-hidden="true">🚪</span>
+          <span class="btn-text">Kicken</span>
+        </button>
+      `;
+    }
+  }
+
+  item.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div class="seat-avatar" style="width: 32px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${initial}</div>
+      <div>
+        <div style="font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+          <b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge} ${botBadge}
+          ${rankBadgeHtml}
+        </div>
+        ${titleHtml}
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      ${statusText}
+      ${actionHtml}
+    </div>
+  `;
+
+  const kickBtn = item.querySelector('.btn-kick-bot');
+  if (kickBtn) {
+    kickBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+        WizardAudio.playCardSnap();
+      }
+      socket.emit('removeBot', { roomCode: currentRoomCode, botSessionId: p.sessionId });
+    });
+  }
+
+  const kickPlayerBtn = item.querySelector('.btn-kick-player');
+  if (kickPlayerBtn) {
+    kickPlayerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const playerName = p.name || 'diesen Magier';
+      if (typeof GrimoireDialog !== 'undefined' && GrimoireDialog.confirm) {
+        GrimoireDialog.confirm({
+          title: 'Magier verweisen?',
+          message: `Möchtest du "${playerName}" wirklich aus der Kammer verweisen?`,
+          confirmText: 'Verweisen',
+          cancelText: 'Abbrechen',
+          danger: true,
+          icon: '🚪'
+        }).then(confirmed => {
+          if (confirmed) {
+            if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+              WizardAudio.playCardSnap();
+            }
+            socket.emit('kickPlayer', { roomCode: currentRoomCode, targetSessionId: p.sessionId });
+          }
+        });
+      } else {
+        socket.emit('kickPlayer', { roomCode: currentRoomCode, targetSessionId: p.sessionId });
+      }
+    });
+  }
+
+  return item;
+}
+
 // Rendert den separaten Warteraum
 function updateWaitingRoomView(amIHost) {
   waitingRoomCode.innerText = currentRoomCode;
-  waitingRoomCount.innerText = cachedPlayers.length;
   waitingRoomPlayersList.innerHTML = '';
 
   const modeBadge = document.getElementById('waitingRoomModeBadge');
@@ -3535,64 +4135,74 @@ function updateWaitingRoomView(amIHost) {
     }
   }
 
-  cachedPlayers.forEach(p => {
-    const isMe = (p.sessionId === mySessionId);
-    const item = document.createElement('div');
-    item.style.display = 'flex';
-    item.style.alignItems = 'center';
-    item.style.justifyContent = 'space-between';
-    item.style.background = isMe ? 'rgba(241, 196, 15, 0.18)' : 'rgba(255, 255, 255, 0.05)';
-    item.style.padding = '10px 14px';
-    item.style.borderRadius = '8px';
-    item.style.border = isMe ? '1px solid #f1c40f' : '1px solid rgba(255,255,255,0.1)';
+  // Format-Steuerung für Host & Gäste
+  if (hostFormatControls && guestFormatDisplay) {
+    if (amIHost) {
+      hostFormatControls.style.display = 'block';
+      guestFormatDisplay.style.display = 'none';
+      if (btnFormatFFA) btnFormatFFA.classList.toggle('active', currentMatchFormat === 'ffa');
+      if (btnFormat2v2) btnFormat2v2.classList.toggle('active', currentMatchFormat === 'team_2v2');
+    } else {
+      hostFormatControls.style.display = 'none';
+      guestFormatDisplay.style.display = 'block';
+      guestFormatDisplay.innerText = (currentMatchFormat === 'team_2v2')
+        ? '🤝 2vs2 Allianzen (Team-Stichkampf)'
+        : '⚔️ Jeder gegen Jeden (FFA)';
+    }
+  }
 
-    const hostBadge = p.isHost ? '<span class="host-badge">Host</span>' : '';
-    let botBadge = '';
-    if (p.isBot) {
-      const diff = p.difficulty || 'master';
-      if (diff === 'novice') {
-        botBadge = '<span class="bot-badge bot-badge-novice" title="Schwierigkeitsstufe: Novize (Lehrling)">🟢 Novize</span>';
-      } else if (diff === 'archmage') {
-        botBadge = '<span class="bot-badge bot-badge-archmage" title="Schwierigkeitsstufe: Erzmagier (Oberster Rat)">🟣 Erzmagier</span>';
-      } else {
-        botBadge = '<span class="bot-badge bot-badge-master" title="Schwierigkeitsstufe: Meister (Magier)">🔵 Meister</span>';
+  if (currentMatchFormat === 'team_2v2') {
+    waitingRoomCount.innerText = `${cachedPlayers.length}/4`;
+    if (waitingRoomPlayersList) waitingRoomPlayersList.style.display = 'none';
+    if (waitingRoomTeamsContainer) {
+      waitingRoomTeamsContainer.style.display = 'flex';
+
+      const teamAPlayers = cachedPlayers.filter(p => p.team === 'team_a');
+      const teamBPlayers = cachedPlayers.filter(p => p.team === 'team_b');
+
+      if (teamCountA) teamCountA.innerText = `(${teamAPlayers.length}/2)`;
+      if (teamCountB) teamCountB.innerText = `(${teamBPlayers.length}/2)`;
+
+      const me = cachedPlayers.find(p => p.sessionId === mySessionId);
+      const myTeam = me ? me.team : null;
+
+      if (btnJoinTeamA) {
+        const canJoinA = (myTeam !== 'team_a' && teamAPlayers.length < 2);
+        btnJoinTeamA.style.display = canJoinA ? 'inline-flex' : 'none';
+      }
+      if (btnJoinTeamB) {
+        const canJoinB = (myTeam !== 'team_b' && teamBPlayers.length < 2);
+        btnJoinTeamB.style.display = canJoinB ? 'inline-flex' : 'none';
+      }
+
+      if (teamPlayersListA) {
+        teamPlayersListA.innerHTML = '';
+        if (teamAPlayers.length === 0) {
+          teamPlayersListA.innerHTML = '<div style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 4px 0;">Noch keine Magier in dieser Allianz</div>';
+        } else {
+          teamAPlayers.forEach(p => teamPlayersListA.appendChild(createPlayerWaitingItem(p, amIHost)));
+        }
+      }
+
+      if (teamPlayersListB) {
+        teamPlayersListB.innerHTML = '';
+        if (teamBPlayers.length === 0) {
+          teamPlayersListB.innerHTML = '<div style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 4px 0;">Noch keine Magier in dieser Allianz</div>';
+        } else {
+          teamBPlayers.forEach(p => teamPlayersListB.appendChild(createPlayerWaitingItem(p, amIHost)));
+        }
       }
     }
-    const statusText = p.isBot
-      ? '<span style="color: #c084fc; font-size: 12px; font-weight: bold;">● KI-Bereit</span>'
-      : (p.connected
-        ? '<span style="color: #2ecc71; font-size: 12px; font-weight: bold;">● Bereit</span>'
-        : '<span style="color: #e74c3c; font-size: 12px; font-weight: bold;">● Getrennt</span>');
-
-    const initial = p.isBot ? '🤖' : (p.name ? p.name.charAt(0).toUpperCase() : '?');
-    const titleHtml = p.title ? `<div style="font-size: 11px; color: #d6be90; font-style: italic;">${escapeHtml(p.title)}</div>` : '';
-
-    let rankBadgeHtml = '';
-    if (p.rank && (p.userId || p.isBot)) {
-      const crestSvg = RANK_CRESTS[p.rank.tier] || '';
-      rankBadgeHtml = `
-        <span class="player-rank-badge" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${escapeHtml(p.rank.divisionName)} (${p.skillRating || 0} SR)">
-          <span style="display:inline-flex; width:13px; height:13px; align-items:center; justify-content:center; flex-shrink:0;">${crestSvg}</span>
-          ${escapeHtml(p.rank.divisionName)}
-        </span>
-      `;
+  } else {
+    waitingRoomCount.innerText = `${cachedPlayers.length}/6`;
+    if (waitingRoomPlayersList) {
+      waitingRoomPlayersList.style.display = 'flex';
+      cachedPlayers.forEach(p => {
+        waitingRoomPlayersList.appendChild(createPlayerWaitingItem(p, amIHost));
+      });
     }
-
-    item.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <div class="seat-avatar" style="width: 32px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${initial}</div>
-        <div>
-          <div style="font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
-            <b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge} ${botBadge}
-            ${rankBadgeHtml}
-          </div>
-          ${titleHtml}
-        </div>
-      </div>
-      <div>${statusText}</div>
-    `;
-    waitingRoomPlayersList.appendChild(item);
-  });
+    if (waitingRoomTeamsContainer) waitingRoomTeamsContainer.style.display = 'none';
+  }
 
   // Edition-Auswahl für Host bzw. Anzeige für Gäste aktualisieren
   if (hostEditionControls && guestEditionDisplay) {
@@ -3614,17 +4224,50 @@ function updateWaitingRoomView(amIHost) {
   if (hostBotControls) {
     hostBotControls.style.display = amIHost ? 'flex' : 'none';
     const botCount = cachedPlayers.filter(p => p.isBot).length;
-    if (btnAddBot) btnAddBot.disabled = cachedPlayers.length >= 6;
+    const maxAllowed = (currentMatchFormat === 'team_2v2') ? 4 : 6;
+    if (btnAddBot) btnAddBot.disabled = cachedPlayers.length >= maxAllowed;
     if (btnRemoveBot) btnRemoveBot.disabled = botCount === 0;
   }
 
   const connectedCount = cachedPlayers.filter(p => p.connected).length;
   if (amIHost) {
     waitingRoomStartBtn.style.display = 'inline-block';
-    waitingRoomStartBtn.disabled = connectedCount < 3;
-    waitingRoomStartBtn.innerText = connectedCount < 3
-      ? `Warte auf Spieler (${connectedCount}/3)...`
-      : 'Spiel jetzt starten (Runde 1)';
+    const btnTextEl = waitingRoomStartBtn.querySelector('.btn-text');
+    const updateBtnLabel = (fullTxt, shortTxt) => {
+      if (btnTextEl) {
+        if (shortTxt) {
+          btnTextEl.innerHTML = `<span class="btn-text-full">${fullTxt}</span><span class="btn-text-short">${shortTxt}</span>`;
+        } else {
+          btnTextEl.innerText = fullTxt;
+        }
+      } else {
+        waitingRoomStartBtn.innerText = fullTxt;
+      }
+    };
+
+    if (currentMatchFormat === 'team_2v2') {
+      const teamAPlayers = cachedPlayers.filter(p => p.connected && p.team === 'team_a');
+      const teamBPlayers = cachedPlayers.filter(p => p.connected && p.team === 'team_b');
+      const isReady2v2 = (connectedCount === 4 && teamAPlayers.length === 2 && teamBPlayers.length === 2);
+      waitingRoomStartBtn.disabled = false;
+      waitingRoomStartBtn.classList.toggle('btn-not-ready', !isReady2v2);
+      if (connectedCount < 4) {
+        updateBtnLabel(`Warte auf 4 Magier für 2vs2 (${connectedCount}/4)...`, `Warten (${connectedCount}/4)`);
+      } else if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2) {
+        updateBtnLabel('Allianzen ausgleichen (je 2 Magier)...', 'Ausgleichen');
+      } else {
+        updateBtnLabel('Partie beginnen', 'Starten');
+      }
+    } else {
+      const isReadyFFA = connectedCount >= 3;
+      waitingRoomStartBtn.disabled = false;
+      waitingRoomStartBtn.classList.toggle('btn-not-ready', !isReadyFFA);
+      if (!isReadyFFA) {
+        updateBtnLabel(`Warte auf Spieler (${connectedCount}/3)...`, `Warten (${connectedCount}/3)`);
+      } else {
+        updateBtnLabel('Partie beginnen', 'Starten');
+      }
+    }
   } else {
     waitingRoomStartBtn.style.display = 'none';
   }
@@ -3648,6 +4291,12 @@ socket.on('syncGameState', (state) => {
         : 'Bund der Erzmagier (Klassisch)';
     }
     updateRulesTabForEdition(state.edition);
+  }
+  if (state.matchFormat) {
+    currentMatchFormat = state.matchFormat;
+  }
+  if (state.teams) {
+    currentTeams = state.teams;
   }
   currentGameState = state.gameState;
   myCurrentHand = state.hand || [];
@@ -3691,6 +4340,7 @@ socket.on('syncGameState', (state) => {
     showGameOverScreen(amIHost);
   } else {
     gameOverModal.style.display = 'none';
+    if (btnReopenGameOver) btnReopenGameOver.style.display = 'none';
   }
   updateMyStatsHUD();
 });
@@ -3709,6 +4359,27 @@ socket.on('roomUpdated', (players) => {
   updateMyStatsHUD();
 });
 
+// Vom Host aus der Kammer verwiesen
+socket.on('kickedFromRoom', (data) => {
+  sessionStorage.removeItem('wizard_last_room');
+  currentRoomCode = '';
+  currentGameState = 'lobby';
+  cachedPlayers = [];
+  if (typeof switchScreen === 'function') {
+    switchScreen('lobby');
+  }
+  if (pauseOverlay) pauseOverlay.style.display = 'none';
+  if (gameOverModal) gameOverModal.style.display = 'none';
+
+  if (typeof GrimoireDialog !== 'undefined' && GrimoireDialog.alert) {
+    GrimoireDialog.alert({
+      title: 'Aus Kammer verwiesen',
+      message: (data && data.reason) || 'Du wurdest vom Host aus der Kammer verwiesen.',
+      icon: '🚪'
+    });
+  }
+});
+
 // --- SPIELABLAUF & EVENT-LISTENER ---
 
 socket.on('gameStarted', ({ round, maxRounds: mr, trumpCard, gameState }) => {
@@ -3723,6 +4394,7 @@ socket.on('gameStarted', ({ round, maxRounds: mr, trumpCard, gameState }) => {
   switchScreen('game');
   tableArea.style.display = 'flex';
   gameOverModal.style.display = 'none';
+  if (btnReopenGameOver) btnReopenGameOver.style.display = 'none';
   pauseOverlay.style.display = 'none';
 
   displayRound.innerText = currentRound;
@@ -4464,7 +5136,13 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, isUnicornVoid
   }, 480);
 });
 
-socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedResults }) => {
+socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedResults, matchFormat, teams }) => {
+  if (matchFormat) {
+    currentMatchFormat = matchFormat;
+  }
+  if (teams) {
+    currentTeams = teams;
+  }
   if (isRanked !== undefined) {
     currentIsRanked = !!isRanked;
   }
@@ -4540,14 +5218,10 @@ socket.on('roundReDealt', ({ message, round, maxRounds: mr, trumpCard, gameState
 });
 
 socket.on('gameResetToLobby', async ({ message, players, roomCode }) => {
-  await GrimoireDialog.alert({
-    title: 'Runde beendet',
-    message: message || 'Die Versammlung wurde aufgelöst. Zurück zur Zitadelle!',
-    icon: '🏛️'
-  });
-  gameOverModal.style.display = 'none';
-  pauseOverlay.style.display = 'none';
-  tableArea.style.display = 'none';
+  if (gameOverModal) gameOverModal.style.display = 'none';
+  if (btnReopenGameOver) btnReopenGameOver.style.display = 'none';
+  if (pauseOverlay) pauseOverlay.style.display = 'none';
+  if (tableArea) tableArea.style.display = 'none';
 
   if (roomCode) {
     currentRoomCode = roomCode;
@@ -4565,6 +5239,15 @@ socket.on('gameResetToLobby', async ({ message, players, roomCode }) => {
   switchScreen('waiting');
   const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
   updateWaitingRoomView(amIHost);
+
+  // Informative Rückmeldung für Mitspieler (nicht für den Host, der den Reset selbst angestoßen hat)
+  if (message && !amIHost) {
+    await GrimoireDialog.alert({
+      title: 'Neuer Bund gestiftet',
+      message: message,
+      icon: '🏛️'
+    });
+  }
 });
 
 // --- VIRTUELLE MITSPIELER-SITZE RENDERN (RELATIVE UHRZEIGER-REIHENFOLGE) ---
@@ -4590,6 +5273,20 @@ function renderOpponents() {
     seatEl.setAttribute('data-session-id', p.sessionId);
     seatEl.setAttribute('data-player-name', p.name);
     if (isHisTurn) seatEl.classList.add('seat-active-turn');
+
+    const me = cachedPlayers.find(p => p.sessionId === mySessionId);
+    const myTeam = me ? me.team : null;
+
+    if (currentMatchFormat === 'team_2v2' && p.team) {
+      if (p.team === 'team_a') {
+        seatEl.classList.add('seat-team-sonnenfeuer');
+      } else if (p.team === 'team_b') {
+        seatEl.classList.add('seat-team-mondschatten');
+      }
+      if (myTeam && p.team === myTeam) {
+        seatEl.classList.add('seat-team-partner');
+      }
+    }
 
     const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
     const disconnectedClass = !p.connected ? 'disconnected' : '';
@@ -4668,6 +5365,16 @@ function renderOpponents() {
       botDiffHtml = `<span class="seat-bot-pill bot-pill-${diff}">${label}</span>`;
     }
 
+    let teamBadgeHtml = '';
+    if (currentMatchFormat === 'team_2v2' && p.team) {
+      const isPartner = myTeam && p.team === myTeam;
+      if (p.team === 'team_a') {
+        teamBadgeHtml = `<span class="seat-bot-pill" style="background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fca5a5;" title="Allianz des Sonnenfeuers${isPartner ? ' (Dein Gefährte)' : ''}">🔥 ${isPartner ? 'Gefährte' : 'Sonnenfeuer'}</span>`;
+      } else {
+        teamBadgeHtml = `<span class="seat-bot-pill" style="background: rgba(59, 130, 246, 0.25); border: 1px solid #3b82f6; color: #93c5fd;" title="Allianz der Mondschatten${isPartner ? ' (Dein Gefährte)' : ''}">🌙 ${isPartner ? 'Gefährte' : 'Mondschatten'}</span>`;
+      }
+    }
+
     const bidPillHtml = `<span class="seat-bid-pill" title="Gebot: ${bidText} | Gewonnen: ${wonText}">🎯 ${bidText}/${wonText}</span>`;
 
     seatEl.innerHTML = `
@@ -4679,16 +5386,22 @@ function renderOpponents() {
       <div class="seat-details">
         <div class="seat-name-row">
           <span class="seat-name">${escapeHtml(p.name)}</span>
-          ${hostBadge}${botDiffHtml}${rankBadgeHtml}
+          ${teamBadgeHtml}${hostBadge}${botDiffHtml}${rankBadgeHtml}
         </div>
         ${bidPillHtml}
       </div>
     `;
 
-    // Interaktives Magier-Profil Modal beim Klick auf den Sitz
+    // Interaktives Magier-Profil Modal beim Klick auf den Sitz (oder Stirnkarten-Großansicht)
     seatEl.style.cursor = 'pointer';
-    seatEl.setAttribute('title', `${escapeHtml(p.name)} – Klicken für Profil & Details`);
-    seatEl.addEventListener('click', () => {
+    seatEl.setAttribute('title', `${escapeHtml(p.name)} – Klicken für Details`);
+    seatEl.addEventListener('click', (e) => {
+      const foreheadEl = e.target.closest('.forehead-floating-card') || e.target.closest('.forehead-card-wrapper');
+      if (foreheadEl && p.round1Card) {
+        e.stopPropagation();
+        openForeheadInspectModal(p);
+        return;
+      }
       if (typeof openPlayerDetailModal === 'function') {
         openPlayerDetailModal(p, 'table');
       }
@@ -4709,6 +5422,38 @@ function updateMyStatsHUD() {
 
   if (bidEl) bidEl.innerText = bidVal;
   if (tricksEl) tricksEl.innerText = tricksVal;
+
+  // 2vs2 Allianzen: Team-Stiche und Team-Gebot im HUD aktualisieren
+  const teamSep = document.getElementById('my-hud-team-separator');
+  const teamContainer = document.getElementById('my-hud-team-container');
+  const teamNameEl = document.getElementById('my-hud-team-name');
+  const teamIconEl = document.getElementById('my-hud-team-icon');
+  const teamTricksEl = document.getElementById('my-hud-team-tricks');
+
+  if (currentMatchFormat === 'team_2v2' && me && me.team) {
+    if (teamSep) teamSep.style.display = 'inline';
+    if (teamContainer) teamContainer.style.display = 'inline-flex';
+    if (teamIconEl) {
+      teamIconEl.innerText = (me.team === 'team_a') ? '🔥' : '🌙';
+      teamIconEl.style.display = 'inline-block';
+    }
+    if (teamNameEl) {
+      teamNameEl.innerText = (me.team === 'team_a') ? '🔥 Allianz:' : '🌙 Allianz:';
+    }
+    const myAlliancePlayers = cachedPlayers.filter(p => p.team === me.team);
+    const totalWon = myAlliancePlayers.reduce((sum, p) => sum + (p.tricksWon || 0), 0);
+    const allHaveBid = myAlliancePlayers.length > 0 && myAlliancePlayers.every(p => p.bid !== null && p.bid !== undefined);
+    const totalBid = allHaveBid
+      ? myAlliancePlayers.reduce((sum, p) => sum + p.bid, 0)
+      : '-';
+    if (teamTricksEl) {
+      teamTricksEl.innerText = `${totalWon}/${totalBid}`;
+      teamTricksEl.title = `Allianz-Stiche: ${totalWon} von ${totalBid} (Du: ${tricksVal}/${bidVal})`;
+    }
+  } else {
+    if (teamSep) teamSep.style.display = 'none';
+    if (teamContainer) teamContainer.style.display = 'none';
+  }
 
   if (hudContainer && !hudContainer.dataset.detailBound) {
     hudContainer.dataset.detailBound = 'true';
@@ -5079,18 +5824,21 @@ function renderHand(isNewDeal = false) {
     return;
   }
 
+  if (handContainer && isNewDeal) {
+    handContainer.scrollLeft = 0;
+  }
+
   const total = myCurrentHand.length;
   const isMobile = window.innerWidth <= 768;
-  const isSwipeable = isMobile && total >= 8;
+  const isSwipeable = isMobile && total >= 5;
+  const restY = isMobile ? 16 : 0;
 
   let dynamicMargin = '3px';
   if (isSwipeable) {
-    dynamicMargin = '4px';
-  } else if (total > 5) {
-    if (total <= 8) dynamicMargin = '-8px';
-    else if (total <= 12) dynamicMargin = '-18px';
-    else if (total <= 16) dynamicMargin = '-26px';
-    else dynamicMargin = '-34px';
+    // Fächer-Überlappung auch im Scroll-Modus (verhindert Überbreite bei 6-7 Karten)
+    dynamicMargin = '-16px';
+  } else if (total > 3) {
+    dynamicMargin = '-4px';
   }
 
   if (isSwipeable) {
@@ -5110,15 +5858,15 @@ function renderHand(isNewDeal = false) {
       const playable = isMyTurn && isPlayingPhase && isCardPlayable(card, myCurrentHand, currentTrick);
 
       cardElement.setAttribute('data-index', index);
-      cardElement.style.marginLeft = (index === 0) ? '0px' : dynamicMargin;
-      cardElement.style.marginRight = isSwipeable ? '4px' : '0px';
+      cardElement.style.setProperty('margin-left', (index === 0) ? '0px' : (isSwipeable ? '-16px' : dynamicMargin), 'important');
+      cardElement.style.setProperty('margin-right', '0px', 'important');
       cardElement.style.zIndex = index + 1;
 
       if (inspectedCardIndex === index) {
         cardElement.classList.add('card-inspected');
       } else {
         cardElement.classList.remove('card-inspected');
-        cardElement.style.transform = 'translateY(0px) rotate(0deg)';
+        cardElement.style.transform = `translateY(${restY}px) rotate(0deg)`;
       }
 
       cardElement.classList.toggle('card-playable', playable);
@@ -5143,12 +5891,12 @@ function renderHand(isNewDeal = false) {
     const playable = isMyTurn && isPlayingPhase && isCardPlayable(card, myCurrentHand, currentTrick);
 
     const angle = 0;
-    const offsetY = 0;
+    const offsetY = restY;
 
     cardElement.setAttribute('data-card-key', getCardKey(card));
     cardElement.setAttribute('data-index', index);
-    cardElement.style.marginLeft = (index === 0) ? '0px' : dynamicMargin;
-    cardElement.style.marginRight = isSwipeable ? '4px' : '0px';
+    cardElement.style.setProperty('margin-left', (index === 0) ? '0px' : (isSwipeable ? '-16px' : dynamicMargin), 'important');
+    cardElement.style.setProperty('margin-right', '0px', 'important');
     cardElement.style.zIndex = index + 1;
 
     if (inspectedCardIndex === index) {
@@ -5195,6 +5943,10 @@ function renderHand(isNewDeal = false) {
     cardElement.addEventListener('click', onHandCardClick);
     handContainer.appendChild(cardElement);
   });
+
+  if (handContainer && (isNewDeal || (isSwipeable && !isSameHand))) {
+    handContainer.scrollLeft = 0;
+  }
 }
 
 document.addEventListener('click', () => {
@@ -5578,6 +6330,28 @@ function renderScoreBoard() {
   scoreTableHead.innerHTML = '';
   scoreTableBody.innerHTML = '';
 
+  const allianceOverview = document.getElementById('alliance-score-overview');
+  if (allianceOverview) {
+    if (currentMatchFormat === 'team_2v2') {
+      allianceOverview.style.display = 'flex';
+      const scoreA = currentTeams?.team_a?.score || 0;
+      const scoreB = currentTeams?.team_b?.score || 0;
+      allianceOverview.innerHTML = `
+        <div class="alliance-score-box alliance-score-box-sonnenfeuer">
+          <div style="font-size: 11px; opacity: 0.9;">🔥 Sonnenfeuer</div>
+          <div style="font-size: 16px; font-weight: bold;">${scoreA} Pkt.</div>
+        </div>
+        <div class="alliance-score-box alliance-score-box-mondschatten">
+          <div style="font-size: 11px; opacity: 0.9;">🌙 Mondschatten</div>
+          <div style="font-size: 16px; font-weight: bold;">${scoreB} Pkt.</div>
+        </div>
+      `;
+    } else {
+      allianceOverview.style.display = 'none';
+      allianceOverview.innerHTML = '';
+    }
+  }
+
   if (cachedPlayers.length === 0) return;
 
   const headerRow = document.createElement('tr');
@@ -5592,10 +6366,15 @@ function renderScoreBoard() {
     const hostBadge = player.isHost ? '<span class="host-badge">Host</span>' : '';
     const dealerBadge = player.isDealer ? '<span class="dealer-badge">Geber</span>' : '';
     const disconnected = !player.connected ? ' (Getrennt)' : '';
+    const teamBadge = (currentMatchFormat === 'team_2v2' && player.team)
+      ? (player.team === 'team_a'
+          ? '<span style="color: #f87171; font-size: 10px; font-weight: bold; display: block;">🔥 Sonnenfeuer</span>'
+          : '<span style="color: #60a5fa; font-size: 10px; font-weight: bold; display: block;">🌙 Mondschatten</span>')
+      : '';
 
     th.innerHTML = `
       <div>${escapeHtml(player.name)} ${isMe ? '<b>(Du)</b>' : ''}${disconnected}</div>
-      <div style="margin: 2px 0;">${hostBadge}${dealerBadge}</div>
+      <div style="margin: 2px 0;">${teamBadge}${hostBadge}${dealerBadge}</div>
       <div style="font-size: 11px; opacity: 0.9; color: #f1c40f;">${player.totalScore || 0} Pkt.</div>
     `;
     headerRow.appendChild(th);
@@ -5714,6 +6493,32 @@ function showGameOverScreen(amIHost) {
   }
 
   podiumList.innerHTML = '';
+
+  if (currentMatchFormat === 'team_2v2' && currentTeams) {
+    const scoreA = currentTeams.team_a?.score || 0;
+    const scoreB = currentTeams.team_b?.score || 0;
+    let winningTeamText = '';
+    if (scoreA > scoreB) {
+      winningTeamText = `🏆 Sieg für die Allianz des Sonnenfeuers (${scoreA} : ${scoreB})`;
+    } else if (scoreB > scoreA) {
+      winningTeamText = `🏆 Sieg für die Allianz der Mondschatten (${scoreB} : ${scoreA})`;
+    } else {
+      winningTeamText = `⚖️ Unentschieden (${scoreA} : ${scoreB})`;
+    }
+    const allianceBanner = document.createElement('div');
+    allianceBanner.style.textAlign = 'center';
+    allianceBanner.style.fontSize = '14px';
+    allianceBanner.style.fontWeight = 'bold';
+    allianceBanner.style.color = '#f1c40f';
+    allianceBanner.style.marginBottom = '10px';
+    allianceBanner.style.padding = '8px 12px';
+    allianceBanner.style.background = 'rgba(0, 0, 0, 0.4)';
+    allianceBanner.style.border = '1px solid var(--gold-antique)';
+    allianceBanner.style.borderRadius = '8px';
+    allianceBanner.innerText = winningTeamText;
+    podiumList.appendChild(allianceBanner);
+  }
+
   sorted.forEach((p, idx) => {
     const row = document.createElement('div');
     row.style.padding = '10px 14px';
@@ -5733,12 +6538,25 @@ function showGameOverScreen(amIHost) {
       }
     }
 
-    row.innerHTML = `<b>${idx + 1}. ${escapeHtml(p.name)}</b>: ${p.totalScore || 0} Punkte${rankedDeltaHtml}`;
+    const teamTag = (currentMatchFormat === 'team_2v2' && p.team)
+      ? (p.team === 'team_a' ? ' <span style="color: #f87171; font-size: 12px;">(🔥 Sonnenfeuer)</span>' : ' <span style="color: #60a5fa; font-size: 12px;">(🌙 Mondschatten)</span>')
+      : '';
+
+    row.innerHTML = `<b>${idx + 1}. ${escapeHtml(p.name)}</b>${teamTag}: ${p.totalScore || 0} Punkte${rankedDeltaHtml}`;
     podiumList.appendChild(row);
   });
 
   if (resetGameBtn) {
-    resetGameBtn.style.display = amIHost ? 'block' : 'none';
+    resetGameBtn.style.display = amIHost ? 'flex' : 'none';
+  }
+  if (btnGameOverStay) {
+    btnGameOverStay.style.display = !amIHost ? 'flex' : 'none';
+  }
+  if (btnClaimGlory) {
+    btnClaimGlory.style.display = 'flex';
+  }
+  if (btnReopenGameOver) {
+    btnReopenGameOver.style.display = 'none';
   }
 
   // Profil-Statistiken im Hintergrund aktualisieren (neue Siege/Niederlagen/Punkte sofort wirksam)

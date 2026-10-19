@@ -104,6 +104,9 @@
     html, body {
       overscroll-behavior-y: none;
       overscroll-behavior-x: none;
+      overflow-x: hidden;
+      max-width: 100vw;
+      width: 100%;
     }
 
     body {
@@ -316,6 +319,155 @@
       color: #f5d0fe;
     }
 
+    /* 2vs2 ALLIANZEN STILE & FARBEN */
+    .btn-format-toggle {
+      background: rgba(20, 12, 6, 0.7);
+      color: #ebd7af;
+      border: 1px solid #78532f;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      min-height: 42px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-format-toggle:hover:not(:disabled) {
+      border-color: var(--gold-bright);
+      color: var(--gold-bright);
+    }
+    .btn-format-toggle.active {
+      background: linear-gradient(180deg, #4d3319 0%, #291708 100%) !important;
+      color: var(--gold-bright) !important;
+      border-color: var(--gold-bright) !important;
+      box-shadow: 0 0 10px rgba(240, 195, 85, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    #waitingRoomStartBtn.btn-not-ready {
+      opacity: 0.92;
+      border-color: #8b5cf644 !important;
+      background: linear-gradient(180deg, #332011 0%, #1a1008 100%) !important;
+      color: #dfcaa2 !important;
+      cursor: pointer !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+    }
+    #waitingRoomStartBtn.btn-not-ready:hover,
+    #waitingRoomStartBtn.btn-not-ready:active {
+      border-color: var(--gold-bright) !important;
+      color: var(--gold-bright) !important;
+    }
+
+    /* WARTERAUM: GEZIELTER KICK BUTTON FÜR BOTS & MITSPIELER */
+    .btn-kick-bot,
+    .btn-kick-player {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      min-height: 28px;
+      font-size: 11.5px;
+      font-family: var(--font-subheading);
+      font-weight: bold;
+      letter-spacing: 0.3px;
+      color: #fca5a5;
+      background: rgba(185, 28, 28, 0.22);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      border-radius: 6px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: all 0.15s ease;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    .btn-kick-bot:hover,
+    .btn-kick-player:hover {
+      background: rgba(239, 68, 68, 0.45);
+      border-color: #ef4444;
+      color: #ffffff;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+    }
+    .btn-kick-bot:active,
+    .btn-kick-player:active {
+      transform: scale(0.97);
+    }
+    @media (max-width: 480px) {
+      .btn-kick-bot,
+      .btn-kick-player {
+        padding: 3px 6px;
+        font-size: 10px;
+        min-height: 26px;
+        gap: 3px;
+      }
+    }
+
+    .team-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      font-family: var(--font-subheading);
+      letter-spacing: 0.4px;
+      margin-left: 4px;
+      border: 1px solid currentColor;
+    }
+    .team-badge-sonnenfeuer {
+      background: rgba(220, 38, 38, 0.2);
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+    .team-badge-mondschatten {
+      background: rgba(37, 99, 235, 0.2);
+      border-color: #3b82f6;
+      color: #93c5fd;
+    }
+
+    .player-seat.seat-team-sonnenfeuer .seat-avatar {
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.5) !important;
+    }
+    .player-seat.seat-team-mondschatten .seat-avatar {
+      border-color: #3b82f6 !important;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5) !important;
+    }
+    .player-seat.seat-team-partner {
+      outline: 2px dashed #f59e0b;
+      outline-offset: 3px;
+    }
+
+    .score-drawer-alliance-summary {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--gold-antique);
+      border-radius: 6px;
+    }
+    .alliance-score-box {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 5px;
+      text-align: center;
+      font-family: var(--font-subheading);
+    }
+    .alliance-score-box-sonnenfeuer {
+      background: rgba(185, 28, 28, 0.2);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+    .alliance-score-box-mondschatten {
+      background: rgba(29, 78, 216, 0.2);
+      border: 1px solid #3b82f6;
+      color: #93c5fd;
+    }
+
     /* BOT DROPDOWN IM WARTERAUM */
     .bot-difficulty-dropdown {
       position: absolute;
@@ -383,7 +535,8 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
+      width: 100%;
+      max-width: 100vw;
       height: 100dvh;
       display: flex;
       flex-direction: column;
@@ -392,15 +545,18 @@
       padding: calc(var(--safe-top) + 10px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 36px) calc(var(--safe-left) + 12px);
       z-index: 100;
       overflow-y: auto;
+      overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
       box-sizing: border-box;
     }
 
-    #lobby-screen > .glass-card,
-    #waiting-room-screen > .glass-card {
+    #lobby-screen > .glass-card {
       margin-top: auto;
       margin-bottom: auto;
+    }
+    #waiting-room-screen > .glass-card {
+      margin: clamp(8px, 2vh, 20px) auto !important;
     }
 
     #lobby-screen {
@@ -684,7 +840,10 @@
       display: inline;
     }
     .score-toggle-icon, .rules-toggle-icon {
-      display: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
     }
 
     /* RECHTER SLIDE-OUT: "BUCH DER WAHRHEIT" & "GRIMOIRE DER REGELN" */
@@ -698,16 +857,23 @@
       background: linear-gradient(180deg, #1b0f06 0%, #ecd9b3 5%, #ecd9b3 95%, #1b0f06 100%);
       color: #1a0e04;
       border-left: 5px solid #4a2810;
-      box-shadow: -15px 0 50px rgba(0,0,0,0.95);
+      box-shadow: none;
       z-index: 1500;
       transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.32s;
       display: flex;
       flex-direction: column;
       font-family: var(--font-text);
+      visibility: hidden;
+      pointer-events: none;
     }
 
-    #score-board-drawer.open, #rules-drawer.open { transform: translateX(0); }
+    #score-board-drawer.open, #rules-drawer.open {
+      transform: translateX(0) !important;
+      box-shadow: -15px 0 50px rgba(0,0,0,0.95) !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
 
     /* ZIEH-GRIFF ZUM VERGRÖSSERN DES DRAWERS */
     .drawer-resize-handle {
@@ -1706,14 +1872,37 @@
 
     #hand-container.swipeable {
       overflow-x: auto;
+      overflow-y: hidden;
       justify-content: flex-start !important;
       scroll-snap-type: x proximity;
-      padding: 6px 16px calc(var(--safe-bottom) + 8px);
+      padding: 38px 16px calc(var(--safe-bottom) + 8px);
+      margin-top: -32px;
       -webkit-overflow-scrolling: touch;
+      position: relative;
     }
     #hand-container.swipeable .card {
-      margin: 0 4px !important;
+      margin: 0 !important;
+      margin-left: -16px !important;
       flex-shrink: 0;
+    }
+    #hand-container.swipeable .card:first-child {
+      margin-left: 0 !important;
+    }
+    #hand-container.swipeable::after,
+    .hand-scroll-indicator-right {
+      content: '';
+      position: sticky;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      height: 100%;
+      min-height: var(--card-h);
+      align-self: stretch;
+      width: 24px;
+      pointer-events: none;
+      background: linear-gradient(to right, transparent, rgba(9, 6, 4, 0.85));
+      flex-shrink: 0;
+      z-index: 50;
     }
 
     /* BLIND-KARTE (STIRN-WIZARD RUNDE 1) */
@@ -2526,26 +2715,36 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      cursor: pointer;
     }
     .forehead-card-wrapper .card {
-      width: calc(var(--card-w) * 0.62) !important;
-      height: calc(var(--card-h) * 0.62) !important;
+      width: calc(var(--card-w) * 0.82) !important;
+      height: calc(var(--card-h) * 0.82) !important;
       transform: none !important;
       margin: 0 !important;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.85), 0 0 8px rgba(240, 195, 85, 0.35);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 10px rgba(240, 195, 85, 0.45);
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease;
+    }
+    .forehead-card-wrapper:hover .card,
+    .forehead-card-wrapper:active .card {
+      transform: scale(1.15) translateY(-4px) !important;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.95), 0 0 18px var(--gold-bright) !important;
+      z-index: 100 !important;
     }
     .forehead-card-wrapper .card .card-center-val {
-      font-size: 15px !important;
+      font-size: 18px !important;
     }
     .forehead-card-wrapper .card .card-center-crest {
-      width: 18px !important;
-      height: 18px !important;
+      width: 24px !important;
+      height: 24px !important;
     }
     .forehead-card-wrapper .card .card-val {
-      font-size: 9px !important;
+      font-size: 11px !important;
     }
     .forehead-card-wrapper .card .card-name-label {
-      display: none !important;
+      font-size: 8.5px !important;
+      display: block !important;
     }
 
     /* GENERAL TRICK-CLEARING FALLBACK */
@@ -2710,15 +2909,15 @@
     @keyframes cardFlyUpEntrance {
       0% {
         opacity: 0;
-        transform: translateY(90px) scale(0.88);
+        transform: translateY(calc(var(--target-y, 0px) + 90px)) scale(0.88);
       }
       75% {
         opacity: 1;
-        transform: translateY(-4px) scale(1.02);
+        transform: translateY(calc(var(--target-y, 0px) - 4px)) scale(1.02);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(var(--target-y, 0px)) scale(1);
       }
     }
 
@@ -2829,8 +3028,51 @@
     /* RESPONSIVE DESIGN (MOBILE-FIRST) */
     @media (max-width: 768px) {
       :root {
-        --card-w: clamp(58px, 14.5vw, 76px);
+        --card-w: clamp(78px, 19.5vw, 98px);
         --card-h: calc(var(--card-w) * (1498 / 1050));
+      }
+
+      .btn-text-full {
+        display: none !important;
+      }
+      .btn-text-short {
+        display: inline !important;
+      }
+
+      .drawer-resize-handle {
+        display: none !important;
+      }
+
+      .hand-section {
+        margin-bottom: -18px;
+        overflow: visible !important;
+      }
+      .hand-title-label {
+        display: none !important;
+      }
+      .my-stats-hud .hud-label {
+        display: none !important;
+      }
+      .my-stats-hud .hud-badge-icon {
+        display: inline-block !important;
+      }
+      #hand-container {
+        overflow-y: visible !important;
+      }
+      #hand-container .card {
+        transform: translateY(16px);
+      }
+      #hand-container .card:hover,
+      #hand-container .card:active {
+        transform: translateY(-24px) scale(1.1) !important;
+        z-index: 100 !important;
+      }
+      #hand-container .card.card-inspected,
+      .card.card-inspected {
+        transform: translateY(-56px) scale(1.36) !important;
+        z-index: 500 !important;
+        box-shadow: 0 16px 36px rgba(0,0,0,0.92), 0 0 22px var(--gold-bright) !important;
+        outline: 2px solid var(--gold-bright) !important;
       }
 
       .fullscreen-screen {
@@ -2861,15 +3103,15 @@
         min-height: 0;
       }
       .top-nav-bar {
-        padding: 4px 8px;
+        padding: 5px 8px;
         gap: 8px;
-        height: 44px;
-        max-height: 44px;
+        min-height: 50px;
+        height: auto;
         box-sizing: border-box;
       }
-      .top-nav-left { flex-shrink: 0; }
-      .top-nav-center { flex: 1; min-width: 0; }
-      .top-nav-right { flex-shrink: 0; }
+      .top-nav-left { flex-shrink: 0; display: flex; align-items: center; }
+      .top-nav-center { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; }
+      .top-nav-right { flex-shrink: 0; display: flex; align-items: center; }
 
       .room-round-pill {
         padding: 3px 8px;
@@ -2880,11 +3122,12 @@
       .pill-copy-icon { font-size: 10px; }
 
       .btn-top-nav-action {
-        width: 36px !important;
-        height: 36px !important;
-        min-width: 36px !important;
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
         padding: 0 !important;
-        margin: 0 !important;
+        margin: auto 0 !important;
         display: inline-flex !important;
         align-items: center;
         justify-content: center;
@@ -2911,6 +3154,7 @@
         overflow-y: hidden !important;
         flex-wrap: nowrap !important;
         justify-content: center !important;
+        justify-content: safe center !important;
       }
       .player-seat {
         padding: 0 !important;
@@ -3128,6 +3372,10 @@
       gap: 6px;
       cursor: pointer;
     }
+    .btn-header-action[style*="display: none"],
+    .btn-header-action.is-hidden {
+      display: none !important;
+    }
 
     .auth-bar-group {
       display: flex;
@@ -3154,6 +3402,14 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       white-space: nowrap;
+    }
+    .btn-auth-bar .btn-text-full,
+    .btn-text-full {
+      display: inline !important;
+    }
+    .btn-auth-bar .btn-text-short,
+    .btn-text-short {
+      display: none !important;
     }
 
     .btn-auth-bar:hover {
@@ -3392,17 +3648,22 @@
       background: linear-gradient(180deg, #1b0f06 0%, #24140b 10%, #150b05 90%, #0d0603 100%);
       color: #f7eedb;
       border-left: 5px solid #4a2810;
-      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95);
+      box-shadow: none;
       z-index: 1500;
       transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.32s;
       display: flex;
       flex-direction: column;
       font-family: var(--font-text);
+      visibility: hidden;
+      pointer-events: none;
     }
 
     #profile-drawer.open {
-      transform: translateX(0);
+      transform: translateX(0) !important;
+      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95) !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
     }
 
     .profile-hero-card {
@@ -3914,41 +4175,84 @@
         padding-left: calc(var(--safe-left) + 8px);
         padding-right: calc(var(--safe-right) + 8px);
       }
-      #lobby-screen > .glass-card,
-      #waiting-room-screen > .glass-card {
+      #lobby-screen > .glass-card {
         margin-top: 6px;
         margin-bottom: 24px;
+      }
+      #waiting-room-screen > .glass-card {
+        margin: clamp(8px, 2vh, 20px) auto !important;
+      }
+      .btn-auth-bar .btn-text-full,
+      .btn-text-full {
+        display: none !important;
+      }
+      .btn-auth-bar .btn-text-short,
+      .btn-text-short {
+        display: inline !important;
       }
       .lobby-header-bar {
         padding: 0 2px 6px;
         gap: 6px;
-        flex-wrap: wrap;
+        display: flex;
+        flex-wrap: nowrap !important;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
       }
       .lobby-header-left {
         gap: 4px;
-        flex-wrap: wrap;
+        display: flex;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        flex-shrink: 0;
+      }
+      .auth-bar-group {
+        display: flex;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        gap: 4px;
       }
       .lobby-header-right {
         gap: 4px;
-        flex-wrap: wrap;
+        display: flex;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        flex-shrink: 0;
       }
-      .lobby-header-right .btn-header-action {
-        padding: 6px 8px;
-        min-width: 38px;
-        min-height: 38px;
+      .lobby-header-right .btn-header-action:not([style*="display: none"]) {
+        padding: 0;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
         box-sizing: border-box;
       }
-      .lobby-header-right .btn-header-action .score-toggle-text {
-        display: none;
+      .lobby-header-right .btn-header-action[style*="display: none"] {
+        display: none !important;
       }
-      .lobby-header-right .btn-header-action .score-toggle-icon {
-        font-size: 17px;
-        margin: 0;
+      .lobby-header-right .btn-header-action .score-toggle-text,
+      .lobby-header-right .btn-header-action .btn-text {
+        display: none !important;
+      }
+      .lobby-header-right .btn-header-action .score-toggle-icon,
+      .lobby-header-right .btn-header-action .btn-icon {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px !important;
+        margin: 0 !important;
+        line-height: 1;
       }
       .lobby-header-left .btn-auth-bar {
-        padding: 6px 8px;
+        padding: 6px 10px;
         font-size: 11px;
-        min-height: 36px;
+        min-height: 44px;
+        box-sizing: border-box;
       }
       .user-crest-pill {
         padding: 3px 8px 3px 4px;
@@ -3985,19 +4289,43 @@
       }
       .waiting-header-bar {
         padding: 0 2px 6px;
+        display: flex;
+        flex-wrap: nowrap !important;
+        justify-content: space-between;
+        align-items: center;
       }
-      .waiting-header-right .btn-header-action {
-        padding: 6px 8px;
-        min-width: 38px;
-        min-height: 38px;
+      .waiting-header-right {
+        display: flex;
+        flex-wrap: nowrap !important;
+        align-items: center;
+      }
+      .waiting-header-right .btn-header-action:not([style*="display: none"]) {
+        padding: 0;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
         box-sizing: border-box;
       }
-      .waiting-header-right .btn-header-action .score-toggle-text {
-        display: none;
+      .waiting-header-right .btn-header-action[style*="display: none"] {
+        display: none !important;
       }
-      .waiting-header-right .btn-header-action .score-toggle-icon {
-        font-size: 17px;
-        margin: 0;
+      .waiting-header-right .btn-header-action .score-toggle-text,
+      .waiting-header-right .btn-header-action .btn-text {
+        display: none !important;
+      }
+      .waiting-header-right .btn-header-action .score-toggle-icon,
+      .waiting-header-right .btn-header-action .btn-icon {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px !important;
+        margin: 0 !important;
+        line-height: 1;
       }
       #playerName, #roomCode {
         min-height: 44px;
@@ -4006,6 +4334,17 @@
       }
       #host-bot-controls {
         flex-direction: column;
+      }
+    }
+
+    /* VOLLBILD-DRAWERS AUF SCHMALEN SMARTPHONES (<= 480px) */
+    @media (max-width: 480px) {
+      #score-board-drawer,
+      #rules-drawer,
+      #companions-drawer,
+      #profile-drawer {
+        width: 100vw !important;
+        max-width: 100vw !important;
       }
     }
 
@@ -4042,18 +4381,37 @@
     }
 
     @media (max-width: 380px) {
+      .lobby-header-bar {
+        gap: 3px;
+        flex-wrap: nowrap !important;
+      }
+      .lobby-header-left {
+        gap: 3px;
+        flex-wrap: nowrap !important;
+      }
       .lobby-header-left .btn-auth-bar {
         padding: 5px 6px;
         font-size: 10px;
-        min-height: 36px;
+        min-height: 38px;
       }
-      .lobby-header-right .btn-header-action {
-        padding: 4px 6px;
-        min-width: 36px;
-        min-height: 36px;
+      .lobby-header-right {
+        gap: 3px;
+        flex-wrap: nowrap !important;
       }
-      .lobby-header-right .btn-header-action .score-toggle-icon {
-        font-size: 15px;
+      .lobby-header-right .btn-header-action:not([style*="display: none"]) {
+        padding: 0;
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
+      }
+      .lobby-header-right .btn-header-action[style*="display: none"] {
+        display: none !important;
+      }
+      .lobby-header-right .btn-header-action .score-toggle-icon,
+      .lobby-header-right .btn-header-action .btn-icon {
+        display: inline-flex !important;
+        font-size: 15px !important;
       }
     }
 
@@ -4212,7 +4570,7 @@
       padding: 24px;
       box-sizing: border-box;
     }
-    @media screen and (orientation: landscape) and (max-height: 550px) {
+    @media screen and (orientation: landscape) and (max-height: 620px) and (max-width: 1000px), screen and (orientation: landscape) and (max-height: 550px) {
       #rotate-device-overlay {
         display: flex !important;
       }
@@ -4543,17 +4901,42 @@
       background: linear-gradient(180deg, #1b0f06 0%, #24140b 10%, #150b05 90%, #0d0603 100%) !important;
       color: #f7eedb !important;
       border-left: 5px solid #4a2810 !important;
-      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95) !important;
+      box-shadow: none !important;
       z-index: 2500 !important;
       transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.32s;
       display: flex;
       flex-direction: column;
       font-family: var(--font-text);
+      visibility: hidden !important;
+      pointer-events: none !important;
     }
 
     #companions-drawer.open {
-      transform: translateX(0);
+      transform: translateX(0) !important;
+      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95) !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+
+    /* SLIDE-OUT DRAWERS: VOLLSTÄNDIGE SCHATTEN- & SICHTBARKEITS-ISOLIERUNG IM RUHEZUSTAND */
+    #score-board-drawer:not(.open),
+    #rules-drawer:not(.open),
+    #profile-drawer:not(.open),
+    #companions-drawer:not(.open) {
+      box-shadow: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    #score-board-drawer.open,
+    #rules-drawer.open,
+    #profile-drawer.open,
+    #companions-drawer.open {
+      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.95) !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+      transform: translateX(0) !important;
     }
 
     .companions-add-box {
@@ -4799,8 +5182,15 @@
       <div class="lobby-header-left">
         <!-- GAST-MODUS (UNANGEMELDET) -->
         <div id="auth-guest-controls" class="auth-bar-group">
-          <button id="btnOpenLogin" type="button" class="btn-auth-bar" title="Im Magier-Register anmelden" aria-label="Anmelden"><span class="btn-icon" aria-hidden="true">🔑</span><span class="btn-text">Anmelden</span></button>
-          <button id="btnOpenRegister" type="button" class="btn-auth-bar btn-auth-gold" title="Neues Magier-Siegel registrieren" aria-label="Registrieren"><span class="btn-icon" aria-hidden="true">✨</span><span class="btn-text">Registrieren</span></button>
+          <button id="btnOpenLogin" type="button" class="btn-auth-bar btn-auth-gold" title="Im Magier-Register anmelden oder registrieren" aria-label="Anmelden oder Registrieren">
+            <span class="btn-icon" aria-hidden="true">🗝️</span>
+            <span class="btn-text btn-text-full">Anmelden / Registrieren</span>
+            <span class="btn-text btn-text-short">Anmelden</span>
+          </button>
+          <button id="btnOpenRegister" type="button" class="btn-auth-bar" style="display: none !important;" title="Neues Magier-Siegel registrieren" aria-label="Registrieren" aria-hidden="true" tabindex="-1">
+            <span class="btn-icon" aria-hidden="true">✨</span>
+            <span class="btn-text">Registrieren</span>
+          </button>
         </div>
 
         <!-- ANGEMELDET-MODUS -->
@@ -4812,43 +5202,42 @@
               <span id="lobbyUserTitle" class="user-pill-title">Zauberlehrling</span>
             </div>
           </div>
-          <button id="btnOpenProfile" type="button" class="btn-auth-bar" title="Profil &amp; Statistiken einsehen" aria-label="Profil und Statistiken"><span class="btn-icon" aria-hidden="true">📊</span><span class="btn-text">Profil &amp; Stats</span></button>
-          <button id="btnLogout" type="button" class="btn-auth-bar btn-auth-danger" title="Abmelden" aria-label="Abmelden"><span class="btn-icon" aria-hidden="true">🚪</span><span class="btn-text">Abmelden</span></button>
+          <button id="btnOpenProfile" type="button" class="btn-auth-bar btn-hybrid-compact" style="display: none !important;" title="Profil &amp; Statistiken einsehen" aria-label="Profil und Statistiken" tabindex="-1" aria-hidden="true"><span class="btn-icon" aria-hidden="true">📊</span><span class="btn-text">Profil &amp; Stats</span></button>
         </div>
       </div>
 
       <!-- RECHTS: AKTIONEN & EINSTELLUNGEN -->
       <div class="lobby-header-right">
         <!-- GEFÄHRTEN -->
-        <button id="btnOpenCompanionsGuest" type="button" class="btn-score-toggle btn-header-action" title="Grimoire der Gefährten öffnen">
-          <span class="score-toggle-icon">👥</span>
-          <span class="score-toggle-text">Gefährten</span>
+        <button id="btnOpenCompanionsGuest" type="button" class="btn-score-toggle btn-header-action" title="Grimoire der Gefährten öffnen" aria-label="Gefährten">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">👥</span>
+          <span class="btn-text score-toggle-text">Gefährten</span>
         </button>
-        <button id="btnOpenCompanionsUser" type="button" class="btn-score-toggle btn-header-action btn-auth-gold" style="display: none;" title="Grimoire der Gefährten öffnen">
-          <span class="score-toggle-icon">👥</span>
-          <span class="score-toggle-text">Gefährten</span>
+        <button id="btnOpenCompanionsUser" type="button" class="btn-score-toggle btn-header-action btn-auth-gold" style="display: none;" title="Grimoire der Gefährten öffnen" aria-label="Gefährten">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">👥</span>
+          <span class="btn-text score-toggle-text">Gefährten</span>
         </button>
 
         <!-- BESTENLISTE -->
-        <button id="btnOpenLeaderboardGuest" type="button" class="btn-score-toggle btn-header-action" title="Bestenliste einsehen">
-          <span class="score-toggle-icon">🏆</span>
-          <span class="score-toggle-text">Bestenliste</span>
+        <button id="btnOpenLeaderboardGuest" type="button" class="btn-score-toggle btn-header-action" title="Bestenliste einsehen" aria-label="Bestenliste">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">🏆</span>
+          <span class="btn-text score-toggle-text">Bestenliste</span>
         </button>
-        <button id="btnOpenLeaderboardUser" type="button" class="btn-score-toggle btn-header-action" style="display: none;" title="Bestenliste einsehen">
-          <span class="score-toggle-icon">🏆</span>
-          <span class="score-toggle-text">Bestenliste</span>
+        <button id="btnOpenLeaderboardUser" type="button" class="btn-score-toggle btn-header-action" style="display: none;" title="Bestenliste einsehen" aria-label="Bestenliste">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">🏆</span>
+          <span class="btn-text score-toggle-text">Bestenliste</span>
         </button>
 
         <!-- SERVER EINSTELLUNGEN -->
-        <button id="btnOpenServerSettings" type="button" class="btn-score-toggle btn-header-action btn-open-server-settings" title="Server-Verbindung &amp; IP konfigurieren">
-          <span class="score-toggle-icon">⚙️</span>
-          <span class="score-toggle-text">Server</span>
+        <button id="btnOpenServerSettings" type="button" class="btn-score-toggle btn-header-action btn-open-server-settings" title="Server-Verbindung &amp; IP konfigurieren" aria-label="Server-Einstellungen">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">⚙️</span>
+          <span class="btn-text score-toggle-text">Server</span>
         </button>
 
         <!-- AUDIO TOGGLE -->
-        <button id="lobby-audio-toggle" type="button" class="btn-score-toggle btn-header-action" title="Klang &amp; Musik">
-          <span class="score-toggle-icon">🔊</span>
-          <span class="score-toggle-text">Klang</span>
+        <button id="lobby-audio-toggle" type="button" class="btn-score-toggle btn-header-action" title="Klang &amp; Musik" aria-label="Klang und Musik">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">🔊</span>
+          <span class="btn-text score-toggle-text" id="lobby-audio-text">Klang</span>
         </button>
       </div>
     </header>
@@ -4876,9 +5265,9 @@
         </div>
       </div>
 
-      <button id="createGameBtn" type="button" aria-label="Neues Spiel gründen" style="background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border-color: var(--gold-bright); width: 100%; margin: 12px 0 0; padding: 14px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,0.8);">
+      <button id="createGameBtn" type="button" aria-label="Spiel gründen" style="background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border-color: var(--gold-bright); width: 100%; margin: 12px 0 0; padding: 14px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,0.8);">
         <span class="btn-icon" aria-hidden="true">📜</span>
-        <span class="btn-text">Neues Spiel gründen</span>
+        <span class="btn-text">Spiel gründen</span>
       </button>
       
       <div class="lobby-divider">
@@ -4887,9 +5276,9 @@
 
       <input type="text" id="roomCode" placeholder="6-stelliger Zahlencode" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="letter-spacing: 5px; font-size: 20px; text-align: center; font-weight: bold; font-family: var(--font-medieval);" />
       
-      <button id="joinBtn" type="button" aria-label="Dem Bunde beitreten" style="background: linear-gradient(180deg, #2c3442 0%, #151a22 100%); color: var(--gold-bright); width: 100%; margin: 8px 0 0; padding: 13px; font-size: 14px; font-weight: 700;">
+      <button id="joinBtn" type="button" aria-label="Beitreten" style="background: linear-gradient(180deg, #2c3442 0%, #151a22 100%); color: var(--gold-bright); width: 100%; margin: 8px 0 0; padding: 13px; font-size: 14px; font-weight: 700;">
         <span class="btn-icon" aria-hidden="true">⚔️</span>
-        <span class="btn-text">Dem Bunde beitreten</span>
+        <span class="btn-text">Beitreten</span>
       </button>
 
       <div id="lobby-status-message" style="display: none; margin-top: 10px; font-size: 13px; color: var(--gold-bright); font-family: var(--font-subheading); text-align: center;"></div>
@@ -4903,9 +5292,9 @@
         <span class="waiting-header-title">🏰 DIE RATSKAMMER</span>
       </div>
       <div class="waiting-header-right">
-        <button id="waiting-audio-toggle" type="button" class="btn-score-toggle btn-header-action" title="Klang &amp; Musik">
-          <span class="score-toggle-icon">🔊</span>
-          <span class="score-toggle-text">Klang</span>
+        <button id="waiting-audio-toggle" type="button" class="btn-score-toggle btn-header-action" title="Klang &amp; Musik" aria-label="Klang und Musik">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">🔊</span>
+          <span class="btn-text score-toggle-text">Klang</span>
         </button>
       </div>
     </header>
@@ -4920,6 +5309,26 @@
             <span class="btn-icon" aria-hidden="true">📋</span>
             <span class="btn-text">Kopieren</span>
           </button>
+        </div>
+      </div>
+
+      <!-- Kampf-Modus Auswahl (FFA vs 2vs2 Allianzen) -->
+      <div id="format-selector-container" style="margin: 8px 0 12px; padding: 10px 12px; background: rgba(14, 9, 5, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 8px; text-align: left;">
+        <div style="font-size: 11px; color: #d6be90; font-family: var(--font-subheading); letter-spacing: 0.8px; margin-bottom: 5px;">KAMPF-MODUS</div>
+        <div id="host-format-controls" style="display: none;">
+          <div class="format-segmented-control" style="display: flex; gap: 6px; width: 100%;">
+            <button id="btnFormatFFA" type="button" class="btn-format-toggle active" style="flex: 1; padding: 7px 6px; font-size: 11.5px; border-radius: 6px;" title="Jeder gegen Jeden (Standard)" aria-label="Jeder gegen Jeden">
+              <span class="btn-icon" aria-hidden="true">⚔️</span>
+              <span class="btn-text">Jeder gegen Jeden</span>
+            </button>
+            <button id="btnFormat2v2" type="button" class="btn-format-toggle" style="flex: 1; padding: 7px 6px; font-size: 11.5px; border-radius: 6px;" title="2vs2 Allianzen (4 Spieler)" aria-label="2vs2 Allianzen">
+              <span class="btn-icon" aria-hidden="true">🤝</span>
+              <span class="btn-text">2vs2 Allianzen</span>
+            </button>
+          </div>
+        </div>
+        <div id="guest-format-display" style="display: block; font-size: 13px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-subheading);">
+          ⚔️ Jeder gegen Jeden (FFA)
         </div>
       </div>
 
@@ -4939,8 +5348,45 @@
 
       <p style="color: #ebd7af; font-size: 14px; margin: 12px 0 8px;">Versammelte Magier (<span id="waitingRoomCount">0</span>/6):</p>
       
-      <!-- Liste der anwesenden Spieler -->
+      <!-- Liste der anwesenden Spieler (FFA) -->
       <div id="waitingRoomPlayersList" style="display: flex; flex-direction: column; gap: 8px; margin: 10px 0 16px; max-height: 240px; overflow-y: auto;"></div>
+
+      <!-- 2vs2 Allianzen Spalten-Darstellung -->
+      <div id="waitingRoomTeamsContainer" style="display: none; flex-direction: column; gap: 10px; margin: 10px 0 16px;">
+        <!-- Team A: Allianz des Sonnenfeuers -->
+        <div class="team-alliance-card team-card-sonnenfeuer" style="background: rgba(127, 29, 29, 0.25); border: 1.5px solid #ef4444; border-radius: 8px; padding: 10px 12px; text-align: left;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-subheading); font-size: 13px; color: #fca5a5; font-weight: bold;">
+              <span>🔥</span>
+              <span class="btn-text-full">Allianz des Sonnenfeuers</span>
+              <span class="btn-text-short">Sonnenfeuer</span>
+              <span id="teamCountA" style="font-size: 11px; opacity: 0.85;">(0/2)</span>
+            </div>
+            <button id="btnJoinTeamA" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 4px 8px; font-size: 11px; min-height: 28px; display: none;" title="Allianz des Sonnenfeuers beitreten" aria-label="Sonnenfeuer beitreten">
+              <span class="btn-icon" aria-hidden="true">🔥</span>
+              <span class="btn-text">Beitreten</span>
+            </button>
+          </div>
+          <div id="teamPlayersListA" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+
+        <!-- Team B: Allianz der Mondschatten -->
+        <div class="team-alliance-card team-card-mondschatten" style="background: rgba(30, 58, 138, 0.25); border: 1.5px solid #3b82f6; border-radius: 8px; padding: 10px 12px; text-align: left;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-subheading); font-size: 13px; color: #93c5fd; font-weight: bold;">
+              <span>🌙</span>
+              <span class="btn-text-full">Allianz der Mondschatten</span>
+              <span class="btn-text-short">Mondschatten</span>
+              <span id="teamCountB" style="font-size: 11px; opacity: 0.85;">(0/2)</span>
+            </div>
+            <button id="btnJoinTeamB" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 4px 8px; font-size: 11px; min-height: 28px; display: none;" title="Allianz der Mondschatten beitreten" aria-label="Mondschatten beitreten">
+              <span class="btn-icon" aria-hidden="true">🌙</span>
+              <span class="btn-text">Beitreten</span>
+            </button>
+          </div>
+          <div id="teamPlayersListB" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+      </div>
 
       <!-- KI-Magier Steuerung für den Host (Solo- & Übungsmodus) -->
       <div id="host-bot-controls" style="display: none; margin: 6px 0 14px; gap: 8px; position: relative;">
@@ -4982,7 +5428,7 @@
       <!-- Gefährten einladen Button -->
       <button id="btnOpenCompanionsWaiting" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 4px 0 12px; padding: 10px; font-size: 13.5px;" title="Gefährten aus deinem Grimoire einladen" aria-label="Gefährten einladen">
         <span class="btn-icon" aria-hidden="true">👥</span>
-        <span class="btn-text">Gefährten rufen / einladen</span>
+        <span class="btn-text">Gefährten einladen</span>
       </button>
 
       <!-- Aktionen: Raum verlassen & Spiel starten -->
@@ -4991,9 +5437,9 @@
           <span class="btn-icon" aria-hidden="true">🚪</span>
           <span class="btn-text">Kammer verlassen</span>
         </button>
-        <button id="waitingRoomStartBtn" type="button" aria-label="Partie jetzt beginnen" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border-color: var(--gold-bright);">
+        <button id="waitingRoomStartBtn" type="button" aria-label="Partie beginnen" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border-color: var(--gold-bright);">
           <span class="btn-icon" aria-hidden="true">⚔️</span>
-          <span class="btn-text">Partie jetzt beginnen (Runde 1)</span>
+          <span class="btn-text"><span class="btn-text-full">Partie beginnen</span><span class="btn-text-short">Starten</span></span>
         </button>
       </div>
     </div>
@@ -5022,6 +5468,10 @@
         </div>
         <button id="btnCopyGameCode" type="button" style="display: none;" title="Code kopieren"></button>
         <div id="status-message" style="display: none;">Warte auf Spielstart...</div>
+        <button id="btnReopenGameOver" type="button" aria-label="Siegerehrung anzeigen" style="display: none; background: linear-gradient(180deg, #d97706, #b45309); color: #fff; border: 1.5px solid #fde047; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; margin-top: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); align-items: center; gap: 4px;">
+          <span class="btn-icon" aria-hidden="true">🏆</span>
+          <span class="btn-text">Siegerehrung anzeigen</span>
+        </button>
       </div>
 
       <!-- RECHTS: ZENTRALES EINSTELLUNGS- & ZITADELLEN-MENÜ -->
@@ -5041,6 +5491,7 @@
         <button id="score-drawer-close" class="drawer-close-btn">&times;</button>
       </div>
       <div class="drawer-scroll">
+        <div id="alliance-score-overview" class="score-drawer-alliance-summary" style="display: none;"></div>
         <table class="score-table" id="score-table">
           <thead id="score-table-head"></thead>
           <tbody id="score-table-body"></tbody>
@@ -5315,13 +5766,19 @@
       <div id="shapeshifter-modal" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 14px 18px; background: rgba(14, 9, 5, 0.96); border-radius: 12px; border: 2px solid var(--gold-bright); z-index: 130; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 10px 32px rgba(0,0,0,0.95);">
         <h4 style="margin: 0 0 10px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 14px;">Doppelgänger: Gestalt wählen:</h4>
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          <button id="btnShapeshifterWizard" type="button" aria-label="Als Erzmagier spielen" style="background: linear-gradient(180deg, #581c87, #2e0847); color: var(--gold-bright); border-color: var(--gold-bright); padding: 10px; font-weight: bold;">
+          <button id="btnShapeshifterWizard" type="button" aria-label="Erzmagier (Z)" style="background: linear-gradient(180deg, #581c87, #2e0847); color: var(--gold-bright); border-color: var(--gold-bright); padding: 10px; font-weight: bold;">
             <span class="btn-icon" aria-hidden="true">🧙‍♂️</span>
-            <span class="btn-text">Als Erzmagier spielen (Z)</span>
+            <span class="btn-text">
+              <span class="btn-text-full">Als Erzmagier spielen (Z)</span>
+              <span class="btn-text-short">Erzmagier (Z)</span>
+            </span>
           </button>
-          <button id="btnShapeshifterJester" type="button" aria-label="Als Scharlatan spielen" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border-color: #94a3b8; padding: 10px; font-weight: bold;">
+          <button id="btnShapeshifterJester" type="button" aria-label="Scharlatan (N)" style="background: linear-gradient(180deg, #475569, #1e293b); color: #f8fafc; border-color: #94a3b8; padding: 10px; font-weight: bold;">
             <span class="btn-icon" aria-hidden="true">🎭</span>
-            <span class="btn-text">Als Scharlatan spielen (N)</span>
+            <span class="btn-text">
+              <span class="btn-text-full">Als Scharlatan spielen (N)</span>
+              <span class="btn-text-short">Scharlatan (N)</span>
+            </span>
           </button>
           <button id="btnShapeshifterCancel" type="button" class="btn-leave" aria-label="Abbrechen" style="margin-top: 4px; padding: 6px;">
             <span class="btn-icon" aria-hidden="true">❌</span>
@@ -5399,13 +5856,21 @@
       <!-- DEINE HANDKARTEN -->
       <div class="hand-section" id="my-hand-section">
         <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 4px; flex-wrap: wrap;">
-          <div style="font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-antique);">Deine Handkarten</div>
+          <div class="hand-title-label" style="font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-antique);">Deine Handkarten</div>
           <div class="my-stats-hud" id="my-stats-hud">
+            <span class="hud-badge-icon hud-bid-icon" title="Deine Vorhersage">🎯</span>
             <span class="hud-label">Deine Vorhersage:</span>
             <span class="hud-value hud-bid" id="my-hud-bid">-</span>
-            <span class="hud-divider">|</span>
+            <span class="hud-divider">•</span>
+            <span class="hud-badge-icon hud-tricks-icon" title="Erzielte Stiche">🏆</span>
             <span class="hud-label">Erzielte Stiche:</span>
             <span class="hud-value hud-tricks" id="my-hud-tricks">0</span>
+            <span id="my-hud-team-separator" class="hud-divider" style="display: none;">•</span>
+            <span id="my-hud-team-container" style="display: none; align-items: center; gap: 4px;">
+              <span class="hud-badge-icon" id="my-hud-team-icon" style="display: none;">🔥</span>
+              <span class="hud-label" id="my-hud-team-name">Allianz:</span>
+              <span class="hud-value hud-team-tricks" id="my-hud-team-tricks" style="color: #67e8f9; font-weight: bold;">0/0</span>
+            </span>
           </div>
         </div>
         <div id="hand-container"></div>
@@ -5421,18 +5886,18 @@
       <div style="margin: 16px 0; font-size: 28px;">⏳</div>
       <div id="host-pause-controls" style="display: none; border-top: 1px solid rgba(240, 195, 85, 0.25); padding-top: 14px; margin-top: 12px;">
         <p style="font-size: 12px; color: var(--gold-bright); margin-bottom: 6px;">Du führst diesen Bund. Falls der Magier nicht wiederkehrt:</p>
-        <button id="btnHostReDeal" type="button" aria-label="Runde neu austeilen" style="background: linear-gradient(180deg, #8a5a14 0%, #442a06 100%); color: var(--gold-bright); width: 100%; margin: 4px 0;">
+        <button id="btnHostReDeal" type="button" aria-label="Neu austeilen" style="background: linear-gradient(180deg, #8a5a14 0%, #442a06 100%); color: var(--gold-bright); width: 100%; margin: 4px 0;">
           <span class="btn-icon" aria-hidden="true">🔄</span>
-          <span class="btn-text">Runde neu austeilen (ohne Getrennte)</span>
+          <span class="btn-text">Neu austeilen</span>
         </button>
-        <button id="btnHostAbortToWaiting" type="button" aria-label="Partie abbrechen und zurückkehren" style="background: rgba(200, 154, 56, 0.15); border: 1.5px solid var(--gold-antique); color: var(--gold-bright); width: 100%; margin: 4px 0; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer;">
+        <button id="btnHostAbortToWaiting" type="button" aria-label="In Ratskammer abbrechen" style="background: rgba(200, 154, 56, 0.15); border: 1.5px solid var(--gold-antique); color: var(--gold-bright); width: 100%; margin: 4px 0; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer;">
           <span class="btn-icon" aria-hidden="true">🏛️</span>
-          <span class="btn-text">Partie abbrechen &amp; zurück in die Ratskammer</span>
+          <span class="btn-text">In Ratskammer abbrechen</span>
         </button>
       </div>
-      <button id="btnPauseLeaveGame" class="btn-leave" type="button" aria-label="Bund verlassen" style="width: 100%; margin-top: 10px; padding: 10px;">
+      <button id="btnPauseLeaveGame" class="btn-leave" type="button" aria-label="Verlassen" style="width: 100%; margin-top: 10px; padding: 10px;">
         <span class="btn-icon" aria-hidden="true">🚪</span>
-        <span class="btn-text">Bund verlassen</span>
+        <span class="btn-text">Verlassen</span>
       </button>
     </div>
   </div>
@@ -5558,18 +6023,36 @@
 
   <!-- SIEGEREHRUNG (GAME OVER) -->
   <div id="game-over-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.92); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
-    <div style="background: linear-gradient(180deg, #24140b 0%, #120904 100%); border: 2px solid var(--gold-bright); border-radius: 16px; padding: 26px; max-width: 460px; width: 90%; color: #f7eedb; text-align: center; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95);">
-      <h1 style="color: var(--gold-bright); font-family: var(--font-heading); margin-top: 0; font-size: 28px; text-shadow: 0 2px 6px rgba(0,0,0,0.8);">🏆 Siegerehrung der Magier</h1>
-      <p style="color: #d6be90; font-style: italic; font-size: 14px;">Die Chronik ist vollendet! Ruhmeshalle:</p>
+    <div style="background: linear-gradient(180deg, #24140b 0%, #120904 100%); border: 2px solid var(--gold-bright); border-radius: 16px; padding: 26px; max-width: 480px; width: 92%; max-height: 90vh; overflow-y: auto; color: #f7eedb; text-align: center; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95); position: relative;">
+      <button id="btnGameOverClose" type="button" aria-label="Siegerehrung schließen" style="position: absolute; top: 12px; right: 14px; background: none; border: none; color: #d6be90; font-size: 26px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px; transition: color 0.2s;">&times;</button>
+      <h1 style="color: var(--gold-bright); font-family: var(--font-heading); margin-top: 0; font-size: 26px; text-shadow: 0 2px 6px rgba(0,0,0,0.8);">🏆 Siegerehrung der Magier</h1>
+      <p style="color: #d6be90; font-style: italic; font-size: 13px; margin: 0 0 12px;">Die Chronik ist vollendet! Ruhmeshalle:</p>
       
       <!-- RANKED OVERWATCH PROGRESSION DISPLAY (WIRD BEI GEWERTETEN SPIELEN EINGEBLENDET) -->
       <div id="ranked-gameover-container" style="display: none;"></div>
 
-      <div id="podium-list" style="margin: 16px 0; text-align: left;"></div>
-      <button id="resetGameBtn" type="button" aria-label="Neuen Bund stiften &amp; erneut spielen" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 12px 24px; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 14px rgba(0,0,0,0.7);">
-        <span class="btn-icon" aria-hidden="true">🔄</span>
-        <span class="btn-text">Neuen Bund stiften &amp; erneut spielen</span>
-      </button>
+      <div id="podium-list" style="margin: 14px 0; text-align: left;"></div>
+
+      <!-- AKTIONEN ZUM BEENDEN ODER WEITERSPIELEN -->
+      <div id="game-over-actions" style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px;">
+        <!-- FÜR ALLE: EHRE EINHEIMSEN & ZUR ZITADELLE (LOBBY) -->
+        <button id="btnClaimGlory" type="button" aria-label="Ehre einheimsen &amp; zur Zitadelle zurückkehren" style="background: linear-gradient(180deg, #d97706 0%, #b45309 100%); color: #fff; border: 1.5px solid #fde047; font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.45); text-shadow: 0 1px 3px rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span class="btn-icon" aria-hidden="true">✨</span>
+          <span class="btn-text">Ehre einheimsen &amp; Zur Zitadelle</span>
+        </button>
+
+        <!-- HOST: NEUEN BUND STIFTEN & ERNEUT SPIELEN (WARTERAUM) -->
+        <button id="resetGameBtn" type="button" aria-label="Neuen Bund stiften &amp; erneut spielen" style="display: none; background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%); color: var(--gold-bright); border: 1.5px solid var(--gold-bright); font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 14px rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span class="btn-icon" aria-hidden="true">🔄</span>
+          <span class="btn-text">Neuen Bund stiften &amp; erneut spielen</span>
+        </button>
+
+        <!-- GÄSTE: IM WARTERAUM AUF NÄCHSTE RUNDE WARTEN -->
+        <button id="btnGameOverStay" type="button" aria-label="Im Warteraum auf nächste Runde warten" style="display: none; background: rgba(255, 255, 255, 0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 500; padding: 10px 18px; font-size: 13px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span class="btn-icon" aria-hidden="true">⏳</span>
+          <span class="btn-text">Im Warteraum auf neue Runde warten</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -5752,6 +6235,14 @@
         <div id="profileTitleStatusDesc" style="margin-top: 8px; font-size: 11px; color: var(--gold-antique); font-style: italic;"></div>
       </div>
 
+      <!-- ABMELDEN -->
+      <div class="profile-logout-wrap" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(240, 195, 85, 0.25); text-align: center;">
+        <button id="btnLogout" type="button" class="btn-auth-bar btn-auth-danger" style="width: 100%; justify-content: center; padding: 11px 16px; font-size: 13.5px;" title="Vom Grimoire abmelden" aria-label="Abmelden">
+          <span class="btn-icon" aria-hidden="true">🚪</span>
+          <span class="btn-text">Vom Grimoire abmelden</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -5804,6 +6295,16 @@
     </div>
   </div>
 
+  <!-- RUNDE 1 STIRNKARTEN INSPEKTIONS-MODAL (VOLLBILD ARTWORK) -->
+  <div id="forehead-inspect-modal" class="modal-overlay" style="display: none; z-index: 2200;">
+    <div class="auth-modal-card" style="max-width: 320px; width: 88%; text-align: center; position: relative; padding: 22px 16px 18px;">
+      <button id="foreheadInspectModalClose" class="drawer-close-btn" style="position: absolute; top: 10px; right: 12px; font-size: 24px;">&times;</button>
+      <div id="foreheadInspectTitle" style="font-family: var(--font-subheading); font-size: 13.5px; color: var(--gold-bright); margin-bottom: 12px; font-weight: bold;">Stirnkarte von Magier</div>
+      <div id="foreheadInspectCardContainer" style="display: flex; justify-content: center; margin: 8px auto 14px; min-height: 160px; align-items: center;"></div>
+      <div id="foreheadInspectCardDesc" style="font-size: 12.5px; color: #e0d0b0; font-style: italic;"></div>
+    </div>
+  </div>
+
   <!-- AUTH-MODAL: ANMELDEN & REGISTRIEREN -->
   <div id="auth-modal" class="modal-overlay" style="display: none;">
     <div class="auth-modal-card">
@@ -5833,6 +6334,7 @@
       <form id="authForm" onsubmit="return false;">
         <div style="text-align: left; margin-bottom: 4px; font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-bright); letter-spacing: 0.8px;">Magier-Name</div>
         <input type="text" id="authUsernameInput" class="auth-input" placeholder="Wie lautet dein Name? (3-18 Zeichen)" maxlength="18" autocomplete="username" />
+        <div id="authUsernameFeedback" class="auth-input-feedback" style="display: none; font-size: 11.5px; margin: 3px 0 8px; text-align: left; font-weight: 600;"></div>
 
         <div style="text-align: left; margin-bottom: 4px; font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-bright); letter-spacing: 0.8px;">Passwort</div>
         <input type="password" id="authPasswordInput" class="auth-input" placeholder="Geheimes Losungswort (mind. 6 Zeichen)" autocomplete="current-password" />
@@ -5954,9 +6456,9 @@
           </div>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="inputAddFriendName" placeholder="Magiername eingeben..." maxlength="18" style="flex: 1; padding: 8px 10px; background: #120a05; color: #fff; border: 1px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px;" />
-            <button id="btnAddFriend" type="button" class="btn-auth-bar btn-auth-gold" aria-label="Gefährten hinzufügen" style="margin: 0; padding: 8px 14px; font-size: 13px;">
+            <button id="btnAddFriend" type="button" class="btn-auth-bar btn-auth-gold" aria-label="Gefährten hinzufügen" style="margin: 0; padding: 8px 12px; font-size: 12.5px; height: 38px; min-height: 38px; flex-shrink: 0; box-sizing: border-box;">
               <span class="btn-icon" aria-hidden="true">➕</span>
-              <span class="btn-text">Hinzufügen</span>
+              <span class="btn-text"><span class="btn-text-full">Hinzufügen</span><span class="btn-text-short">Neu</span></span>
             </button>
           </div>
           <div id="companionActionMessage" style="display: none; font-size: 12px; margin-top: 6px;"></div>

@@ -106,6 +106,7 @@ const stmtFindSession = db.prepare(`
   WHERE s.token = ?
 `);
 const stmtDeleteSession = db.prepare('DELETE FROM sessions WHERE token = ?');
+const stmtTouchSession = db.prepare('UPDATE sessions SET expires_at = ? WHERE token = ?');
 const stmtUpdateProfile = db.prepare('UPDATE users SET avatar_id = COALESCE(?, avatar_id), title = COALESCE(?, title) WHERE id = ?');
 const stmtGetLeaderboard = db.prepare(`
   SELECT u.id, u.username, u.avatar_id, u.title,
@@ -130,6 +131,11 @@ const stmtGetRankedLeaderboard = db.prepare(`
 `);
 
 // Validierungshilfen
+const RESERVED_USERNAMES = [
+  'meister merlin', 'meisterin morgana', 'erzmagier balthasar',
+  'admin', 'administrator', 'system', 'zitadelle', 'oberster rat', 'bot'
+];
+
 function validateUsername(username) {
   if (!username || typeof username !== 'string') return 'Bitte gib einen Spielernamen ein.';
   const trimmed = username.trim();
@@ -138,35 +144,58 @@ function validateUsername(username) {
   return null;
 }
 
+/**
+ * Prüft strikt (case-insensitiv & gegen reservierte Namen), ob ein Benutzername noch frei ist.
+ */
+function isUsernameAvailable(username) {
+  if (!username || typeof username !== 'string') {
+    return { available: false, error: 'Bitte gib einen Spielernamen ein.' };
+  }
+  const clean = username.trim();
+  const formatError = validateUsername(clean);
+  if (formatError) {
+    return { available: false, error: formatError };
+  }
+
+  const lower = clean.toLowerCase();
+  if (RESERVED_USERNAMES.includes(lower) || lower.endsWith('(ki)') || lower.endsWith('[bot]') || lower.includes('(ki)')) {
+    return { available: false, error: 'Dieser Name ist für Rats-Magier (KI) oder das System reserviert.' };
+  }
+
+  const existing = stmtFindUserByName.get(clean);
+  if (existing) {
+    return { available: false, error: `Der Spielername "${clean}" ist bereits vergeben.` };
+  }
+
+  return { available: true, cleanName: clean };
+}
+
 function generateSessionToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
 /**
- * Registriert einen neuen Spieler
+ * Registriert einen neuen Spieler mit striktem Duplikateschutz
  */
 function registerUser(username, password, avatarId = 'wizard_blue') {
-  const nameError = validateUsername(username);
-  if (nameError) return { success: false, error: nameError };
+  const availability = isUsernameAvailable(username);
+  if (!availability.available) {
+    return { success: false, error: availability.error };
+  }
 
   if (!password || typeof password !== 'string' || password.length < 6) {
     return { success: false, error: 'Das Passwort muss mindestens 6 Zeichen lang sein.' };
   }
 
-  const cleanName = username.trim();
-  const existing = stmtFindUserByName.get(cleanName);
-  if (existing) {
-    return { success: false, error: `Der Spielername "${cleanName}" ist bereits vergeben.` };
-  }
-
+  const cleanName = availability.cleanName;
   const hash = bcrypt.hashSync(password, 10);
   const info = stmtInsertUser.run(cleanName, hash, avatarId || 'wizard_blue');
   const userId = info.lastInsertRowid;
   stmtInsertStats.run(userId);
 
-  // 30 Tage Session
+  // 90 Tage Session
   const token = generateSessionToken();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
   stmtCreateSession.run(token, userId, expiresAt);
 
   const user = stmtFindUserById.get(userId);
@@ -304,9 +333,41 @@ function formatUserWithRank(user) {
 }
 
 /**
- * Validiert ein Session-Token
+ * Verlängert eine aktive Session um 90 Tage (Rolling Session)
  */
-function getUserByToken(token) {
+function touchSession(token) {
+  if (!token) return;
+  try {
+    const newExpiry = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+    stmtTouchSession.run(newExpiry, token);
+  } catch (e) {}
+}
+
+/**
+ * Erstellt ein atomares, rotierendes Backup der Datenbank (wizard.db.backup)
+ */
+function backupDatabase() {
+  if (dbPath === ':memory:' || !fs.existsSync(dbPath)) return Promise.resolve(null);
+  try {
+    const backupPath = path.join(dataDir, 'wizard.db.backup');
+    if (typeof db.backup === 'function') {
+      return db.backup(backupPath).then(() => {
+        return backupPath;
+      }).catch(err => {
+        console.warn('[Database] Backup fehlgeschlagen:', err);
+        return null;
+      });
+    }
+  } catch (e) {
+    console.warn('[Database] Backup-Fehler:', e);
+  }
+  return Promise.resolve(null);
+}
+
+/**
+ * Validiert ein Session-Token und verlängert es bei Aktivität
+ */
+function getUserByToken(token, refresh = true) {
   if (!token || typeof token !== 'string') return null;
   const row = stmtFindSession.get(token);
   if (!row) return null;
@@ -314,6 +375,9 @@ function getUserByToken(token) {
   if (new Date(row.expires_at) < new Date()) {
     stmtDeleteSession.run(token);
     return null;
+  }
+  if (refresh) {
+    touchSession(token);
   }
   return formatUserWithRank(row);
 }
@@ -650,9 +714,12 @@ process.once('SIGTERM', () => {
 
 module.exports = {
   db,
+  isUsernameAvailable,
   registerUser,
   loginUser,
   getUserByToken,
+  touchSession,
+  backupDatabase,
   logoutUser,
   updateUserProfile,
   recordRoundBid,

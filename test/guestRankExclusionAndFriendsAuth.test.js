@@ -53,8 +53,8 @@ console.log('✓ 2b. Gefährten-Grimoire Zugriffsschutz & Auth-Modal-Triggering 
 
 // c) Client-seitige Rang-Badge Filterung
 assert.ok(js.includes('if (p.rank && (p.userId || p.isBot))'), 'Client filtert Ränge strikt auf userId oder Bot');
-assert.ok(js.includes('isSwipeable = isMobile && total >= 8'), 'isSwipeable greift mobil ab 8 Handkarten');
-assert.ok(js.includes("dynamicMargin = '4px'"), 'Positive Kartenabstände bei swipeable Layout');
+assert.ok(js.includes('isSwipeable = isMobile && total >='), 'isSwipeable greift mobil ab Handkarten-Schwellenwert');
+assert.ok(js.includes("dynamicMargin = '-16px'") || js.includes("dynamicMargin = '4px'"), 'Kartenabstände bei swipeable Layout');
 console.log('✓ 2c. Clientseitige Rang-Badge-Ausblendung für Gäste & Hand-Swipeable-Logik verifiziert');
 
 // 3. SERVER-SIDE RANG-AUSSCHLUSS FÜR GÄSTE

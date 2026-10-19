@@ -341,6 +341,16 @@ function calculatePoints(bid, tricksWon) {
   }
 }
 
+// Kooperative Punkteauswertung für Allianzen (2vs2 Modus)
+function calculateTeamPoints(teamBid, teamTricksWon) {
+  const bid = (teamBid !== null && teamBid !== undefined) ? Number(teamBid) : 0;
+  const won = (teamTricksWon !== null && teamTricksWon !== undefined) ? Number(teamTricksWon) : 0;
+  if (bid === won) {
+    return 20 + (won * 10);
+  }
+  return -10 * Math.abs(bid - won);
+}
+
 // Berechnet die maximale Rundenanzahl für eine gegebene Spieleranzahl (3 bis 6) und Edition
 function getMaxRounds(playerCount, edition = 'classic') {
   const deckSize = (edition === 'anniversary_30') ? 70 : 60;
@@ -430,6 +440,7 @@ module.exports = {
   evaluateTrickDetails,
   isValidMove,
   calculatePoints,
+  calculateTeamPoints,
   sortCards,
   isForbiddenBid,
   getMaxRounds

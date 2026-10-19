@@ -1,10 +1,18 @@
 # Grimoire Online – Projekt-Roadmap & Arbeitsstand
 
 > **FOKUS AKTUELL**:  
-> ✅ **Stirnkarten-Sichtbarkeit & Z/N-Kürzel ABGESCHLOSSEN**: Leuchtende Stirnkarten-Badges & Glüh-Rahmen für alle Spezialkarten, kanonische **Z** (Zauberer) & **N** (Narr) Kürzel in SVGs, DOM und Modalen.  
-> 📱 **Nächster Schritt (Schritt 1)**: Android APK bauen & auf Smartphone testen (Anleitung unten)  
-> 📦 **Schritt 2**: F-Droid Veröffentlichung (Etappe 4: FOSS-Metadaten, GPLv3-Lizenz, Fastlane)  
-> ⚔️ **Schritt 3**: Erweiterung A: Automatisches Ranked-Matchmaking (1-Klick Queue)  
+> 📱 **Mobile Version (Samsung Galaxy A35 5G) – Status & Verbesserungen (Vollständig gehärtet ✅)**:  
+> - ✅ **Taktile Handkarten & Anschnitt unten (L39)**: Karten vergrößert auf `clamp(74px, 18.5vw, 94px)`; ruhen bei `translateY(16px)` für maximalen Tischraum und heben sich bei Tap/Hover auf `translateY(-34px) scale(1.08)` an.  
+> - ✅ **Links-Start & Fächer-Überlappung (L39)**: Initialer Hand-Fokus strikt bei `scrollLeft = 0`; dynamische `-16px` Fächer-Überlappung auch im horizontal scrollenden Zustand; rechter Schattenfade signalisiert Scrollbarkeit.  
+> - ✅ **Kompakte Buttons & HUD-Badges (L37)**: Alle Warteraum-, Pause- und Modalknöpfe ohne Textüberlauf einzeilig (`Partie beginnen`, `Gefährten einladen`, `Spiel gründen`, `Beitreten`); Badges `🎯`, `🏆`, `🔥`/`🌙` im In-Game HUD.  
+> - ✅ **0px Overflow Garantie**: Vollbild-Drawers (`100vw`) bei $\le 480\text{px}$, `safe center` Flexbox mit Legacy-Fallback, `margin: clamp(8px, 2vh, 20px) auto` Warteraum-Fix, 42×42px Touch-Targets.  
+> - ✅ **Rechter Randschatten-Fix**: Drawers im geschlossenen Zustand ohne Schattenwurf in den Viewport.  
+> - ✅ **Einzeiliges Header-Layout (`flex-wrap: nowrap`)**: Kompakter `🗝️ Anmelden`-Button und feste Aktionsleiste.  
+> - 🔄 **Android Sync**: Alle Assets via `npm run cap:sync` direkt in den Android-Build gespiegelt.  
+> ⚔️ **Etappe 5 (2vs2 Allianzen)**: Abgeschlossen und mit 40/40 Tests verifiziert.  
+> 🎁 **Nächster Schritt (Prio 2)**: **Magische Schatztruhen (Lootboxen) & Kosmetik-Progression** (Kartenrücken, Tisch-Skins, Avatar-Rahmen).  
+> 🏰 **Prio 3**: **„Der Turm der Erzmagier“ (Solo-Roguelike-Kampagne)**.  
+> 📦 **Prio 4**: F-Droid Veröffentlichung (Etappe 4: FOSS-Metadaten, GPLv3-Lizenz, Fastlane).  
 
 ---
 
@@ -45,22 +53,24 @@
 
 ```mermaid
 flowchart TD
-    subgraph P1["PHASE 1: MOBILE INITIALISIERUNG (ABGESCHLOSSEN ✅)"]
+    subgraph P1["PHASE 1: MOBILE INITIALISIERUNG & FIXES (ABGESCHLOSSEN ✅)"]
         E3_1["Etappe 1: Core Quality & Grimoire der Gefährten"]
         E3_2["Etappe 2: Rebranding Grimoire & 1050x1498px Pipeline"]
         E3_3["Etappe 3: Capacitor Setup & Server-URL Konfig"]
-    end
-
-    subgraph P2["PHASE 2: HEUTIGER ABLAUF"]
-        P_ICONS["✅ Prio 1: Durchgängige Button-Icons & Mobile Ergonomie"]
-        S1["1. Schritt: APK bauen & Smartphone-Test"]
-        S2["2. Schritt: Erweiterung B: AAA 3D-Karten-Animationen (Fertig ✅)"]
         S2D["Erweiterung D: Mehrstufige KI-Schwierigkeitsgrade (Fertig ✅)"]
-        S3["3. Schritt: Etappe 4: F-Droid Veröffentlichung (FOSS & GPLv3)"]
-        S2A["Schritt 4: Erweiterung A: Automatisches Ranked-Matchmaking"]
+        P_ICONS["Button-Icons & WCAG 44px Ergonomie"]
+        P_MOB["Mobiles Einzeilen-Layout & Rechter Randschatten-Fix"]
     end
 
-    P1 --> P_ICONS --> S1 --> S3 --> S2A
+    subgraph P2["PHASE 2: NEUE FEATURES"]
+        S_2V2["✅ 1. Schritt: 2vs2 Allianzen (Team-Stichkampf) - FERTIG"]
+        S_LOOT["🎁 2. Schritt: Magische Schatztruhen & Kosmetik"]
+        S_TOWER["🏰 3. Schritt: 'Der Turm der Erzmagier' (Solo Roguelike)"]
+        S_FDROID["📦 4. Schritt: F-Droid Veröffentlichung (FOSS & GPLv3)"]
+        S_RANKED["⚔️ 5. Schritt: Automatisches Ranked-Matchmaking"]
+    end
+
+    P1 --> S_2V2 --> S_LOOT --> S_TOWER --> S_FDROID --> S_RANKED
 ```
 
 ---
@@ -86,18 +96,50 @@ flowchart TD
 
 ## 📌 Phase 2: Aktuelle Aufgaben & Status
 
-### 0. ✅ PRIO 1: Durchgängige Icons für alle Buttons & Mobile Erkennbarkeit (Abgeschlossen)
-* **Design-Richtlinie**: Implementiert gemäß Skill `bencium-controlled-ux-designer` (Dark-Fantasy Emojis, WCAG 2.1 AA 44×44px Mindest-Touch-Target, Responsive Hybrid Kapselung).
-* **Umsetzung**:
-  1. **Lobby & Beitritt**: `createGameBtn` (📜), `joinBtn` (⚔️), Modus-Schalter (🍻 / ⚔️), Auth-Bar (🔑, ✨, 📊, 🚪).
-  2. **Warteraum & Bots**: `waitingRoomLeaveBtn` (🚪 `Kammer verlassen`), `waitingRoomStartBtn` (⚔️ `Partie beginnen`), `btnAddBot` (🤖), `btnRemoveBot` (❌), `btnOpenCompanionsWaiting` (👥), `btnCopyWaitingCode` (📋).
-  3. **In-Game Menüs & Zitadelle**: Einheitliche Menü-Items, `resetGameBtn` (🔄), `btnPauseLeaveGame` (🚪), `btnHostReDeal` (🔄), `btnHostAbortToWaiting` (🏛️).
-  4. **Modale & Dialoge**: GrimoireDialog (`✅ Bestätigen`, `❌ Abbrechen`), Profil-Modal (`✨ Als Gefährten schwören`, `🚪 Schließen`), Auth (`🗝️ Einloggen`, `👤 Gast`).
-  5. **Sonderkarten**: Farbwahl & Trümpfe (🔥 Rubin, 💧 Saphir, 🌿 Smaragd, ⚡ Topas), Doppelgänger (🧙‍♂️, 🎭, ❌), Hexe (🔮), Jongleur (🎭, ✋), Werwolf (👁️), Wolke (➖, ➕).
-  6. **Mobile CSS Struktur**: Kapselung in `<span class="btn-icon">` und `<span class="btn-text">`. Bei $\le$ 420px schrumpfen Sekundärbuttons (`.btn-hybrid-compact`) sauber zu quadratischen 44×44px Icon-Pills mit vollem `title`/`aria-label`.
-* **Verifikation**: 100% grün via `test/buttonIconsAccessibility.test.js` und Gesamt-Suite `npm test`. Assets nach `android/` synchronisiert via `npx cap sync`.
+### 0. ✅ Mobiles Layout, Button-Icons & Rechter Randschatten-Fix (Abgeschlossen)
+* **Ziel-Gerät**: Optimiert speziell für Smartphones wie das **Samsung Galaxy A35 5G** (Viewport 380–412px).
+* **Behobene Sorgen & Verbesserungen**:
+  1. **Rechter Randschatten vollständig entfernt**:
+     - Die 4 Drawers (`#score-board-drawer`, `#rules-drawer`, `#profile-drawer`, `#companions-drawer`) hatten dauerhaft `box-shadow: -15px 0 50px rgba(0,0,0,0.95)`, was selbst bei `translateX(100%)` 65px Schatten in den rechten Displayrand warf.
+     - Jetzt strikt `:not(.open) { box-shadow: none !important; visibility: hidden !important; }`.
+  2. **Einzeiliges Header-Layout (`flex-wrap: nowrap`)**:
+     - "Anmelden" und "Registrieren" sind zu einem Button (`#btnOpenLogin`) mit Beschriftung `🗝️ Anmelden` zusammengefasst.
+     - Die Aktionsbuttons rechts (`👥 Gefährten`, `🏆 Bestenliste`, `⚙️ Server`, `🔊 Klang`) behalten ihre feste Reihe und brechen **nicht** mehr unter den Anmelde-Button um.
+  3. **Durchgängige Button-Icons & WCAG 44×44px Mindestgröße**:
+     - Alle Buttons besitzen nun ein semantisches Icon in `<span class="btn-icon">` und Text in `<span class="btn-text">`.
+     - Bei $\le$ 420px schrumpfen Sekundärbuttons zu sauberen quadratischen 44×44px Icon-Pills.
+  4. **Stirnkarten-Sichtbarkeit & Z/N-Kürzel**:
+     - Leuchtende Stirnkarten-Badges für Spezialkarten, kanonische `Z` (Zauberer) und `N` (Narr) Kürzel, kein Kartenflackern.
+* **Verifikation**: 100% grün via `test/buttonIconsAccessibility.test.js`, `test/mobileHeaderAndShadowFix.test.js` und Gesamt-Suite `npm test`. Assets nach `android/` synchronisiert via `npm run cap:sync`.
 
-### 1. ETAPPE 4: F-Droid Veröffentlichung (FOSS & 100% Kostenlos)
+### 1. ✅ ETAPPE 5: 2vs2 Allianzen (Team-Stichkampf & Partnerspiel) (Abgeschlossen)
+* **4-Spieler Team-Modus**: 4 Zauberer spielen in zwei festen Bündnissen (Team Rubin/Smaragd oder Allianzen A vs. B auf gegenüberliegenden Sitzen 1+3 vs. 2+4).
+* **Gebots- & Stich-Mechanik**:
+  - Einzelgebote werden abgegeben, aber das Team-Ziel ist die gemeinsame Erfüllung (Summe der Gebote = Summe der erzielten Stiche) oder Partner-Punkteabgleich gemäß offiziellen Wizard-Partnerregeln.
+  - Taktisches Blockieren gegnerischer Stiche und gezieltes Abwerfen / Weiterreichen von Stichen an den Gefährten.
+* **UI/UX & Warteraum**:
+  - Warteraum: Teamauswahl-Schalter (Allianz A / Allianz B) oder automatischer Ausgleich.
+  - Tisch-Layout: Team-Banner und Farb-Aura um die Avatar-Medaillons der Verbündeten.
+  - Gemeinsames Team-HUD & zweispaltiger Team-Wertungsblock im „Block der Wahrheit“.
+* **Verifikation**: 100% grün via `test/team2v2Mode.test.js` und Gesamt-Suite `npm test`. Assets nach `android/` synchronisiert via `npm run cap:sync`.
+
+### 2. 🎁 ETAPPE 6: Magische Schatztruhen (Lootboxen) & Kosmetik-Progression [PRIO 2]
+* **Progression & Belohnungen**: Spieler verdienen durch gewonnene Runden und Level-Ups magische Schatztruhen (Holztruhe, Silberne Magiertruhe, Goldene Erzmagier-Kassette).
+* **Kosmetik-Portfolio**:
+  - **Kartenrücken (Card Backs)**: Uraltes Pergament, Astral-Kosmos, Drachenschuppe, Hain der Waldnymphen, Schattenflamme.
+  - **Spieltisch-Skins**: Tavernen-Holz, Amethyst-Krypta, Vulkan-Festung, Sternen-Observatorium.
+  - **Avatar-Rahmen & Titel**: Zierleisten, animierte Flammen/Runen um das Avatar-Icon.
+* **Drop-Raten & FOSS-Ethik**: 100% kostenlos erspielbar (kein Echtgeld / Pay-to-Win, reine Spielzeit- & Skill-Belohnungen).
+
+### 3. 🏰 ETAPPE 7: „Der Turm der Erzmagier“ (Solo-Roguelike-Kampagne) [PRIO 3]
+* **Modus-Konzept**: 10 Etagen eines mystischen Turms gegen thematische Boss-Bots erklimmen (Slay the Spire / Inscryption Inspiration).
+* **Etagen-Modifikatoren**:
+  - Zufälliger Trumpfwechsel (*Dunkler Äther*).
+  - Entmachtete Zauberer (*Gedämpfte Magie*).
+  - Narren bedienen Trümpfe (*Spiegelkabinett*).
+* **Freischaltungen**: Exklusive Meister-Titel und seltene Kosmetika für das Bezwingen des Obersten Rats auf Etage 10.
+
+### 4. ETAPPE 4: F-Droid Veröffentlichung (FOSS & 100% Kostenlos)
 * **Lizenzierung**: Saubere Open-Source-Lizenzdatei (`LICENSE`, z. B. GPLv3 oder MIT) im Root anlegen.
 * **FOSS-Audit**: Sicherstellen, dass keine proprietären Google Play Services oder proprietäre Binaries in die App eingebunden sind.
 * **Fastlane-Ordnerstruktur**:
@@ -106,7 +148,7 @@ flowchart TD
   - Smartphone-Screenshots (Filztisch, Handkarten, Grimoire).
 * **F-Droid Build-Rezept**: `.fdroid.yml` für reproducible builds erstellen und Merge Request im F-Droid Data Repository vorbereiten.
 
-### 2. ERWEITERUNG A: Automatisches Ranked-Matchmaking (1-Klick Queue)
+### 5. ERWEITERUNG A: Automatisches Ranked-Matchmaking (1-Klick Queue)
 * **Warteschlangen-System**: Spieler klicken in der Lobby auf *"Gewertete Partie suchen"*.
 * **Matchmaking-Logik**: Der Server gruppiert wartende Spieler anhand ihrer Skill-Rating (SR ±200 Punkte) in einen Raum (3–6 Spieler).
 * **Match-Ready-Dialog**: Akustisches Signal & 15-Sekunden Bestätigungs-Countdown vor Spielstart.

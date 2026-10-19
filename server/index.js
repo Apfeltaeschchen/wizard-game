@@ -9,6 +9,7 @@ const {
   evaluateTrickDetails,
   isValidMove,
   calculatePoints,
+  calculateTeamPoints,
   sortCards,
   isForbiddenBid,
   getMaxRounds,
@@ -53,6 +54,12 @@ app.use(express.static(path.join(__dirname, '../public')));
 const dbModule = require('./database');
 
 // --- REST-API FÜR ACCOUNTS, STATISTIKEN & LEADERBOARDS ---
+app.get('/api/auth/check-username', (req, res) => {
+  const username = req.query.username || '';
+  const result = dbModule.isUsernameAvailable(username);
+  res.json(result);
+});
+
 app.post('/api/auth/register', (req, res) => {
   const { username, password, avatar_id } = req.body || {};
   const result = dbModule.registerUser(username, password, avatar_id);
@@ -290,6 +297,11 @@ function createNewRoomState(hostSessionId = null, roomCode = '', isRanked = fals
     players: [],
     roomCode: roomCode,
     gameState: 'lobby',
+    matchFormat: 'ffa', // 'ffa' oder 'team_2v2'
+    teams: {
+      team_a: { name: 'Allianz des Sonnenfeuers', score: 0 },
+      team_b: { name: 'Allianz der Mondschatten', score: 0 }
+    },
     isRanked: !!isRanked,
     edition: 'classic', // 'classic' oder 'anniversary_30'
     round: 1,
@@ -492,6 +504,7 @@ io.on('connection', (socket) => {
       title: authUser ? authUser.title : null,
       skillRating: authUser ? (authUser.skill_rating || 1000) : null,
       rank: authUser ? authUser.rank : null,
+      team: (room.matchFormat === 'team_2v2') ? 'team_a' : null,
       hand: [],
       bid: null,
       tricksWon: 0,
@@ -510,6 +523,8 @@ io.on('connection', (socket) => {
       maxRounds: getMaxRounds(1, room.edition || 'classic'),
       edition: room.edition || 'classic',
       gameState: 'lobby',
+      matchFormat: room.matchFormat || 'ffa',
+      teams: room.teams || null,
       isRanked: isRankedRoom,
       trumpCard: null,
       hand: [],
@@ -653,6 +668,8 @@ io.on('connection', (socket) => {
         isPaused: room.isPaused,
         pausedReason: room.pausedReason,
         isGameOver: isGameOver,
+        matchFormat: room.matchFormat || 'ffa',
+        teams: room.teams || null,
         vampireCopiedCard: room.vampireCopiedCard,
         cloudWinnerSessionId: room.cloudPlayerSessionId,
         cloudPlayerSessionId: room.cloudPlayerSessionId,
@@ -704,6 +721,15 @@ io.on('connection', (socket) => {
       room.hostSessionId = sessionId;
     }
 
+    let assignedTeam = null;
+    if (room.matchFormat === 'team_2v2') {
+      const countA = room.players.filter(p => p.team === 'team_a').length;
+      const countB = room.players.filter(p => p.team === 'team_b').length;
+      if (countA <= countB && countA < 2) assignedTeam = 'team_a';
+      else if (countB < 2) assignedTeam = 'team_b';
+      else if (countA < 2) assignedTeam = 'team_a';
+    }
+
     const newPlayer = {
       sessionId,
       socketId: socket.id,
@@ -713,6 +739,7 @@ io.on('connection', (socket) => {
       title: authUser ? authUser.title : null,
       skillRating: authUser ? (authUser.skill_rating || 1000) : null,
       rank: authUser ? authUser.rank : null,
+      team: assignedTeam,
       hand: [],
       bid: null,
       tricksWon: 0,
@@ -728,6 +755,8 @@ io.on('connection', (socket) => {
       maxRounds: maxRounds,
       edition: room.edition || 'classic',
       gameState: room.gameState,
+      matchFormat: room.matchFormat || 'ffa',
+      teams: room.teams || null,
       isRanked: room.isRanked,
       trumpCard: room.trumpCard,
       hand: [],
@@ -776,6 +805,108 @@ io.on('connection', (socket) => {
     io.to(normalizedCode).emit('editionChanged', { edition: room.edition });
   });
 
+  // Host ändert das Spielformat ('ffa' vs. 'team_2v2')
+  socket.on('setMatchFormat', ({ roomCode, matchFormat }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Das Spielformat kann nur im Warteraum geändert werden!' });
+      return;
+    }
+
+    if (!room.hostSessionId && room.players.length > 0) {
+      room.hostSessionId = room.players[0].sessionId;
+    }
+
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der Host darf das Spielformat ändern!' });
+      return;
+    }
+
+    if (!['ffa', 'team_2v2'].includes(matchFormat)) {
+      socket.emit('actionError', { message: 'Ungültiges Spielformat.' });
+      return;
+    }
+
+    room.matchFormat = matchFormat;
+
+    if (matchFormat === 'team_2v2') {
+      // Weise vorhandene Spieler gleichmäßig den Teams zu (max 2 pro Team)
+      let countA = 0;
+      let countB = 0;
+      room.players.forEach(p => {
+        if (p.team === 'team_a' && countA < 2) {
+          countA++;
+        } else if (p.team === 'team_b' && countB < 2) {
+          countB++;
+        } else {
+          p.team = null;
+        }
+      });
+      room.players.forEach(p => {
+        if (!p.team) {
+          if (countA <= countB && countA < 2) {
+            p.team = 'team_a';
+            countA++;
+          } else if (countB < 2) {
+            p.team = 'team_b';
+            countB++;
+          } else if (countA < 2) {
+            p.team = 'team_a';
+            countA++;
+          }
+        }
+      });
+    } else {
+      room.players.forEach(p => { p.team = null; });
+    }
+
+    io.to(normalizedCode).emit('matchFormatChanged', { matchFormat: room.matchFormat, teams: room.teams });
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+  });
+
+  // Spieler wechselt Allianz im 2vs2-Modus
+  socket.on('switchTeam', ({ roomCode, team }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Allianzen können nur im Warteraum gewechselt werden!' });
+      return;
+    }
+
+    if (room.matchFormat !== 'team_2v2') {
+      socket.emit('actionError', { message: 'Allianzen sind nur im 2vs2-Modus verfügbar!' });
+      return;
+    }
+
+    if (!['team_a', 'team_b'].includes(team)) {
+      socket.emit('actionError', { message: 'Ungültige Allianz.' });
+      return;
+    }
+
+    const player = room.players.find(p => p.socketId === socket.id);
+    if (!player) {
+      socket.emit('actionError', { message: 'Spieler nicht gefunden.' });
+      return;
+    }
+
+    if (player.team === team) return;
+
+    const currentInTargetTeam = room.players.filter(p => p.team === team).length;
+    if (currentInTargetTeam >= 2) {
+      socket.emit('actionError', { message: 'Diese Allianz ist bereits voll (maximal 2 Magier)!' });
+      return;
+    }
+
+    player.team = team;
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+  });
+
   // Host fügt einen KI-Magier (Bot) zur Kammer hinzu
   socket.on('addBot', ({ roomCode, difficulty }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
@@ -800,13 +931,22 @@ io.on('connection', (socket) => {
 
     const botDiff = ['novice', 'master', 'archmage'].includes(difficulty) ? difficulty : 'master';
     const bot = createBotPlayer(room.players, botDiff);
+    if (room.matchFormat === 'team_2v2') {
+      const countA = room.players.filter(p => p.team === 'team_a').length;
+      const countB = room.players.filter(p => p.team === 'team_b').length;
+      if (countA <= countB && countA < 2) bot.team = 'team_a';
+      else if (countB < 2) bot.team = 'team_b';
+      else if (countA < 2) bot.team = 'team_a';
+    } else {
+      bot.team = null;
+    }
     room.players.push(bot);
 
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
-  // Host entfernt den zuletzt hinzugefügten KI-Magier
-  socket.on('removeBot', ({ roomCode }) => {
+  // Host entfernt einen KI-Magier (gezielt per botSessionId oder den zuletzt hinzugefügten)
+  socket.on('removeBot', ({ roomCode, botSessionId }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -823,19 +963,89 @@ io.on('connection', (socket) => {
     }
 
     let botIdx = -1;
-    for (let i = room.players.length - 1; i >= 0; i--) {
-      if (room.players[i].isBot) {
-        botIdx = i;
-        break;
+    if (botSessionId) {
+      botIdx = room.players.findIndex(p => p.isBot && p.sessionId === botSessionId);
+    } else {
+      for (let i = room.players.length - 1; i >= 0; i--) {
+        if (room.players[i].isBot) {
+          botIdx = i;
+          break;
+        }
       }
     }
 
     if (botIdx === -1) {
-      socket.emit('actionError', { message: 'Keine Bots im Raum vorhanden.' });
+      socket.emit('actionError', { message: 'Kein passender Bot im Raum vorhanden.' });
       return;
     }
 
-    room.players.splice(botIdx, 1);
+    const [removedBot] = room.players.splice(botIdx, 1);
+    if (room.teams && removedBot) {
+      if (room.teams.team_a && Array.isArray(room.teams.team_a.players)) {
+        room.teams.team_a.players = room.teams.team_a.players.filter(sid => sid !== removedBot.sessionId);
+      }
+      if (room.teams.team_b && Array.isArray(room.teams.team_b.players)) {
+        room.teams.team_b.players = room.teams.team_b.players.filter(sid => sid !== removedBot.sessionId);
+      }
+    }
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+  });
+
+  // Host verweist einen menschlichen Mitspieler aus dem Warteraum
+  socket.on('kickPlayer', ({ roomCode, targetSessionId }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Mitspieler können nur im Warteraum verwiesen werden.' });
+      return;
+    }
+
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der Host kann Mitspieler verwalten!' });
+      return;
+    }
+
+    if (!targetSessionId) {
+      socket.emit('actionError', { message: 'Kein Zielspieler angegeben.' });
+      return;
+    }
+
+    if (targetSessionId === room.hostSessionId) {
+      socket.emit('actionError', { message: 'Der Host kann sich nicht selbst verweisen!' });
+      return;
+    }
+
+    const targetIdx = room.players.findIndex(p => p.sessionId === targetSessionId);
+    if (targetIdx === -1) {
+      socket.emit('actionError', { message: 'Spieler nicht im Raum gefunden.' });
+      return;
+    }
+
+    const [kickedPlayer] = room.players.splice(targetIdx, 1);
+
+    // 2vs2 Allianzen Bereinigung
+    if (room.teams && kickedPlayer) {
+      if (room.teams.team_a && Array.isArray(room.teams.team_a.players)) {
+        room.teams.team_a.players = room.teams.team_a.players.filter(sid => sid !== kickedPlayer.sessionId);
+      }
+      if (room.teams.team_b && Array.isArray(room.teams.team_b.players)) {
+        room.teams.team_b.players = room.teams.team_b.players.filter(sid => sid !== kickedPlayer.sessionId);
+      }
+    }
+
+    if (kickedPlayer.socketId) {
+      const targetSocket = io.sockets.sockets.get(kickedPlayer.socketId);
+      if (targetSocket) {
+        targetSocket.leave(normalizedCode);
+      }
+      io.to(kickedPlayer.socketId).emit('kickedFromRoom', {
+        reason: 'Du wurdest vom Host aus der Kammer verwiesen.'
+      });
+    }
+
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
@@ -856,13 +1066,55 @@ io.on('connection', (socket) => {
     }
 
     const connectedCount = room.players.filter(p => p.connected).length;
-    if (connectedCount < 3) {
-      socket.emit('actionError', { message: 'Ihr braucht mindestens 3 aktive Spieler zum Starten!' });
-      return;
-    }
+    if (room.matchFormat === 'team_2v2') {
+      if (connectedCount !== 4) {
+        socket.emit('actionError', { message: 'Für 2vs2 Allianzen werden genau 4 aktive Magier benötigt!' });
+        return;
+      }
+      // Prüfen und balancieren: je 2 Magier in team_a und team_b
+      const connectedPlayers = room.players.filter(p => p.connected);
+      let teamA = connectedPlayers.filter(p => p.team === 'team_a');
+      let teamB = connectedPlayers.filter(p => p.team === 'team_b');
+      const unassigned = connectedPlayers.filter(p => p.team !== 'team_a' && p.team !== 'team_b');
 
-    // Nicht verbundene Spieler vor Spielstart aus der Lobby entfernen
-    room.players = room.players.filter(p => p.connected);
+      // Überschüssige Spieler aus überfüllten Teams in unassigned verschieben
+      while (teamA.length > 2) {
+        const excess = teamA.pop();
+        excess.team = null;
+        unassigned.push(excess);
+      }
+      while (teamB.length > 2) {
+        const excess = teamB.pop();
+        excess.team = null;
+        unassigned.push(excess);
+      }
+
+      // Nicht zugewiesene Spieler auffüllen
+      for (const p of unassigned) {
+        if (teamA.length < 2) {
+          p.team = 'team_a';
+          teamA.push(p);
+        } else if (teamB.length < 2) {
+          p.team = 'team_b';
+          teamB.push(p);
+        }
+      }
+
+      if (teamA.length !== 2 || teamB.length !== 2) {
+        socket.emit('actionError', { message: 'Beide Allianzen müssen aus genau 2 Magiern bestehen!' });
+        return;
+      }
+
+      // Sitzordnung alternierend anordnen: [A1, B1, A2, B2]
+      // damit sich Gefährten am Tisch gegenüber sitzen!
+      room.players = [teamA[0], teamB[0], teamA[1], teamB[1]];
+    } else {
+      if (connectedCount < 3) {
+        socket.emit('actionError', { message: 'Ihr braucht mindestens 3 aktive Spieler zum Starten!' });
+        return;
+      }
+      room.players = room.players.filter(p => p.connected);
+    }
 
     room.round = 1;
     room.dealerIndex = 0;
@@ -877,7 +1129,9 @@ io.on('connection', (socket) => {
       round: room.round,
       maxRounds: maxRounds,
       trumpCard: room.trumpCard,
-      gameState: room.gameState
+      gameState: room.gameState,
+      matchFormat: room.matchFormat || 'ffa',
+      teams: room.teams || null
     });
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
     notifyTurn(normalizedCode);
@@ -1017,7 +1271,9 @@ io.on('connection', (socket) => {
       round: room.round,
       maxRounds: maxRounds,
       trumpCard: room.trumpCard,
-      gameState: room.gameState
+      gameState: room.gameState,
+      matchFormat: room.matchFormat || 'ffa',
+      teams: room.teams || null
     });
     io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
     notifyTurn(roomCode);
@@ -1067,6 +1323,10 @@ io.on('connection', (socket) => {
     room.scoreHistory = [];
     room.isPaused = false;
     room.pausedReason = null;
+    room.teams = {
+      team_a: { name: 'Allianz des Sonnenfeuers', score: 0 },
+      team_b: { name: 'Allianz der Mondschatten', score: 0 }
+    };
 
     // Getrennte Spieler bereinigen, damit der Warteraum nur aktive Spieler enthält
     room.players = room.players.filter(p => p.connected);
@@ -1268,23 +1528,84 @@ io.on('connection', (socket) => {
 
     if (!room.scoreHistory) room.scoreHistory = [];
 
-    const roundEntries = room.players.map(p => {
-      const roundPoints = calculatePoints(p.bid !== null ? p.bid : 0, p.tricksWon);
-      p.totalScore += roundPoints;
-      p.wonCards = [];
-      return {
-        sessionId: p.sessionId,
-        name: p.name,
-        bid: p.bid,
-        tricksWon: p.tricksWon,
-        roundPoints: roundPoints,
-        totalScore: p.totalScore
+    if (!room.teams) {
+      room.teams = {
+        team_a: { name: 'Allianz des Sonnenfeuers', score: 0 },
+        team_b: { name: 'Allianz der Mondschatten', score: 0 }
       };
-    });
+    }
+
+    let teamScores = null;
+    let roundEntries = [];
+
+    if (room.matchFormat === 'team_2v2') {
+      const teamAPlayers = room.players.filter(p => p.team === 'team_a');
+      const teamBPlayers = room.players.filter(p => p.team === 'team_b');
+
+      const teamABid = teamAPlayers.reduce((sum, p) => sum + (p.bid !== null ? p.bid : 0), 0);
+      const teamATricks = teamAPlayers.reduce((sum, p) => sum + (p.tricksWon || 0), 0);
+      const teamAPoints = calculateTeamPoints(teamABid, teamATricks);
+
+      const teamBBid = teamBPlayers.reduce((sum, p) => sum + (p.bid !== null ? p.bid : 0), 0);
+      const teamBTricks = teamBPlayers.reduce((sum, p) => sum + (p.tricksWon || 0), 0);
+      const teamBPoints = calculateTeamPoints(teamBBid, teamBTricks);
+
+      room.teams.team_a.score = (room.teams.team_a.score || 0) + teamAPoints;
+      room.teams.team_b.score = (room.teams.team_b.score || 0) + teamBPoints;
+
+      teamScores = {
+        team_a: {
+          name: room.teams.team_a.name,
+          bid: teamABid,
+          tricksWon: teamATricks,
+          roundPoints: teamAPoints,
+          totalScore: room.teams.team_a.score
+        },
+        team_b: {
+          name: room.teams.team_b.name,
+          bid: teamBBid,
+          tricksWon: teamBTricks,
+          roundPoints: teamBPoints,
+          totalScore: room.teams.team_b.score
+        }
+      };
+
+      roundEntries = room.players.map(p => {
+        const teamPoints = (p.team === 'team_a') ? teamAPoints : teamBPoints;
+        const teamTotal = (p.team === 'team_a') ? room.teams.team_a.score : room.teams.team_b.score;
+        p.totalScore = teamTotal;
+        p.wonCards = [];
+        return {
+          sessionId: p.sessionId,
+          name: p.name,
+          team: p.team,
+          bid: p.bid,
+          tricksWon: p.tricksWon,
+          roundPoints: teamPoints,
+          totalScore: teamTotal
+        };
+      });
+    } else {
+      roundEntries = room.players.map(p => {
+        const roundPoints = calculatePoints(p.bid !== null ? p.bid : 0, p.tricksWon);
+        p.totalScore += roundPoints;
+        p.wonCards = [];
+        return {
+          sessionId: p.sessionId,
+          name: p.name,
+          team: p.team || null,
+          bid: p.bid,
+          tricksWon: p.tricksWon,
+          roundPoints: roundPoints,
+          totalScore: p.totalScore
+        };
+      });
+    }
 
     room.scoreHistory.push({
       round: room.round,
-      entries: roundEntries
+      entries: roundEntries,
+      teamScores: teamScores
     });
 
     const maxRounds = getMaxRounds(room.players.length, room.edition || 'classic');
@@ -1365,6 +1686,9 @@ io.on('connection', (socket) => {
       isGameOver,
       scoreHistory: room.scoreHistory,
       round: room.round,
+      matchFormat: room.matchFormat || 'ffa',
+      teams: room.teams || null,
+      teamScores: teamScores,
       isRanked: !!room.isRanked,
       rankedResults: isGameOver ? rankedResultsList : null,
       rankedResultsMap: isGameOver ? rankedResults : null
@@ -2144,12 +2468,20 @@ io.on('connection', (socket) => {
         handlePlayerBid(room, bot.sessionId, botBid);
       }, 600);
     } else if (room.gameState === 'playing_tricks') {
+      const teammate = (room.matchFormat === 'team_2v2' && bot.team)
+        ? room.players.find(p => p.team === bot.team && p.sessionId !== bot.sessionId)
+        : null;
+
       const roomContext = {
         playedCards: room.roundPlayedCards || [],
         playerVoids: room.playerVoids || {},
         players: room.players,
         edition: room.edition || 'classic',
-        botSessionId: bot.sessionId
+        botSessionId: bot.sessionId,
+        matchFormat: room.matchFormat || 'ffa',
+        team: bot.team || null,
+        teammateSessionId: teammate ? teammate.sessionId : null,
+        teammate: teammate ? { sessionId: teammate.sessionId, name: teammate.name, bid: teammate.bid, tricksWon: teammate.tricksWon } : null
       };
 
       const botDecision = chooseBotCard(
@@ -2184,6 +2516,7 @@ io.on('connection', (socket) => {
       const pData = {
         sessionId: p.sessionId,
         name: p.name,
+        team: p.team || null,
         bid: p.bid,
         tricksWon: p.tricksWon,
         totalScore: p.totalScore,

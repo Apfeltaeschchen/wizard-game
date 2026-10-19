@@ -5,6 +5,7 @@ const {
   evaluateTrick,
   isValidMove,
   calculatePoints,
+  calculateTeamPoints,
   sortCards,
   isForbiddenBid,
   getMaxRounds
@@ -33,6 +34,16 @@ assert.strictEqual(calculatePoints(0, 1), -10);
 assert.strictEqual(calculatePoints(3, 1), -20);
 assert.strictEqual(calculatePoints(1, 3), -20);
 console.log('✓ calculatePoints bestanden');
+
+// 3b. Tests für calculateTeamPoints (2vs2 Allianzen)
+assert.strictEqual(calculateTeamPoints(0, 0), 20);
+assert.strictEqual(calculateTeamPoints(2, 2), 40);
+assert.strictEqual(calculateTeamPoints(4, 4), 60);
+assert.strictEqual(calculateTeamPoints(0, 1), -10);
+assert.strictEqual(calculateTeamPoints(3, 1), -20);
+assert.strictEqual(calculateTeamPoints(1, 4), -30);
+assert.strictEqual(calculateTeamPoints(null, null), 20);
+console.log('✓ calculateTeamPoints bestanden');
 
 // 4. Tests für sortCards (Narren -> Gelb/Rot/Grün/Blau -> Trumpf -> Zauberer)
 const testHand = [

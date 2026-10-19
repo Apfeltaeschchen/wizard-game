@@ -677,6 +677,107 @@ function chooseArchmageCard(hand, currentTrick, trumpCard, myBid, tricksWon, rou
  * Universeller Dispatcher für Kartenauswahl
  */
 function chooseBotCard(hand, currentTrick, trumpCard, myBid, tricksWon, round = 1, difficulty = 'master', roomContext = {}) {
+  // Partner-Awareness für 2vs2 Allianzen
+  const teammateSessionId = roomContext.teammateSessionId ||
+    (roomContext.players && roomContext.team
+      ? roomContext.players.find(p => p.team === roomContext.team && p.sessionId !== roomContext.botSessionId)?.sessionId
+      : null);
+
+  if (teammateSessionId && currentTrick && currentTrick.length > 0) {
+    const currentLeadEvaluation = evaluateTrickDetails(
+      currentTrick.map(t => ({ playerId: t.playerSessionId || t.playerId, card: t.card })),
+      trumpCard
+    );
+    const currentWinnerId = currentLeadEvaluation.winnerPlayerId;
+
+    if (currentWinnerId === teammateSessionId) {
+      const teammateEntry = currentTrick.find(t => (t.playerSessionId || t.playerId) === teammateSessionId);
+      const teammateCard = teammateEntry ? getEffectiveCard(teammateEntry.card) : null;
+      const isStrongLeader = teammateCard && (
+        teammateCard.type === 'wizard' ||
+        teammateCard.type === 'dragon' ||
+        currentTrick.length === 3 ||
+        (teammateCard.value && teammateCard.value >= 10)
+      );
+
+      if (isStrongLeader) {
+        const trumpSuit = (trumpCard && trumpCard.suit !== 'none') ? trumpCard.suit : (trumpCard?.chosenSuit || 'none');
+        const legalCards = hand.map((card, index) => ({ card, index })).filter(item => isValidMove(item.card, hand, currentTrick));
+
+        if (legalCards.length === 1) {
+          const c = legalCards[0].card;
+          return {
+            cardIndex: legalCards[0].index,
+            chosenRole: c.type === 'shapeshifter' ? 'jester' : undefined,
+            chosenSuit: (c.type === 'cloud' || c.type === 'juggler') ? (trumpSuit !== 'none' ? trumpSuit : 'red') : undefined
+          };
+        }
+
+        if (legalCards.length > 1) {
+          const evaluated = legalCards.map(item => {
+            const eff = { ...item.card };
+            let role = undefined;
+            let suit = undefined;
+            if (item.card.type === 'shapeshifter') {
+              role = 'jester';
+              eff.chosenRole = role;
+            }
+            if (item.card.type === 'cloud' || item.card.type === 'juggler') {
+              suit = (trumpSuit !== 'none') ? trumpSuit : 'red';
+              eff.chosenSuit = suit;
+            }
+            const simTrick = [...currentTrick, { playerId: 'sim_partner_bot', card: eff }];
+            const res = evaluateTrickDetails(simTrick, trumpCard);
+            return {
+              ...item,
+              wouldWin: res.winnerPlayerId === 'sim_partner_bot',
+              chosenRole: role,
+              chosenSuit: suit
+            };
+          });
+
+          const nonWinners = evaluated.filter(e => !e.wouldWin);
+          if (nonWinners.length > 0) {
+            // Gezielt niedrige Karten oder gefährliche hohe Fehlfarben abwerfen
+            nonWinners.sort((a, b) => {
+              // Höchste Sonderkarten (Zauberer & Drache) niemals leichtfertig abwerfen
+              const isTopTierA = (a.card.type === 'wizard' || a.card.type === 'dragon');
+              const isTopTierB = (b.card.type === 'wizard' || b.card.type === 'dragon');
+              if (isTopTierA && !isTopTierB) return 1;
+              if (!isTopTierA && isTopTierB) return -1;
+
+              const isSaveA = (a.card.type === 'jester' || a.card.type === 'fairy');
+              const isSaveB = (b.card.type === 'jester' || b.card.type === 'fairy');
+              if (isSaveA && !isSaveB) return 1;
+              if (!isSaveA && isSaveB) return -1;
+
+              const isTrumpA = (a.card.suit === trumpSuit && trumpSuit !== 'none');
+              const isTrumpB = (b.card.suit === trumpSuit && trumpSuit !== 'none');
+
+              // Bevorzuge Fehlfarben vor Trumpfkarten zum Abwerfen
+              if (!isTrumpA && isTrumpB) return -1;
+              if (isTrumpA && !isTrumpB) return 1;
+
+              // Bei Fehlfarben: gefährliche hohe Werte zuerst entsorgen (Sloughing)
+              if (!isTrumpA && !isTrumpB) {
+                return (b.card.value || 0) - (a.card.value || 0);
+              }
+
+              // Bei Trümpfen: schwächste Trümpfe zuerst opfern
+              return (a.card.value || 0) - (b.card.value || 0);
+            });
+
+            return {
+              cardIndex: nonWinners[0].index,
+              chosenRole: nonWinners[0].chosenRole,
+              chosenSuit: nonWinners[0].chosenSuit
+            };
+          }
+        }
+      }
+    }
+  }
+
   if (difficulty === 'novice') {
     return chooseNoviceCard(hand, currentTrick, trumpCard, myBid, tricksWon);
   }
