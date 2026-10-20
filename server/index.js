@@ -2671,7 +2671,7 @@ io.on('connection', (socket) => {
             p.difficulty || 'master',
             room.edition || 'classic'
           );
-          const delay = 1100 + Math.floor(Math.random() * 1100);
+          const delay = 350 + Math.floor(Math.random() * 300);
           setRoomTimeout(room, () => {
             if (room.gameState === 'bidding' && (p.bid === null || p.bid === undefined)) {
               handlePlayerBid(room, p.sessionId, botBid);
@@ -2723,7 +2723,7 @@ io.on('connection', (socket) => {
       }
       setRoomTimeout(room, () => {
         handleSelectTrumpSuit(room, bot.sessionId, bestSuit);
-      }, 1000 + Math.floor(Math.random() * 400));
+      }, 450 + Math.floor(Math.random() * 250));
     } else if (room.gameState === 'bidding') {
       let currentTrumpSuit = 'none';
       if (room.trumpCard) {
@@ -2745,7 +2745,7 @@ io.on('connection', (socket) => {
 
       setRoomTimeout(room, () => {
         handlePlayerBid(room, bot.sessionId, botBid);
-      }, 1200 + Math.floor(Math.random() * 600));
+      }, 450 + Math.floor(Math.random() * 300));
     } else if (room.gameState === 'playing_tricks') {
       const teammate = (room.matchFormat === 'team_2v2' && bot.team)
         ? room.players.find(p => p.team === bot.team && p.sessionId !== bot.sessionId)
@@ -2788,7 +2788,7 @@ io.on('connection', (socket) => {
 
       setRoomTimeout(room, () => {
         handlePlayerPlayCard(room, bot.sessionId, cardIdx, chosenRole, chosenSuit);
-      }, 1300 + Math.floor(Math.random() * 700));
+      }, 450 + Math.floor(Math.random() * 300));
     }
   }
 

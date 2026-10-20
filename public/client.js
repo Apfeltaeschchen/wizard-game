@@ -4447,6 +4447,18 @@ function createPlayerWaitingItem(p, isHostUser) {
     });
   }
 
+  // Klick auf den Spieler-Eintrag öffnet das Magier-Detailprofil (mit Lore & Level)
+  item.style.cursor = 'pointer';
+  item.setAttribute('title', `${escapeHtml(p.name)} – Klicken für Profil`);
+  item.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-kick-bot') || e.target.closest('.btn-transfer-host') || e.target.closest('.btn-kick-player')) {
+      return;
+    }
+    if (typeof openPlayerDetailModal === 'function') {
+      openPlayerDetailModal(p, 'waiting');
+    }
+  });
+
   return item;
 }
 
