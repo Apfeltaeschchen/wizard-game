@@ -5336,6 +5336,145 @@
       width: 30px;
       text-align: right;
     }
+
+    /* --- SIEGEREHRUNG MATCH-STATISTIKEN & PUNKTEKURVEN-DIAGRAMM --- */
+    .podium-player-card {
+      padding: 10px 14px;
+      margin: 8px 0;
+      border-radius: 10px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+    }
+    .podium-player-card:hover {
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+    .podium-player-card.winner {
+      background: rgba(241, 196, 15, 0.22);
+      border: 1.5px solid #f1c40f;
+      box-shadow: 0 0 16px rgba(241, 196, 15, 0.25);
+    }
+    .podium-player-card.regular {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(214, 190, 144, 0.3);
+    }
+    .podium-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .podium-player-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .podium-player-info:hover .podium-player-name {
+      color: var(--gold-bright);
+      text-decoration: underline;
+    }
+    .podium-player-name {
+      color: #fff;
+      font-weight: 700;
+      font-family: var(--font-subheading);
+      letter-spacing: 0.3px;
+    }
+    .podium-score-badge {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--gold-bright);
+      font-family: var(--font-medieval);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .podium-stats-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .podium-stat-pill {
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(214, 190, 144, 0.25);
+      border-radius: 6px;
+      padding: 2px 7px;
+      color: #ebd7af;
+      white-space: nowrap;
+    }
+    .podium-chart-btn {
+      margin-left: auto;
+      background: linear-gradient(180deg, #3d2a13 0%, #1f1408 100%);
+      color: var(--gold-bright);
+      border: 1px solid var(--gold-antique);
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .podium-chart-btn:hover {
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+      transform: translateY(-1px);
+    }
+    .podium-chart-btn.my-curve {
+      background: linear-gradient(180deg, #78350f 0%, #451a03 100%);
+      border-color: #fde047;
+      color: #fef08a;
+    }
+
+    /* Chart Modal & Metrics */
+    .chart-tab-btn {
+      background: rgba(0, 0, 0, 0.4);
+      color: #d6be90;
+      border: 1px solid rgba(200, 154, 56, 0.3);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chart-tab-btn:hover, .chart-tab-btn.active {
+      background: linear-gradient(180deg, #451a03 0%, #1f0d03 100%);
+      border-color: var(--gold-bright);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+    }
+    .chart-metric-card {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(200, 154, 56, 0.25);
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .chart-metric-value {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--gold-bright);
+      font-family: var(--font-medieval);
+    }
+    .chart-metric-label {
+      font-size: 10px;
+      color: #d6be90;
+      margin-top: 2px;
+    }
+    .chart-node {
+      cursor: pointer;
+      transition: r 0.15s, fill 0.15s;
+    }
+    .chart-node:hover {
+      r: 8px !important;
+    }
   </style>
 </head>
 <body>
@@ -6196,6 +6335,12 @@
 
       <!-- AKTIONEN ZUM BEENDEN ODER WEITERSPIELEN -->
       <div id="game-over-actions" style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px;">
+        <!-- BLOCK DER WAHRHEIT (SPIEL-CHRONIK) ANSEHEN -->
+        <button id="btnGameOverScoreboard" type="button" aria-label="Block der Wahrheit (Spiel-Chronik) ansehen" style="background: rgba(0, 0, 0, 0.45); color: var(--gold-bright); border: 1.5px solid var(--gold-antique); font-weight: 600; padding: 10px 18px; font-size: 13.5px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+          <span class="btn-icon" aria-hidden="true">📜</span>
+          <span class="btn-text">Block der Wahrheit (Spiel-Chronik)</span>
+        </button>
+
         <!-- FÜR ALLE: EHRE EINHEIMSEN & ZUR ZITADELLE (LOBBY) -->
         <button id="btnClaimGlory" type="button" aria-label="Ehre einheimsen &amp; zur Zitadelle zurückkehren" style="background: linear-gradient(180deg, #d97706 0%, #b45309 100%); color: #fff; border: 1.5px solid #fde047; font-weight: bold; padding: 12px 20px; font-size: 15px; border-radius: 8px; cursor: pointer; width: 100%; box-shadow: 0 4px 16px rgba(217, 119, 6, 0.45); text-shadow: 0 1px 3px rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; gap: 8px;">
           <span class="btn-icon" aria-hidden="true">✨</span>
@@ -6214,6 +6359,34 @@
           <span class="btn-text">Im Warteraum auf neue Runde warten</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- PUNKTEKURVEN-DIAGRAMM MODAL (SVG) -->
+  <div id="score-chart-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.94); z-index: 2250; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+    <div style="background: linear-gradient(180deg, #24140b 0%, #120904 100%); border: 2px solid var(--gold-bright); border-radius: 16px; padding: 22px 20px; max-width: 640px; width: 94%; max-height: 92vh; overflow-y: auto; color: #f7eedb; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95); position: relative;">
+      <button id="btnScoreChartClose" type="button" aria-label="Diagramm schließen" style="position: absolute; top: 12px; right: 14px; background: none; border: none; color: #d6be90; font-size: 26px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 4px; transition: color 0.2s;">&times;</button>
+      
+      <div style="text-align: center; margin-bottom: 12px;">
+        <h2 id="scoreChartTitle" style="color: var(--gold-bright); font-family: var(--font-heading); margin: 0 0 4px; font-size: 20px; text-shadow: 0 2px 6px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>📈</span> <span id="scoreChartPlayerName">Punktekurve</span>
+        </h2>
+        <div id="scoreChartSubtitle" style="color: #d6be90; font-style: italic; font-size: 12px;">Chronik des Auf- und Abstiegs über alle Runden</div>
+      </div>
+
+      <!-- SPIELER-SCHNELLWECHSLER (TABS/PILLS) -->
+      <div id="scoreChartPlayerTabs" style="display: flex; gap: 6px; overflow-x: auto; padding: 4px 2px 10px; margin-bottom: 8px; justify-content: center; flex-wrap: wrap;"></div>
+
+      <!-- SVG-DIAGRAMM CONTAINER -->
+      <div id="scoreChartSvgContainer" style="background: rgba(0, 0, 0, 0.55); border: 1px solid var(--gold-antique); border-radius: 10px; padding: 12px 6px; position: relative; min-height: 240px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+        <!-- Dynamisch generiertes SVG -->
+      </div>
+
+      <!-- DETAIL-TOOLTIP BEI HOVER / TAP -->
+      <div id="scoreChartTooltip" style="display: none; background: rgba(20, 10, 5, 0.95); border: 1px solid var(--gold-bright); border-radius: 6px; padding: 6px 12px; font-size: 11.5px; color: #fef08a; text-align: center; margin-top: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6);"></div>
+
+      <!-- KENNZAHLEN ZUM MATCH (INKL. 👑 PLATZ 1 IN FÜHRUNG) -->
+      <div id="scoreChartMetrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 14px;"></div>
     </div>
   </div>
 
@@ -6410,7 +6583,7 @@
   <div id="drawer-backdrop"></div>
 
   <!-- MAGIER-PROFIL & SPIELER-DETAILS MODAL -->
-  <div id="player-detail-modal" class="modal-overlay" style="display: none; z-index: 1700;">
+  <div id="player-detail-modal" class="modal-overlay" style="display: none; z-index: 2300;">
     <div class="auth-modal-card player-detail-card" style="max-width: 400px; width: 92%; position: relative;">
       <button id="playerDetailModalClose" class="drawer-close-btn" style="position: absolute; top: 12px; right: 14px; font-size: 24px;">&times;</button>
       

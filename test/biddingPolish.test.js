@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { calculatePoints, calculateTeamPoints } = require('../server/gameLogic');
 
-const TEST_PORT = 3998;
+const TEST_PORT = process.env.TEST_PORT || 4018;
 const SERVER_URL = `http://localhost:${TEST_PORT}`;
 
 console.log('--- STARTE BIET-POLISH, BOT-PACING & PROFILE AUTOMATION TESTS ---');

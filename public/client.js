@@ -3367,7 +3367,7 @@ function openPlayerDetailModal(data, source = 'table') {
   const modal = document.getElementById('player-detail-modal');
   if (!modal || !data) return;
 
-  const isTable = (source === 'table');
+  const isTable = (source === 'table' || source === 'podium');
   const isFriendSource = (source === 'friends');
 
   const avatarEl = document.getElementById('playerDetailAvatar');
@@ -3490,10 +3490,13 @@ function openPlayerDetailModal(data, source = 'table') {
         if (statsTitleEl) statsTitleEl.innerText = 'Runden-Statistiken (Aktuelle Partie)';
         const bidVal = (data.bid !== null && data.bid !== undefined) ? data.bid : '-';
         const wonVal = (data.tricksWon !== undefined) ? data.tricksWon : 0;
-        let totalPts = 0;
-        if (typeof cachedScoreHistory !== 'undefined' && Array.isArray(cachedScoreHistory)) {
+        let totalPts = data.totalScore !== undefined ? data.totalScore : 0;
+        if (totalPts === 0 && typeof cachedScoreHistory !== 'undefined' && Array.isArray(cachedScoreHistory)) {
           cachedScoreHistory.forEach(entry => {
-            if (entry.scores && entry.scores[data.sessionId] !== undefined) {
+            if (entry.entries) {
+              const e = entry.entries.find(ent => ent.sessionId === data.sessionId);
+              if (e && e.totalScore !== undefined) totalPts = e.totalScore;
+            } else if (entry.scores && entry.scores[data.sessionId] !== undefined) {
               totalPts += entry.scores[data.sessionId];
             }
           });
@@ -3714,6 +3717,7 @@ function openScoreDrawer() {
 
 function closeScoreDrawer() {
   scoreDrawer.classList.remove('open');
+  if (scoreDrawer) scoreDrawer.style.zIndex = '';
   const profileDrawer = document.getElementById('profile-drawer');
   const profileOpen = profileDrawer && profileDrawer.classList.contains('open');
   if ((!rulesDrawer || !rulesDrawer.classList.contains('open')) && !profileOpen) {
@@ -7058,13 +7062,45 @@ function showGameOverScreen(amIHost) {
     podiumList.appendChild(allianceBanner);
   }
 
+  // Ermittle für jede Runde in cachedScoreHistory den/die Führenden (Platz 1)
+  const roundLeaders = {};
+  if (Array.isArray(cachedScoreHistory) && cachedScoreHistory.length > 0) {
+    cachedScoreHistory.forEach(record => {
+      const rNum = record.round;
+      if (Array.isArray(record.entries) && record.entries.length > 0) {
+        let maxScore = -Infinity;
+        record.entries.forEach(e => {
+          if (e.totalScore > maxScore) maxScore = e.totalScore;
+        });
+        roundLeaders[rNum] = record.entries.filter(e => e.totalScore === maxScore).map(e => e.sessionId);
+      }
+    });
+  }
+
   sorted.forEach((p, idx) => {
-    const row = document.createElement('div');
-    row.style.padding = '10px 14px';
-    row.style.margin = '6px 0';
-    row.style.borderRadius = '8px';
-    row.style.background = idx === 0 ? 'rgba(241, 196, 15, 0.25)' : 'rgba(255, 255, 255, 0.05)';
-    row.style.border = idx === 0 ? '1px solid #f1c40f' : '1px solid #7f8c8d';
+    let correctBids = 0;
+    let totalTricksWon = 0;
+    let totalDiff = 0;
+    let roundsCount = 0;
+    let leadRounds = [];
+
+    if (Array.isArray(cachedScoreHistory) && cachedScoreHistory.length > 0) {
+      cachedScoreHistory.forEach(record => {
+        roundsCount++;
+        const entry = record.entries ? record.entries.find(e => e.sessionId === p.sessionId) : null;
+        if (entry) {
+          const b = entry.bid !== null && entry.bid !== undefined ? entry.bid : 0;
+          const w = entry.tricksWon !== undefined ? entry.tricksWon : 0;
+          totalTricksWon += w;
+          totalDiff += Math.abs(w - b);
+          if (w === b) correctBids++;
+        }
+        if (roundLeaders[record.round] && roundLeaders[record.round].includes(p.sessionId)) {
+          leadRounds.push(record.round);
+        }
+      });
+    }
+    const accuracyPct = roundsCount > 0 ? Math.round((correctBids / roundsCount) * 100) : 0;
 
     let rankedDeltaHtml = '';
     if (currentIsRanked && resultsList.length > 0) {
@@ -7081,9 +7117,73 @@ function showGameOverScreen(amIHost) {
       ? (p.team === 'team_a' ? ' <span style="color: #f87171; font-size: 12px;">(🔥 Sonnenfeuer)</span>' : ' <span style="color: #60a5fa; font-size: 12px;">(🌙 Mondschatten)</span>')
       : '';
 
-    row.innerHTML = `<b>${idx + 1}. ${escapeHtml(p.name)}</b>${teamTag}: ${p.totalScore || 0} Punkte${rankedDeltaHtml}`;
-    podiumList.appendChild(row);
+    const isWinner = (idx === 0);
+    const placeBadge = isWinner ? '🥇 1.' : (idx === 1 ? '🥈 2.' : (idx === 2 ? '🥉 3.' : `${idx + 1}.`));
+    const isMe = (p.sessionId === mySessionId);
+
+    const card = document.createElement('div');
+    card.className = `podium-player-card ${isWinner ? 'winner' : 'regular'}`;
+    card.setAttribute('data-session-id', p.sessionId);
+
+    const crownPrefix = isWinner ? '👑 ' : '';
+    const leaderBadge = leadRounds.length > 0
+      ? `<span class="podium-stat-pill" style="border-color: #fde047; color: #fef08a;" title="In Führung gelegen in Runde ${leadRounds.join(', ')}">👑 ${leadRounds.length}x Spitze</span>`
+      : '';
+
+    card.innerHTML = `
+      <div class="podium-card-header">
+        <div class="podium-player-info" title="Klicken für Magier-Profil">
+          <span style="font-weight: 800; color: ${isWinner ? '#f1c40f' : '#d6be90'}; font-size: 15px;">${placeBadge}</span>
+          <span class="podium-player-name">${crownPrefix}${escapeHtml(p.name)}</span>
+          ${teamTag}
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="podium-score-badge">${p.totalScore || 0} Pkt.${rankedDeltaHtml}</span>
+          <button type="button" class="podium-chart-btn ${isMe ? 'my-curve' : ''}" data-session-id="${p.sessionId}" title="Punktekurve über alle Runden anzeigen">
+            <span aria-hidden="true">📈</span>
+            <span>${isMe ? 'Meine Kurve' : 'Kurve'}</span>
+          </button>
+        </div>
+      </div>
+      <div class="podium-stats-row">
+        <span class="podium-stat-pill" title="Trefferquote: Wie oft die Prophezeiung exakt stimmte">🎯 ${correctBids}/${roundsCount} (${accuracyPct}%)</span>
+        <span class="podium-stat-pill" title="Erzielte Stiche über alle Runden">🏆 ${totalTricksWon} Stiche</span>
+        <span class="podium-stat-pill" title="Gesamtabweichung (Fehlstiche) über alle Runden">⚖️ ±${totalDiff} Diff</span>
+        ${leaderBadge}
+      </div>
+    `;
+
+    // Klick auf Name/Info öffnet das Magier-Profil
+    const infoEl = card.querySelector('.podium-player-info');
+    if (infoEl) {
+      infoEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPlayerDetailModal(p, 'podium');
+      });
+    }
+
+    // Klick auf Chart-Button öffnet das Punktekurven-Modal
+    const chartBtn = card.querySelector('.podium-chart-btn');
+    if (chartBtn) {
+      chartBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openScoreChartModal(p.sessionId);
+      });
+    }
+
+    podiumList.appendChild(card);
   });
+
+  const btnGameOverScoreboard = document.getElementById('btnGameOverScoreboard');
+  if (btnGameOverScoreboard && !btnGameOverScoreboard._hasScoreboardListener) {
+    btnGameOverScoreboard._hasScoreboardListener = true;
+    btnGameOverScoreboard.addEventListener('click', () => {
+      if (typeof openScoreDrawer === 'function') {
+        if (scoreDrawer) scoreDrawer.style.zIndex = '2200';
+        openScoreDrawer();
+      }
+    });
+  }
 
   if (resetGameBtn) {
     resetGameBtn.style.display = amIHost ? 'flex' : 'none';
@@ -7104,6 +7204,395 @@ function showGameOverScreen(amIHost) {
   }
 
   gameOverModal.style.display = 'flex';
+}
+
+// ==========================================================================
+// PUNKTEKURVEN-DIAGRAMM (SVG-CHART) CONTROLLER
+// ==========================================================================
+function openScoreChartModal(targetSessionId) {
+  const modal = document.getElementById('score-chart-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  renderScoreChart(targetSessionId || mySessionId);
+}
+
+function closeScoreChartModal() {
+  const modal = document.getElementById('score-chart-modal');
+  if (modal) modal.style.display = 'none';
+  const tooltip = document.getElementById('scoreChartTooltip');
+  if (tooltip) tooltip.style.display = 'none';
+}
+
+function renderScoreChart(targetSessionId) {
+  const titleEl = document.getElementById('scoreChartPlayerName');
+  const tabsEl = document.getElementById('scoreChartPlayerTabs');
+  const svgContainer = document.getElementById('scoreChartSvgContainer');
+  const tooltipEl = document.getElementById('scoreChartTooltip');
+  const metricsEl = document.getElementById('scoreChartMetrics');
+
+  if (!svgContainer) return;
+  if (tooltipEl) tooltipEl.style.display = 'none';
+
+  const history = Array.isArray(cachedScoreHistory) ? cachedScoreHistory : [];
+  const players = Array.isArray(cachedPlayers) ? cachedPlayers : [];
+
+  if (players.length === 0) {
+    svgContainer.innerHTML = '<div style="color: #d6be90; padding: 20px;">Keine Spieldaten verfügbar.</div>';
+    return;
+  }
+
+  // Bestimme aktiven Spieler (Standard: targetSessionId, mySessionId oder 1. Spieler)
+  let activePlayer = players.find(p => p.sessionId === targetSessionId);
+  const isAllComparison = (targetSessionId === 'all');
+  if (!activePlayer && !isAllComparison) {
+    activePlayer = players.find(p => p.sessionId === mySessionId) || players[0];
+  }
+
+  // Spieler-Tabs generieren
+  if (tabsEl) {
+    tabsEl.innerHTML = '';
+
+    // "Alle vergleichen" Button
+    const allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.className = `chart-tab-btn ${isAllComparison ? 'active' : ''}`;
+    allBtn.innerHTML = '🌟 Alle vergleichen';
+    allBtn.addEventListener('click', () => renderScoreChart('all'));
+    tabsEl.appendChild(allBtn);
+
+    players.forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const isSelected = (!isAllComparison && activePlayer && p.sessionId === activePlayer.sessionId);
+      btn.className = `chart-tab-btn ${isSelected ? 'active' : ''}`;
+      const isMe = (p.sessionId === mySessionId);
+      btn.innerHTML = `${isMe ? '👑 ' : ''}${escapeHtml(p.name)}`;
+      btn.addEventListener('click', () => renderScoreChart(p.sessionId));
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  const numRounds = history.length;
+  if (numRounds === 0) {
+    svgContainer.innerHTML = '<div style="color: #d6be90; padding: 20px; text-align: center;">Noch keine Runden abgeschlossen.</div>';
+    if (metricsEl) metricsEl.innerHTML = '';
+    return;
+  }
+
+  // Berechne Runden-Stände für alle Spieler
+  // round 0: score = 0 für alle
+  const seriesByPlayer = {};
+  players.forEach(p => {
+    seriesByPlayer[p.sessionId] = [{
+      round: 0,
+      score: 0,
+      delta: 0,
+      bid: null,
+      tricksWon: 0,
+      rank: 1,
+      isRank1: true
+    }];
+  });
+
+  // Iteriere Runden
+  history.forEach(rec => {
+    const rNum = rec.round;
+    const roundEntries = rec.entries || [];
+
+    // Finde Max-Score in dieser Runde für Rang 1
+    let maxRoundScore = -Infinity;
+    roundEntries.forEach(e => {
+      if ((e.totalScore || 0) > maxRoundScore) maxRoundScore = (e.totalScore || 0);
+    });
+
+    // Sortiere für Rangberechnung
+    const sortedRound = [...roundEntries].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+
+    roundEntries.forEach(e => {
+      if (seriesByPlayer[e.sessionId]) {
+        const rankIdx = sortedRound.findIndex(sr => sr.sessionId === e.sessionId);
+        const rank = rankIdx !== -1 ? rankIdx + 1 : 1;
+        seriesByPlayer[e.sessionId].push({
+          round: rNum,
+          score: e.totalScore || 0,
+          delta: e.roundPoints || 0,
+          bid: e.bid,
+          tricksWon: e.tricksWon || 0,
+          rank: rank,
+          isRank1: (e.totalScore === maxRoundScore)
+        });
+      }
+    });
+  });
+
+  // SVG-Abmessungen & Skalierung
+  const svgW = 560;
+  const svgH = 240;
+  const padLeft = 45;
+  const padRight = 24;
+  const padTop = 32;
+  const padBottom = 28;
+
+  const plotW = svgW - padLeft - padRight;
+  const plotH = svgH - padTop - padBottom;
+
+  // Min / Max Score über alle relevanten Kurven
+  let minScore = 0;
+  let maxScore = 40;
+
+  if (isAllComparison) {
+    Object.values(seriesByPlayer).forEach(pts => {
+      pts.forEach(pt => {
+        if (pt.score < minScore) minScore = pt.score;
+        if (pt.score > maxScore) maxScore = pt.score;
+      });
+    });
+  } else if (activePlayer && seriesByPlayer[activePlayer.sessionId]) {
+    seriesByPlayer[activePlayer.sessionId].forEach(pt => {
+      if (pt.score < minScore) minScore = pt.score;
+      if (pt.score > maxScore) maxScore = pt.score;
+    });
+  }
+
+  // Headroom oben (damit Kronen und Punkte nicht anstoßen)
+  maxScore = Math.ceil(maxScore * 1.1 / 10) * 10;
+  if (minScore < 0) minScore = Math.floor(minScore / 10) * 10;
+  const scoreRange = (maxScore - minScore) || 1;
+
+  function getX(r) {
+    return padLeft + (r / numRounds) * plotW;
+  }
+  function getY(sc) {
+    return padTop + plotH - ((sc - minScore) / scoreRange) * plotH;
+  }
+
+  // SVG Markup zusammenbauen
+  let svgInner = '';
+
+  // Gradient Definitionen
+  svgInner += `
+    <defs>
+      <linearGradient id="chartGoldGradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.38"/>
+        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
+      </linearGradient>
+      <filter id="crownGlow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+  `;
+
+  // Grid Lines (Horizontale Linien für Punkte)
+  const gridSteps = 4;
+  for (let i = 0; i <= gridSteps; i++) {
+    const val = Math.round(minScore + (scoreRange / gridSteps) * i);
+    const yPos = getY(val);
+    svgInner += `
+      <line x1="${padLeft}" y1="${yPos}" x2="${svgW - padRight}" y2="${yPos}" stroke="rgba(214, 190, 144, 0.15)" stroke-width="1" stroke-dasharray="3,3" />
+      <text x="${padLeft - 6}" y="${yPos + 3.5}" text-anchor="end" font-size="10" fill="#d6be90" font-family="monospace">${val}</text>
+    `;
+  }
+
+  // 0-Punkte Referenzlinie (falls minScore < 0)
+  if (minScore < 0 && maxScore > 0) {
+    const yZero = getY(0);
+    svgInner += `
+      <line x1="${padLeft}" y1="${yZero}" x2="${svgW - padRight}" y2="${yZero}" stroke="rgba(239, 68, 68, 0.55)" stroke-width="1.5" stroke-dasharray="4,3" />
+      <text x="${svgW - padRight + 2}" y="${yZero + 3.5}" text-anchor="start" font-size="9.5" fill="#f87171">0 Pkt.</text>
+    `;
+  }
+
+  // X-Achsen Beschriftung (Runden)
+  for (let r = 0; r <= numRounds; r++) {
+    const xPos = getX(r);
+    const label = (r === 0) ? 'Start' : `R${r}`;
+    svgInner += `
+      <text x="${xPos}" y="${svgH - 10}" text-anchor="middle" font-size="10" fill="#d6be90">${label}</text>
+    `;
+  }
+
+  // Palette für Multivergleich
+  const PALETTE = ['#f59e0b', '#38bdf8', '#a855f7', '#4ade80', '#fb7185', '#fbbf24'];
+
+  if (isAllComparison) {
+    if (titleEl) titleEl.innerText = 'Punkteverlauf – Alle Magier im Vergleich';
+
+    players.forEach((p, pIdx) => {
+      const color = PALETTE[pIdx % PALETTE.length];
+      const pts = seriesByPlayer[p.sessionId] || [];
+      const coords = pts.map(pt => `${getX(pt.round)},${getY(pt.score)}`);
+
+      svgInner += `
+        <polyline points="${coords.join(' ')}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" />
+      `;
+
+      // Knotenpunkte
+      pts.forEach(pt => {
+        const cx = getX(pt.round);
+        const cy = getY(pt.score);
+        svgInner += `
+          <circle cx="${cx}" cy="${cy}" r="3.5" fill="${color}" stroke="#1b0f06" stroke-width="1.5" class="chart-node"
+            data-player-name="${escapeHtml(p.name)}" data-round="${pt.round}" data-score="${pt.score}" data-delta="${pt.delta}"
+            data-rank="${pt.rank}" data-is-rank1="${pt.isRank1}" data-bid="${pt.bid !== null ? pt.bid : '-'}" data-won="${pt.tricksWon}" />
+        `;
+      });
+    });
+
+    if (metricsEl) {
+      metricsEl.innerHTML = `
+        <div class="chart-metric-card" style="grid-column: 1 / -1;">
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            ${players.map((p, idx) => `
+              <span style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #ebd7af;">
+                <span style="display: inline-block; width: 12px; height: 12px; background: ${PALETTE[idx % PALETTE.length]}; border-radius: 3px;"></span>
+                <b>${escapeHtml(p.name)}</b> (${p.totalScore || 0} Pkt.)
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+  } else if (activePlayer) {
+    if (titleEl) titleEl.innerText = `Punkteverlauf – ${activePlayer.name}`;
+    const pts = seriesByPlayer[activePlayer.sessionId] || [];
+    const coords = pts.map(pt => `${getX(pt.round)},${getY(pt.score)}`);
+
+    // Fläche unter der Kurve
+    const yBottom = getY(minScore);
+    const xStart = getX(0);
+    const xEnd = getX(numRounds);
+    const areaPath = `M ${xStart},${yBottom} L ${coords.join(' L ')} L ${xEnd},${yBottom} Z`;
+
+    svgInner += `
+      <path d="${areaPath}" fill="url(#chartGoldGradient)" />
+      <polyline points="${coords.join(' ')}" fill="none" stroke="#f59e0b" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+    `;
+
+    // Knotenpunkte und 👑 Kronen-Marker für Platz 1
+    const leadRounds = [];
+    let bestGain = -Infinity;
+    let bestGainRound = 1;
+    let worstLoss = Infinity;
+    let worstLossRound = 1;
+    let peakScore = -Infinity;
+    let peakRound = 0;
+    let bestRank = Infinity;
+    let bestRankRound = 1;
+    let totalBidsCorrect = 0;
+
+    pts.forEach(pt => {
+      const cx = getX(pt.round);
+      const cy = getY(pt.score);
+
+      if (pt.round > 0) {
+        if (pt.score > peakScore) { peakScore = pt.score; peakRound = pt.round; }
+        if (pt.delta > bestGain) { bestGain = pt.delta; bestGainRound = pt.round; }
+        if (pt.delta < worstLoss) { worstLoss = pt.delta; worstLossRound = pt.round; }
+        if (pt.rank < bestRank) { bestRank = pt.rank; bestRankRound = pt.round; }
+        if (pt.bid !== null && pt.bid === pt.tricksWon) { totalBidsCorrect++; }
+        if (pt.isRank1) { leadRounds.push(pt.round); }
+      }
+
+      if (pt.isRank1 && pt.round > 0) {
+        // 👑 Kronen-Marker auf der Kurve für Runden in Führung!
+        svgInner += `
+          <circle cx="${cx}" cy="${cy}" r="6.5" fill="#fde047" stroke="#fff" stroke-width="2.5" class="chart-node leader-node" filter="url(#crownGlow)"
+            data-player-name="${escapeHtml(activePlayer.name)}" data-round="${pt.round}" data-score="${pt.score}" data-delta="${pt.delta}"
+            data-rank="${pt.rank}" data-is-rank1="true" data-bid="${pt.bid !== null ? pt.bid : '-'}" data-won="${pt.tricksWon}" />
+          <text x="${cx}" y="${cy - 9}" text-anchor="middle" font-size="13" class="chart-crown" style="user-select: none;">👑</text>
+        `;
+      } else {
+        svgInner += `
+          <circle cx="${cx}" cy="${cy}" r="4.5" fill="#fef08a" stroke="#b45309" stroke-width="2" class="chart-node"
+            data-player-name="${escapeHtml(activePlayer.name)}" data-round="${pt.round}" data-score="${pt.score}" data-delta="${pt.delta}"
+            data-rank="${pt.rank}" data-is-rank1="${pt.isRank1}" data-bid="${pt.bid !== null ? pt.bid : '-'}" data-won="${pt.tricksWon}" />
+        `;
+      }
+    });
+
+    // Metriken unter dem Diagramm anzeigen
+    if (metricsEl) {
+      const leaderText = leadRounds.length > 0
+        ? `👑 ${leadRounds.length} Runden (R${leadRounds.join(', R')})`
+        : `Höchste Platzierung: Rang ${bestRank} (R${bestRankRound})`;
+
+      const accPct = numRounds > 0 ? Math.round((totalBidsCorrect / numRounds) * 100) : 0;
+
+      metricsEl.innerHTML = `
+        <div class="chart-metric-card">
+          <div class="chart-metric-value" style="color: #fde047; font-size: 13px;">${leaderText}</div>
+          <div class="chart-metric-label">Spitzenreiter (Platz 1)</div>
+        </div>
+        <div class="chart-metric-card">
+          <div class="chart-metric-value">${peakScore} Pkt. <span style="font-size: 10px; color: #d6be90;">(R${peakRound})</span></div>
+          <div class="chart-metric-label">Höchststand (Peak)</div>
+        </div>
+        <div class="chart-metric-card">
+          <div class="chart-metric-value" style="color: #86efac;">${bestGain >= 0 ? '+' + bestGain : bestGain} Pkt. <span style="font-size: 10px; color: #d6be90;">(R${bestGainRound})</span></div>
+          <div class="chart-metric-label">Bester Runden-Sprung</div>
+        </div>
+        <div class="chart-metric-card">
+          <div class="chart-metric-value" style="color: ${worstLoss < 0 ? '#f87171' : '#86efac'};">${worstLoss > 0 ? '+' + worstLoss : worstLoss} Pkt. <span style="font-size: 10px; color: #d6be90;">(R${worstLossRound})</span></div>
+          <div class="chart-metric-label">Größter Einbruch</div>
+        </div>
+        <div class="chart-metric-card">
+          <div class="chart-metric-value">${totalBidsCorrect}/${numRounds} (${accPct}%)</div>
+          <div class="chart-metric-label">Trefferquote</div>
+        </div>
+      `;
+    }
+  }
+
+  svgContainer.innerHTML = `
+    <svg viewBox="0 0 ${svgW} ${svgH}" width="100%" height="100%" style="display: block; overflow: visible;">
+      ${svgInner}
+    </svg>
+  `;
+
+  // Event Listener für interaktive Tooltips auf Knotenpunkten
+  const nodes = svgContainer.querySelectorAll('.chart-node');
+  nodes.forEach(node => {
+    function showNodeTooltip() {
+      if (!tooltipEl) return;
+      const r = node.getAttribute('data-round');
+      const sc = node.getAttribute('data-score');
+      const d = node.getAttribute('data-delta');
+      const rk = node.getAttribute('data-rank');
+      const isR1 = (node.getAttribute('data-is-rank1') === 'true');
+      const b = node.getAttribute('data-bid');
+      const w = node.getAttribute('data-won');
+      const pName = node.getAttribute('data-player-name') || '';
+
+      const deltaFormatted = (d && parseInt(d, 10) >= 0) ? `+${d}` : d;
+      const rankBadge = isR1 ? '<b style="color: #fde047;">👑 Platz 1 (in Führung)</b>' : `Platz ${rk}`;
+      const bidInfo = (b && b !== '-') ? ` | Gebot: ${b}, Stiche: ${w}` : '';
+
+      tooltipEl.style.display = 'block';
+      tooltipEl.innerHTML = `
+        <span style="color: var(--gold-bright); font-weight: bold;">${pName} – Runde ${r}:</span>
+        <span style="color: #fff;">${sc} Pkt.</span>
+        ${r > 0 ? `<span style="color: #86efac;">(${deltaFormatted} Pkt.)</span>` : ''}
+        &nbsp;|&nbsp; ${rankBadge}${bidInfo}
+      `;
+    }
+
+    node.addEventListener('mouseenter', showNodeTooltip);
+    node.addEventListener('click', showNodeTooltip);
+  });
+}
+
+// Chart Modal Schließen-Buttons
+const btnScoreChartClose = document.getElementById('btnScoreChartClose');
+if (btnScoreChartClose) {
+  btnScoreChartClose.addEventListener('click', closeScoreChartModal);
+}
+const scoreChartModal = document.getElementById('score-chart-modal');
+if (scoreChartModal) {
+  scoreChartModal.addEventListener('click', (e) => {
+    if (e.target === scoreChartModal) closeScoreChartModal();
+  });
 }
 
 // Socket Events für Ranked-System
