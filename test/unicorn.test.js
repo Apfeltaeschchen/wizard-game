@@ -116,6 +116,33 @@ console.log('✓ Test 1: Deckgröße 70 Karten mit Einhorn bestanden');
   console.log('✓ Test 8: Handkarten-Sortierung mit Einhorn bestanden');
 }
 
+// Test 9: Einhorn als Anspielkarte & nachfolgende Farbkarte etabliert Bedienfarbe
+{
+  const trick = [
+    { playerId: 'p1', card: { type: 'unicorn', suit: 'none', value: 0 } },
+    { playerId: 'p2', card: { type: 'color', suit: 'red', value: 8 } }
+  ];
+  // Hand von p3 hat rot und blau
+  const handWithRed = [
+    { type: 'color', suit: 'red', value: 3 },
+    { type: 'color', suit: 'blue', value: 12 }
+  ];
+  // Hand von p4 hat nur blau
+  const handWithoutRed = [
+    { type: 'color', suit: 'blue', value: 12 },
+    { type: 'color', suit: 'green', value: 4 }
+  ];
+
+  // p3 muss Rot bedienen -> Blau ist illegal, Rot ist legal
+  assert.strictEqual(isValidMove(handWithRed[1], handWithRed, trick), false, 'Blau ist ungültig, da Rot bedient werden muss');
+  assert.strictEqual(isValidMove(handWithRed[0], handWithRed, trick), true, 'Rot ist gültig (Bedienpflicht erfüllt)');
+
+  // p4 hat kein Rot -> darf Blau spielen
+  assert.strictEqual(isValidMove(handWithoutRed[0], handWithoutRed, trick), true, 'Blau ist gültig, da kein Rot auf der Hand');
+
+  console.log('✓ Test 9: Anspiel mit Einhorn & nachfolgende Farbkarte etabliert Bedienfarbe bestanden');
+}
+
 console.log('=======================================');
 console.log('ALLE EINHORN-TESTS ERFOLGREICH BESTANDEN!');
 console.log('=======================================');

@@ -64,13 +64,14 @@ flowchart TD
 
     subgraph P2["PHASE 2: NEUE FEATURES"]
         S_2V2["✅ 1. Schritt: 2vs2 Allianzen (Team-Stichkampf) - FERTIG"]
+        S_BID["🎲 2. Schritt: Biet-Modi (Simultan & Geheim) & Skull-King-Wertung"]
         S_LOOT["🎁 2. Schritt: Magische Schatztruhen & Kosmetik"]
         S_TOWER["🏰 3. Schritt: 'Der Turm der Erzmagier' (Solo Roguelike)"]
         S_FDROID["📦 4. Schritt: F-Droid Veröffentlichung (FOSS & GPLv3)"]
         S_RANKED["⚔️ 5. Schritt: Automatisches Ranked-Matchmaking"]
     end
 
-    P1 --> S_2V2 --> S_LOOT --> S_TOWER --> S_FDROID --> S_RANKED
+    P1 --> S_2V2 --> S_BID --> S_LOOT --> S_TOWER --> S_FDROID --> S_RANKED
 ```
 
 ---
@@ -122,6 +123,16 @@ flowchart TD
   - Tisch-Layout: Team-Banner und Farb-Aura um die Avatar-Medaillons der Verbündeten.
   - Gemeinsames Team-HUD & zweispaltiger Team-Wertungsblock im „Block der Wahrheit“.
 * **Verifikation**: 100% grün via `test/team2v2Mode.test.js` und Gesamt-Suite `npm test`. Assets nach `android/` synchronisiert via `npm run cap:sync`.
+
+### 1.5. 🎲 ETAPPE 5.5: Biet-Modi (Simultan & Geheim) & Skull-King-Wertung [IN ARBEIT]
+* **Alternative Biet-Modi (Hausregeln)**:
+  - **Simultanes Bieten (Skull King Modus)**: Alle Magier geben zeitgleich und verdeckt ihren Stich-Tipp ab. Nach Bestätigung aller Spieler werden sämtliche Tipps synchron aufgedeckt (kein Reihum-Wissen, Geber-Regel optional deaktiviert).
+  - **Geheimes Bieten (Secret Bid)**: Jeder Spieler kennt während der Runde nur seine eigene Prophezeiung; die Vorhersagen der Rivalen bleiben bis zur Rundenabrechnung verborgen.
+  - **Klassisches Reihum-Bieten**: Standard Wizard-Regelwerk mit Geber-Regel (+/- 1 Abweichung).
+* **Skull-King-Null-Stich-Wertung**:
+  - Null-Tipp (`bid === 0`): Bei Erfolg winkt ein mächtiger Bonus von `+ (Runde × 10)` Punkten (z. B. Runde 1: +10, Runde 5: +50, Runde 10: +100). Bei Scheitern (`> 0` Stiche) droht der gleiche Betrag als saftiger Abzug von `- (Runde × 10)` Punkten!
+  - Gebote `> 0`: Reguläre Wizard-Punkteberechnung (+20 + 10 pro Stich bei Treffer, -10 pro Differenz bei Fehlschlag).
+* **Zentrales Host-Einstellungsmenü**: Alle Regeln, Editionen und Modi lassen sich im Warteraum bequem über ein eigenes modales Menü konfigurieren.
 
 ### 2. 🎁 ETAPPE 6: Magische Schatztruhen (Lootboxen) & Kosmetik-Progression [PRIO 2]
 * **Progression & Belohnungen**: Spieler verdienen durch gewonnene Runden und Level-Ups magische Schatztruhen (Holztruhe, Silberne Magiertruhe, Goldene Erzmagier-Kassette).

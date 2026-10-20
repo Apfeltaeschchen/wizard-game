@@ -522,6 +522,61 @@ const waitingRoomStartBtn = document.getElementById('waitingRoomStartBtn');
 const waitingRoomLeaveBtn = document.getElementById('waitingRoomLeaveBtn');
 const hostEditionControls = document.getElementById('host-edition-controls');
 const guestEditionDisplay = document.getElementById('guest-edition-display');
+const btnOpenHostSettings = document.getElementById('btnOpenHostSettings');
+const hostSettingsModal = document.getElementById('host-settings-modal');
+const btnCloseHostSettings = document.getElementById('btnCloseHostSettings');
+const btnCancelHostSettings = document.getElementById('btnCancelHostSettings');
+const btnSaveHostSettings = document.getElementById('btnSaveHostSettings');
+const modalEditionSelect = document.getElementById('modalEditionSelect');
+const modalFormatSelect = document.getElementById('modalFormatSelect');
+const modalScoringSelect = document.getElementById('modalScoringSelect');
+const badgeSettingEdition = document.getElementById('badge-setting-edition');
+const badgeSettingFormat = document.getElementById('badge-setting-format');
+const badgeSettingScoring = document.getElementById('badge-setting-scoring');
+
+function updateRoomSettingsBadges(edition, format, scoring) {
+  if (badgeSettingEdition) {
+    badgeSettingEdition.innerText = (edition === 'anniversary_30') ? '🐉 Bestien & Mythen' : '📜 Klassisch';
+  }
+  if (badgeSettingFormat) {
+    badgeSettingFormat.innerText = (format === 'team_2v2') ? '🔥🌙 2vs2 Allianzen' : '⚔️ Jeder gegen Jeden';
+  }
+  if (badgeSettingScoring) {
+    badgeSettingScoring.innerText = (scoring === 'skull_king_zero') ? '☠️ Skull-King-Nullwertung' : '🎯 Wizard-Wertung';
+  }
+}
+
+if (btnOpenHostSettings) {
+  btnOpenHostSettings.addEventListener('click', () => {
+    if (modalEditionSelect) modalEditionSelect.value = currentEdition || 'classic';
+    if (modalFormatSelect) modalFormatSelect.value = currentMatchFormat || 'ffa';
+    if (modalScoringSelect) modalScoringSelect.value = currentScoringMode || 'classic';
+    if (hostSettingsModal) hostSettingsModal.style.display = 'block';
+  });
+}
+
+function closeHostSettingsModal() {
+  if (hostSettingsModal) hostSettingsModal.style.display = 'none';
+}
+if (btnCloseHostSettings) btnCloseHostSettings.addEventListener('click', closeHostSettingsModal);
+if (btnCancelHostSettings) btnCancelHostSettings.addEventListener('click', closeHostSettingsModal);
+
+if (btnSaveHostSettings) {
+  btnSaveHostSettings.addEventListener('click', () => {
+    const newEdition = modalEditionSelect ? modalEditionSelect.value : 'classic';
+    const newFormat = modalFormatSelect ? modalFormatSelect.value : 'ffa';
+    const newScoring = modalScoringSelect ? modalScoringSelect.value : 'classic';
+
+    socket.emit('updateRoomSettings', {
+      roomCode: currentRoomCode,
+      edition: newEdition,
+      matchFormat: newFormat,
+      scoringMode: newScoring
+    });
+    closeHostSettingsModal();
+  });
+}
+
 const editionSelect = document.getElementById('editionSelect');
 const hostFormatControls = document.getElementById('host-format-controls');
 const guestFormatDisplay = document.getElementById('guest-format-display');
@@ -864,6 +919,7 @@ let currentRound = 1;
 let maxRounds = 20;
 let currentEdition = 'classic';
 let currentMatchFormat = 'ffa';
+let currentScoringMode = 'classic';
 let currentTeams = {
   team_a: { name: 'Allianz des Sonnenfeuers', score: 0 },
   team_b: { name: 'Allianz der Mondschatten', score: 0 }
@@ -3207,12 +3263,12 @@ function openPlayerDetailModal(data, source = 'table') {
 
       statsGridEl.innerHTML = `
         <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-          <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${bidVal}</div>
-          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Prophezeiung</div>
-        </div>
-        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
           <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${wonVal}</div>
           <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Erzielte Stiche</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+          <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${bidVal}</div>
+          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Prophezeiung</div>
         </div>
         <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
           <div style="font-size: 15px; font-weight: 900; color: ${totalPts >= 0 ? '#86efac' : '#f87171'}; font-family: var(--font-medieval);">${totalPts}</div>
@@ -3756,6 +3812,14 @@ function updateRulesTabForEdition(edition) {
     if (content) content.classList.add('active');
   }
 }
+
+socket.on('roomSettingsUpdated', ({ edition, matchFormat, scoringMode }) => {
+  if (edition) currentEdition = edition;
+  if (matchFormat) currentMatchFormat = matchFormat;
+  if (scoringMode) currentScoringMode = scoringMode;
+  updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode);
+  updateWaitingRoomHostControls();
+});
 
 socket.on('editionChanged', ({ edition }) => {
   currentEdition = edition;
@@ -5037,13 +5101,16 @@ socket.on('trickUpdated', (trickCards) => {
   renderOpponents();
 });
 
-socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, isUnicornVoided, nextLeadName }) => {
+socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, isUnicornVoided, isUnicornActive, nextLeadName }) => {
   if (isBombed) {
     GrimoireHaptics.impact('heavy');
     statusMessage.innerText = `💥 Der Magiekollaps hat den Stich neutralisiert! ${escapeHtml(nextLeadName || 'Nächster Spieler')} eröffnet den nächsten Stich.`;
   } else if (isUnicornVoided) {
     GrimoireHaptics.impact('medium');
     statusMessage.innerText = `🦄 Das Einhorn hat alle Mächte gebannt! Da keine Zahlenkarte lag, verpufft der Stich. ${escapeHtml(nextLeadName || 'Nächster Spieler')} eröffnet den nächsten Stich.`;
+  } else if (isUnicornActive) {
+    GrimoireHaptics.impact('medium');
+    statusMessage.innerText = `🦄 Das Einhorn bannt alle Magie! ${escapeHtml(winnerName)} triumphiert mit der höchsten Farbkarte!`;
   } else {
     statusMessage.innerText = `${escapeHtml(winnerName)} gewinnt den Stich!`;
     if (winnerSessionId === mySessionId) {
@@ -5074,6 +5141,9 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, isUnicornVoid
         item.classList.add('trick-clearing');
       });
     } else {
+      if (isUnicornActive) {
+        GrimoireFX.triggerUnicornRing();
+      }
       let targetEl = null;
       if (isMe) {
         targetEl = document.getElementById('my-hud-bid') || document.getElementById('my-stats-hud') || document.getElementById('my-hand-section');
@@ -5375,7 +5445,7 @@ function renderOpponents() {
       }
     }
 
-    const bidPillHtml = `<span class="seat-bid-pill" title="Gebot: ${bidText} | Gewonnen: ${wonText}">🎯 ${bidText}/${wonText}</span>`;
+    const bidPillHtml = `<span class="seat-bid-pill" title="Gewonnen: ${wonText} | Vorhersage: ${bidText}">🏆 ${wonText} / 🎯 ${bidText}</span>`;
 
     seatEl.innerHTML = `
       ${foreheadCardHtml}
@@ -5718,7 +5788,7 @@ function isCardPlayable(cardToPlay, hand, trick) {
   for (let i = 0; i < trick.length; i++) {
     const trickCard = trick[i].card;
     const effCard = getEffectiveCard(trickCard);
-    if (effCard.type === 'wizard' || effCard.type === 'dragon' || effCard.type === 'unicorn' || effCard.type === 'bomb') break;
+    if (effCard.type === 'wizard' || effCard.type === 'dragon') break;
     if (effCard.type === 'color') {
       leadSuit = effCard.suit;
       break;
@@ -5830,18 +5900,28 @@ function renderHand(isNewDeal = false) {
 
   const total = myCurrentHand.length;
   const isMobile = window.innerWidth <= 768;
+  const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
   const isSwipeable = isMobile && total >= 5;
+  const isTabletScrollable = isTablet && total >= 6;
+  const enableSwipe = isSwipeable || isTabletScrollable;
   const restY = isMobile ? 16 : 0;
 
   let dynamicMargin = '3px';
-  if (isSwipeable) {
-    // Fächer-Überlappung auch im Scroll-Modus (verhindert Überbreite bei 6-7 Karten)
+  if (enableSwipe) {
     dynamicMargin = '-16px';
+  } else if (total > 15) {
+    dynamicMargin = '-54px';
+  } else if (total > 12) {
+    dynamicMargin = '-46px';
+  } else if (total > 9) {
+    dynamicMargin = '-36px';
+  } else if (total > 6) {
+    dynamicMargin = '-24px';
   } else if (total > 3) {
-    dynamicMargin = '-4px';
+    dynamicMargin = '-10px';
   }
 
-  if (isSwipeable) {
+  if (enableSwipe) {
     handContainer.classList.add('swipeable');
   } else {
     handContainer.classList.remove('swipeable');
@@ -5858,7 +5938,7 @@ function renderHand(isNewDeal = false) {
       const playable = isMyTurn && isPlayingPhase && isCardPlayable(card, myCurrentHand, currentTrick);
 
       cardElement.setAttribute('data-index', index);
-      cardElement.style.setProperty('margin-left', (index === 0) ? '0px' : (isSwipeable ? '-16px' : dynamicMargin), 'important');
+      cardElement.style.setProperty('margin-left', (index === 0) ? '0px' : (enableSwipe ? '-16px' : dynamicMargin), 'important');
       cardElement.style.setProperty('margin-right', '0px', 'important');
       cardElement.style.zIndex = index + 1;
 
@@ -5895,7 +5975,7 @@ function renderHand(isNewDeal = false) {
 
     cardElement.setAttribute('data-card-key', getCardKey(card));
     cardElement.setAttribute('data-index', index);
-    cardElement.style.setProperty('margin-left', (index === 0) ? '0px' : (isSwipeable ? '-16px' : dynamicMargin), 'important');
+    cardElement.style.setProperty('margin-left', (index === 0) ? '0px' : (enableSwipe ? '-16px' : dynamicMargin), 'important');
     cardElement.style.setProperty('margin-right', '0px', 'important');
     cardElement.style.zIndex = index + 1;
 
@@ -6398,7 +6478,7 @@ function renderScoreBoard() {
         const colorClass = entry.roundPoints >= 0 ? 'score-positive' : 'score-negative';
 
         td.innerHTML = `
-          <div><small>T: ${entry.bid} | G: ${entry.tricksWon}</small></div>
+          <div><small>G: <b>${entry.tricksWon}</b> | T: <b>${entry.bid}</b></small></div>
           <div><span class="${colorClass}">${sign}</span> <b>(${entry.totalScore})</b></div>
         `;
       } else {
@@ -6424,7 +6504,7 @@ function renderScoreBoard() {
       const bidText = player.bid !== null ? player.bid : '-';
       const wonText = player.tricksWon !== undefined ? player.tricksWon : 0;
 
-      td.innerHTML = `<div><small>T: <b>${bidText}</b> | G: <b>${wonText}</b></small></div>`;
+      td.innerHTML = `<div><small>G: <b>${wonText}</b> | T: <b>${bidText}</b></small></div>`;
       liveRow.appendChild(td);
     });
 

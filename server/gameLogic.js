@@ -330,21 +330,33 @@ function isValidMove(cardToPlay, hand, currentTrick) {
   return true; // Spieler hat die Farbe nicht und darf abwerfen oder stechen.
 }
 
-// Berechnet die Erfahrungspunkte am Rundenende
-function calculatePoints(bid, tricksWon) {
-  if (bid === tricksWon) {
-    // Richtige Vorhersage: 20 Bonuspunkte + 10 pro Stich
-    return 20 + (tricksWon * 10);
+// Berechnet die Erfahrungspunkte am Rundenende (unterstützt 'classic' und 'skull_king_zero')
+function calculatePoints(bid, tricksWon, round = 1, scoringMode = 'classic') {
+  const b = (bid !== null && bid !== undefined) ? Number(bid) : 0;
+  const w = (tricksWon !== null && tricksWon !== undefined) ? Number(tricksWon) : 0;
+  const r = (round !== null && round !== undefined && Number(round) > 0) ? Number(round) : 1;
+
+  if (scoringMode === 'skull_king_zero' && b === 0) {
+    return (w === 0) ? (r * 10) : -(r * 10);
+  }
+
+  if (b === w) {
+    return 20 + (w * 10);
   } else {
-    // Falsche Vorhersage: -10 Punkte für jeden Stich Differenz
-    return -10 * Math.abs(bid - tricksWon);
+    return -10 * Math.abs(b - w);
   }
 }
 
 // Kooperative Punkteauswertung für Allianzen (2vs2 Modus)
-function calculateTeamPoints(teamBid, teamTricksWon) {
+function calculateTeamPoints(teamBid, teamTricksWon, round = 1, scoringMode = 'classic') {
   const bid = (teamBid !== null && teamBid !== undefined) ? Number(teamBid) : 0;
   const won = (teamTricksWon !== null && teamTricksWon !== undefined) ? Number(teamTricksWon) : 0;
+  const r = (round !== null && round !== undefined && Number(round) > 0) ? Number(round) : 1;
+
+  if (scoringMode === 'skull_king_zero' && bid === 0) {
+    return (won === 0) ? (r * 10) : -(r * 10);
+  }
+
   if (bid === won) {
     return 20 + (won * 10);
   }

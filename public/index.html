@@ -5333,7 +5333,18 @@
       </div>
 
       <!-- Edition / Regelwerk Auswahl -->
-      <div id="edition-selector-container" style="margin: 8px 0 12px; padding: 10px 12px; background: rgba(14, 9, 5, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 8px; text-align: left;">
+      <button id="btnOpenHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 8px 0 10px; display: none; padding: 9px 12px; font-size: 13px; font-weight: bold;" title="Spielregeln, Edition & Format konfigurieren">
+        <span class="btn-icon">⚙️</span>
+        <span class="btn-text">Raum-Einstellungen &amp; Hausregeln anpassen</span>
+      </button>
+
+      <div id="room-settings-summary-bar" style="display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 12px; justify-content: center;">
+        <span id="badge-setting-edition" class="seat-bot-pill" style="background: rgba(217, 119, 6, 0.2); border: 1px solid var(--gold-antique); color: var(--gold-bright);">📜 Klassisch</span>
+        <span id="badge-setting-format" class="seat-bot-pill" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd;">⚔️ Jeder gegen Jeden</span>
+        <span id="badge-setting-scoring" class="seat-bot-pill" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0;">🎯 Wizard-Wertung</span>
+      </div>
+
+      <div id="edition-selector-container" style="display: none; margin: 8px 0 12px; padding: 10px 12px; background: rgba(14, 9, 5, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 8px; text-align: left;">
         <div style="font-size: 11px; color: #d6be90; font-family: var(--font-subheading); letter-spacing: 0.8px; margin-bottom: 5px;">SPIEL-EDITION</div>
         <div id="host-edition-controls" style="display: none;">
           <select id="editionSelect" style="width: 100%; padding: 7px 10px; background: #1a1009; color: var(--gold-bright); border: 1px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; cursor: pointer; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);">
@@ -5858,13 +5869,13 @@
         <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 4px; flex-wrap: wrap;">
           <div class="hand-title-label" style="font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-antique);">Deine Handkarten</div>
           <div class="my-stats-hud" id="my-stats-hud">
-            <span class="hud-badge-icon hud-bid-icon" title="Deine Vorhersage">🎯</span>
-            <span class="hud-label">Deine Vorhersage:</span>
-            <span class="hud-value hud-bid" id="my-hud-bid">-</span>
-            <span class="hud-divider">•</span>
             <span class="hud-badge-icon hud-tricks-icon" title="Erzielte Stiche">🏆</span>
             <span class="hud-label">Erzielte Stiche:</span>
             <span class="hud-value hud-tricks" id="my-hud-tricks">0</span>
+            <span class="hud-divider">•</span>
+            <span class="hud-badge-icon hud-bid-icon" title="Deine Vorhersage">🎯</span>
+            <span class="hud-label">Deine Vorhersage:</span>
+            <span class="hud-value hud-bid" id="my-hud-bid">-</span>
             <span id="my-hud-team-separator" class="hud-divider" style="display: none;">•</span>
             <span id="my-hud-team-container" style="display: none; align-items: center; gap: 4px;">
               <span class="hud-badge-icon" id="my-hud-team-icon" style="display: none;">🔥</span>
@@ -6650,5 +6661,54 @@
 
   <script src="socket.io.min.js"></script>
   <script src="client.js"></script>
+
+  <!-- HOST EINSTELLUNGEN MODAL -->
+  <div id="host-settings-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);">
+    <div class="modal-content" style="background: radial-gradient(circle at 50% 25%, #2a170b 0%, #150904 70%, #0a0402 100%); border: 2px solid var(--gold-antique); border-radius: 12px; max-width: 440px; margin: 8vh auto; padding: 22px 20px; box-shadow: 0 15px 45px rgba(0,0,0,0.9), 0 0 25px rgba(217, 119, 6, 0.25); color: #ebd7af;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(217,119,6,0.3); padding-bottom: 10px; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-family: var(--font-medieval); color: var(--gold-bright); font-size: 20px; display: flex; align-items: center; gap: 8px;">
+          <span>⚙️</span> Raum-Einstellungen
+        </h3>
+        <button id="btnCloseHostSettings" type="button" style="background: none; border: none; color: #d6be90; font-size: 22px; cursor: pointer; padding: 0 6px;">&times;</button>
+      </div>
+
+      <!-- Edition -->
+      <div style="margin-bottom: 16px; text-align: left;">
+        <label for="modalEditionSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">SPIEL-EDITION</label>
+        <select id="modalEditionSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
+          <option value="classic">Bund der Erzmagier (Klassisch – 60 Karten)</option>
+          <option value="anniversary_30">Zeitalter der Bestien &amp; Mythen (30 Jahre – 70 Karten)</option>
+        </select>
+      </div>
+
+      <!-- Format -->
+      <div style="margin-bottom: 16px; text-align: left;">
+        <label for="modalFormatSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">SPIELFORMAT</label>
+        <select id="modalFormatSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
+          <option value="ffa">⚔️ Jeder gegen Jeden (FFA)</option>
+          <option value="team_2v2">🔥🌙 2vs2 Allianzen (Team-Modus)</option>
+        </select>
+      </div>
+
+      <!-- Wertungssystem -->
+      <div style="margin-bottom: 20px; text-align: left;">
+        <label for="modalScoringSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">WERTUNGSSYSTEM</label>
+        <select id="modalScoringSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
+          <option value="classic">Klassische Wizard-Wertung (+20/+10 vs. -10)</option>
+          <option value="skull_king_zero">Skull King 0-Stich-Regel (Runde × 10 Punkte)</option>
+        </select>
+        <p style="font-size: 11px; color: #a89270; margin-top: 5px; line-height: 1.35;">
+          Bei der Skull-King-Regel bringt ein erfolgreicher Null-Tipp <b>Runde &times; 10</b> Bonuspunkte (z. B. Runde 5 = +50). Bei Fehlschlag gibt es <b>- (Runde &times; 10)</b> Abzug!
+        </p>
+      </div>
+
+      <!-- Aktionen -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="btnCancelHostSettings" type="button" class="btn-auth-bar" style="background: rgba(30, 20, 15, 0.8); border: 1px solid #785a3c; color: #d6be90; padding: 7px 14px; cursor: pointer;">Abbrechen</button>
+        <button id="btnSaveHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 7px 18px; cursor: pointer;">Speichern &amp; Übernehmen</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

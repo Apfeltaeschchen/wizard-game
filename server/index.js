@@ -304,6 +304,7 @@ function createNewRoomState(hostSessionId = null, roomCode = '', isRanked = fals
     },
     isRanked: !!isRanked,
     edition: 'classic', // 'classic' oder 'anniversary_30'
+    scoringMode: 'classic', // 'classic' oder 'skull_king_zero'
     round: 1,
     trumpCard: null,
     trumpChooserSessionId: null,
@@ -515,7 +516,7 @@ io.on('connection', (socket) => {
     rooms[code] = room;
 
     socket.join(code);
-    socket.emit('roomCreated', { roomCode: code, isRanked: isRankedRoom });
+    socket.emit('roomCreated', { roomCode: code, isRanked: isRankedRoom, scoringMode: room.scoringMode || 'classic' });
 
     socket.emit('syncGameState', {
       roomCode: code,
@@ -524,6 +525,7 @@ io.on('connection', (socket) => {
       edition: room.edition || 'classic',
       gameState: 'lobby',
       matchFormat: room.matchFormat || 'ffa',
+      scoringMode: room.scoringMode || 'classic',
       teams: room.teams || null,
       isRanked: isRankedRoom,
       trumpCard: null,
@@ -669,6 +671,7 @@ io.on('connection', (socket) => {
         pausedReason: room.pausedReason,
         isGameOver: isGameOver,
         matchFormat: room.matchFormat || 'ffa',
+      scoringMode: room.scoringMode || 'classic',
         teams: room.teams || null,
         vampireCopiedCard: room.vampireCopiedCard,
         cloudWinnerSessionId: room.cloudPlayerSessionId,
@@ -756,6 +759,7 @@ io.on('connection', (socket) => {
       edition: room.edition || 'classic',
       gameState: room.gameState,
       matchFormat: room.matchFormat || 'ffa',
+      scoringMode: room.scoringMode || 'classic',
       teams: room.teams || null,
       isRanked: room.isRanked,
       trumpCard: room.trumpCard,
@@ -865,6 +869,98 @@ io.on('connection', (socket) => {
     }
 
     io.to(normalizedCode).emit('matchFormatChanged', { matchFormat: room.matchFormat, teams: room.teams });
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+  });
+
+  // Host aktualisiert Raum-Einstellungen (Edition, MatchFormat, ScoringMode)
+  socket.on('updateRoomSettings', ({ roomCode, edition, matchFormat, scoringMode }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Die Spieleinstellungen können nur im Warteraum vor Spielbeginn geändert werden!' });
+      return;
+    }
+
+    if (!room.hostSessionId && room.players.length > 0) {
+      room.hostSessionId = room.players[0].sessionId;
+    }
+
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der Host darf die Spieleinstellungen ändern!' });
+      return;
+    }
+
+    if (edition && ['classic', 'anniversary_30'].includes(edition)) {
+      room.edition = edition;
+    }
+
+    if (scoringMode && ['classic', 'skull_king_zero'].includes(scoringMode)) {
+      room.scoringMode = scoringMode;
+    }
+
+    if (matchFormat && ['ffa', 'team_2v2'].includes(matchFormat)) {
+      room.matchFormat = matchFormat;
+      if (matchFormat === 'team_2v2') {
+        let countA = 0;
+        let countB = 0;
+        room.players.forEach(p => {
+          if (p.team === 'team_a' && countA < 2) countA++;
+          else if (p.team === 'team_b' && countB < 2) countB++;
+          else p.team = null;
+        });
+        room.players.forEach(p => {
+          if (!p.team) {
+            if (countA <= countB && countA < 2) { p.team = 'team_a'; countA++; }
+            else if (countB < 2) { p.team = 'team_b'; countB++; }
+            else if (countA < 2) { p.team = 'team_a'; countA++; }
+          }
+        });
+      } else {
+        room.players.forEach(p => { p.team = null; });
+      }
+    }
+
+    io.to(normalizedCode).emit('roomSettingsUpdated', {
+      edition: room.edition,
+      matchFormat: room.matchFormat,
+      scoringMode: room.scoringMode || 'classic',
+      teams: room.teams
+    });
+    io.to(normalizedCode).emit('editionChanged', { edition: room.edition });
+    io.to(normalizedCode).emit('matchFormatChanged', { matchFormat: room.matchFormat, teams: room.teams });
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+  });
+
+  socket.on('setScoringMode', ({ roomCode, scoringMode }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Das Wertungssystem kann nur im Warteraum geändert werden!' });
+      return;
+    }
+    if (!room.hostSessionId && room.players.length > 0) {
+      room.hostSessionId = room.players[0].sessionId;
+    }
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der Host darf das Wertungssystem ändern!' });
+      return;
+    }
+    if (!['classic', 'skull_king_zero'].includes(scoringMode)) {
+      socket.emit('actionError', { message: 'Ungültiger Wertungsmodus.' });
+      return;
+    }
+    room.scoringMode = scoringMode;
+    io.to(normalizedCode).emit('roomSettingsUpdated', {
+      edition: room.edition,
+      matchFormat: room.matchFormat,
+      scoringMode: room.scoringMode,
+      teams: room.teams
+    });
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
@@ -1131,6 +1227,7 @@ io.on('connection', (socket) => {
       trumpCard: room.trumpCard,
       gameState: room.gameState,
       matchFormat: room.matchFormat || 'ffa',
+      scoringMode: room.scoringMode || 'classic',
       teams: room.teams || null
     });
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1273,6 +1370,7 @@ io.on('connection', (socket) => {
       trumpCard: room.trumpCard,
       gameState: room.gameState,
       matchFormat: room.matchFormat || 'ffa',
+      scoringMode: room.scoringMode || 'classic',
       teams: room.teams || null
     });
     io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1544,11 +1642,11 @@ io.on('connection', (socket) => {
 
       const teamABid = teamAPlayers.reduce((sum, p) => sum + (p.bid !== null ? p.bid : 0), 0);
       const teamATricks = teamAPlayers.reduce((sum, p) => sum + (p.tricksWon || 0), 0);
-      const teamAPoints = calculateTeamPoints(teamABid, teamATricks);
+      const teamAPoints = calculateTeamPoints(teamABid, teamATricks, room.round, room.scoringMode || "classic");
 
       const teamBBid = teamBPlayers.reduce((sum, p) => sum + (p.bid !== null ? p.bid : 0), 0);
       const teamBTricks = teamBPlayers.reduce((sum, p) => sum + (p.tricksWon || 0), 0);
-      const teamBPoints = calculateTeamPoints(teamBBid, teamBTricks);
+      const teamBPoints = calculateTeamPoints(teamBBid, teamBTricks, room.round, room.scoringMode || "classic");
 
       room.teams.team_a.score = (room.teams.team_a.score || 0) + teamAPoints;
       room.teams.team_b.score = (room.teams.team_b.score || 0) + teamBPoints;
@@ -1587,7 +1685,7 @@ io.on('connection', (socket) => {
       });
     } else {
       roundEntries = room.players.map(p => {
-        const roundPoints = calculatePoints(p.bid !== null ? p.bid : 0, p.tricksWon);
+        const roundPoints = calculatePoints(p.bid !== null ? p.bid : 0, p.tricksWon, room.round, room.scoringMode || "classic");
         p.totalScore += roundPoints;
         p.wonCards = [];
         return {
@@ -1687,6 +1785,7 @@ io.on('connection', (socket) => {
       scoreHistory: room.scoreHistory,
       round: room.round,
       matchFormat: room.matchFormat || 'ffa',
+      scoringMode: room.scoringMode || 'classic',
       teams: room.teams || null,
       teamScores: teamScores,
       isRanked: !!room.isRanked,
@@ -1893,7 +1992,8 @@ io.on('connection', (socket) => {
         winnerName: winner.name,
         winnerSessionId: winner.sessionId,
         isBombed: false,
-        isUnicornVoided: false
+        isUnicornVoided: false,
+        isUnicornActive: !!trickResult.isUnicornActive
       });
       io.to(room.roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
     } else if (isBombed) {
@@ -2479,6 +2579,7 @@ io.on('connection', (socket) => {
         edition: room.edition || 'classic',
         botSessionId: bot.sessionId,
         matchFormat: room.matchFormat || 'ffa',
+      scoringMode: room.scoringMode || 'classic',
         team: bot.team || null,
         teammateSessionId: teammate ? teammate.sessionId : null,
         teammate: teammate ? { sessionId: teammate.sessionId, name: teammate.name, bid: teammate.bid, tricksWon: teammate.tricksWon } : null
