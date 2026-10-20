@@ -4,6 +4,28 @@ Diese Datei dokumentiert die spezialisierten Subagenten und die verbindlichen Ha
 
 ---
 
+# Antigravity Autonomous Execution Rules
+
+## 1. Plan-Then-Execute
+- Bei Aufgaben, die mehr als eine Datei betreffen: Erstelle zuerst einen kurzen Ausführungsplan (betroffene Dateien, Datenfluss, Risiken).
+- Beginne erst mit Dateiänderungen, wenn die Architektur klar ist.
+
+## 2. Context Isolation & Subagents
+- Lies niemals blind dutzende Dateien im Hauptkontext.
+- Delegiere Codebase-Suchen, Datei-Analysen und Dependency-Checks an Subagenten und lass dir nur kompakte Zusammenfassungen (Dateipfade, Interfaces, Zeilennummern) zurückgeben.
+
+## 3. Closed-Loop Verification & Circuit Breaker
+- Nach jeder Code-Änderung: Führe verfügbare Checks (Linter, Typecheck, Build, Tests) eigenständig im Terminal aus.
+- Korrigiere auftretende Fehler autonom in einer Schleife, bis der Check fehlerfrei durchläuft.
+- **Circuit Breaker:** Scheitert derselbe Fix-Ansatz 3-mal hintereinander, STOPP. Setze die fehlerhaften Änderungen zurück, fasse die Ursache zusammen und frage nach.
+
+## 4. Surgical Edits & MCP-First
+- **Zero Unrequested Refactoring:** Ändere nur Code, der direkt für die Aufgabe nötig ist. Keine ungefragten Formatierungen oder Umbauten an unbeteiligten Funktionen.
+- **MCP-First:** Nutze konfigurierte MCP-Tools aktiv, um echte Schemas, Datenbank-Zustände oder Docs abzufragen, statt Strukturen zu erraten.
+- **Sicherheit:** Frage zwingend um Erlaubnis, bevor du destruktive Befehle (`rm -rf`, Datenbank-Drops/Resets, `git push --force`) oder neue Paket-Installationen ausführst.
+
+---
+
 ## Solo-Developer Core Directives
 
 Bei jeder Aufgabe gelten ausnahmslos folgende Prinzipien zur maximalen Entlastung des Solo-Entwicklers:
