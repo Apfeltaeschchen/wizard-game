@@ -531,6 +531,14 @@ const modalEditionSelect = document.getElementById('modalEditionSelect');
 const modalFormatSelect = document.getElementById('modalFormatSelect');
 const modalScoringSelect = document.getElementById('modalScoringSelect');
 const modalBiddingSelect = document.getElementById('modalBiddingSelect');
+const modalAllowBlindZero = document.getElementById('modalAllowBlindZero');
+const btnBlindZero = document.getElementById('btnBlindZero');
+const simultaneousRevealOverlay = document.getElementById('simultaneous-reveal-overlay');
+const revealCountdownNumber = document.getElementById('reveal-countdown-number');
+const revealSubtitle = document.getElementById('reveal-subtitle');
+const biddingSummaryPill = document.getElementById('bidding-summary-pill');
+const myHudBilanzWrap = document.getElementById('my-hud-bilanz-wrap');
+const myHudBilanz = document.getElementById('my-hud-bilanz');
 const badgeSettingEdition = document.getElementById('badge-setting-edition');
 const badgeSettingFormat = document.getElementById('badge-setting-format');
 const badgeSettingScoring = document.getElementById('badge-setting-scoring');
@@ -580,6 +588,7 @@ if (btnOpenHostSettings) {
     if (modalFormatSelect) modalFormatSelect.value = currentMatchFormat || 'ffa';
     if (modalScoringSelect) modalScoringSelect.value = currentScoringMode || 'classic';
     if (modalBiddingSelect) modalBiddingSelect.value = currentBiddingMode || 'classic';
+    if (modalAllowBlindZero) modalAllowBlindZero.checked = !!currentAllowBlindZero;
     if (hostSettingsModal) hostSettingsModal.style.display = 'block';
   });
 }
@@ -596,13 +605,15 @@ if (btnSaveHostSettings) {
     const newFormat = modalFormatSelect ? modalFormatSelect.value : 'ffa';
     const newScoring = modalScoringSelect ? modalScoringSelect.value : 'classic';
     const newBidding = modalBiddingSelect ? modalBiddingSelect.value : 'classic';
+    const newAllowBlindZero = modalAllowBlindZero ? modalAllowBlindZero.checked : false;
 
     socket.emit('updateRoomSettings', {
       roomCode: currentRoomCode,
       edition: newEdition,
       matchFormat: newFormat,
       scoringMode: newScoring,
-      biddingMode: newBidding
+      biddingMode: newBidding,
+      allowBlindZero: newAllowBlindZero
     });
     closeHostSettingsModal();
   });
@@ -952,6 +963,7 @@ let currentEdition = 'classic';
 let currentMatchFormat = 'ffa';
 let currentScoringMode = 'classic';
 let currentBiddingMode = 'classic';
+let currentAllowBlindZero = false;
 let currentTeams = {
   team_a: { name: 'Allianz des Sonnenfeuers', score: 0 },
   team_b: { name: 'Allianz der Mondschatten', score: 0 }
@@ -3845,11 +3857,12 @@ function updateRulesTabForEdition(edition) {
   }
 }
 
-socket.on('roomSettingsUpdated', ({ edition, matchFormat, scoringMode, biddingMode }) => {
+socket.on('roomSettingsUpdated', ({ edition, matchFormat, scoringMode, biddingMode, allowBlindZero }) => {
   if (edition) currentEdition = edition;
   if (matchFormat) currentMatchFormat = matchFormat;
   if (scoringMode) currentScoringMode = scoringMode;
   if (biddingMode) currentBiddingMode = biddingMode;
+  if (allowBlindZero !== undefined) currentAllowBlindZero = !!allowBlindZero;
   updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode, currentBiddingMode);
   updateWaitingRoomHostControls();
 });
@@ -4212,9 +4225,7 @@ function createPlayerWaitingItem(p, isHostUser) {
           }
         });
       } else {
-        if (confirm(`Spielleitung an ${playerName} übergeben?`)) {
-          socket.emit('transferHost', { roomCode: currentRoomCode, targetSessionId: p.sessionId });
-        }
+        socket.emit('transferHost', { roomCode: currentRoomCode, targetSessionId: p.sessionId });
       }
     });
   }
@@ -4436,6 +4447,9 @@ socket.on('syncGameState', (state) => {
   }
   if (state.biddingMode) {
     currentBiddingMode = state.biddingMode;
+  }
+  if (state.allowBlindZero !== undefined) {
+    currentAllowBlindZero = !!state.allowBlindZero;
   }
   updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode, currentBiddingMode);
   currentGameState = state.gameState;
@@ -5192,13 +5206,65 @@ socket.on('trumpSuitChosen', ({ suit, trumpCard }) => {
   updateMyStatsHUD();
 });
 
-socket.on('simultaneousBidsRevealed', ({ players }) => {
-  if (players) {
-    cachedPlayers = players;
+function triggerSimultaneousReveal(players) {
+  const overlay = document.getElementById('simultaneous-reveal-overlay');
+  const countEl = document.getElementById('reveal-countdown-number');
+  const subEl = document.getElementById('reveal-subtitle');
+
+  if (!overlay || !countEl) {
+    if (players) cachedPlayers = players;
     renderOpponents();
     updateMyStatsHUD();
+    updateBiddingSummaryPill();
+    return;
   }
-  statusMessage.innerText = '⚡ Alle Tipps liegen auf dem Tisch! Mögen die Stiche beginnen!';
+
+  overlay.style.display = 'flex';
+  countEl.innerText = '3';
+  if (subEl) subEl.innerText = 'Alle Magier haben getippt...';
+
+  // 3 -> 2
+  setTimeout(() => {
+    countEl.innerText = '2';
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
+
+    // 2 -> 1
+    setTimeout(() => {
+      countEl.innerText = '1';
+      if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('medium');
+
+      // 1 -> Aufdecken!
+      setTimeout(() => {
+        countEl.innerText = '⚡';
+        if (subEl) subEl.innerText = 'Prophezeiungen aufdecken!';
+        if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.notification('success');
+
+        if (players) {
+          cachedPlayers = players;
+        }
+        renderOpponents();
+        updateMyStatsHUD();
+        updateBiddingSummaryPill();
+
+        // 3D-Flip Animation auf allen Sitz-Pills
+        const pills = document.querySelectorAll('.seat-bid-pill');
+        pills.forEach(p => {
+          p.classList.add('revealing');
+          setTimeout(() => p.classList.remove('revealing'), 800);
+        });
+
+        // Overlay nach kurzem Reveal sanft ausblenden
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          statusMessage.innerText = '⚡ Alle Tipps liegen auf dem Tisch! Mögen die Stiche beginnen!';
+        }, 550);
+      }, 350);
+    }, 350);
+  }, 350);
+}
+
+socket.on('simultaneousBidsRevealed', ({ players }) => {
+  triggerSimultaneousReveal(players);
 });
 
 socket.on('biddingFinished', () => {
@@ -5351,12 +5417,14 @@ socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedR
   if (cloudSuitModal) cloudSuitModal.style.display = 'none';
   if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
   pendingCardPlayIndex = null;
+  currentGameState = 'round_over';
 
   if (scoreHistory) {
     cachedScoreHistory = scoreHistory;
     renderScoreBoard();
   }
 
+  updateBiddingSummaryPill();
   openScoreDrawer();
 
   if (isGameOver) {
@@ -5569,12 +5637,13 @@ function renderOpponents() {
     }
 
     let bidPillHtml = '';
+    const blindBadge = p.isBlindZero ? '<span style="color:#d8b4fe; font-size:10px; margin-right:2px;" title="Blind 0 Prophezeiung">🔮 </span>' : '';
     if (p.bid === '✓') {
       bidPillHtml = `<span class="seat-bid-pill" style="border-color: #a855f7; color: #d8b4fe;" title="Tipp verdeckt abgegeben">🎯 ✓ Bereit</span>`;
     } else if (p.bid === '?') {
       bidPillHtml = `<span class="seat-bid-pill" title="Tipp ist geheim">🏆 ${wonText} / 🎯 ?</span>`;
     } else {
-      bidPillHtml = `<span class="seat-bid-pill" title="Gewonnen: ${wonText} | Vorhersage: ${bidText}">🏆 ${wonText} / 🎯 ${bidText}</span>`;
+      bidPillHtml = `<span class="seat-bid-pill" title="Gewonnen: ${wonText} | Vorhersage: ${p.isBlindZero ? 'Blind 0' : bidText}">🏆 ${wonText} / 🎯 ${blindBadge}${bidText}</span>`;
     }
 
     seatEl.innerHTML = `
@@ -5609,6 +5678,7 @@ function renderOpponents() {
 
     opponentsContainer.appendChild(seatEl);
   });
+  updateBiddingSummaryPill();
 }
 
 function updateMyStatsHUD() {
@@ -5617,7 +5687,9 @@ function updateMyStatsHUD() {
   const tricksEl = document.getElementById('my-hud-tricks');
   const hudContainer = document.getElementById('my-stats-hud');
 
-  const bidVal = (me && me.bid !== null && me.bid !== undefined) ? me.bid : '-';
+  const bidVal = (me && me.bid !== null && me.bid !== undefined)
+    ? (me.isBlindZero ? `🔮 ${me.bid}` : me.bid)
+    : '-';
   const tricksVal = (me && me.tricksWon !== undefined) ? me.tricksWon : 0;
 
   if (bidEl) bidEl.innerText = bidVal;
@@ -5665,6 +5737,68 @@ function updateMyStatsHUD() {
         openPlayerDetailModal(currentMe, 'table');
       }
     });
+  }
+
+  updateBiddingSummaryPill();
+}
+
+// --- BIETBILANZ PILL (TISCH & HUD) ---
+function updateBiddingSummaryPill() {
+  const pill = document.getElementById('bidding-summary-pill');
+  const hudWrap = document.getElementById('my-hud-bilanz-wrap');
+  const hudBilanz = document.getElementById('my-hud-bilanz');
+  if (!pill) return;
+
+  if (currentGameState === 'lobby' || currentGameState === 'waiting') {
+    pill.style.display = 'none';
+    if (hudWrap) hudWrap.style.display = 'none';
+    return;
+  }
+
+  // Im geheimen Bietmodus bleibt die Bilanz verdeckt, bis die Runde vorbei ist
+  if (currentBiddingMode === 'secret' && currentGameState !== 'round_over') {
+    pill.style.display = 'inline-flex';
+    pill.className = 'bidding-summary-pill bidding-summary-secret';
+    pill.innerText = `🎯 ? / ${currentRound} Stiche (Geheim)`;
+    if (hudWrap && hudBilanz) {
+      hudWrap.style.display = 'inline';
+      hudBilanz.innerText = 'Geheim';
+    }
+    return;
+  }
+
+  const allBids = cachedPlayers.map(p => p.bid).filter(b => typeof b === 'number');
+  if (allBids.length < cachedPlayers.length || cachedPlayers.length === 0) {
+    if (currentGameState === 'bidding') {
+      pill.style.display = 'none';
+      if (hudWrap) hudWrap.style.display = 'none';
+      return;
+    }
+  }
+
+  const sumBids = allBids.reduce((a, b) => a + b, 0);
+  const diff = sumBids - currentRound;
+  let statusText = '';
+  let statusClass = '';
+
+  if (diff > 0) {
+    statusText = `+${diff} Überboten`;
+    statusClass = 'bidding-summary-overbid';
+  } else if (diff < 0) {
+    statusText = `${diff} Unterboten`;
+    statusClass = 'bidding-summary-underbid';
+  } else {
+    statusText = 'Ausgeglichen';
+    statusClass = 'bidding-summary-even';
+  }
+
+  pill.style.display = 'inline-flex';
+  pill.className = `bidding-summary-pill ${statusClass}`;
+  pill.innerText = `🎯 ${sumBids} / ${currentRound} (${statusText})`;
+
+  if (hudWrap && hudBilanz) {
+    hudWrap.style.display = 'inline';
+    hudBilanz.innerText = `${sumBids}/${currentRound} (${statusText})`;
   }
 }
 
@@ -5850,6 +5984,10 @@ function renderBidButtons(maxBid, forbiddenBid) {
   for (let i = 0; i <= maxBid; i++) {
     const btn = document.createElement('button');
     btn.classList.add('bid-btn');
+    if (i === 0) {
+      btn.classList.add('bid-btn-zero');
+      btn.title = '0 Stiche prophezeien (Defensiv / Fluch)';
+    }
     btn.innerText = i;
 
     if (i === forbiddenBid) {
@@ -5865,11 +6003,35 @@ function renderBidButtons(maxBid, forbiddenBid) {
     } else {
       btn.addEventListener('click', () => {
         GrimoireHaptics.impact('light');
-        socket.emit('submitBid', { roomCode: currentRoomCode, bid: i });
+        socket.emit('submitBid', { roomCode: currentRoomCode, bid: i, isBlindZero: false });
         bidOverlay.style.display = 'none';
       });
     }
     bidButtons.appendChild(btn);
+  }
+
+  const btnBlindZero = document.getElementById('btnBlindZero');
+  if (btnBlindZero) {
+    if (currentAllowBlindZero) {
+      btnBlindZero.style.display = 'inline-flex';
+      btnBlindZero.onclick = () => {
+        GrimoireDialog.confirm({
+          title: '🔮 Blind 0 prophezeien?',
+          message: 'Bist du mutig genug? Du sagst 0 Stiche voraus, ohne deine Handkarten zu kennen. Bei Erfolg erhältst du doppelten Bonus, bei auch nur einem Stich doppelten Malus!',
+          confirmText: 'Blind 0 wagen!',
+          danger: true,
+          icon: '🔮'
+        }).then(confirmed => {
+          if (confirmed) {
+            GrimoireHaptics.notification('warning');
+            socket.emit('submitBid', { roomCode: currentRoomCode, bid: 0, isBlindZero: true });
+            bidOverlay.style.display = 'none';
+          }
+        });
+      };
+    } else {
+      btnBlindZero.style.display = 'none';
+    }
   }
 }
 
@@ -6606,9 +6768,10 @@ function renderScoreBoard() {
       if (entry) {
         const sign = entry.roundPoints >= 0 ? `+${entry.roundPoints}` : `${entry.roundPoints}`;
         const colorClass = entry.roundPoints >= 0 ? 'score-positive' : 'score-negative';
+        const displayBid = entry.isBlindZero ? `🔮 ${entry.bid}` : entry.bid;
 
         td.innerHTML = `
-          <div><small>G: <b>${entry.tricksWon}</b> | T: <b>${entry.bid}</b></small></div>
+          <div><small>G: <b>${entry.tricksWon}</b> | T: <b>${displayBid}</b></small></div>
           <div><span class="${colorClass}">${sign}</span> <b>(${entry.totalScore})</b></div>
         `;
       } else {
@@ -6631,7 +6794,8 @@ function renderScoreBoard() {
 
     cachedPlayers.forEach(player => {
       const td = document.createElement('td');
-      const bidText = player.bid !== null ? player.bid : '-';
+      const rawBidText = player.bid !== null ? player.bid : '-';
+      const bidText = (player.isBlindZero && player.bid !== null) ? `🔮 ${player.bid}` : rawBidText;
       const wonText = player.tricksWon !== undefined ? player.tricksWon : 0;
 
       td.innerHTML = `<div><small>G: <b>${wonText}</b> | T: <b>${bidText}</b></small></div>`;

@@ -330,11 +330,20 @@ function isValidMove(cardToPlay, hand, currentTrick) {
   return true; // Spieler hat die Farbe nicht und darf abwerfen oder stechen.
 }
 
-// Berechnet die Erfahrungspunkte am Rundenende (unterstützt 'classic' und 'skull_king_zero')
-function calculatePoints(bid, tricksWon, round = 1, scoringMode = 'classic') {
+// Berechnet die Erfahrungspunkte am Rundenende (unterstützt 'classic', 'skull_king_zero' und optionale Blind-0)
+function calculatePoints(bid, tricksWon, round = 1, scoringMode = 'classic', isBlindZero = false) {
   const b = (bid !== null && bid !== undefined) ? Number(bid) : 0;
   const w = (tricksWon !== null && tricksWon !== undefined) ? Number(tricksWon) : 0;
   const r = (round !== null && round !== undefined && Number(round) > 0) ? Number(round) : 1;
+
+  if (isBlindZero && b === 0) {
+    // Blind 0: doppelte Belohnung oder doppelter Malus
+    if (scoringMode === 'skull_king_zero') {
+      return (w === 0) ? (r * 20) : -(r * 20);
+    } else {
+      return (w === 0) ? 40 : -20 * Math.max(1, w);
+    }
+  }
 
   if (scoringMode === 'skull_king_zero' && b === 0) {
     return (w === 0) ? (r * 10) : -(r * 10);
@@ -348,10 +357,18 @@ function calculatePoints(bid, tricksWon, round = 1, scoringMode = 'classic') {
 }
 
 // Kooperative Punkteauswertung für Allianzen (2vs2 Modus)
-function calculateTeamPoints(teamBid, teamTricksWon, round = 1, scoringMode = 'classic') {
+function calculateTeamPoints(teamBid, teamTricksWon, round = 1, scoringMode = 'classic', isBlindZero = false) {
   const bid = (teamBid !== null && teamBid !== undefined) ? Number(teamBid) : 0;
   const won = (teamTricksWon !== null && teamTricksWon !== undefined) ? Number(teamTricksWon) : 0;
   const r = (round !== null && round !== undefined && Number(round) > 0) ? Number(round) : 1;
+
+  if (isBlindZero && bid === 0) {
+    if (scoringMode === 'skull_king_zero') {
+      return (won === 0) ? (r * 20) : -(r * 20);
+    } else {
+      return (won === 0) ? 40 : -20 * Math.max(1, won);
+    }
+  }
 
   if (scoringMode === 'skull_king_zero' && bid === 0) {
     return (won === 0) ? (r * 10) : -(r * 10);

@@ -306,6 +306,7 @@ function createNewRoomState(hostSessionId = null, roomCode = '', isRanked = fals
     edition: 'classic', // 'classic' oder 'anniversary_30'
     scoringMode: 'classic', // 'classic' oder 'skull_king_zero'
     biddingMode: 'classic', // 'classic', 'simultaneous' oder 'secret'
+    allowBlindZero: false, // Optionale Blind-0 Prophezeiung
     round: 1,
     trumpCard: null,
     trumpChooserSessionId: null,
@@ -528,6 +529,7 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
+      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null,
       isRanked: isRankedRoom,
       trumpCard: null,
@@ -764,6 +766,7 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
+      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null,
       isRanked: room.isRanked,
       trumpCard: room.trumpCard,
@@ -876,8 +879,8 @@ io.on('connection', (socket) => {
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
-  // Host aktualisiert Raum-Einstellungen (Edition, MatchFormat, ScoringMode)
-  socket.on('updateRoomSettings', ({ roomCode, edition, matchFormat, scoringMode, biddingMode }) => {
+  // Host aktualisiert Raum-Einstellungen (Edition, MatchFormat, ScoringMode, BiddingMode, BlindZero)
+  socket.on('updateRoomSettings', ({ roomCode, edition, matchFormat, scoringMode, biddingMode, allowBlindZero }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -909,6 +912,10 @@ io.on('connection', (socket) => {
       room.biddingMode = biddingMode;
     }
 
+    if (allowBlindZero !== undefined) {
+      room.allowBlindZero = !!allowBlindZero;
+    }
+
     if (matchFormat && ['ffa', 'team_2v2'].includes(matchFormat)) {
       room.matchFormat = matchFormat;
       if (matchFormat === 'team_2v2') {
@@ -936,6 +943,7 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat,
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
+      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams
     });
     io.to(normalizedCode).emit('editionChanged', { edition: room.edition });
@@ -1320,6 +1328,7 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
+      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null
     });
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1344,6 +1353,7 @@ io.on('connection', (socket) => {
       }
       player.bid = null;
       player.tricksWon = 0;
+      player.isBlindZero = false;
       player.heldWizardThisRound = player.hand.some(c => c && c.type === 'wizard');
       player.attemptingZeroWizardRound = false;
     });
@@ -1464,6 +1474,7 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
+      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null
     });
     io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1649,7 +1660,7 @@ io.on('connection', (socket) => {
   });
 
   // Vereinheitlichte Logik: Stichvorhersage abgeben (für Spieler und Bots)
-  function handlePlayerBid(room, playerSessionId, bid) {
+  function handlePlayerBid(room, playerSessionId, bid, isBlindZero = false) {
     if (!room || room.gameState !== 'bidding' || room.isPaused) {
       return { success: false, message: 'Nicht in der Bietphase.' };
     }
@@ -1689,6 +1700,8 @@ io.on('connection', (socket) => {
     }
 
     player.bid = parsedBid;
+    player.isBlindZero = (!!room.allowBlindZero && !!isBlindZero && parsedBid === 0);
+
     if (player.heldWizardThisRound && parsedBid === 0) {
       player.attemptingZeroWizardRound = true;
     }
@@ -1722,7 +1735,7 @@ io.on('connection', (socket) => {
   }
 
   // Spieler gibt Stichvorhersage ab (Socket Handler)
-  socket.on('submitBid', ({ roomCode, bid }) => {
+  socket.on('submitBid', ({ roomCode, bid, isBlindZero }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'bidding' || room.isPaused) return;
@@ -1738,7 +1751,7 @@ io.on('connection', (socket) => {
     }
     if (!bidder) return;
 
-    const result = handlePlayerBid(room, bidder.sessionId, bid);
+    const result = handlePlayerBid(room, bidder.sessionId, bid, isBlindZero);
     if (result && !result.success && result.message) {
       socket.emit('actionError', { message: result.message });
     }
@@ -1813,7 +1826,13 @@ io.on('connection', (socket) => {
       });
     } else {
       roundEntries = room.players.map(p => {
-        const roundPoints = calculatePoints(p.bid !== null ? p.bid : 0, p.tricksWon, room.round, room.scoringMode || "classic");
+        const roundPoints = calculatePoints(
+          p.bid !== null ? p.bid : 0,
+          p.tricksWon,
+          room.round,
+          room.scoringMode || "classic",
+          !!p.isBlindZero
+        );
         p.totalScore += roundPoints;
         p.wonCards = [];
         return {
@@ -1821,6 +1840,7 @@ io.on('connection', (socket) => {
           name: p.name,
           team: p.team || null,
           bid: p.bid,
+          isBlindZero: !!p.isBlindZero,
           tricksWon: p.tricksWon,
           roundPoints: roundPoints,
           totalScore: p.totalScore
@@ -1915,6 +1935,7 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
+      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null,
       teamScores: teamScores,
       isRanked: !!room.isRanked,
@@ -2807,6 +2828,7 @@ io.on('connection', (socket) => {
         team: p.team || null,
         bid: bidVal,
         hasBid: hasBid,
+        isBlindZero: !!p.isBlindZero,
         tricksWon: p.tricksWon,
         totalScore: p.totalScore,
         connected: p.connected,

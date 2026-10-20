@@ -1875,6 +1875,117 @@
       transform: scale(1.08);
       box-shadow: 0 4px 10px rgba(0,0,0,0.7);
     }
+    .bid-btn.bid-btn-zero {
+      border: 2px solid #ef4444;
+      background: radial-gradient(circle at 35% 35%, #581c87 0%, #1e0338 100%);
+      color: #fef08a;
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.5), inset 0 1px 2px rgba(255,255,255,0.3);
+    }
+    .bid-btn.bid-btn-zero:hover:not(:disabled) {
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.8), 0 0 24px rgba(168, 85, 247, 0.8);
+      transform: scale(1.15);
+    }
+
+    /* 3D-FLIP FÜR TIPP-ENTHÜLLUNG */
+    .seat-bid-pill.revealing {
+      animation: bidPillFlip 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes bidPillFlip {
+      0% { transform: scale(1) rotateY(0deg); }
+      50% { transform: scale(1.35) rotateY(180deg); filter: drop-shadow(0 0 10px var(--gold-bright)); }
+      100% { transform: scale(1) rotateY(360deg); }
+    }
+
+    /* BIETBILANZ PILL */
+    .bidding-summary-pill {
+      font-family: var(--font-subheading);
+      font-size: 10px;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 8px;
+      letter-spacing: 0.4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+      white-space: nowrap;
+      margin-top: 4px;
+      transition: all 0.25s ease;
+    }
+    .bidding-summary-overbid {
+      background: rgba(185, 28, 28, 0.35);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+    .bidding-summary-underbid {
+      background: rgba(5, 150, 105, 0.35);
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+    }
+    .bidding-summary-even {
+      background: rgba(217, 119, 6, 0.35);
+      border: 1px solid var(--gold-bright);
+      color: var(--gold-bright);
+    }
+    .bidding-summary-secret {
+      background: rgba(88, 28, 135, 0.35);
+      border: 1px solid #a855f7;
+      color: #d8b4fe;
+    }
+
+    /* SIMULTAN ENTHÜLLUNGS-COUNTDOWN OVERLAY */
+    .simultaneous-reveal-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1500;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, rgba(30, 15, 5, 0.88) 0%, rgba(5, 2, 1, 0.96) 100%);
+      backdrop-filter: blur(5px);
+      pointer-events: none;
+      animation: fadeInReveal 0.25s ease;
+    }
+    @keyframes fadeInReveal {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .reveal-content-box {
+      text-align: center;
+      color: var(--gold-bright);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .reveal-title {
+      font-family: var(--font-medieval);
+      font-size: 15px;
+      letter-spacing: 2px;
+      color: #d6be90;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+      text-transform: uppercase;
+    }
+    .reveal-countdown-number {
+      font-family: var(--font-medieval);
+      font-size: 76px;
+      font-weight: 900;
+      color: var(--gold-bright);
+      text-shadow: 0 0 25px rgba(240, 195, 85, 0.9), 0 0 50px rgba(217, 119, 6, 0.6);
+      line-height: 1;
+      animation: zoomPulse 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes zoomPulse {
+      0% { transform: scale(0.3); opacity: 0; }
+      70% { transform: scale(1.18); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .reveal-subtitle {
+      font-family: var(--font-subheading);
+      font-size: 13.5px;
+      color: #f7eedb;
+      letter-spacing: 0.8px;
+    }
 
     /* HANDKARTEN-SEKTION */
     .hand-section {
@@ -5774,11 +5885,21 @@
     <!-- DER VERWITTERTE EICHENTISCH -->
     <div id="table-area" class="poker-table">
       <div id="table-fx-layer"></div>
+
+      <!-- SIMULTAN ENTHÜLLUNGS-COUNTDOWN OVERLAY -->
+      <div id="simultaneous-reveal-overlay" class="simultaneous-reveal-overlay" style="display: none;">
+        <div class="reveal-content-box">
+          <div class="reveal-title">Prophezeiung der Magier</div>
+          <div id="reveal-countdown-number" class="reveal-countdown-number">3</div>
+          <div id="reveal-subtitle" class="reveal-subtitle">Alle Tipps werden enthüllt...</div>
+        </div>
+      </div>
       
       <!-- KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS SCHWEBEND) -->
       <div class="trump-section-fixed" id="trump-wrapper" title="Aufgedeckte Trumpfkarte der Runde">
         <div class="trump-label">Trumpf</div>
         <div id="trump-container"></div>
+        <div id="bidding-summary-pill" class="bidding-summary-pill" style="display: none;">🎯 Bilanz: -</div>
       </div>
 
       <!-- VIRTUELLE MITSPIELER-SITZE -->
@@ -5902,6 +6023,10 @@
             Wie viele Stiche prophezeist du?
           </div>
           <div id="bid-buttons"></div>
+          <button id="btnBlindZero" type="button" class="btn-auth-bar" style="display: none; width: 100%; margin-top: 10px; background: linear-gradient(180deg, #581c87, #2e0847); border: 1.5px solid var(--gold-bright); color: var(--gold-bright); font-size: 12px; font-weight: bold; padding: 7px 10px; justify-content: center;" title="Blind 0 prophezeien (vor dem Ansehen der Karten)">
+            <span class="btn-icon">🔮</span>
+            <span class="btn-text">Blind 0 prophezeien (Doppelter Bonus/Malus)</span>
+          </button>
         </div>
       </div>
 
@@ -5917,6 +6042,7 @@
             <span class="hud-badge-icon hud-bid-icon" title="Deine Vorhersage">🎯</span>
             <span class="hud-label">Deine Vorhersage:</span>
             <span class="hud-value hud-bid" id="my-hud-bid">-</span>
+            <span id="my-hud-bilanz-wrap" style="display: none;"><span class="hud-divider">•</span> <span class="hud-badge-icon">⚖️</span> <span id="my-hud-bilanz" style="font-weight: bold; color: var(--gold-bright);" title="Runden-Bietbilanz">Bilanz: -</span></span>
             <span id="my-hud-team-separator" class="hud-divider" style="display: none;">•</span>
             <span id="my-hud-team-container" style="display: none; align-items: center; gap: 4px;">
               <span class="hud-badge-icon" id="my-hud-team-icon" style="display: none;">🔥</span>
@@ -6744,7 +6870,7 @@
       </div>
 
       <!-- Biet-Modus -->
-      <div style="margin-bottom: 20px; text-align: left;">
+      <div style="margin-bottom: 16px; text-align: left;">
         <label for="modalBiddingSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">BIET-MODUS</label>
         <select id="modalBiddingSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
           <option value="classic">Klassisch (Reihum mit Geber-Regel)</option>
@@ -6753,6 +6879,19 @@
         </select>
         <p style="font-size: 11px; color: #a89270; margin-top: 5px; line-height: 1.35;">
           Bei der Simultan-Prophezeiung geben alle zeitgleich verdeckt ab (keine Geber-Regel). Im geheimen Modus bleiben fremde Tipps bis Rundenende maskiert (?).
+        </p>
+      </div>
+
+      <!-- Blind-0 Prophezeiung Option -->
+      <div style="margin-bottom: 20px; text-align: left; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(217,119,6,0.3);">
+        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin: 0;">
+          <span style="font-family: var(--font-subheading); font-size: 12.5px; color: var(--gold-bright); font-weight: bold;">
+            🔮 Blind-0 Prophezeiung erlauben
+          </span>
+          <input type="checkbox" id="modalAllowBlindZero" style="width: 18px; height: 18px; accent-color: var(--gold-bright); cursor: pointer;" />
+        </label>
+        <p style="font-size: 11px; color: #a89270; margin: 5px 0 0; line-height: 1.35;">
+          Ermöglicht mutigen Magiern, vor Ansicht der Karten blind 0 Stiche anzusagen – für <b>doppelten Rundenbonus</b> oder <b>doppelten Malus</b>!
         </p>
       </div>
 
