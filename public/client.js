@@ -532,6 +532,11 @@ const modalFormatSelect = document.getElementById('modalFormatSelect');
 const modalScoringSelect = document.getElementById('modalScoringSelect');
 const modalBiddingSelect = document.getElementById('modalBiddingSelect');
 const modalAllowBlindZero = document.getElementById('modalAllowBlindZero');
+const hostSettingsBtnIcon = document.getElementById('hostSettingsBtnIcon');
+const hostSettingsBtnText = document.getElementById('hostSettingsBtnText');
+const hostSettingsModalIcon = document.getElementById('hostSettingsModalIcon');
+const hostSettingsModalTitleText = document.getElementById('hostSettingsModalTitleText');
+const hostSettingsGuestNotice = document.getElementById('hostSettingsGuestNotice');
 const btnBlindZero = document.getElementById('btnBlindZero');
 const simultaneousRevealOverlay = document.getElementById('simultaneous-reveal-overlay');
 const revealCountdownNumber = document.getElementById('reveal-countdown-number');
@@ -568,15 +573,25 @@ function updateRoomSettingsBadges(edition, format, scoring, bidding) {
 function updateWaitingRoomHostControls() {
   const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
   if (btnOpenHostSettings) {
-    btnOpenHostSettings.style.display = amIHost ? 'block' : 'none';
+    btnOpenHostSettings.style.display = 'block';
+    if (hostSettingsBtnIcon) {
+      hostSettingsBtnIcon.innerText = amIHost ? '⚙️' : '📜';
+    }
+    if (hostSettingsBtnText) {
+      hostSettingsBtnText.innerText = amIHost
+        ? 'Raum-Einstellungen & Hausregeln anpassen'
+        : 'Raum-Einstellungen ansehen';
+    }
+    btnOpenHostSettings.setAttribute('title', amIHost
+      ? 'Spielregeln, Edition, Format, Wertung & Bieten als Spielleiter anpassen'
+      : 'Aktuelle Raum-Einstellungen und Hausregeln ansehen');
   }
 }
 
 const roomSettingsSummaryBar = document.getElementById('room-settings-summary-bar');
 if (roomSettingsSummaryBar) {
   roomSettingsSummaryBar.addEventListener('click', () => {
-    const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
-    if (amIHost && btnOpenHostSettings) {
+    if (btnOpenHostSettings) {
       btnOpenHostSettings.click();
     }
   });
@@ -584,11 +599,40 @@ if (roomSettingsSummaryBar) {
 
 if (btnOpenHostSettings) {
   btnOpenHostSettings.addEventListener('click', () => {
+    const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
+
     if (modalEditionSelect) modalEditionSelect.value = currentEdition || 'classic';
     if (modalFormatSelect) modalFormatSelect.value = currentMatchFormat || 'ffa';
     if (modalScoringSelect) modalScoringSelect.value = currentScoringMode || 'classic';
     if (modalBiddingSelect) modalBiddingSelect.value = currentBiddingMode || 'classic';
     if (modalAllowBlindZero) modalAllowBlindZero.checked = !!currentAllowBlindZero;
+
+    // Nur der Host darf die Werte anpassen und speichern
+    const isEditable = amIHost;
+    if (modalEditionSelect) modalEditionSelect.disabled = !isEditable;
+    if (modalFormatSelect) modalFormatSelect.disabled = !isEditable;
+    if (modalScoringSelect) modalScoringSelect.disabled = !isEditable;
+    if (modalBiddingSelect) modalBiddingSelect.disabled = !isEditable;
+    if (modalAllowBlindZero) modalAllowBlindZero.disabled = !isEditable;
+
+    if (hostSettingsGuestNotice) {
+      hostSettingsGuestNotice.style.display = isEditable ? 'none' : 'block';
+    }
+    if (hostSettingsModalIcon) {
+      hostSettingsModalIcon.innerText = isEditable ? '⚙️' : '📜';
+    }
+    if (hostSettingsModalTitleText) {
+      hostSettingsModalTitleText.innerText = isEditable
+        ? 'Raum-Einstellungen & Hausregeln'
+        : 'Aktuelle Raum-Einstellungen';
+    }
+    if (btnSaveHostSettings) {
+      btnSaveHostSettings.style.display = isEditable ? 'inline-flex' : 'none';
+    }
+    if (btnCancelHostSettings) {
+      btnCancelHostSettings.innerText = isEditable ? 'Abbrechen' : 'Schließen';
+    }
+
     if (hostSettingsModal) hostSettingsModal.style.display = 'block';
   });
 }

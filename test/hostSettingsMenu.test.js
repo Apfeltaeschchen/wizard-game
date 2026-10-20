@@ -2,11 +2,26 @@ const { spawn } = require('child_process');
 const { io } = require('socket.io-client');
 const assert = require('assert');
 const path = require('path');
+const fs = require('fs');
 
 const TEST_PORT = 3995;
 const SERVER_URL = `http://localhost:${TEST_PORT}`;
 
 console.log('--- STARTE HOST SETTINGS MENU & SCORING MULTIPLAYER TEST ---');
+
+// Quellcode-Prüfung: Universeller Button & saubere Warteraum-Struktur
+const indexHtml = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+const clientJs = fs.readFileSync(path.join(__dirname, '../public/client.js'), 'utf8');
+
+assert.ok(indexHtml.includes('id="btnOpenHostSettings"'), 'btnOpenHostSettings Button existiert');
+assert.ok(!indexHtml.includes('id="btnOpenHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 8px 0 6px; display: none;'), 'btnOpenHostSettings darf nicht mehr initial auf display:none stehen');
+assert.ok(indexHtml.includes('id="hostSettingsGuestNotice"'), 'hostSettingsGuestNotice Info-Banner für Gäste existiert');
+assert.ok(!indexHtml.includes('id="btnRemoveBot"'), 'Großer btnRemoveBot Button wurde aus dem Warteraum entfernt');
+assert.ok(!indexHtml.includes('id="room-settings-summary-bar"'), 'Alte Status-Badges unter dem Button wurden entfernt');
+
+assert.ok(clientJs.includes('hostSettingsGuestNotice'), 'client.js bindet hostSettingsGuestNotice ein');
+assert.ok(clientJs.includes('modalEditionSelect.disabled = !isEditable'), 'client.js sperrt Eingaben im Gast-Modus');
+console.log('✓ 0. Quellcode-Prüfung: Universeller Settings-Button & Warteraum-Bereinigung verifiziert');
 
 const serverProc = spawn('node', [path.join(__dirname, '../server/index.js')], {
   env: { ...process.env, PORT: TEST_PORT },

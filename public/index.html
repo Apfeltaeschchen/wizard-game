@@ -5463,51 +5463,11 @@
         </div>
       </div>
 
-      <!-- Kampf-Modus Container (ausgeblendet, da gebündelt im Host-Einstellungs-Modal) -->
-      <div id="format-selector-container" style="display: none;">
-        <div id="host-format-controls" style="display: none;">
-          <div class="format-segmented-control" style="display: flex; gap: 6px; width: 100%;">
-            <button id="btnFormatFFA" type="button" class="btn-format-toggle active" style="flex: 1; padding: 7px 6px; font-size: 11.5px; border-radius: 6px;" title="Jeder gegen Jeden (Standard)" aria-label="Jeder gegen Jeden">
-              <span class="btn-icon" aria-hidden="true">⚔️</span>
-              <span class="btn-text">Jeder gegen Jeden</span>
-            </button>
-            <button id="btnFormat2v2" type="button" class="btn-format-toggle" style="flex: 1; padding: 7px 6px; font-size: 11.5px; border-radius: 6px;" title="2vs2 Allianzen (4 Spieler)" aria-label="2vs2 Allianzen">
-              <span class="btn-icon" aria-hidden="true">🤝</span>
-              <span class="btn-text">2vs2 Allianzen</span>
-            </button>
-          </div>
-        </div>
-        <div id="guest-format-display" style="display: none; font-size: 13px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-subheading);">
-          ⚔️ Jeder gegen Jeden (FFA)
-        </div>
-      </div>
-
-      <!-- Zentraler Host-Button für Einstellungen & Hausregeln -->
-      <button id="btnOpenHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 8px 0 6px; display: none; padding: 9px 12px; font-size: 13px; font-weight: bold;" title="Spielregeln, Edition, Format, Wertung & Bieten konfigurieren">
-        <span class="btn-icon">⚙️</span>
-        <span class="btn-text">Raum-Einstellungen &amp; Hausregeln anpassen</span>
+      <!-- Raum-Einstellungen & Hausregeln Button (für Host & Gäste) -->
+      <button id="btnOpenHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 8px 0 14px; padding: 10px 14px; font-size: 13.5px; font-weight: bold;" title="Raum-Einstellungen &amp; Hausregeln">
+        <span class="btn-icon" id="hostSettingsBtnIcon">⚙️</span>
+        <span class="btn-text" id="hostSettingsBtnText">Raum-Einstellungen &amp; Hausregeln anpassen</span>
       </button>
-
-      <!-- Übersichtliche Status-Badges (für alle Spieler sichtbar, Host kann durch Klick Einstellungen öffnen) -->
-      <div id="room-settings-summary-bar" style="display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; justify-content: center; cursor: pointer;" title="Klicke hier oder auf den Host-Button, um Regeln anzupassen">
-        <span id="badge-setting-edition" class="seat-bot-pill" style="background: rgba(217, 119, 6, 0.2); border: 1px solid var(--gold-antique); color: var(--gold-bright);">📜 Klassisch</span>
-        <span id="badge-setting-format" class="seat-bot-pill" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd;">⚔️ Jeder gegen Jeden</span>
-        <span id="badge-setting-scoring" class="seat-bot-pill" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0;">🎯 Klassische Wertung</span>
-        <span id="badge-setting-bidding" class="seat-bot-pill" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #d8b4fe;">📜 Reihum-Bieten</span>
-      </div>
-
-      <div id="edition-selector-container" style="display: none; margin: 8px 0 12px; padding: 10px 12px; background: rgba(14, 9, 5, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 8px; text-align: left;">
-        <div style="font-size: 11px; color: #d6be90; font-family: var(--font-subheading); letter-spacing: 0.8px; margin-bottom: 5px;">SPIEL-EDITION</div>
-        <div id="host-edition-controls" style="display: none;">
-          <select id="editionSelect" style="width: 100%; padding: 7px 10px; background: #1a1009; color: var(--gold-bright); border: 1px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; cursor: pointer; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);">
-            <option value="classic">Bund der Erzmagier (Klassisch)</option>
-            <option value="anniversary_30">Zeitalter der Bestien &amp; Mythen</option>
-          </select>
-        </div>
-        <div id="guest-edition-display" style="display: block; font-size: 13px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-subheading);">
-          Bund der Erzmagier (Klassisch)
-        </div>
-      </div>
 
       <p style="color: #ebd7af; font-size: 14px; margin: 12px 0 8px;">Versammelte Magier (<span id="waitingRoomCount">0</span>/6):</p>
       
@@ -5552,8 +5512,8 @@
       </div>
 
       <!-- KI-Magier Steuerung für den Host (Solo- & Übungsmodus) -->
-      <div id="host-bot-controls" style="display: none; margin: 6px 0 14px; gap: 8px; position: relative;">
-        <div class="bot-dropdown-wrapper" style="flex: 1; position: relative;">
+      <div id="host-bot-controls" style="display: none; margin: 6px 0 14px; position: relative;">
+        <div class="bot-dropdown-wrapper" style="width: 100%; position: relative;">
           <button id="btnAddBot" type="button" class="btn-auth-bar btn-auth-gold" aria-label="KI hinzufügen" style="width: 100%; padding: 9px; font-size: 12.5px; justify-content: center;">
             <span class="btn-icon" aria-hidden="true">🤖</span>
             <span class="btn-text">KI hinzufügen ▾</span>
@@ -5582,10 +5542,6 @@
             </button>
           </div>
         </div>
-        <button id="btnRemoveBot" type="button" class="btn-auth-bar btn-auth-danger btn-hybrid-compact" title="KI entfernen" aria-label="KI entfernen" style="flex: 1; padding: 9px; font-size: 12.5px; justify-content: center;">
-          <span class="btn-icon" aria-hidden="true">❌</span>
-          <span class="btn-text">KI entfernen</span>
-        </button>
       </div>
 
       <!-- Gefährten einladen Button -->
@@ -6833,10 +6789,16 @@
   <div id="host-settings-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);">
     <div class="modal-content" style="background: radial-gradient(circle at 50% 25%, #2a170b 0%, #150904 70%, #0a0402 100%); border: 2px solid var(--gold-antique); border-radius: 12px; max-width: 440px; margin: 8vh auto; padding: 22px 20px; box-shadow: 0 15px 45px rgba(0,0,0,0.9), 0 0 25px rgba(217, 119, 6, 0.25); color: #ebd7af;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(217,119,6,0.3); padding-bottom: 10px; margin-bottom: 16px;">
-        <h3 style="margin: 0; font-family: var(--font-medieval); color: var(--gold-bright); font-size: 20px; display: flex; align-items: center; gap: 8px;">
-          <span>⚙️</span> Raum-Einstellungen
+        <h3 id="hostSettingsModalTitle" style="margin: 0; font-family: var(--font-medieval); color: var(--gold-bright); font-size: 20px; display: flex; align-items: center; gap: 8px;">
+          <span id="hostSettingsModalIcon">⚙️</span>
+          <span id="hostSettingsModalTitleText">Raum-Einstellungen &amp; Hausregeln</span>
         </h3>
         <button id="btnCloseHostSettings" type="button" style="background: none; border: none; color: #d6be90; font-size: 22px; cursor: pointer; padding: 0 6px;">&times;</button>
+      </div>
+
+      <!-- Info-Banner für Gäste im Nur-Lesen-Modus -->
+      <div id="hostSettingsGuestNotice" style="display: none; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd; padding: 7px 10px; border-radius: 6px; font-size: 11.5px; margin-bottom: 14px; text-align: center; font-family: var(--font-subheading); letter-spacing: 0.3px;">
+        👁️ Nur-Lesen: Nur der Spielleiter kann Einstellungen anpassen.
       </div>
 
       <!-- Edition -->

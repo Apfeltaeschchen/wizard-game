@@ -31,7 +31,6 @@ const requiredButtonChecks = [
   { id: 'waitingRoomLeaveBtn', icon: '🚪', name: 'Kammer verlassen' },
   { id: 'waitingRoomStartBtn', icon: '⚔️', name: 'Partie jetzt beginnen' },
   { id: 'btnAddBot', icon: '🤖', name: 'KI hinzufügen' },
-  { id: 'btnRemoveBot', icon: '❌', name: 'KI entfernen' },
   { id: 'btnOpenCompanionsWaiting', icon: '👥', name: 'Gefährten einladen' },
   { id: 'btnCopyWaitingCode', icon: '📋', name: 'Code kopieren' },
   { id: 'btnHostReDeal', icon: '🔄', name: 'Runde neu austeilen' },
