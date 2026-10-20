@@ -1186,6 +1186,56 @@ io.on('connection', (socket) => {
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
+  // Host übergibt die Spielleitung an einen anderen menschlichen Mitspieler
+  socket.on('transferHost', ({ roomCode, targetSessionId }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Die Host-Rolle kann nur im Warteraum übergeben werden!' });
+      return;
+    }
+
+    if (!room.hostSessionId && room.players.length > 0) {
+      room.hostSessionId = room.players[0].sessionId;
+    }
+
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der aktuelle Host kann die Spielleitung übergeben!' });
+      return;
+    }
+
+    if (!targetSessionId) {
+      socket.emit('actionError', { message: 'Kein Zielspieler angegeben.' });
+      return;
+    }
+
+    if (targetSessionId === room.hostSessionId) {
+      socket.emit('actionError', { message: 'Du bist bereits der Host der Kammer!' });
+      return;
+    }
+
+    const targetPlayer = room.players.find(p => p.sessionId === targetSessionId);
+    if (!targetPlayer) {
+      socket.emit('actionError', { message: 'Ziel-Magier wurde nicht gefunden!' });
+      return;
+    }
+
+    if (targetPlayer.isBot) {
+      socket.emit('actionError', { message: 'Die Host-Rolle kann nicht an eine KI übergeben werden!' });
+      return;
+    }
+
+    room.hostSessionId = targetPlayer.sessionId;
+    broadcastRoomUpdated(room);
+    io.to(normalizedCode).emit('hostTransferred', {
+      newHostSessionId: targetPlayer.sessionId,
+      newHostName: targetPlayer.name
+    });
+  });
+
   // Spiel starten (aus der Lobby)
   socket.on('startGame', ({ roomCode }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();

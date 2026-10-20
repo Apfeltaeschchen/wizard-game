@@ -544,11 +544,11 @@ function updateRoomSettingsBadges(edition, format, scoring, bidding) {
     badgeSettingFormat.innerText = (format === 'team_2v2') ? '🔥🌙 2vs2 Allianzen' : '⚔️ Jeder gegen Jeden';
   }
   if (badgeSettingScoring) {
-    badgeSettingScoring.innerText = (scoring === 'skull_king_zero') ? '☠️ Skull-King-Nullwertung' : '🎯 Wizard-Wertung';
+    badgeSettingScoring.innerText = (scoring === 'skull_king_zero') ? '☠️ Schattenfluch-Nullwertung' : '🎯 Klassische Wertung';
   }
   if (badgeSettingBidding) {
     if (bidding === 'simultaneous') {
-      badgeSettingBidding.innerText = '🎲 Simultan-Bieten';
+      badgeSettingBidding.innerText = '🎲 Simultan-Prophezeiung';
     } else if (bidding === 'secret') {
       badgeSettingBidding.innerText = '🤫 Geheimes Bieten';
     } else {
@@ -4150,6 +4150,10 @@ function createPlayerWaitingItem(p, isHostUser) {
       `;
     } else {
       actionHtml = `
+        <button type="button" class="btn-transfer-host" data-player-id="${escapeHtml(p.sessionId)}" title="${escapeHtml(p.name)} zum Host ernennen" aria-label="Host übergeben">
+          <span class="btn-icon" aria-hidden="true">👑</span>
+          <span class="btn-text">Host</span>
+        </button>
         <button type="button" class="btn-kick-player" data-player-id="${escapeHtml(p.sessionId)}" title="${escapeHtml(p.name)} aus der Kammer verweisen" aria-label="Mitspieler kicken">
           <span class="btn-icon" aria-hidden="true">🚪</span>
           <span class="btn-text">Kicken</span>
@@ -4183,6 +4187,35 @@ function createPlayerWaitingItem(p, isHostUser) {
         WizardAudio.playCardSnap();
       }
       socket.emit('removeBot', { roomCode: currentRoomCode, botSessionId: p.sessionId });
+    });
+  }
+
+  const transferHostBtn = item.querySelector('.btn-transfer-host');
+  if (transferHostBtn) {
+    transferHostBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const playerName = p.name || 'diesen Magier';
+      if (typeof GrimoireDialog !== 'undefined' && GrimoireDialog.confirm) {
+        GrimoireDialog.confirm({
+          title: 'Host-Rolle übergeben?',
+          message: `Möchtest du die Spielleitung der Kammer an "${playerName}" übergeben?`,
+          confirmText: 'Übergeben',
+          cancelText: 'Abbrechen',
+          danger: false,
+          icon: '👑'
+        }).then(confirmed => {
+          if (confirmed) {
+            if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+              WizardAudio.playCardSnap();
+            }
+            socket.emit('transferHost', { roomCode: currentRoomCode, targetSessionId: p.sessionId });
+          }
+        });
+      } else {
+        if (confirm(`Spielleitung an ${playerName} übergeben?`)) {
+          socket.emit('transferHost', { roomCode: currentRoomCode, targetSessionId: p.sessionId });
+        }
+      }
     });
   }
 
@@ -4493,6 +4526,21 @@ socket.on('kickedFromRoom', (data) => {
       message: (data && data.reason) || 'Du wurdest vom Host aus der Kammer verwiesen.',
       icon: '🚪'
     });
+  }
+});
+
+// Host-Rolle übergeben
+socket.on('hostTransferred', ({ newHostSessionId, newHostName }) => {
+  const isMeNowHost = (newHostSessionId === mySessionId);
+  const msg = isMeNowHost
+    ? '👑 Du bist jetzt die neue Spielleitung (Host) der Kammer!'
+    : `👑 ${newHostName} ist jetzt die neue Spielleitung (Host)!`;
+
+  if (typeof showToast === 'function') {
+    showToast(msg);
+  }
+  if (typeof GrimoireHaptics !== 'undefined' && GrimoireHaptics.notification) {
+    GrimoireHaptics.notification('success');
   }
 });
 

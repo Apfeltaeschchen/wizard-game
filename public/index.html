@@ -404,6 +404,46 @@
       }
     }
 
+    /* WARTERAUM: SPIELLEITUNG (HOST) ÜBERGEBEN */
+    .btn-transfer-host {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      min-height: 28px;
+      font-size: 11px;
+      font-family: var(--font-subheading);
+      font-weight: bold;
+      letter-spacing: 0.3px;
+      color: var(--gold-bright);
+      background: rgba(217, 119, 6, 0.22);
+      border: 1px solid var(--gold-antique);
+      border-radius: 6px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: all 0.15s ease;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    .btn-transfer-host:hover {
+      background: rgba(217, 119, 6, 0.45);
+      border-color: var(--gold-bright);
+      color: #ffffff;
+      box-shadow: 0 0 8px rgba(217, 119, 6, 0.4);
+    }
+    .btn-transfer-host:active {
+      transform: scale(0.97);
+    }
+    @media (max-width: 480px) {
+      .btn-transfer-host {
+        padding: 3px 6px;
+        font-size: 10px;
+        min-height: 26px;
+        gap: 3px;
+      }
+    }
+
     .team-badge {
       display: inline-flex;
       align-items: center;
@@ -5341,7 +5381,7 @@
       <div id="room-settings-summary-bar" style="display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; justify-content: center; cursor: pointer;" title="Klicke hier oder auf den Host-Button, um Regeln anzupassen">
         <span id="badge-setting-edition" class="seat-bot-pill" style="background: rgba(217, 119, 6, 0.2); border: 1px solid var(--gold-antique); color: var(--gold-bright);">📜 Klassisch</span>
         <span id="badge-setting-format" class="seat-bot-pill" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd;">⚔️ Jeder gegen Jeden</span>
-        <span id="badge-setting-scoring" class="seat-bot-pill" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0;">🎯 Wizard-Wertung</span>
+        <span id="badge-setting-scoring" class="seat-bot-pill" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0;">🎯 Klassische Wertung</span>
         <span id="badge-setting-bidding" class="seat-bot-pill" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #d8b4fe;">📜 Reihum-Bieten</span>
       </div>
 
@@ -6695,11 +6735,11 @@
       <div style="margin-bottom: 16px; text-align: left;">
         <label for="modalScoringSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">WERTUNGSSYSTEM</label>
         <select id="modalScoringSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
-          <option value="classic">Klassische Wizard-Wertung (+20/+10 vs. -10)</option>
-          <option value="skull_king_zero">Skull King 0-Stich-Regel (Runde × 10 Punkte)</option>
+          <option value="classic">Klassische Grimoire-Wertung (+20/+10 vs. -10)</option>
+          <option value="skull_king_zero">Schattenfluch-Nullwertung (Runde × 10 Punkte)</option>
         </select>
         <p style="font-size: 11px; color: #a89270; margin-top: 5px; line-height: 1.35;">
-          Bei der Skull-King-Regel bringt ein erfolgreicher Null-Tipp <b>Runde &times; 10</b> Bonuspunkte (z. B. Runde 5 = +50). Bei Fehlschlag gibt es <b>- (Runde &times; 10)</b> Abzug!
+          Bei der Schattenfluch-Nullwertung bringt ein erfolgreicher Null-Tipp <b>Runde &times; 10</b> Bonuspunkte (z. B. Runde 5 = +50). Bei Fehlschlag gibt es <b>- (Runde &times; 10)</b> Abzug!
         </p>
       </div>
 
@@ -6708,11 +6748,11 @@
         <label for="modalBiddingSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">BIET-MODUS</label>
         <select id="modalBiddingSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
           <option value="classic">Klassisch (Reihum mit Geber-Regel)</option>
-          <option value="simultaneous">Simultan (Skull King – alle tippen gleichzeitig)</option>
-          <option value="secret">Geheim (Secret Bid – fremde Tipps bleiben verborgen)</option>
+          <option value="simultaneous">Simultan-Prophezeiung (Alle tippen gleichzeitig)</option>
+          <option value="secret">Geheimes Bieten (Fremde Tipps bleiben verborgen)</option>
         </select>
         <p style="font-size: 11px; color: #a89270; margin-top: 5px; line-height: 1.35;">
-          Im Simultan-Modus geben alle zeitgleich verdeckt ab (keine Geber-Regel). Im Geheim-Modus bleiben fremde Tipps bis Rundenende maskiert (?).
+          Bei der Simultan-Prophezeiung geben alle zeitgleich verdeckt ab (keine Geber-Regel). Im geheimen Modus bleiben fremde Tipps bis Rundenende maskiert (?).
         </p>
       </div>
 
