@@ -5469,7 +5469,7 @@
         <span class="btn-text" id="hostSettingsBtnText">Raum-Einstellungen &amp; Hausregeln anpassen</span>
       </button>
 
-      <p style="color: #ebd7af; font-size: 14px; margin: 12px 0 8px;">Versammelte Magier (<span id="waitingRoomCount">0</span>/6):</p>
+      <p style="color: #ebd7af; font-size: 14px; margin: 12px 0 8px;">Versammelte Magier (<span id="waitingRoomCount">0/6</span>):</p>
       
       <!-- Liste der anwesenden Spieler (FFA) -->
       <div id="waitingRoomPlayersList" style="display: flex; flex-direction: column; gap: 8px; margin: 10px 0 16px; max-height: 240px; overflow-y: auto;"></div>
@@ -6782,9 +6782,6 @@
   <!-- GLOBALER TOAST-HINWEIS -->
   <div id="global-toast" class="global-toast" aria-live="polite"></div>
 
-  <script src="socket.io.min.js"></script>
-  <script src="client.js"></script>
-
   <!-- HOST EINSTELLUNGEN MODAL -->
   <div id="host-settings-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);">
     <div class="modal-content" style="background: radial-gradient(circle at 50% 25%, #2a170b 0%, #150904 70%, #0a0402 100%); border: 2px solid var(--gold-antique); border-radius: 12px; max-width: 440px; margin: 8vh auto; padding: 22px 20px; box-shadow: 0 15px 45px rgba(0,0,0,0.9), 0 0 25px rgba(217, 119, 6, 0.25); color: #ebd7af;">
@@ -6865,5 +6862,8 @@
     </div>
   </div>
 
-</body>
+  <script src="socket.io.min.js"></script>
+  <script src="client.js"></script>
+
+  </body>
 </html>

@@ -16,6 +16,8 @@ const clientJs = fs.readFileSync(path.join(__dirname, '../public/client.js'), 'u
 assert.ok(indexHtml.includes('id="btnOpenHostSettings"'), 'btnOpenHostSettings Button existiert');
 assert.ok(!indexHtml.includes('id="btnOpenHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 8px 0 6px; display: none;'), 'btnOpenHostSettings darf nicht mehr initial auf display:none stehen');
 assert.ok(indexHtml.includes('id="hostSettingsGuestNotice"'), 'hostSettingsGuestNotice Info-Banner für Gäste existiert');
+assert.ok(indexHtml.indexOf('id="host-settings-modal"') < indexHtml.indexOf('client.js'), 'host-settings-modal muss VOR client.js im DOM definiert sein');
+assert.ok(!indexHtml.includes('(<span id="waitingRoomCount">0</span>/6):'), 'Doppeltes /6 darf nicht im HTML Template stehen');
 assert.ok(!indexHtml.includes('id="btnRemoveBot"'), 'Großer btnRemoveBot Button wurde aus dem Warteraum entfernt');
 assert.ok(!indexHtml.includes('id="room-settings-summary-bar"'), 'Alte Status-Badges unter dem Button wurden entfernt');
 

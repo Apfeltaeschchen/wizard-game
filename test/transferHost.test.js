@@ -101,8 +101,11 @@ async function runTests() {
     let transferredData = null;
     let guestReceivedUpdate = null;
 
-    guestClient.once('hostTransferred', (data) => {
-      transferredData = data;
+    const transferPromise = new Promise((resolve) => {
+      guestClient.once('hostTransferred', (data) => {
+        transferredData = data;
+        resolve();
+      });
     });
 
     const roomUpdatePromise = new Promise((resolve) => {
@@ -116,7 +119,10 @@ async function runTests() {
     });
 
     hostClient.emit('transferHost', { roomCode, targetSessionId: 'sess_elrond' });
-    await Promise.race([roomUpdatePromise, wait(2000)]);
+    await Promise.race([
+      Promise.all([transferPromise, roomUpdatePromise]),
+      wait(3500)
+    ]);
 
     assert.ok(transferredData, 'hostTransferred Event muss empfangen worden sein');
     assert.strictEqual(transferredData.newHostSessionId, 'sess_elrond');

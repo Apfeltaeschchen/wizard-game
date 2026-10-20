@@ -10,7 +10,13 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const dbPath = process.env.WIZARD_DB_PATH || path.join(dataDir, 'wizard.db');
+// Automatische Erkennung: Falls auf Render eine Persistent Disk unter /var/data gemountet ist,
+// nutze diese automatisch; andernfalls WIZARD_DB_PATH oder lokales data-Verzeichnis.
+const defaultDbPath = fs.existsSync('/var/data')
+  ? path.join('/var/data', 'wizard.db')
+  : path.join(dataDir, 'wizard.db');
+
+const dbPath = process.env.WIZARD_DB_PATH || defaultDbPath;
 const db = new Database(dbPath);
 
 // Performance & Concurrency Optimierungen

@@ -633,15 +633,19 @@ if (btnOpenHostSettings) {
       btnCancelHostSettings.innerText = isEditable ? 'Abbrechen' : 'Schließen';
     }
 
-    if (hostSettingsModal) hostSettingsModal.style.display = 'block';
+    const modal = hostSettingsModal || document.getElementById('host-settings-modal');
+    if (modal) modal.style.display = 'block';
   });
 }
 
 function closeHostSettingsModal() {
-  if (hostSettingsModal) hostSettingsModal.style.display = 'none';
+  const modal = hostSettingsModal || document.getElementById('host-settings-modal');
+  if (modal) modal.style.display = 'none';
 }
-if (btnCloseHostSettings) btnCloseHostSettings.addEventListener('click', closeHostSettingsModal);
-if (btnCancelHostSettings) btnCancelHostSettings.addEventListener('click', closeHostSettingsModal);
+const closeHostSettingsBtn = btnCloseHostSettings || document.getElementById('btnCloseHostSettings');
+const cancelHostSettingsBtn = btnCancelHostSettings || document.getElementById('btnCancelHostSettings');
+if (closeHostSettingsBtn) closeHostSettingsBtn.addEventListener('click', closeHostSettingsModal);
+if (cancelHostSettingsBtn) cancelHostSettingsBtn.addEventListener('click', closeHostSettingsModal);
 
 if (btnSaveHostSettings) {
   btnSaveHostSettings.addEventListener('click', () => {
@@ -2012,6 +2016,12 @@ const WizardAuth = (() => {
         setToken(null);
         setCachedUser(null);
         currentUser = null;
+        try {
+          const savedName = localStorage.getItem('grimoire_saved_username');
+          if (savedName && nameInput && !nameInput.value) {
+            nameInput.value = savedName;
+          }
+        } catch (e) {}
         renderLobbyBar();
         return null;
       }
@@ -2071,6 +2081,7 @@ const WizardAuth = (() => {
       if (nameInput) {
         nameInput.value = data.user.username;
         sessionStorage.setItem('wizard_last_name', data.user.username);
+        try { localStorage.setItem('grimoire_saved_username', data.user.username); } catch (e) {}
       }
       renderLobbyBar();
       closeAuthModal();
@@ -2108,6 +2119,7 @@ const WizardAuth = (() => {
       if (nameInput) {
         nameInput.value = data.user.username;
         sessionStorage.setItem('wizard_last_name', data.user.username);
+        try { localStorage.setItem('grimoire_saved_username', data.user.username); } catch (e) {}
       }
       renderLobbyBar();
       closeAuthModal();
