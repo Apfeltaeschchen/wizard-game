@@ -5312,9 +5312,8 @@
         </div>
       </div>
 
-      <!-- Kampf-Modus Auswahl (FFA vs 2vs2 Allianzen) -->
-      <div id="format-selector-container" style="margin: 8px 0 12px; padding: 10px 12px; background: rgba(14, 9, 5, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 8px; text-align: left;">
-        <div style="font-size: 11px; color: #d6be90; font-family: var(--font-subheading); letter-spacing: 0.8px; margin-bottom: 5px;">KAMPF-MODUS</div>
+      <!-- Kampf-Modus Container (ausgeblendet, da gebündelt im Host-Einstellungs-Modal) -->
+      <div id="format-selector-container" style="display: none;">
         <div id="host-format-controls" style="display: none;">
           <div class="format-segmented-control" style="display: flex; gap: 6px; width: 100%;">
             <button id="btnFormatFFA" type="button" class="btn-format-toggle active" style="flex: 1; padding: 7px 6px; font-size: 11.5px; border-radius: 6px;" title="Jeder gegen Jeden (Standard)" aria-label="Jeder gegen Jeden">
@@ -5327,18 +5326,19 @@
             </button>
           </div>
         </div>
-        <div id="guest-format-display" style="display: block; font-size: 13px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-subheading);">
+        <div id="guest-format-display" style="display: none; font-size: 13px; color: var(--gold-bright); font-weight: bold; font-family: var(--font-subheading);">
           ⚔️ Jeder gegen Jeden (FFA)
         </div>
       </div>
 
-      <!-- Edition / Regelwerk Auswahl -->
-      <button id="btnOpenHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 8px 0 10px; display: none; padding: 9px 12px; font-size: 13px; font-weight: bold;" title="Spielregeln, Edition & Format konfigurieren">
+      <!-- Zentraler Host-Button für Einstellungen & Hausregeln -->
+      <button id="btnOpenHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; margin: 8px 0 6px; display: none; padding: 9px 12px; font-size: 13px; font-weight: bold;" title="Spielregeln, Edition, Format, Wertung & Bieten konfigurieren">
         <span class="btn-icon">⚙️</span>
         <span class="btn-text">Raum-Einstellungen &amp; Hausregeln anpassen</span>
       </button>
 
-      <div id="room-settings-summary-bar" style="display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 12px; justify-content: center;">
+      <!-- Übersichtliche Status-Badges (für alle Spieler sichtbar, Host kann durch Klick Einstellungen öffnen) -->
+      <div id="room-settings-summary-bar" style="display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; justify-content: center; cursor: pointer;" title="Klicke hier oder auf den Host-Button, um Regeln anzupassen">
         <span id="badge-setting-edition" class="seat-bot-pill" style="background: rgba(217, 119, 6, 0.2); border: 1px solid var(--gold-antique); color: var(--gold-bright);">📜 Klassisch</span>
         <span id="badge-setting-format" class="seat-bot-pill" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd;">⚔️ Jeder gegen Jeden</span>
         <span id="badge-setting-scoring" class="seat-bot-pill" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0;">🎯 Wizard-Wertung</span>

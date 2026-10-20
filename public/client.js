@@ -557,6 +557,23 @@ function updateRoomSettingsBadges(edition, format, scoring, bidding) {
   }
 }
 
+function updateWaitingRoomHostControls() {
+  const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
+  if (btnOpenHostSettings) {
+    btnOpenHostSettings.style.display = amIHost ? 'block' : 'none';
+  }
+}
+
+const roomSettingsSummaryBar = document.getElementById('room-settings-summary-bar');
+if (roomSettingsSummaryBar) {
+  roomSettingsSummaryBar.addEventListener('click', () => {
+    const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
+    if (amIHost && btnOpenHostSettings) {
+      btnOpenHostSettings.click();
+    }
+  });
+}
+
 if (btnOpenHostSettings) {
   btnOpenHostSettings.addEventListener('click', () => {
     if (modalEditionSelect) modalEditionSelect.value = currentEdition || 'classic';
@@ -4298,6 +4315,9 @@ function updateWaitingRoomView(amIHost) {
         : 'Bund der Erzmagier (Klassisch)';
     }
   }
+
+  // Host-Einstellungs-Button im Warteraum aktualisieren
+  updateWaitingRoomHostControls();
 
   // Host-Bot-Steuerung anzeigen / aktualisieren
   const hostBotControls = document.getElementById('host-bot-controls');
