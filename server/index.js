@@ -306,7 +306,6 @@ function createNewRoomState(hostSessionId = null, roomCode = '', isRanked = fals
     edition: 'classic', // 'classic' oder 'anniversary_30'
     scoringMode: 'classic', // 'classic' oder 'skull_king_zero'
     biddingMode: 'classic', // 'classic', 'simultaneous' oder 'secret'
-    allowBlindZero: false, // Optionale Blind-0 Prophezeiung
     round: 1,
     trumpCard: null,
     trumpChooserSessionId: null,
@@ -529,7 +528,6 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
-      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null,
       isRanked: isRankedRoom,
       trumpCard: null,
@@ -766,7 +764,6 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
-      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null,
       isRanked: room.isRanked,
       trumpCard: room.trumpCard,
@@ -879,8 +876,8 @@ io.on('connection', (socket) => {
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
-  // Host aktualisiert Raum-Einstellungen (Edition, MatchFormat, ScoringMode, BiddingMode, BlindZero)
-  socket.on('updateRoomSettings', ({ roomCode, edition, matchFormat, scoringMode, biddingMode, allowBlindZero }) => {
+  // Host aktualisiert Raum-Einstellungen (Edition, MatchFormat, ScoringMode, BiddingMode)
+  socket.on('updateRoomSettings', ({ roomCode, edition, matchFormat, scoringMode, biddingMode }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -912,10 +909,6 @@ io.on('connection', (socket) => {
       room.biddingMode = biddingMode;
     }
 
-    if (allowBlindZero !== undefined) {
-      room.allowBlindZero = !!allowBlindZero;
-    }
-
     if (matchFormat && ['ffa', 'team_2v2'].includes(matchFormat)) {
       room.matchFormat = matchFormat;
       if (matchFormat === 'team_2v2') {
@@ -943,7 +936,6 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat,
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
-      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams
     });
     io.to(normalizedCode).emit('editionChanged', { edition: room.edition });
@@ -1328,7 +1320,6 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
-      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null
     });
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1353,7 +1344,6 @@ io.on('connection', (socket) => {
       }
       player.bid = null;
       player.tricksWon = 0;
-      player.isBlindZero = false;
       player.heldWizardThisRound = player.hand.some(c => c && c.type === 'wizard');
       player.attemptingZeroWizardRound = false;
     });
@@ -1474,7 +1464,6 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
-      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null
     });
     io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1660,7 +1649,7 @@ io.on('connection', (socket) => {
   });
 
   // Vereinheitlichte Logik: Stichvorhersage abgeben (für Spieler und Bots)
-  function handlePlayerBid(room, playerSessionId, bid, isBlindZero = false) {
+  function handlePlayerBid(room, playerSessionId, bid) {
     if (!room || room.gameState !== 'bidding' || room.isPaused) {
       return { success: false, message: 'Nicht in der Bietphase.' };
     }
@@ -1700,7 +1689,6 @@ io.on('connection', (socket) => {
     }
 
     player.bid = parsedBid;
-    player.isBlindZero = (!!room.allowBlindZero && !!isBlindZero && parsedBid === 0);
 
     if (player.heldWizardThisRound && parsedBid === 0) {
       player.attemptingZeroWizardRound = true;
@@ -1716,11 +1704,17 @@ io.on('connection', (socket) => {
         io.to(room.roomCode).emit('simultaneousBidsRevealed', {
           players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room)
         });
+        broadcastRoomUpdated(room);
+        io.to(room.roomCode).emit('biddingFinished');
+        // Puffer von 1800ms, damit der 3-2-1 Countdown und der 3D-Kartenflip am Client vollständig beendet sind
+        setRoomTimeout(room, () => {
+          notifyTurn(room.roomCode);
+        }, 1800);
+      } else {
+        broadcastRoomUpdated(room);
+        io.to(room.roomCode).emit('biddingFinished');
+        notifyTurn(room.roomCode);
       }
-
-      broadcastRoomUpdated(room);
-      io.to(room.roomCode).emit('biddingFinished');
-      notifyTurn(room.roomCode);
     } else {
       if (!isSimultaneous) {
         room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
@@ -1735,7 +1729,7 @@ io.on('connection', (socket) => {
   }
 
   // Spieler gibt Stichvorhersage ab (Socket Handler)
-  socket.on('submitBid', ({ roomCode, bid, isBlindZero }) => {
+  socket.on('submitBid', ({ roomCode, bid }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'bidding' || room.isPaused) return;
@@ -1751,7 +1745,7 @@ io.on('connection', (socket) => {
     }
     if (!bidder) return;
 
-    const result = handlePlayerBid(room, bidder.sessionId, bid, isBlindZero);
+    const result = handlePlayerBid(room, bidder.sessionId, bid);
     if (result && !result.success && result.message) {
       socket.emit('actionError', { message: result.message });
     }
@@ -1830,8 +1824,7 @@ io.on('connection', (socket) => {
           p.bid !== null ? p.bid : 0,
           p.tricksWon,
           room.round,
-          room.scoringMode || "classic",
-          !!p.isBlindZero
+          room.scoringMode || "classic"
         );
         p.totalScore += roundPoints;
         p.wonCards = [];
@@ -1840,7 +1833,6 @@ io.on('connection', (socket) => {
           name: p.name,
           team: p.team || null,
           bid: p.bid,
-          isBlindZero: !!p.isBlindZero,
           tricksWon: p.tricksWon,
           roundPoints: roundPoints,
           totalScore: p.totalScore
@@ -1935,7 +1927,6 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
-      allowBlindZero: !!room.allowBlindZero,
       teams: room.teams || null,
       teamScores: teamScores,
       isRanked: !!room.isRanked,
@@ -2680,7 +2671,7 @@ io.on('connection', (socket) => {
             p.difficulty || 'master',
             room.edition || 'classic'
           );
-          const delay = 400 + Math.floor(Math.random() * 500);
+          const delay = 1100 + Math.floor(Math.random() * 1100);
           setRoomTimeout(room, () => {
             if (room.gameState === 'bidding' && (p.bid === null || p.bid === undefined)) {
               handlePlayerBid(room, p.sessionId, botBid);
@@ -2732,7 +2723,7 @@ io.on('connection', (socket) => {
       }
       setRoomTimeout(room, () => {
         handleSelectTrumpSuit(room, bot.sessionId, bestSuit);
-      }, 600);
+      }, 1000 + Math.floor(Math.random() * 400));
     } else if (room.gameState === 'bidding') {
       let currentTrumpSuit = 'none';
       if (room.trumpCard) {
@@ -2754,7 +2745,7 @@ io.on('connection', (socket) => {
 
       setRoomTimeout(room, () => {
         handlePlayerBid(room, bot.sessionId, botBid);
-      }, 600);
+      }, 1200 + Math.floor(Math.random() * 600));
     } else if (room.gameState === 'playing_tricks') {
       const teammate = (room.matchFormat === 'team_2v2' && bot.team)
         ? room.players.find(p => p.team === bot.team && p.sessionId !== bot.sessionId)
@@ -2797,7 +2788,7 @@ io.on('connection', (socket) => {
 
       setRoomTimeout(room, () => {
         handlePlayerPlayCard(room, bot.sessionId, cardIdx, chosenRole, chosenSuit);
-      }, 700);
+      }, 1300 + Math.floor(Math.random() * 700));
     }
   }
 
@@ -2828,7 +2819,6 @@ io.on('connection', (socket) => {
         team: p.team || null,
         bid: bidVal,
         hasBid: hasBid,
-        isBlindZero: !!p.isBlindZero,
         tricksWon: p.tricksWon,
         totalScore: p.totalScore,
         connected: p.connected,

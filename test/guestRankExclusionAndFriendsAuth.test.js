@@ -33,7 +33,7 @@ console.log('✓ 1b. Verbindungsbanner z-index 900 mit dynamischem Body-Paddingv
 
 // c) Mobiles Biet-Overlay und Handkarten Swipeable CSS
 assert.ok(html.includes('#bid-overlay {') && html.includes('z-index: 500;'), 'bid-overlay besitzt z-index 500');
-assert.ok(html.includes('bottom: calc(var(--card-h) + 26px);'), 'bid-overlay positioniert sich über den Handkarten');
+assert.ok(html.includes('bottom: calc(var(--card-h) + 75px);'), 'bid-overlay positioniert sich über den Handkarten (angehoben)');
 assert.ok(html.includes('#hand-container.swipeable {') && html.includes('justify-content: flex-start !important;'), 'swipeable Handkarten haben justify-content: flex-start');
 assert.ok(html.includes('#playerName,') && html.includes('min-height: 44px;'), 'Touch-freundliche Formular-Inputs (>= 44px, 16px Font) vorhanden');
 console.log('✓ 1c. Mobiles Biet-Overlay, Handkarten-Swipeable & Touch-Input-Dimensionen verifiziert');

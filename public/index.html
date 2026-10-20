@@ -1434,14 +1434,46 @@
 
     .seat-name {
       font-family: var(--font-subheading);
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 700;
       color: #f7eedb;
-      max-width: 65px;
+      max-width: 95px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       line-height: 1;
+      cursor: pointer;
+      transition: color 0.2s ease, text-shadow 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .seat-name:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .seat-name.host-name {
+      color: var(--gold-bright);
+      text-shadow: 0 0 8px rgba(245, 158, 11, 0.45);
+      font-weight: 800;
+    }
+
+    .seat-name.bot-novice {
+      color: #86efac;
+      text-shadow: 0 0 6px rgba(134, 239, 172, 0.3);
+    }
+
+    .seat-name.bot-master {
+      color: #93c5fd;
+      text-shadow: 0 0 8px rgba(147, 197, 253, 0.4);
+    }
+
+    .seat-name.bot-archmage {
+      color: #d8b4fe;
+      text-shadow: 0 0 10px rgba(216, 180, 254, 0.55);
+      font-weight: 800;
     }
 
     .seat-bid-pill {
@@ -3426,7 +3458,7 @@
       }
       #bid-overlay {
         position: absolute;
-        bottom: calc(var(--card-h) + 26px);
+        bottom: calc(var(--card-h) + 75px);
         top: auto;
         left: 50%;
         right: auto;
@@ -5979,10 +6011,6 @@
             Wie viele Stiche prophezeist du?
           </div>
           <div id="bid-buttons"></div>
-          <button id="btnBlindZero" type="button" class="btn-auth-bar" style="display: none; width: 100%; margin-top: 10px; background: linear-gradient(180deg, #581c87, #2e0847); border: 1.5px solid var(--gold-bright); color: var(--gold-bright); font-size: 12px; font-weight: bold; padding: 7px 10px; justify-content: center;" title="Blind 0 prophezeien (vor dem Ansehen der Karten)">
-            <span class="btn-icon">🔮</span>
-            <span class="btn-text">Blind 0 prophezeien (Doppelter Bonus/Malus)</span>
-          </button>
         </div>
       </div>
 
@@ -5998,7 +6026,6 @@
             <span class="hud-badge-icon hud-bid-icon" title="Deine Vorhersage">🎯</span>
             <span class="hud-label">Deine Vorhersage:</span>
             <span class="hud-value hud-bid" id="my-hud-bid">-</span>
-            <span id="my-hud-bilanz-wrap" style="display: none;"><span class="hud-divider">•</span> <span class="hud-badge-icon">⚖️</span> <span id="my-hud-bilanz" style="font-weight: bold; color: var(--gold-bright);" title="Runden-Bietbilanz">Bilanz: -</span></span>
             <span id="my-hud-team-separator" class="hud-divider" style="display: none;">•</span>
             <span id="my-hud-team-container" style="display: none; align-items: center; gap: 4px;">
               <span class="hud-badge-icon" id="my-hud-team-icon" style="display: none;">🔥</span>
@@ -6838,19 +6865,6 @@
         </select>
         <p style="font-size: 11px; color: #a89270; margin-top: 5px; line-height: 1.35;">
           Bei der Simultan-Prophezeiung geben alle zeitgleich verdeckt ab (keine Geber-Regel). Im geheimen Modus bleiben fremde Tipps bis Rundenende maskiert (?).
-        </p>
-      </div>
-
-      <!-- Blind-0 Prophezeiung Option -->
-      <div style="margin-bottom: 20px; text-align: left; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(217,119,6,0.3);">
-        <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin: 0;">
-          <span style="font-family: var(--font-subheading); font-size: 12.5px; color: var(--gold-bright); font-weight: bold;">
-            🔮 Blind-0 Prophezeiung erlauben
-          </span>
-          <input type="checkbox" id="modalAllowBlindZero" style="width: 18px; height: 18px; accent-color: var(--gold-bright); cursor: pointer;" />
-        </label>
-        <p style="font-size: 11px; color: #a89270; margin: 5px 0 0; line-height: 1.35;">
-          Ermöglicht mutigen Magiern, vor Ansicht der Karten blind 0 Stiche anzusagen – für <b>doppelten Rundenbonus</b> oder <b>doppelten Malus</b>!
         </p>
       </div>
 

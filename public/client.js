@@ -531,19 +531,15 @@ const modalEditionSelect = document.getElementById('modalEditionSelect');
 const modalFormatSelect = document.getElementById('modalFormatSelect');
 const modalScoringSelect = document.getElementById('modalScoringSelect');
 const modalBiddingSelect = document.getElementById('modalBiddingSelect');
-const modalAllowBlindZero = document.getElementById('modalAllowBlindZero');
 const hostSettingsBtnIcon = document.getElementById('hostSettingsBtnIcon');
 const hostSettingsBtnText = document.getElementById('hostSettingsBtnText');
 const hostSettingsModalIcon = document.getElementById('hostSettingsModalIcon');
 const hostSettingsModalTitleText = document.getElementById('hostSettingsModalTitleText');
 const hostSettingsGuestNotice = document.getElementById('hostSettingsGuestNotice');
-const btnBlindZero = document.getElementById('btnBlindZero');
 const simultaneousRevealOverlay = document.getElementById('simultaneous-reveal-overlay');
 const revealCountdownNumber = document.getElementById('reveal-countdown-number');
 const revealSubtitle = document.getElementById('reveal-subtitle');
 const biddingSummaryPill = document.getElementById('bidding-summary-pill');
-const myHudBilanzWrap = document.getElementById('my-hud-bilanz-wrap');
-const myHudBilanz = document.getElementById('my-hud-bilanz');
 const badgeSettingEdition = document.getElementById('badge-setting-edition');
 const badgeSettingFormat = document.getElementById('badge-setting-format');
 const badgeSettingScoring = document.getElementById('badge-setting-scoring');
@@ -605,7 +601,6 @@ if (btnOpenHostSettings) {
     if (modalFormatSelect) modalFormatSelect.value = currentMatchFormat || 'ffa';
     if (modalScoringSelect) modalScoringSelect.value = currentScoringMode || 'classic';
     if (modalBiddingSelect) modalBiddingSelect.value = currentBiddingMode || 'classic';
-    if (modalAllowBlindZero) modalAllowBlindZero.checked = !!currentAllowBlindZero;
 
     // Nur der Host darf die Werte anpassen und speichern
     const isEditable = amIHost;
@@ -613,7 +608,6 @@ if (btnOpenHostSettings) {
     if (modalFormatSelect) modalFormatSelect.disabled = !isEditable;
     if (modalScoringSelect) modalScoringSelect.disabled = !isEditable;
     if (modalBiddingSelect) modalBiddingSelect.disabled = !isEditable;
-    if (modalAllowBlindZero) modalAllowBlindZero.disabled = !isEditable;
 
     if (hostSettingsGuestNotice) {
       hostSettingsGuestNotice.style.display = isEditable ? 'none' : 'block';
@@ -653,15 +647,13 @@ if (btnSaveHostSettings) {
     const newFormat = modalFormatSelect ? modalFormatSelect.value : 'ffa';
     const newScoring = modalScoringSelect ? modalScoringSelect.value : 'classic';
     const newBidding = modalBiddingSelect ? modalBiddingSelect.value : 'classic';
-    const newAllowBlindZero = modalAllowBlindZero ? modalAllowBlindZero.checked : false;
 
     socket.emit('updateRoomSettings', {
       roomCode: currentRoomCode,
       edition: newEdition,
       matchFormat: newFormat,
       scoringMode: newScoring,
-      biddingMode: newBidding,
-      allowBlindZero: newAllowBlindZero
+      biddingMode: newBidding
     });
     closeHostSettingsModal();
   });
@@ -1011,7 +1003,6 @@ let currentEdition = 'classic';
 let currentMatchFormat = 'ffa';
 let currentScoringMode = 'classic';
 let currentBiddingMode = 'classic';
-let currentAllowBlindZero = false;
 let currentTeams = {
   team_a: { name: 'Allianz des Sonnenfeuers', score: 0 },
   team_b: { name: 'Allianz der Mondschatten', score: 0 }
@@ -3264,6 +3255,113 @@ const CompanionsManager = (() => {
 })();
 if (typeof window !== 'undefined') window.CompanionsManager = CompanionsManager;
 
+// --- BOT LORE DATENBANK (INDIVIDUELLE GESCHICHTEN, PHILOSOPHIEN & STUFEN) ---
+const BOT_LORE_DATABASE = {
+  'pippin': {
+    title: 'Zauberlehrling der Kräuterkunde',
+    level: 'Stufe 8',
+    philosophy: 'Neugierig & Spontan',
+    story: 'Pippin ist ein enthusiastischer Schüler der Akademie. Er verwechselt zwar noch gelegentlich seine Zauberstäbe, überrascht aber mit unerschütterlichem Optimismus und intuitivem Gespür.'
+  },
+  'luna': {
+    title: 'Sternenbeobachterin des Nordturms',
+    level: 'Stufe 12',
+    philosophy: 'Astrologische Vorhersagen',
+    story: 'Luna studiert die Konstellationen des Nachthimmels und deutet Stiche wie Sternbilder. Wenn die arkanen Gestirne günstig stehen, wagt sie selbst die kühnsten Vorhersagen.'
+  },
+  'sam': {
+    title: 'Schildknappe der Bastion',
+    level: 'Stufe 10',
+    philosophy: 'Vorsichtig & Risikoscheu',
+    story: 'Sam vertraut auf solide Verteidigung und eiserne Disziplin. Er meidet gewagte Vorhersagen und sichert seine Stiche stets lieber mit bedächtiger Zurückhaltung ab.'
+  },
+  'arya': {
+    title: 'Schattenläuferin der Gewölbe',
+    level: 'Stufe 14',
+    philosophy: 'Flink & Unberechenbar',
+    story: 'Arya bewegt sich geräuschlos durch die Katakomben der Zitadelle. Mit Vorliebe deckt sie Narren im verblüffendsten Moment auf und stiftet heillose Verwirrung am Tisch.'
+  },
+  'merlin': {
+    title: 'Hüter der arkanen Sphären',
+    level: 'Stufe 42',
+    philosophy: 'Mathematische Stichkontrolle',
+    story: 'Merlin überblickt die Gesetze des Schicksals mit stoischer Gelassenheit. Seine Stichkalkulationen basieren auf jahrhundertelanger Erfahrung im Hohen Magischen Rat.'
+  },
+  'morgana': {
+    title: 'Herrin der Nebel & Illusionen',
+    level: 'Stufe 45',
+    philosophy: 'Täuschung & Konterangriff',
+    story: 'Morgana hüllt ihre wahren Absichten in dichtes Gewebe aus Täuschung. Sie wartet geduldig, bis ihre Widersacher Fehler machen, um deren Stichbilanzen gnadenlos zu zerschlagen.'
+  },
+  'albus': {
+    title: 'Großmeister des Zitadellenrats',
+    level: 'Stufe 48',
+    philosophy: 'Vorausschauende Harmonie',
+    story: 'Albus strahlt unerschütterliche Ruhe aus. Er beherrscht jede Nuance des Farbzwangs und führt Partien mit weiser Gelassenheit zum optimalen Rundenabschluss.'
+  },
+  'circe': {
+    title: 'Alchemistin der Transformation',
+    level: 'Stufe 44',
+    philosophy: 'Farbanalyse & Wendigkeit',
+    story: 'Circe erkennt gegnerische Farblücken wie mit dem Seziermesser. Sie dreht scheinbar verlorene Runden im letzten Stich durch präzise getaktete Ausspiele.'
+  },
+  'gandalf': {
+    title: 'Oberster Rat des Weißen Ordens',
+    level: 'Stufe 85',
+    philosophy: 'Unerbittliche Meisterstrategie',
+    story: 'Gandalf lenkt den Fluss jeder Runde mit erhabener Entschlossenheit. Seine arkanen Berechnungen verzeihen kein einziges Zögern und zwingen Kontrahenten in die Knie.'
+  },
+  'yennefer': {
+    title: 'Meisterin des arkanen Chaos',
+    level: 'Stufe 88',
+    philosophy: 'Scharfsinnig & Kompromisslos',
+    story: 'Yennefer vereint kühle Eleganz mit zerstörerischer Spielpräzision. Wer ihre Vorhersagen unterschätzt, findet sich rasch am bitteren Ende der Rundenwertung wieder.'
+  },
+  'raistlin': {
+    title: 'Schattenfürst der verbotenen Künste',
+    level: 'Stufe 92',
+    philosophy: 'Absolute Kartenbeherrschung',
+    story: 'Raistlin berechnet Wahrscheinlichkeiten mit eiskalter Logik. Er opfert eigene Handkarten ohne Reue, um das gesamte Blatt der Gegner vollständig offenzulegen.'
+  },
+  'medea': {
+    title: 'Hohepriesterin des ewigen Feuers',
+    level: 'Stufe 89',
+    philosophy: 'Aggressive Trumpfführung',
+    story: 'Medeas Spiel brennt mit magischer Intensität. Ihre Trumpfführung ist legendär gefürchtet und durchbricht selbst die stärksten Verteidigungslinien.'
+  }
+};
+
+function getBotLore(botName, botDifficulty) {
+  const lower = (botName || '').toLowerCase();
+  for (const [key, lore] of Object.entries(BOT_LORE_DATABASE)) {
+    if (lower.includes(key)) {
+      return lore;
+    }
+  }
+  const diff = botDifficulty || 'master';
+  if (diff === 'novice') {
+    return {
+      title: 'Akademie-Novize',
+      level: 'Stufe 10',
+      philosophy: 'Neugierig & Lernbegierig',
+      story: 'Ein aufstrebender Lehrling der Zauberakademie, der noch an seinen Vorhersagen feilt, aber mit frischem Eifer am Tisch agiert.'
+    };
+  } else if (diff === 'archmage') {
+    return {
+      title: 'Erzmagier der Ratskammer',
+      level: 'Stufe 80',
+      philosophy: 'Eiskalte Perfektion',
+      story: 'Ein altehrwürdiges Mitglied des Magischen Konzils mit meisterhafter Kartenübersicht und unnachgiebiger Präzision.'
+    };
+  }
+  return {
+    title: 'Meister der arkanen Künste',
+    level: 'Stufe 40',
+    philosophy: 'Besonnene Taktik',
+    story: 'Ein erfahrener Meistermagier der Zitadelle, der Risiken exakt abwägt und Stiche wohlüberlegt verteilt.'
+  };
+}
+
 // --- MAGIER-PROFIL & SPIELER-DETAILS MODAL (SPIELTISCH & GRIMOIRE DER GEFÄHRTEN) ---
 function openPlayerDetailModal(data, source = 'table') {
   const modal = document.getElementById('player-detail-modal');
@@ -3314,89 +3412,130 @@ function openPlayerDetailModal(data, source = 'table') {
     }
   }
 
-  // Rang
-  const sr = isFriendSource ? (data.skill_rating || 1000) : (data.skillRating || (data.rank ? data.rank.skillRating : 1000) || 1000);
-  const rank = data.rank || (typeof getRankDetailsFromSR === 'function' ? getRankDetailsFromSR(sr) : null);
-  const divName = rank ? rank.divisionName : (data.userId || data.isBot ? 'Novize V' : 'Gast-Magier');
-  const tierKey = rank ? rank.tierKey : 'novice';
-  const crestSvg = (typeof RANK_CRESTS !== 'undefined' && RANK_CRESTS[tierKey]) ? RANK_CRESTS[tierKey] : '';
+  // Rang / Level
+  if (data.isBot) {
+    const diff = data.difficulty || 'master';
+    const lore = getBotLore(name, diff);
 
-  if (divisionEl) {
-    divisionEl.innerText = divName;
-    if (rank && rank.color) divisionEl.style.color = rank.color;
-  }
-  if (srEl) {
-    srEl.innerText = (data.userId || data.isBot || isFriendSource) ? `${sr} SR` : 'Nicht gewertet';
-  }
-  if (crestEl) {
-    crestEl.innerHTML = (data.userId || data.isBot || isFriendSource) ? crestSvg : '🔮';
-  }
-
-  // Bot-Schwierigkeit
-  if (botDiffEl) {
-    if (data.isBot) {
-      const diff = data.difficulty || 'master';
-      const label = diff === 'novice' ? 'Novize' : (diff === 'archmage' ? 'Erzmagier' : 'Meister');
-      botDiffEl.innerHTML = `<span class="seat-bot-pill bot-pill-${diff}">${label}</span>`;
-      botDiffEl.style.display = 'block';
-    } else {
-      botDiffEl.innerHTML = '';
-      botDiffEl.style.display = 'none';
+    if (titleEl) titleEl.innerText = lore.title;
+    if (divisionEl) {
+      divisionEl.innerText = lore.level;
+      divisionEl.style.color = (diff === 'novice' ? '#86efac' : (diff === 'archmage' ? '#d8b4fe' : '#93c5fd'));
     }
-  }
+    if (srEl) {
+      srEl.innerText = (diff === 'novice' ? 'Zauber-Lehrling' : (diff === 'archmage' ? 'Oberster Rat' : 'Meister-Magier'));
+    }
+    if (crestEl) {
+      crestEl.innerHTML = (diff === 'novice' ? '🌱' : (diff === 'archmage' ? '⚡' : '✨'));
+    }
+    if (botDiffEl) {
+      botDiffEl.style.display = 'none';
+      botDiffEl.innerHTML = '';
+    }
 
-  // Statistiken Grid
-  if (statsGridEl) {
-    statsGridEl.innerHTML = '';
-    if (isTable) {
-      if (statsTitleEl) statsTitleEl.innerText = 'Runden-Statistiken (Aktuelle Partie)';
-      const bidVal = (data.bid !== null && data.bid !== undefined) ? data.bid : '-';
-      const wonVal = (data.tricksWon !== undefined) ? data.tricksWon : 0;
-      let totalPts = 0;
-      if (typeof cachedScoreHistory !== 'undefined' && Array.isArray(cachedScoreHistory)) {
-        cachedScoreHistory.forEach(entry => {
-          if (entry.scores && entry.scores[data.sessionId] !== undefined) {
-            totalPts += entry.scores[data.sessionId];
-          }
-        });
+    // Lore-Profil statt Zahlen-Statistiken
+    if (statsTitleEl) {
+      statsTitleEl.innerText = 'Grimoire-Chronik & Wesensart';
+    }
+    if (statsGridEl) {
+      statsGridEl.style.display = 'block';
+      statsGridEl.innerHTML = `
+        <div style="background: rgba(18, 10, 6, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 10px; padding: 12px 14px; text-align: left; box-shadow: 0 4px 18px rgba(0,0,0,0.6);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed rgba(212,163,89,0.35); padding-bottom: 6px;">
+            <span style="font-family: var(--font-subheading); color: var(--gold-bright); font-size: 13px; font-weight: bold;">
+              📜 ${escapeHtml(lore.title)}
+            </span>
+            <span style="font-family: var(--font-medieval); color: #86efac; font-size: 13px; font-weight: 900; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(134,239,172,0.4);">
+              ${escapeHtml(lore.level)}
+            </span>
+          </div>
+          <div style="font-size: 11.5px; color: #f7eedb; line-height: 1.45; margin-bottom: 8px;">
+            ${escapeHtml(lore.story)}
+          </div>
+          <div style="font-size: 11px; color: #d6be90; display: flex; align-items: center; gap: 5px;">
+            <span style="color: var(--gold-bright);">Taktik:</span>
+            <span style="font-style: italic; color: #fde047;">${escapeHtml(lore.philosophy)}</span>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    // Normaler menschlicher Spieler
+    const sr = isFriendSource ? (data.skill_rating || 1000) : (data.skillRating || (data.rank ? data.rank.skillRating : 1000) || 1000);
+    const rank = data.rank || (typeof getRankDetailsFromSR === 'function' ? getRankDetailsFromSR(sr) : null);
+    const divName = rank ? rank.divisionName : (data.userId ? 'Novize V' : 'Gast-Magier');
+    const tierKey = rank ? rank.tierKey : 'novice';
+    const crestSvg = (typeof RANK_CRESTS !== 'undefined' && RANK_CRESTS[tierKey]) ? RANK_CRESTS[tierKey] : '';
+
+    if (divisionEl) {
+      divisionEl.innerText = divName;
+      if (rank && rank.color) divisionEl.style.color = rank.color;
+    }
+    if (srEl) {
+      srEl.innerText = (data.userId || isFriendSource) ? `${sr} SR` : 'Nicht gewertet';
+    }
+    if (crestEl) {
+      crestEl.innerHTML = (data.userId || isFriendSource) ? crestSvg : '🔮';
+    }
+    if (botDiffEl) {
+      botDiffEl.style.display = 'none';
+      botDiffEl.innerHTML = '';
+    }
+
+    if (statsGridEl) {
+      statsGridEl.style.display = 'grid';
+      statsGridEl.style.gridTemplateColumns = 'repeat(3, 1fr)';
+      statsGridEl.innerHTML = '';
+      if (isTable) {
+        if (statsTitleEl) statsTitleEl.innerText = 'Runden-Statistiken (Aktuelle Partie)';
+        const bidVal = (data.bid !== null && data.bid !== undefined) ? data.bid : '-';
+        const wonVal = (data.tricksWon !== undefined) ? data.tricksWon : 0;
+        let totalPts = 0;
+        if (typeof cachedScoreHistory !== 'undefined' && Array.isArray(cachedScoreHistory)) {
+          cachedScoreHistory.forEach(entry => {
+            if (entry.scores && entry.scores[data.sessionId] !== undefined) {
+              totalPts += entry.scores[data.sessionId];
+            }
+          });
+        }
+
+        statsGridEl.innerHTML = `
+          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+            <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${wonVal}</div>
+            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Erzielte Stiche</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+            <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${bidVal}</div>
+            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Prophezeiung</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+            <div style="font-size: 15px; font-weight: 900; color: ${totalPts >= 0 ? '#86efac' : '#f87171'}; font-family: var(--font-medieval);">${totalPts}</div>
+            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Gesamtpunkte</div>
+          </div>
+        `;
+      } else {
+        // Karriere-Statistiken aus dem Grimoire der Gefährten
+        if (statsTitleEl) statsTitleEl.innerText = 'Karriere-Statistiken';
+        const played = data.games_played || 0;
+        const won = data.games_won || 0;
+        const winRate = played > 0 ? Math.round((won / played) * 100) : 0;
+        const high = data.highest_score || 0;
+
+        statsGridEl.innerHTML = `
+          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+            <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${played}</div>
+            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Partien</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+            <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${won} (${winRate}%)</div>
+            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Siege</div>
+          </div>
+          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+            <div style="font-size: 15px; font-weight: 900; color: #fde047; font-family: var(--font-medieval);">${high}</div>
+            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Highscore</div>
+          </div>
+        `;
       }
-
-      statsGridEl.innerHTML = `
-        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-          <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${wonVal}</div>
-          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Erzielte Stiche</div>
-        </div>
-        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-          <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${bidVal}</div>
-          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Prophezeiung</div>
-        </div>
-        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-          <div style="font-size: 15px; font-weight: 900; color: ${totalPts >= 0 ? '#86efac' : '#f87171'}; font-family: var(--font-medieval);">${totalPts}</div>
-          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Gesamtpunkte</div>
-        </div>
-      `;
-    } else {
-      // Karriere-Statistiken aus dem Grimoire der Gefährten
-      if (statsTitleEl) statsTitleEl.innerText = 'Karriere-Statistiken';
-      const played = data.games_played || 0;
-      const won = data.games_won || 0;
-      const winRate = played > 0 ? Math.round((won / played) * 100) : 0;
-      const high = data.highest_score || 0;
-
-      statsGridEl.innerHTML = `
-        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-          <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${played}</div>
-          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Partien</div>
-        </div>
-        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-          <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${won} (${winRate}%)</div>
-          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Siege</div>
-        </div>
-        <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-          <div style="font-size: 15px; font-weight: 900; color: #fde047; font-family: var(--font-medieval);">${high}</div>
-          <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Highscore</div>
-        </div>
-      `;
     }
   }
 
@@ -3409,11 +3548,7 @@ function openPlayerDetailModal(data, source = 'table') {
     if (isMe) {
       btnAddFriend.style.display = 'none';
     } else if (isBot) {
-      btnAddFriend.style.display = 'block';
-      btnAddFriend.disabled = true;
-      btnAddFriend.style.opacity = '0.5';
-      btnAddFriend.style.cursor = 'default';
-      btnAddFriend.innerText = '🤖 Virtueller Rat (Kein Gefährte)';
+      btnAddFriend.style.display = 'none';
       btnAddFriend.onclick = null;
     } else if (isFriend) {
       if (isFriendSource) {
@@ -3913,12 +4048,11 @@ function updateRulesTabForEdition(edition) {
   }
 }
 
-socket.on('roomSettingsUpdated', ({ edition, matchFormat, scoringMode, biddingMode, allowBlindZero }) => {
+socket.on('roomSettingsUpdated', ({ edition, matchFormat, scoringMode, biddingMode }) => {
   if (edition) currentEdition = edition;
   if (matchFormat) currentMatchFormat = matchFormat;
   if (scoringMode) currentScoringMode = scoringMode;
   if (biddingMode) currentBiddingMode = biddingMode;
-  if (allowBlindZero !== undefined) currentAllowBlindZero = !!allowBlindZero;
   updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode, currentBiddingMode);
   updateWaitingRoomHostControls();
 });
@@ -4503,9 +4637,6 @@ socket.on('syncGameState', (state) => {
   }
   if (state.biddingMode) {
     currentBiddingMode = state.biddingMode;
-  }
-  if (state.allowBlindZero !== undefined) {
-    currentAllowBlindZero = !!state.allowBlindZero;
   }
   updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode, currentBiddingMode);
   currentGameState = state.gameState;
@@ -5607,7 +5738,6 @@ function renderOpponents() {
 
     const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
     const disconnectedClass = !p.connected ? 'disconnected' : '';
-    const hostBadge = p.isHost ? '<span class="host-badge">Host</span>' : '';
     const dealerPinHtml = p.isDealer ? '<div class="seat-dealer-pin" title="Geber dieser Runde">D</div>' : '';
 
     const bidText = p.bid !== null ? p.bid : '-';
@@ -5666,40 +5796,46 @@ function renderOpponents() {
       `;
     }
 
-    let rankBadgeHtml = '';
-    if (p.rank && (p.userId || p.isBot)) {
-      rankBadgeHtml = `
-        <span class="player-rank-badge player-rank-badge-table" style="color: ${p.rank.color}; border-color: ${p.rank.color};" title="${escapeHtml(p.rank.divisionName)} (${p.skillRating || 0} SR)">
-          ${escapeHtml(p.rank.divisionName)}
-        </span>
-      `;
-    }
+    let nameClass = 'seat-name';
+    let iconPrefix = '';
+    let nameTitle = `${escapeHtml(p.name)} – Klicken für Profil`;
 
-    let botDiffHtml = '';
-    if (p.isBot) {
+    if (p.isHost) {
+      nameClass += ' host-name';
+      iconPrefix = '👑 ';
+      nameTitle = `Gastgeber: ${escapeHtml(p.name)} – Klicken für Profil`;
+    } else if (p.isBot) {
       const diff = p.difficulty || 'master';
-      const label = diff === 'novice' ? 'Novize' : (diff === 'archmage' ? 'Erzmagier' : 'Meister');
-      botDiffHtml = `<span class="seat-bot-pill bot-pill-${diff}">${label}</span>`;
+      if (diff === 'novice') {
+        nameClass += ' bot-novice';
+        iconPrefix = '🌱 ';
+      } else if (diff === 'archmage') {
+        nameClass += ' bot-archmage';
+        iconPrefix = '⚡ ';
+      } else {
+        nameClass += ' bot-master';
+        iconPrefix = '✨ ';
+      }
+      nameTitle = `Virtueller Rat: ${escapeHtml(p.name)} – Klicken für Profil`;
     }
 
-    let teamBadgeHtml = '';
+    let teamPrefix = '';
     if (currentMatchFormat === 'team_2v2' && p.team) {
       const isPartner = myTeam && p.team === myTeam;
       if (p.team === 'team_a') {
-        teamBadgeHtml = `<span class="seat-bot-pill" style="background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fca5a5;" title="Allianz des Sonnenfeuers${isPartner ? ' (Dein Gefährte)' : ''}">🔥 ${isPartner ? 'Gefährte' : 'Sonnenfeuer'}</span>`;
+        teamPrefix = `<span style="margin-right: 2px;" title="Allianz des Sonnenfeuers${isPartner ? ' (Dein Gefährte)' : ''}">🔥</span>`;
       } else {
-        teamBadgeHtml = `<span class="seat-bot-pill" style="background: rgba(59, 130, 246, 0.25); border: 1px solid #3b82f6; color: #93c5fd;" title="Allianz der Mondschatten${isPartner ? ' (Dein Gefährte)' : ''}">🌙 ${isPartner ? 'Gefährte' : 'Mondschatten'}</span>`;
+        teamPrefix = `<span style="margin-right: 2px;" title="Allianz der Mondschatten${isPartner ? ' (Dein Gefährte)' : ''}">🌙</span>`;
       }
     }
 
     let bidPillHtml = '';
-    const blindBadge = p.isBlindZero ? '<span style="color:#d8b4fe; font-size:10px; margin-right:2px;" title="Blind 0 Prophezeiung">🔮 </span>' : '';
     if (p.bid === '✓') {
       bidPillHtml = `<span class="seat-bid-pill" style="border-color: #a855f7; color: #d8b4fe;" title="Tipp verdeckt abgegeben">🎯 ✓ Bereit</span>`;
     } else if (p.bid === '?') {
       bidPillHtml = `<span class="seat-bid-pill" title="Tipp ist geheim">🏆 ${wonText} / 🎯 ?</span>`;
     } else {
-      bidPillHtml = `<span class="seat-bid-pill" title="Gewonnen: ${wonText} | Vorhersage: ${p.isBlindZero ? 'Blind 0' : bidText}">🏆 ${wonText} / 🎯 ${blindBadge}${bidText}</span>`;
+      bidPillHtml = `<span class="seat-bid-pill" title="Gewonnen: ${wonText} | Vorhersage: ${bidText}">🏆 ${wonText} / 🎯 ${bidText}</span>`;
     }
 
     seatEl.innerHTML = `
@@ -5709,9 +5845,8 @@ function renderOpponents() {
         ${dealerPinHtml}
       </div>
       <div class="seat-details">
-        <div class="seat-name-row">
-          <span class="seat-name">${escapeHtml(p.name)}</span>
-          ${teamBadgeHtml}${hostBadge}${botDiffHtml}${rankBadgeHtml}
+        <div class="seat-name-row" style="cursor: pointer;" title="${nameTitle}">
+          <span class="${nameClass}" title="${nameTitle}">${teamPrefix}${iconPrefix}${escapeHtml(p.name)}</span>
         </div>
         ${bidPillHtml}
       </div>
@@ -5744,7 +5879,7 @@ function updateMyStatsHUD() {
   const hudContainer = document.getElementById('my-stats-hud');
 
   const bidVal = (me && me.bid !== null && me.bid !== undefined)
-    ? (me.isBlindZero ? `🔮 ${me.bid}` : me.bid)
+    ? me.bid
     : '-';
   const tricksVal = (me && me.tricksWon !== undefined) ? me.tricksWon : 0;
 
@@ -5801,13 +5936,10 @@ function updateMyStatsHUD() {
 // --- BIETBILANZ PILL (TISCH & HUD) ---
 function updateBiddingSummaryPill() {
   const pill = document.getElementById('bidding-summary-pill');
-  const hudWrap = document.getElementById('my-hud-bilanz-wrap');
-  const hudBilanz = document.getElementById('my-hud-bilanz');
   if (!pill) return;
 
   if (currentGameState === 'lobby' || currentGameState === 'waiting') {
     pill.style.display = 'none';
-    if (hudWrap) hudWrap.style.display = 'none';
     return;
   }
 
@@ -5816,10 +5948,6 @@ function updateBiddingSummaryPill() {
     pill.style.display = 'inline-flex';
     pill.className = 'bidding-summary-pill bidding-summary-secret';
     pill.innerText = `🎯 ? / ${currentRound} Stiche (Geheim)`;
-    if (hudWrap && hudBilanz) {
-      hudWrap.style.display = 'inline';
-      hudBilanz.innerText = 'Geheim';
-    }
     return;
   }
 
@@ -5827,7 +5955,6 @@ function updateBiddingSummaryPill() {
   if (allBids.length < cachedPlayers.length || cachedPlayers.length === 0) {
     if (currentGameState === 'bidding') {
       pill.style.display = 'none';
-      if (hudWrap) hudWrap.style.display = 'none';
       return;
     }
   }
@@ -5851,11 +5978,6 @@ function updateBiddingSummaryPill() {
   pill.style.display = 'inline-flex';
   pill.className = `bidding-summary-pill ${statusClass}`;
   pill.innerText = `🎯 ${sumBids} / ${currentRound} (${statusText})`;
-
-  if (hudWrap && hudBilanz) {
-    hudWrap.style.display = 'inline';
-    hudBilanz.innerText = `${sumBids}/${currentRound} (${statusText})`;
-  }
 }
 
 // --- AAA FLIP 3D-KARTENFLUGBAHN, RICHTUNGSWINKEL & AUFPRALL-EFFEKTE ---
@@ -6059,35 +6181,11 @@ function renderBidButtons(maxBid, forbiddenBid) {
     } else {
       btn.addEventListener('click', () => {
         GrimoireHaptics.impact('light');
-        socket.emit('submitBid', { roomCode: currentRoomCode, bid: i, isBlindZero: false });
+        socket.emit('submitBid', { roomCode: currentRoomCode, bid: i });
         bidOverlay.style.display = 'none';
       });
     }
     bidButtons.appendChild(btn);
-  }
-
-  const btnBlindZero = document.getElementById('btnBlindZero');
-  if (btnBlindZero) {
-    if (currentAllowBlindZero) {
-      btnBlindZero.style.display = 'inline-flex';
-      btnBlindZero.onclick = () => {
-        GrimoireDialog.confirm({
-          title: '🔮 Blind 0 prophezeien?',
-          message: 'Bist du mutig genug? Du sagst 0 Stiche voraus, ohne deine Handkarten zu kennen. Bei Erfolg erhältst du doppelten Bonus, bei auch nur einem Stich doppelten Malus!',
-          confirmText: 'Blind 0 wagen!',
-          danger: true,
-          icon: '🔮'
-        }).then(confirmed => {
-          if (confirmed) {
-            GrimoireHaptics.notification('warning');
-            socket.emit('submitBid', { roomCode: currentRoomCode, bid: 0, isBlindZero: true });
-            bidOverlay.style.display = 'none';
-          }
-        });
-      };
-    } else {
-      btnBlindZero.style.display = 'none';
-    }
   }
 }
 
@@ -6824,7 +6922,7 @@ function renderScoreBoard() {
       if (entry) {
         const sign = entry.roundPoints >= 0 ? `+${entry.roundPoints}` : `${entry.roundPoints}`;
         const colorClass = entry.roundPoints >= 0 ? 'score-positive' : 'score-negative';
-        const displayBid = entry.isBlindZero ? `🔮 ${entry.bid}` : entry.bid;
+        const displayBid = entry.bid;
 
         td.innerHTML = `
           <div><small>G: <b>${entry.tricksWon}</b> | T: <b>${displayBid}</b></small></div>
@@ -6850,8 +6948,7 @@ function renderScoreBoard() {
 
     cachedPlayers.forEach(player => {
       const td = document.createElement('td');
-      const rawBidText = player.bid !== null ? player.bid : '-';
-      const bidText = (player.isBlindZero && player.bid !== null) ? `🔮 ${player.bid}` : rawBidText;
+      const bidText = player.bid !== null ? player.bid : '-';
       const wonText = player.tricksWon !== undefined ? player.tricksWon : 0;
 
       td.innerHTML = `<div><small>G: <b>${wonText}</b> | T: <b>${bidText}</b></small></div>`;

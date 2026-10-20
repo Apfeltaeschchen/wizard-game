@@ -61,17 +61,17 @@ test('Mobile In-Game Layout & Orientation: Proportional Card Typography', () => 
   assert.ok(html.includes('clamp(8px, calc(var(--card-w) * 0.14), 12px)'), 'card-mini-icon clamp font size');
 });
 
-test('Mobile In-Game Layout & Orientation: Table Seats Rank Badges Text-Only (No SVG Clipping)', () => {
+test('Mobile In-Game Layout & Orientation: Table Seats Ornate Names Without Badge Clutter (No SVG Clipping)', () => {
   const js = fs.readFileSync(clientJsPath, 'utf8');
 
-  // In renderOpponents, table rank badge must be text-only player-rank-badge-table and must NOT embed RANK_CRESTS
+  // In renderOpponents, table seats use decorated seat-name and must NOT embed SVG crests
   const renderOpponentsMatch = js.match(/function renderOpponents\(\)[\s\S]*?opponentsContainer\.appendChild\(seatEl\);/);
   assert.ok(renderOpponentsMatch, 'renderOpponents function must exist');
 
   const renderOpponentsCode = renderOpponentsMatch[0];
   assert.ok(
-    renderOpponentsCode.includes('player-rank-badge-table'),
-    'renderOpponents must use player-rank-badge-table class'
+    renderOpponentsCode.includes('seat-name'),
+    'renderOpponents must use seat-name class for ornate player names'
   );
   assert.ok(
     !renderOpponentsCode.includes('RANK_CRESTS['),
