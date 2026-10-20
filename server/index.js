@@ -305,6 +305,7 @@ function createNewRoomState(hostSessionId = null, roomCode = '', isRanked = fals
     isRanked: !!isRanked,
     edition: 'classic', // 'classic' oder 'anniversary_30'
     scoringMode: 'classic', // 'classic' oder 'skull_king_zero'
+    biddingMode: 'classic', // 'classic', 'simultaneous' oder 'secret'
     round: 1,
     trumpCard: null,
     trumpChooserSessionId: null,
@@ -526,6 +527,7 @@ io.on('connection', (socket) => {
       gameState: 'lobby',
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
+      biddingMode: room.biddingMode || 'classic',
       teams: room.teams || null,
       isRanked: isRankedRoom,
       trumpCard: null,
@@ -672,6 +674,7 @@ io.on('connection', (socket) => {
         isGameOver: isGameOver,
         matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
+      biddingMode: room.biddingMode || 'classic',
         teams: room.teams || null,
         vampireCopiedCard: room.vampireCopiedCard,
         cloudWinnerSessionId: room.cloudPlayerSessionId,
@@ -760,6 +763,7 @@ io.on('connection', (socket) => {
       gameState: room.gameState,
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
+      biddingMode: room.biddingMode || 'classic',
       teams: room.teams || null,
       isRanked: room.isRanked,
       trumpCard: room.trumpCard,
@@ -873,7 +877,7 @@ io.on('connection', (socket) => {
   });
 
   // Host aktualisiert Raum-Einstellungen (Edition, MatchFormat, ScoringMode)
-  socket.on('updateRoomSettings', ({ roomCode, edition, matchFormat, scoringMode }) => {
+  socket.on('updateRoomSettings', ({ roomCode, edition, matchFormat, scoringMode, biddingMode }) => {
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -899,6 +903,10 @@ io.on('connection', (socket) => {
 
     if (scoringMode && ['classic', 'skull_king_zero'].includes(scoringMode)) {
       room.scoringMode = scoringMode;
+    }
+
+    if (biddingMode && ['classic', 'simultaneous', 'secret'].includes(biddingMode)) {
+      room.biddingMode = biddingMode;
     }
 
     if (matchFormat && ['ffa', 'team_2v2'].includes(matchFormat)) {
@@ -927,6 +935,7 @@ io.on('connection', (socket) => {
       edition: room.edition,
       matchFormat: room.matchFormat,
       scoringMode: room.scoringMode || 'classic',
+      biddingMode: room.biddingMode || 'classic',
       teams: room.teams
     });
     io.to(normalizedCode).emit('editionChanged', { edition: room.edition });
@@ -959,6 +968,38 @@ io.on('connection', (socket) => {
       edition: room.edition,
       matchFormat: room.matchFormat,
       scoringMode: room.scoringMode,
+      biddingMode: room.biddingMode || 'classic',
+      teams: room.teams
+    });
+    io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+  });
+
+  socket.on('setBiddingMode', ({ roomCode, biddingMode }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room) return;
+    if (room.gameState !== 'lobby') {
+      socket.emit('actionError', { message: 'Der Biet-Modus kann nur im Warteraum geändert werden!' });
+      return;
+    }
+    if (!room.hostSessionId && room.players.length > 0) {
+      room.hostSessionId = room.players[0].sessionId;
+    }
+    const hostPlayer = room.players.find(p => p.sessionId === room.hostSessionId);
+    if (!hostPlayer || socket.id !== hostPlayer.socketId) {
+      socket.emit('actionError', { message: 'Nur der Host darf den Biet-Modus ändern!' });
+      return;
+    }
+    if (!['classic', 'simultaneous', 'secret'].includes(biddingMode)) {
+      socket.emit('actionError', { message: 'Ungültiger Biet-Modus.' });
+      return;
+    }
+    room.biddingMode = biddingMode;
+    io.to(normalizedCode).emit('roomSettingsUpdated', {
+      edition: room.edition,
+      matchFormat: room.matchFormat,
+      scoringMode: room.scoringMode,
+      biddingMode: room.biddingMode,
       teams: room.teams
     });
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1228,6 +1269,7 @@ io.on('connection', (socket) => {
       gameState: room.gameState,
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
+      biddingMode: room.biddingMode || 'classic',
       teams: room.teams || null
     });
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1371,6 +1413,7 @@ io.on('connection', (socket) => {
       gameState: room.gameState,
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
+      biddingMode: room.biddingMode || 'classic',
       teams: room.teams || null
     });
     io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1561,9 +1604,22 @@ io.on('connection', (socket) => {
       return { success: false, message: 'Nicht in der Bietphase.' };
     }
 
-    const currentPlayer = room.players[room.currentTurnIndex];
-    if (!currentPlayer || currentPlayer.sessionId !== playerSessionId) {
-      return { success: false, message: 'Du bist nicht am Zug.' };
+    const player = room.players.find(p => p.sessionId === playerSessionId);
+    if (!player) {
+      return { success: false, message: 'Spieler nicht gefunden.' };
+    }
+
+    const isSimultaneous = (room.biddingMode === 'simultaneous');
+
+    if (!isSimultaneous) {
+      const currentPlayer = room.players[room.currentTurnIndex];
+      if (!currentPlayer || currentPlayer.sessionId !== playerSessionId) {
+        return { success: false, message: 'Du bist nicht am Zug.' };
+      }
+    } else {
+      if (player.bid !== null && player.bid !== undefined) {
+        return { success: false, message: 'Du hast deinen Tipp bereits abgegeben.' };
+      }
     }
 
     const parsedBid = parseInt(bid, 10);
@@ -1571,31 +1627,45 @@ io.on('connection', (socket) => {
       return { success: false, message: 'Ungültiges Gebot.' };
     }
 
-    // Serverseitige Geber-Regel (Plus/Minus Eins) validieren
-    const isLastPlayer = (room.currentTurnIndex === room.dealerIndex);
-    if (isLastPlayer) {
-      const totalBidsSoFar = room.players.reduce((sum, p) => sum + (p.bid !== null ? p.bid : 0), 0);
-      if (isForbiddenBid(parsedBid, room.round, totalBidsSoFar, true)) {
-        return { success: false, message: 'Diese Stichansage ist für den Geber nach den Regeln verboten!' };
+    // Geber-Regel (Plus/Minus Eins) validieren: gilt nur im klassischen Modus oder Geheim-Reihum
+    if (!isSimultaneous) {
+      const isLastPlayer = (room.currentTurnIndex === room.dealerIndex);
+      if (isLastPlayer) {
+        const totalBidsSoFar = room.players.reduce((sum, p) => sum + (p.bid !== null ? p.bid : 0), 0);
+        if (isForbiddenBid(parsedBid, room.round, totalBidsSoFar, true)) {
+          return { success: false, message: 'Diese Stichansage ist für den Geber nach den Regeln verboten!' };
+        }
       }
     }
 
-    currentPlayer.bid = parsedBid;
-    if (currentPlayer.heldWizardThisRound && parsedBid === 0) {
-      currentPlayer.attemptingZeroWizardRound = true;
+    player.bid = parsedBid;
+    if (player.heldWizardThisRound && parsedBid === 0) {
+      player.attemptingZeroWizardRound = true;
     }
-    io.to(room.roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
 
-    const allBidsPlaced = room.players.every(p => p.bid !== null);
+    const allBidsPlaced = room.players.every(p => p.bid !== null && p.bid !== undefined);
 
     if (allBidsPlaced) {
       room.gameState = 'playing_tricks';
       room.currentTurnIndex = (room.dealerIndex + 1) % room.players.length;
+
+      if (isSimultaneous) {
+        io.to(room.roomCode).emit('simultaneousBidsRevealed', {
+          players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room)
+        });
+      }
+
+      broadcastRoomUpdated(room);
       io.to(room.roomCode).emit('biddingFinished');
       notifyTurn(room.roomCode);
     } else {
-      room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
-      notifyTurn(room.roomCode);
+      if (!isSimultaneous) {
+        room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
+        broadcastRoomUpdated(room);
+        notifyTurn(room.roomCode);
+      } else {
+        broadcastRoomUpdated(room);
+      }
     }
 
     return { success: true };
@@ -1607,10 +1677,18 @@ io.on('connection', (socket) => {
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'bidding' || room.isPaused) return;
 
-    const currentPlayer = room.players[room.currentTurnIndex];
-    if (!currentPlayer || socket.id !== currentPlayer.socketId) return;
+    let bidder;
+    if (room.biddingMode === 'simultaneous') {
+      bidder = room.players.find(p => p.socketId === socket.id);
+    } else {
+      const currentPlayer = room.players[room.currentTurnIndex];
+      if (currentPlayer && currentPlayer.socketId === socket.id) {
+        bidder = currentPlayer;
+      }
+    }
+    if (!bidder) return;
 
-    const result = handlePlayerBid(room, currentPlayer.sessionId, bid);
+    const result = handlePlayerBid(room, bidder.sessionId, bid);
     if (result && !result.success && result.message) {
       socket.emit('actionError', { message: result.message });
     }
@@ -1786,6 +1864,7 @@ io.on('connection', (socket) => {
       round: room.round,
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
+      biddingMode: room.biddingMode || 'classic',
       teams: room.teams || null,
       teamScores: teamScores,
       isRanked: !!room.isRanked,
@@ -2503,6 +2582,44 @@ io.on('connection', (socket) => {
       activePlayer = room.players[room.currentTurnIndex];
     }
 
+    if (room.gameState === 'bidding' && room.biddingMode === 'simultaneous') {
+      io.to(roomCode).emit('turnChanged', {
+        activePlayerSessionId: 'all',
+        gameState: 'bidding',
+        forbiddenBid: null
+      });
+
+      broadcastRoomUpdated(room);
+
+      // Triggere alle Bots, die noch nicht geboten haben
+      room.players.forEach(p => {
+        if (p.isBot && (p.bid === null || p.bid === undefined)) {
+          let currentTrumpSuit = 'none';
+          if (room.trumpCard) {
+            currentTrumpSuit = room.trumpCard.chosenSuit || (room.trumpCard.type === 'color' ? room.trumpCard.suit : 'none');
+          }
+          const botBid = calculateBotBid(
+            p.hand,
+            room.trumpCard,
+            currentTrumpSuit,
+            [],
+            false,
+            room.round,
+            room.players.length,
+            p.difficulty || 'master',
+            room.edition || 'classic'
+          );
+          const delay = 400 + Math.floor(Math.random() * 500);
+          setRoomTimeout(room, () => {
+            if (room.gameState === 'bidding' && (p.bid === null || p.bid === undefined)) {
+              handlePlayerBid(room, p.sessionId, botBid);
+            }
+          }, delay);
+        }
+      });
+      return;
+    }
+
     const isLastPlayer = (room.currentTurnIndex === room.dealerIndex);
     let forbiddenBid = null;
 
@@ -2580,6 +2697,7 @@ io.on('connection', (socket) => {
         botSessionId: bot.sessionId,
         matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
+      biddingMode: room.biddingMode || 'classic',
         team: bot.team || null,
         teammateSessionId: teammate ? teammate.sessionId : null,
         teammate: teammate ? { sessionId: teammate.sessionId, name: teammate.name, bid: teammate.bid, tricksWon: teammate.tricksWon } : null
@@ -2612,13 +2730,33 @@ io.on('connection', (socket) => {
     }
   }
 
-  function getSanitizedPlayers(players, dealerIndex, hostSessionId, room = null) {
+  function getSanitizedPlayers(players, dealerIndex, hostSessionId, room = null, viewerSessionId = null) {
     return players.map((p, idx) => {
+      let bidVal = p.bid;
+      const hasBid = (p.bid !== null && p.bid !== undefined);
+
+      if (room && viewerSessionId) {
+        const isSelf = (p.sessionId === viewerSessionId);
+        // Im Simultan-Modus während der Bietphase: Fremde Tipps nicht verraten (nur '✓')
+        if (room.biddingMode === 'simultaneous' && room.gameState === 'bidding') {
+          if (!isSelf) {
+            bidVal = hasBid ? '✓' : null;
+          }
+        }
+        // Im Geheim-Modus während des Spiels: Fremde Tipps als '?' maskieren
+        if (room.biddingMode === 'secret' && room.gameState !== 'round_over' && room.gameState !== 'lobby') {
+          if (!isSelf) {
+            bidVal = hasBid ? '?' : null;
+          }
+        }
+      }
+
       const pData = {
         sessionId: p.sessionId,
         name: p.name,
         team: p.team || null,
-        bid: p.bid,
+        bid: bidVal,
+        hasBid: hasBid,
         tricksWon: p.tricksWon,
         totalScore: p.totalScore,
         connected: p.connected,
@@ -2636,6 +2774,22 @@ io.on('connection', (socket) => {
       }
       return pData;
     });
+  }
+
+  function broadcastRoomUpdated(room) {
+    if (!room) return;
+    const isSecret = (room.biddingMode === 'secret' && room.gameState !== 'round_over' && room.gameState !== 'lobby');
+    const isSimultaneousBidding = (room.biddingMode === 'simultaneous' && room.gameState === 'bidding');
+
+    if (isSecret || isSimultaneousBidding) {
+      room.players.forEach(p => {
+        if (p.socketId) {
+          io.to(p.socketId).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room, p.sessionId));
+        }
+      });
+    } else {
+      io.to(room.roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+    }
   }
 });
 

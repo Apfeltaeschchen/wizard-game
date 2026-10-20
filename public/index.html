@@ -5342,6 +5342,7 @@
         <span id="badge-setting-edition" class="seat-bot-pill" style="background: rgba(217, 119, 6, 0.2); border: 1px solid var(--gold-antique); color: var(--gold-bright);">📜 Klassisch</span>
         <span id="badge-setting-format" class="seat-bot-pill" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd;">⚔️ Jeder gegen Jeden</span>
         <span id="badge-setting-scoring" class="seat-bot-pill" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0;">🎯 Wizard-Wertung</span>
+        <span id="badge-setting-bidding" class="seat-bot-pill" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #d8b4fe;">📜 Reihum-Bieten</span>
       </div>
 
       <div id="edition-selector-container" style="display: none; margin: 8px 0 12px; padding: 10px 12px; background: rgba(14, 9, 5, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 8px; text-align: left;">
@@ -6691,7 +6692,7 @@
       </div>
 
       <!-- Wertungssystem -->
-      <div style="margin-bottom: 20px; text-align: left;">
+      <div style="margin-bottom: 16px; text-align: left;">
         <label for="modalScoringSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">WERTUNGSSYSTEM</label>
         <select id="modalScoringSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
           <option value="classic">Klassische Wizard-Wertung (+20/+10 vs. -10)</option>
@@ -6699,6 +6700,19 @@
         </select>
         <p style="font-size: 11px; color: #a89270; margin-top: 5px; line-height: 1.35;">
           Bei der Skull-King-Regel bringt ein erfolgreicher Null-Tipp <b>Runde &times; 10</b> Bonuspunkte (z. B. Runde 5 = +50). Bei Fehlschlag gibt es <b>- (Runde &times; 10)</b> Abzug!
+        </p>
+      </div>
+
+      <!-- Biet-Modus -->
+      <div style="margin-bottom: 20px; text-align: left;">
+        <label for="modalBiddingSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">BIET-MODUS</label>
+        <select id="modalBiddingSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
+          <option value="classic">Klassisch (Reihum mit Geber-Regel)</option>
+          <option value="simultaneous">Simultan (Skull King – alle tippen gleichzeitig)</option>
+          <option value="secret">Geheim (Secret Bid – fremde Tipps bleiben verborgen)</option>
+        </select>
+        <p style="font-size: 11px; color: #a89270; margin-top: 5px; line-height: 1.35;">
+          Im Simultan-Modus geben alle zeitgleich verdeckt ab (keine Geber-Regel). Im Geheim-Modus bleiben fremde Tipps bis Rundenende maskiert (?).
         </p>
       </div>
 

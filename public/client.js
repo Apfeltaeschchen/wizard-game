@@ -530,11 +530,13 @@ const btnSaveHostSettings = document.getElementById('btnSaveHostSettings');
 const modalEditionSelect = document.getElementById('modalEditionSelect');
 const modalFormatSelect = document.getElementById('modalFormatSelect');
 const modalScoringSelect = document.getElementById('modalScoringSelect');
+const modalBiddingSelect = document.getElementById('modalBiddingSelect');
 const badgeSettingEdition = document.getElementById('badge-setting-edition');
 const badgeSettingFormat = document.getElementById('badge-setting-format');
 const badgeSettingScoring = document.getElementById('badge-setting-scoring');
+const badgeSettingBidding = document.getElementById('badge-setting-bidding');
 
-function updateRoomSettingsBadges(edition, format, scoring) {
+function updateRoomSettingsBadges(edition, format, scoring, bidding) {
   if (badgeSettingEdition) {
     badgeSettingEdition.innerText = (edition === 'anniversary_30') ? '🐉 Bestien & Mythen' : '📜 Klassisch';
   }
@@ -544,6 +546,15 @@ function updateRoomSettingsBadges(edition, format, scoring) {
   if (badgeSettingScoring) {
     badgeSettingScoring.innerText = (scoring === 'skull_king_zero') ? '☠️ Skull-King-Nullwertung' : '🎯 Wizard-Wertung';
   }
+  if (badgeSettingBidding) {
+    if (bidding === 'simultaneous') {
+      badgeSettingBidding.innerText = '🎲 Simultan-Bieten';
+    } else if (bidding === 'secret') {
+      badgeSettingBidding.innerText = '🤫 Geheimes Bieten';
+    } else {
+      badgeSettingBidding.innerText = '📜 Reihum-Bieten';
+    }
+  }
 }
 
 if (btnOpenHostSettings) {
@@ -551,6 +562,7 @@ if (btnOpenHostSettings) {
     if (modalEditionSelect) modalEditionSelect.value = currentEdition || 'classic';
     if (modalFormatSelect) modalFormatSelect.value = currentMatchFormat || 'ffa';
     if (modalScoringSelect) modalScoringSelect.value = currentScoringMode || 'classic';
+    if (modalBiddingSelect) modalBiddingSelect.value = currentBiddingMode || 'classic';
     if (hostSettingsModal) hostSettingsModal.style.display = 'block';
   });
 }
@@ -566,12 +578,14 @@ if (btnSaveHostSettings) {
     const newEdition = modalEditionSelect ? modalEditionSelect.value : 'classic';
     const newFormat = modalFormatSelect ? modalFormatSelect.value : 'ffa';
     const newScoring = modalScoringSelect ? modalScoringSelect.value : 'classic';
+    const newBidding = modalBiddingSelect ? modalBiddingSelect.value : 'classic';
 
     socket.emit('updateRoomSettings', {
       roomCode: currentRoomCode,
       edition: newEdition,
       matchFormat: newFormat,
-      scoringMode: newScoring
+      scoringMode: newScoring,
+      biddingMode: newBidding
     });
     closeHostSettingsModal();
   });
@@ -920,6 +934,7 @@ let maxRounds = 20;
 let currentEdition = 'classic';
 let currentMatchFormat = 'ffa';
 let currentScoringMode = 'classic';
+let currentBiddingMode = 'classic';
 let currentTeams = {
   team_a: { name: 'Allianz des Sonnenfeuers', score: 0 },
   team_b: { name: 'Allianz der Mondschatten', score: 0 }
@@ -3813,11 +3828,12 @@ function updateRulesTabForEdition(edition) {
   }
 }
 
-socket.on('roomSettingsUpdated', ({ edition, matchFormat, scoringMode }) => {
+socket.on('roomSettingsUpdated', ({ edition, matchFormat, scoringMode, biddingMode }) => {
   if (edition) currentEdition = edition;
   if (matchFormat) currentMatchFormat = matchFormat;
   if (scoringMode) currentScoringMode = scoringMode;
-  updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode);
+  if (biddingMode) currentBiddingMode = biddingMode;
+  updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode, currentBiddingMode);
   updateWaitingRoomHostControls();
 });
 
@@ -4362,6 +4378,13 @@ socket.on('syncGameState', (state) => {
   if (state.teams) {
     currentTeams = state.teams;
   }
+  if (state.scoringMode) {
+    currentScoringMode = state.scoringMode;
+  }
+  if (state.biddingMode) {
+    currentBiddingMode = state.biddingMode;
+  }
+  updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode, currentBiddingMode);
   currentGameState = state.gameState;
   myCurrentHand = state.hand || [];
   currentTrick = state.currentTrick || [];
@@ -4416,6 +4439,15 @@ socket.on('roomUpdated', (players) => {
   if (currentGameState === 'lobby') {
     switchScreen('waiting');
     updateWaitingRoomView(amIHost);
+  }
+
+  if (currentGameState === 'bidding' && currentBiddingMode === 'simultaneous') {
+    const me = cachedPlayers.find(p => p.sessionId === mySessionId);
+    const hasAlreadyBid = me && (me.hasBid || (me.bid !== null && me.bid !== undefined));
+    if (hasAlreadyBid) {
+      statusMessage.innerText = 'Tipp eingereicht! Warte auf die anderen Magier...';
+      bidOverlay.style.display = 'none';
+    }
   }
 
   renderOpponents();
@@ -4528,17 +4560,31 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   } else if (gameState === 'bidding') {
     trumpSelectionArea.style.display = 'none';
 
-    if (isMyTurn) {
-      let msg = 'Du bist dran mit Tippen!';
-      if (forbiddenBid !== null && forbiddenBid !== undefined) {
-        msg += ` (Verboten: ${forbiddenBid})`;
+    if (currentBiddingMode === 'simultaneous') {
+      const me = cachedPlayers.find(p => p.sessionId === mySessionId);
+      const hasAlreadyBid = me && (me.hasBid || (me.bid !== null && me.bid !== undefined));
+
+      if (!hasAlreadyBid) {
+        statusMessage.innerText = '⚡ Alle Magier tippen gleichzeitig! Wie viele Stiche prophezeist du?';
+        renderBidButtons(currentRound, null);
+        bidOverlay.style.display = 'flex';
+      } else {
+        statusMessage.innerText = 'Tipp eingereicht! Warte auf die anderen Magier...';
+        bidOverlay.style.display = 'none';
       }
-      statusMessage.innerText = msg;
-      renderBidButtons(currentRound, forbiddenBid);
-      bidOverlay.style.display = 'flex';
     } else {
-      statusMessage.innerText = `${activePlayerName} ist an der Reihe mit Tippen...`;
-      bidOverlay.style.display = 'none';
+      if (isMyTurn) {
+        let msg = 'Du bist dran mit Tippen!';
+        if (forbiddenBid !== null && forbiddenBid !== undefined) {
+          msg += ` (Verboten: ${forbiddenBid})`;
+        }
+        statusMessage.innerText = msg;
+        renderBidButtons(currentRound, forbiddenBid);
+        bidOverlay.style.display = 'flex';
+      } else {
+        statusMessage.innerText = `${activePlayerName} ist an der Reihe mit Tippen...`;
+        bidOverlay.style.display = 'none';
+      }
     }
   } else if (gameState === 'playing_tricks') {
     bidOverlay.style.display = 'none';
@@ -5078,6 +5124,15 @@ socket.on('trumpSuitChosen', ({ suit, trumpCard }) => {
   updateMyStatsHUD();
 });
 
+socket.on('simultaneousBidsRevealed', ({ players }) => {
+  if (players) {
+    cachedPlayers = players;
+    renderOpponents();
+    updateMyStatsHUD();
+  }
+  statusMessage.innerText = '⚡ Alle Tipps liegen auf dem Tisch! Mögen die Stiche beginnen!';
+});
+
 socket.on('biddingFinished', () => {
   if (werewolfInfoModal) werewolfInfoModal.style.display = 'none';
   bidOverlay.style.display = 'none';
@@ -5445,7 +5500,14 @@ function renderOpponents() {
       }
     }
 
-    const bidPillHtml = `<span class="seat-bid-pill" title="Gewonnen: ${wonText} | Vorhersage: ${bidText}">🏆 ${wonText} / 🎯 ${bidText}</span>`;
+    let bidPillHtml = '';
+    if (p.bid === '✓') {
+      bidPillHtml = `<span class="seat-bid-pill" style="border-color: #a855f7; color: #d8b4fe;" title="Tipp verdeckt abgegeben">🎯 ✓ Bereit</span>`;
+    } else if (p.bid === '?') {
+      bidPillHtml = `<span class="seat-bid-pill" title="Tipp ist geheim">🏆 ${wonText} / 🎯 ?</span>`;
+    } else {
+      bidPillHtml = `<span class="seat-bid-pill" title="Gewonnen: ${wonText} | Vorhersage: ${bidText}">🏆 ${wonText} / 🎯 ${bidText}</span>`;
+    }
 
     seatEl.innerHTML = `
       ${foreheadCardHtml}
