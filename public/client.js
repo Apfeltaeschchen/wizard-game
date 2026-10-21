@@ -3250,84 +3250,176 @@ const CompanionsManager = (() => {
   return {
     init,
     open: openCompanions,
-    close: closeCompanions
+    close: closeCompanions,
+    getFriends: () => cachedFriends
   };
 })();
 if (typeof window !== 'undefined') window.CompanionsManager = CompanionsManager;
 
-// --- BOT LORE DATENBANK (INDIVIDUELLE GESCHICHTEN, PHILOSOPHIEN & STUFEN) ---
+// --- BOT LORE DATENBANK (INDIVIDUELLE GESCHICHTEN, PHILOSOPHIEN & STUFEN DER MAGIER AUS BUCH, FILM & SERIE) ---
 const BOT_LORE_DATABASE = {
-  'pippin': {
-    title: 'Zauberlehrling der Kräuterkunde',
+  // --- NOVIZEN (Tollpatschige / Chaotische Nachwuchs-Magier) ---
+  'rincewind': {
+    title: 'Zauberer der Unsichtbaren Universität (Scheibenwelt)',
+    level: 'Stufe 5',
+    philosophy: 'Flucht vor Stichen & Panik',
+    story: 'Der wohl unbegabteste Zauberer der Scheibenwelt. Beherrscht nur einen einzigen unaussprechlichen Zauberspruch, der sich in seinem Kopf festgesetzt hat. Seine beste Taktik: Schnelle Beine und tunlichst keine Stiche riskieren.'
+  },
+  'lockhart': {
+    title: 'Orden des Merlin 3. Klasse (Harry Potter)',
     level: 'Stufe 8',
-    philosophy: 'Neugierig & Spontan',
-    story: 'Pippin ist ein enthusiastischer Schüler der Akademie. Er verwechselt zwar noch gelegentlich seine Zauberstäbe, überrascht aber mit unerschütterlichem Optimismus und intuitivem Gespür.'
+    philosophy: 'Eitle Schau & Gedächtnislücken',
+    story: 'Autor unzähliger erfundener Heldentaten und fünffacher Gewinner des Charmantestes-Lächeln-Preises. Zitiert liebend gern aus seinen Büchern, verwechselt aber im entscheidenden Stich die Farben und vergisst seine eigene Vorhersage.'
   },
-  'luna': {
-    title: 'Sternenbeobachterin des Nordturms',
-    level: 'Stufe 12',
-    philosophy: 'Astrologische Vorhersagen',
-    story: 'Luna studiert die Konstellationen des Nachthimmels und deutet Stiche wie Sternbilder. Wenn die arkanen Gestirne günstig stehen, wagt sie selbst die kühnsten Vorhersagen.'
-  },
-  'sam': {
-    title: 'Schildknappe der Bastion',
+  'presto': {
+    title: 'Nachwuchs-Magier des Reichs (D&D)',
     level: 'Stufe 10',
-    philosophy: 'Vorsichtig & Risikoscheu',
-    story: 'Sam vertraut auf solide Verteidigung und eiserne Disziplin. Er meidet gewagte Vorhersagen und sichert seine Stiche stets lieber mit bedächtiger Zurückhaltung ab.'
+    philosophy: 'Chaotischer Zylinderhut',
+    story: 'Presto sucht stets nach dem passenden Zauberspruch, zieht aus seinem arkanen Zylinderhut aber verlässlich Gummienten, Bratpfannen oder fliegende Teppiche statt der erhofften Trumpfkarte.'
   },
-  'arya': {
-    title: 'Schattenläuferin der Gewölbe',
+  'gargamel': {
+    title: 'Hinterlistiger Wald-Alchemist (Die Schlümpfe)',
+    level: 'Stufe 12',
+    philosophy: 'Wacklige Gifttränke & Frust',
+    story: 'Lebt in einer baufälligen Hütte und schmiedet finstere Pläne, die regelmäßig durch eigene Ungeschicklichkeit und explodierende Kessel vereitelt werden. Seine Stichprophezeiungen scheitern meist spektakulär.'
+  },
+  'neville': {
+    title: 'Kräuterkundler von Gryffindor (Harry Potter)',
     level: 'Stufe 14',
-    philosophy: 'Flink & Unberechenbar',
-    story: 'Arya bewegt sich geräuschlos durch die Katakomben der Zitadelle. Mit Vorliebe deckt sie Narren im verblüffendsten Moment auf und stiftet heillose Verwirrung am Tisch.'
+    philosophy: 'Zögerliche Vorsicht & Treue',
+    story: 'Verlor unzählige Kröten, schmolz mehrere Kessel ein und zweifelt an seinen Zauberkünsten. Doch wenn es hart auf hart kommt, beweist Neville unerschütterlichen Mut – bietet aber lieber stets vorsichtig.'
+  },
+  'orko': {
+    title: 'Hofzauberer von Trolla (He-Man)',
+    level: 'Stufe 9',
+    philosophy: 'Tollpatschige Dimensionsmagie',
+    story: 'Schwebender Magier ohne Gesicht, dessen Taschen voller magischer Scherzartikel stecken. Auf Eternia funktionieren seine Zauber selten wie gedacht, weshalb seine Stiche oft unbeabsichtigt im Chaos enden.'
+  },
+
+  // --- MEISTER (Fähige / Respektierte Meistermagier) ---
+  'snape': {
+    title: 'Meister der Tränke & Okklumetik (Harry Potter)',
+    level: 'Stufe 46',
+    philosophy: 'Kalte Berechnung & Scharfsinn',
+    story: 'Ein meisterhafter Zaubertrankbrauer und gedankenlesender Legilimentor. Snape mustert die Kontrahenten mit eisigem Blick, durchschaut gegnerische Bluffs mühelos und schlägt im perfekten Moment erbarmungslos zu.'
+  },
+  'strange': {
+    title: 'Oberster Zauberer von Kamar-Taj (Marvel)',
+    level: 'Stufe 48',
+    philosophy: 'Spiegeldimension & Wahrscheinlichkeiten',
+    story: 'Ehemaliger Neurochirurg und Hüter arkaner Dimensionen. Doctor Strange hat 14 Millionen Möglichkeiten der Runde durch das Auge von Agamotto vorausberechnet und navigiert zielstrebig zum optimalen Stichausgang.'
+  },
+  'yennefer': {
+    title: 'Zauberin von Vengerberg (The Witcher)',
+    level: 'Stufe 47',
+    philosophy: 'Arkanes Chaos & Willensstärke',
+    story: 'Eine der mächtigsten und willensstärksten Zauberinnen des Kontinents. Yennefer duldet keine Schwäche am Spieltisch, führt Farben mit kühler Eleganz und bestraft unvorsichtige Gebote ohne Gnade.'
+  },
+  'howl': {
+    title: 'Exzentrischer Hofmagier (Das wandelnde Schloss)',
+    level: 'Stufe 44',
+    philosophy: 'Schillernde Illusion & Eleganz',
+    story: 'Ein faszinierender, eitler Zauberer mit einem Herz aus Dämonenfeuer. Howl verzaubert die Runde mit glänzenden Manövern, weicht brenzligen Stichen virtuos aus und liebt dramatische Spielwendungen.'
+  },
+  'raistlin': {
+    title: 'Meister der Schwarzen Roben (Dragonlance)',
+    level: 'Stufe 50',
+    philosophy: 'Skrupellose Kartenkontrolle',
+    story: 'Körperlich gebrechlich, doch von unermesslichem Intellekt und grenzenlosem Ehrgeiz getrieben. Raistlin berechnet jede Karte mit messerscharfer Logik und opfert Figuren ohne jedes Zögern für den finalen Sieg.'
+  },
+  'mcgonagall': {
+    title: 'Meisterin der Verwandlung (Harry Potter)',
+    level: 'Stufe 49',
+    philosophy: 'Strenge Disziplin & Farbzwang',
+    story: 'Stellvertretende Schulleiterin und begnadete Animaga. Professor McGonagall behält den Spieltisch mit scharfem Falkenblick im Auge, besteht unnachgiebig auf Regeltreue und duldet keinen Leichtsinn.'
+  },
+
+  // --- ERZMAGIER (Übermächtige / Legendäre Magier) ---
+  'gandalf': {
+    title: 'Der Weiße Bote des Westens (Herr der Ringe)',
+    level: 'Stufe 95',
+    philosophy: 'Unerbittliche Weisheit & Führung',
+    story: 'Ein unsterblicher Maia und Anführer des Weißen Rates. "Du kannst nicht vorbei!" – Gandalf durchdringt das Gewebe jeder Runde mit uralter Entschlossenheit und zerschmettert die Vorhersagen seiner Widersacher.'
+  },
+  'dumbledore': {
+    title: 'Großmeister von Hogwarts (Harry Potter)',
+    level: 'Stufe 98',
+    philosophy: 'Weise Gelassenheit & Voraussicht',
+    story: 'Der größte Magier der Neuzeit und Beherrscher des Elderstabs. Dumbledore begegnet jedem Stich mit heiterer Ruhe, plant zehn Züge im Voraus und lenkt die Partie unmerklich in die von ihm vorherbestimmten Bahnen.'
   },
   'merlin': {
-    title: 'Hüter der arkanen Sphären',
-    level: 'Stufe 42',
-    philosophy: 'Mathematische Stichkontrolle',
-    story: 'Merlin überblickt die Gesetze des Schicksals mit stoischer Gelassenheit. Seine Stichkalkulationen basieren auf jahrhundertelanger Erfahrung im Hohen Magischen Rat.'
+    title: 'Urvater aller Magie (Artus-Sage)',
+    level: 'Stufe 99',
+    philosophy: 'Uralte Schicksals-Prophezeiung',
+    story: 'Sohn des Himmels und Erzieher von Königen. Merlin lebt rückwärts durch die Zeit und kennt das Schicksal jeder gelegten Karte bereits, bevor sie gemischt wird. Seine Stichgebote treffen mit schicksalhafter Präzision ein.'
+  },
+  'saruman': {
+    title: 'Das Oberhaupt des Weißen Rates (Herr der Ringe)',
+    level: 'Stufe 92',
+    philosophy: 'Eiserner Wille & Arkaner Zwang',
+    story: 'Einst der Erste unter den Istari. Seine Stimme ist von bezwingender Macht und sein Verstand von eisiger Tiefe. Saruman duldet keine Abweichung von seinen Vorhersagen und manipuliert den Spielfluss mit erhabener Härte.'
+  },
+  'voldemort': {
+    title: 'Der Dunkle Lord (Harry Potter)',
+    level: 'Stufe 94',
+    philosophy: 'Gnadenlose Furcht & Dominanz',
+    story: 'Der gefürchtetste Dunkle Magier aller Zeiten. Lord Voldemort reißt Stiche mit unbarmherziger Brutalität an sich, bricht die Verteidigung der Gegner mit tödlicher Konsequenz und verzeiht keinen einzigen Fehltritt.'
+  },
+  'elminster': {
+    title: 'Auserwählter der Mystra (D&D Forgotten Realms)',
+    level: 'Stufe 97',
+    philosophy: 'Allwissende Weltenwanderung',
+    story: 'Der alte Magier von Schattental wandelt seit über tausend Jahren durch Faerûn. Gelassen mit seiner Pfeife am Tisch sitzend, pariert Elminster jede Bedrohung mit mühelosem arkanem Lächeln.'
+  },
+
+  // Rückwärtskompatible Aliase
+  'pippin': {
+    title: 'Akademie-Novize',
+    level: 'Stufe 10',
+    philosophy: 'Verspielt & Neugierig',
+    story: 'Ein enthusiastischer Magierschüler mit großem Herzen und wagemutigen Vorhersagen.'
+  },
+  'luna': {
+    title: 'Sternenbeobachterin',
+    level: 'Stufe 12',
+    philosophy: 'Astrologische Führung',
+    story: 'Deutet Stiche wie Konstellationen am Nachthimmel.'
+  },
+  'sam': {
+    title: 'Schildknappe',
+    level: 'Stufe 10',
+    philosophy: 'Eiserne Disziplin',
+    story: 'Vertraut auf solide Verteidigung und sichere Vorhersagen.'
+  },
+  'arya': {
+    title: 'Schattenläuferin',
+    level: 'Stufe 14',
+    philosophy: 'Flink & Unberechenbar',
+    story: 'Deckt Karten im verblüffendsten Augenblick auf.'
   },
   'morgana': {
-    title: 'Herrin der Nebel & Illusionen',
+    title: 'Herrin der Nebel',
     level: 'Stufe 45',
-    philosophy: 'Täuschung & Konterangriff',
-    story: 'Morgana hüllt ihre wahren Absichten in dichtes Gewebe aus Täuschung. Sie wartet geduldig, bis ihre Widersacher Fehler machen, um deren Stichbilanzen gnadenlos zu zerschlagen.'
+    philosophy: 'Täuschung & Konter',
+    story: 'Hüllt ihre Absichten in dichten Nebel arkaner Täuschung.'
   },
   'albus': {
     title: 'Großmeister des Zitadellenrats',
-    level: 'Stufe 48',
+    level: 'Stufe 98',
     philosophy: 'Vorausschauende Harmonie',
-    story: 'Albus strahlt unerschütterliche Ruhe aus. Er beherrscht jede Nuance des Farbzwangs und führt Partien mit weiser Gelassenheit zum optimalen Rundenabschluss.'
+    story: 'Beherrscht jede Nuance des arkanen Farbzwangs.'
   },
   'circe': {
     title: 'Alchemistin der Transformation',
     level: 'Stufe 44',
     philosophy: 'Farbanalyse & Wendigkeit',
-    story: 'Circe erkennt gegnerische Farblücken wie mit dem Seziermesser. Sie dreht scheinbar verlorene Runden im letzten Stich durch präzise getaktete Ausspiele.'
-  },
-  'gandalf': {
-    title: 'Oberster Rat des Weißen Ordens',
-    level: 'Stufe 85',
-    philosophy: 'Unerbittliche Meisterstrategie',
-    story: 'Gandalf lenkt den Fluss jeder Runde mit erhabener Entschlossenheit. Seine arkanen Berechnungen verzeihen kein einziges Zögern und zwingen Kontrahenten in die Knie.'
-  },
-  'yennefer': {
-    title: 'Meisterin des arkanen Chaos',
-    level: 'Stufe 88',
-    philosophy: 'Scharfsinnig & Kompromisslos',
-    story: 'Yennefer vereint kühle Eleganz mit zerstörerischer Spielpräzision. Wer ihre Vorhersagen unterschätzt, findet sich rasch am bitteren Ende der Rundenwertung wieder.'
-  },
-  'raistlin': {
-    title: 'Schattenfürst der verbotenen Künste',
-    level: 'Stufe 92',
-    philosophy: 'Absolute Kartenbeherrschung',
-    story: 'Raistlin berechnet Wahrscheinlichkeiten mit eiskalter Logik. Er opfert eigene Handkarten ohne Reue, um das gesamte Blatt der Gegner vollständig offenzulegen.'
+    story: 'Erkennt Farblücken wie mit dem Seziermesser.'
   },
   'medea': {
-    title: 'Hohepriesterin des ewigen Feuers',
+    title: 'Hohepriesterin des Feuers',
     level: 'Stufe 89',
     philosophy: 'Aggressive Trumpfführung',
-    story: 'Medeas Spiel brennt mit magischer Intensität. Ihre Trumpfführung ist legendär gefürchtet und durchbricht selbst die stärksten Verteidigungslinien.'
+    story: 'Brennt mit unbändiger magischer Stichgewalt.'
   }
 };
 
@@ -3349,14 +3441,14 @@ function getBotLore(botName, botDifficulty) {
   } else if (diff === 'archmage') {
     return {
       title: 'Erzmagier der Ratskammer',
-      level: 'Stufe 80',
+      level: 'Stufe 90',
       philosophy: 'Eiskalte Perfektion',
       story: 'Ein altehrwürdiges Mitglied des Magischen Konzils mit meisterhafter Kartenübersicht und unnachgiebiger Präzision.'
     };
   }
   return {
     title: 'Meister der arkanen Künste',
-    level: 'Stufe 40',
+    level: 'Stufe 45',
     philosophy: 'Besonnene Taktik',
     story: 'Ein erfahrener Meistermagier der Zitadelle, der Risiken exakt abwägt und Stiche wohlüberlegt verteilt.'
   };
@@ -3364,261 +3456,268 @@ function getBotLore(botName, botDifficulty) {
 
 // --- MAGIER-PROFIL & SPIELER-DETAILS MODAL (SPIELTISCH & GRIMOIRE DER GEFÄHRTEN) ---
 function openPlayerDetailModal(data, source = 'table') {
-  const modal = document.getElementById('player-detail-modal');
-  if (!modal || !data) return;
+  try {
+    const modal = document.getElementById('player-detail-modal');
+    if (!modal || !data) return;
 
-  const isTable = (source === 'table' || source === 'podium');
-  const isFriendSource = (source === 'friends');
+    const isTable = (source === 'table' || source === 'podium');
+    const isFriendSource = (source === 'friends');
 
-  const avatarEl = document.getElementById('playerDetailAvatar');
-  const nameEl = document.getElementById('playerDetailName');
-  const titleEl = document.getElementById('playerDetailTitle');
-  const statusEl = document.getElementById('playerDetailStatus');
-  const divisionEl = document.getElementById('playerDetailDivision');
-  const srEl = document.getElementById('playerDetailSR');
-  const crestEl = document.getElementById('playerDetailCrest');
-  const botDiffEl = document.getElementById('playerDetailBotDiff');
-  const statsTitleEl = document.getElementById('playerDetailStatsTitle');
-  const statsGridEl = document.getElementById('playerDetailStatsGrid');
-  const btnAddFriend = document.getElementById('btnPlayerDetailAddFriend');
-  const btnClose = document.getElementById('btnPlayerDetailClose');
-  const modalClose = document.getElementById('playerDetailModalClose');
+    const avatarEl = document.getElementById('playerDetailAvatar');
+    const nameEl = document.getElementById('playerDetailName');
+    const titleEl = document.getElementById('playerDetailTitle');
+    const statusEl = document.getElementById('playerDetailStatus');
+    const divisionEl = document.getElementById('playerDetailDivision');
+    const srEl = document.getElementById('playerDetailSR');
+    const crestEl = document.getElementById('playerDetailCrest');
+    const botDiffEl = document.getElementById('playerDetailBotDiff');
+    const statsTitleEl = document.getElementById('playerDetailStatsTitle');
+    const statsGridEl = document.getElementById('playerDetailStatsGrid');
+    const btnAddFriend = document.getElementById('btnPlayerDetailAddFriend');
+    const btnClose = document.getElementById('btnPlayerDetailClose');
+    const modalClose = document.getElementById('playerDetailModalClose');
 
-  const isBot = Boolean(data.isBot || (data.sessionId && String(data.sessionId).startsWith('bot_')) || (data.name && data.name.includes('(KI)')));
-  const name = isFriendSource ? data.username : data.name;
-  const initial = isFriendSource ? (data.username ? data.username.charAt(0).toUpperCase() : '?') : (isBot ? '🤖' : (data.name ? data.name.charAt(0).toUpperCase() : '?'));
-  const title = data.title || (isBot ? 'Virtueller Zitadellen-Gefährte' : 'Magier der Zitadelle');
+    const isBot = Boolean(data.isBot || (data.sessionId && String(data.sessionId).startsWith('bot_')) || (data.name && data.name.includes('(KI)')));
+    const name = isFriendSource ? data.username : data.name;
+    const initial = isFriendSource ? (data.username ? data.username.charAt(0).toUpperCase() : '?') : (isBot ? '🤖' : (data.name ? data.name.charAt(0).toUpperCase() : '?'));
+    const title = data.title || (isBot ? 'Virtueller Zitadellen-Gefährte' : 'Magier der Zitadelle');
 
-  if (avatarEl) avatarEl.innerText = initial;
-  if (nameEl) nameEl.innerText = name || 'Magier';
-  if (titleEl) titleEl.innerText = title;
+    if (avatarEl) avatarEl.innerText = initial;
+    if (nameEl) nameEl.innerText = name || 'Magier';
+    if (titleEl) titleEl.innerText = title;
 
-  // Status
-  if (statusEl) {
-    if (isFriendSource) {
-      const statusMap = {
-        citadel: { label: 'In der Zitadelle', color: '#86efac' },
-        waiting_room: { label: data.liveStatusText || 'Im Warteraum', color: '#fde047' },
-        in_game: { label: data.liveStatusText || 'Im Duell', color: '#f87171' },
-        offline: { label: 'Abwesend', color: '#94a3b8' }
-      };
-      const st = statusMap[data.liveStatus] || statusMap.offline;
-      statusEl.innerHTML = `<span style="color: ${st.color}; font-weight: bold;">● ${escapeHtml(st.label)}</span>`;
-    } else if (isBot) {
-      statusEl.innerHTML = '<span style="color: #c084fc; font-weight: bold;">🤖 Virtueller Rat</span>';
-    } else {
-      statusEl.innerHTML = data.connected === false
-        ? '<span style="color: #f87171; font-weight: bold;">● Getrennt</span>'
-        : '<span style="color: #86efac; font-weight: bold;">● Am Spieltisch</span>';
-    }
-  }
-
-  // Rang / Level
-  if (isBot) {
-    const diff = data.difficulty || 'master';
-    const lore = getBotLore(name, diff);
-
-    if (titleEl) titleEl.innerText = lore.title;
-    if (divisionEl) {
-      divisionEl.innerText = lore.level;
-      divisionEl.style.color = (diff === 'novice' ? '#86efac' : (diff === 'archmage' ? '#d8b4fe' : '#93c5fd'));
-    }
-    if (srEl) {
-      srEl.innerText = (diff === 'novice' ? 'Zauber-Lehrling' : (diff === 'archmage' ? 'Oberster Rat' : 'Meister-Magier'));
-    }
-    if (crestEl) {
-      crestEl.innerHTML = (diff === 'novice' ? '🌱' : (diff === 'archmage' ? '⚡' : '✨'));
-    }
-    if (botDiffEl) {
-      botDiffEl.style.display = 'none';
-      botDiffEl.innerHTML = '';
-    }
-
-    // Lore-Profil statt Zahlen-Statistiken
-    if (statsTitleEl) {
-      statsTitleEl.innerText = 'Grimoire-Chronik & Wesensart';
-    }
-    if (statsGridEl) {
-      statsGridEl.style.display = 'block';
-      statsGridEl.innerHTML = `
-        <div style="background: rgba(18, 10, 6, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 10px; padding: 12px 14px; text-align: left; box-shadow: 0 4px 18px rgba(0,0,0,0.6);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed rgba(212,163,89,0.35); padding-bottom: 6px;">
-            <span style="font-family: var(--font-subheading); color: var(--gold-bright); font-size: 13px; font-weight: bold;">
-              📜 ${escapeHtml(lore.title)}
-            </span>
-            <span style="font-family: var(--font-medieval); color: #86efac; font-size: 13px; font-weight: 900; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(134,239,172,0.4);">
-              ${escapeHtml(lore.level)}
-            </span>
-          </div>
-          <div style="font-size: 11.5px; color: #f7eedb; line-height: 1.45; margin-bottom: 8px;">
-            ${escapeHtml(lore.story)}
-          </div>
-          <div style="font-size: 11px; color: #d6be90; display: flex; align-items: center; gap: 5px;">
-            <span style="color: var(--gold-bright);">Taktik:</span>
-            <span style="font-style: italic; color: #fde047;">${escapeHtml(lore.philosophy)}</span>
-          </div>
-        </div>
-      `;
-    }
-  } else {
-    // Normaler menschlicher Spieler
-    const sr = isFriendSource ? (data.skill_rating || 1000) : (data.skillRating || (data.rank ? data.rank.skillRating : 1000) || 1000);
-    const rank = data.rank || (typeof getRankDetailsFromSR === 'function' ? getRankDetailsFromSR(sr) : null);
-    const divName = rank ? rank.divisionName : (data.userId ? 'Novize V' : 'Gast-Magier');
-    const tierKey = rank ? rank.tierKey : 'novice';
-    const crestSvg = (typeof RANK_CRESTS !== 'undefined' && RANK_CRESTS[tierKey]) ? RANK_CRESTS[tierKey] : '';
-
-    if (divisionEl) {
-      divisionEl.innerText = divName;
-      if (rank && rank.color) divisionEl.style.color = rank.color;
-    }
-    if (srEl) {
-      srEl.innerText = (data.userId || isFriendSource) ? `${sr} SR` : 'Nicht gewertet';
-    }
-    if (crestEl) {
-      crestEl.innerHTML = (data.userId || isFriendSource) ? crestSvg : '🔮';
-    }
-    if (botDiffEl) {
-      botDiffEl.style.display = 'none';
-      botDiffEl.innerHTML = '';
-    }
-
-    if (statsGridEl) {
-      statsGridEl.style.display = 'grid';
-      statsGridEl.style.gridTemplateColumns = 'repeat(3, 1fr)';
-      statsGridEl.innerHTML = '';
-      if (isTable) {
-        if (statsTitleEl) statsTitleEl.innerText = 'Runden-Statistiken (Aktuelle Partie)';
-        const bidVal = (data.bid !== null && data.bid !== undefined) ? data.bid : '-';
-        const wonVal = (data.tricksWon !== undefined) ? data.tricksWon : 0;
-        let totalPts = data.totalScore !== undefined ? data.totalScore : 0;
-        if (totalPts === 0 && typeof cachedScoreHistory !== 'undefined' && Array.isArray(cachedScoreHistory)) {
-          cachedScoreHistory.forEach(entry => {
-            if (entry.entries) {
-              const e = entry.entries.find(ent => ent.sessionId === data.sessionId);
-              if (e && e.totalScore !== undefined) totalPts = e.totalScore;
-            } else if (entry.scores && entry.scores[data.sessionId] !== undefined) {
-              totalPts += entry.scores[data.sessionId];
-            }
-          });
-        }
-
-        statsGridEl.innerHTML = `
-          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-            <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${wonVal}</div>
-            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Erzielte Stiche</div>
-          </div>
-          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-            <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${bidVal}</div>
-            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Prophezeiung</div>
-          </div>
-          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-            <div style="font-size: 15px; font-weight: 900; color: ${totalPts >= 0 ? '#86efac' : '#f87171'}; font-family: var(--font-medieval);">${totalPts}</div>
-            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Gesamtpunkte</div>
-          </div>
-        `;
+    // Status
+    if (statusEl) {
+      if (isFriendSource) {
+        const statusMap = {
+          citadel: { label: 'In der Zitadelle', color: '#86efac' },
+          waiting_room: { label: data.liveStatusText || 'Im Warteraum', color: '#fde047' },
+          in_game: { label: data.liveStatusText || 'Im Duell', color: '#f87171' },
+          offline: { label: 'Abwesend', color: '#94a3b8' }
+        };
+        const st = statusMap[data.liveStatus] || statusMap.offline;
+        statusEl.innerHTML = `<span style="color: ${st.color}; font-weight: bold;">● ${escapeHtml(st.label)}</span>`;
+      } else if (isBot) {
+        statusEl.innerHTML = '<span style="color: #c084fc; font-weight: bold;">🤖 Virtueller Rat</span>';
       } else {
-        // Karriere-Statistiken aus dem Grimoire der Gefährten
-        if (statsTitleEl) statsTitleEl.innerText = 'Karriere-Statistiken';
-        const played = data.games_played || 0;
-        const won = data.games_won || 0;
-        const winRate = played > 0 ? Math.round((won / played) * 100) : 0;
-        const high = data.highest_score || 0;
+        statusEl.innerHTML = data.connected === false
+          ? '<span style="color: #f87171; font-weight: bold;">● Getrennt</span>'
+          : '<span style="color: #86efac; font-weight: bold;">● Am Spieltisch</span>';
+      }
+    }
 
+    // Rang / Level
+    if (isBot) {
+      const diff = data.difficulty || 'master';
+      const lore = getBotLore(name, diff);
+
+      if (titleEl) titleEl.innerText = lore.title;
+      if (divisionEl) {
+        divisionEl.innerText = lore.level;
+        divisionEl.style.color = (diff === 'novice' ? '#86efac' : (diff === 'archmage' ? '#d8b4fe' : '#93c5fd'));
+      }
+      if (srEl) {
+        srEl.innerText = (diff === 'novice' ? 'Zauber-Lehrling' : (diff === 'archmage' ? 'Oberster Rat' : 'Meister-Magier'));
+      }
+      if (crestEl) {
+        crestEl.innerHTML = (diff === 'novice' ? '🌱' : (diff === 'archmage' ? '⚡' : '✨'));
+      }
+      if (botDiffEl) {
+        botDiffEl.style.display = 'none';
+        botDiffEl.innerHTML = '';
+      }
+
+      // Lore-Profil statt Zahlen-Statistiken
+      if (statsTitleEl) {
+        statsTitleEl.innerText = 'Grimoire-Chronik & Wesensart';
+      }
+      if (statsGridEl) {
+        statsGridEl.style.display = 'block';
         statsGridEl.innerHTML = `
-          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-            <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${played}</div>
-            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Partien</div>
-          </div>
-          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-            <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${won} (${winRate}%)</div>
-            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Siege</div>
-          </div>
-          <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
-            <div style="font-size: 15px; font-weight: 900; color: #fde047; font-family: var(--font-medieval);">${high}</div>
-            <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Highscore</div>
+          <div style="background: rgba(18, 10, 6, 0.75); border: 1.5px solid var(--gold-antique); border-radius: 10px; padding: 12px 14px; text-align: left; box-shadow: 0 4px 18px rgba(0,0,0,0.6);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed rgba(212,163,89,0.35); padding-bottom: 6px;">
+              <span style="font-family: var(--font-subheading); color: var(--gold-bright); font-size: 13px; font-weight: bold;">
+                📜 ${escapeHtml(lore.title)}
+              </span>
+              <span style="font-family: var(--font-medieval); color: #86efac; font-size: 13px; font-weight: 900; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(134,239,172,0.4);">
+                ${escapeHtml(lore.level)}
+              </span>
+            </div>
+            <div style="font-size: 11.5px; color: #f7eedb; line-height: 1.45; margin-bottom: 8px;">
+              ${escapeHtml(lore.story)}
+            </div>
+            <div style="font-size: 11px; color: #d6be90; display: flex; align-items: center; gap: 5px;">
+              <span style="color: var(--gold-bright);">Taktik:</span>
+              <span style="font-style: italic; color: #fde047;">${escapeHtml(lore.philosophy)}</span>
+            </div>
           </div>
         `;
       }
+    } else {
+      // Normaler menschlicher Spieler
+      const sr = isFriendSource ? (data.skill_rating || 1000) : (data.skillRating || (data.rank ? data.rank.skillRating : 1000) || 1000);
+      const rank = data.rank || (typeof getRankDetailsFromSR === 'function' ? getRankDetailsFromSR(sr) : null);
+      const divName = rank ? rank.divisionName : (data.userId ? 'Novize V' : 'Gast-Magier');
+      const tierKey = rank ? rank.tierKey : 'novice';
+      const crestSvg = (typeof RANK_CRESTS !== 'undefined' && RANK_CRESTS[tierKey]) ? RANK_CRESTS[tierKey] : '';
+
+      if (divisionEl) {
+        divisionEl.innerText = divName;
+        if (rank && rank.color) divisionEl.style.color = rank.color;
+      }
+      if (srEl) {
+        srEl.innerText = (data.userId || isFriendSource) ? `${sr} SR` : 'Nicht gewertet';
+      }
+      if (crestEl) {
+        crestEl.innerHTML = (data.userId || isFriendSource) ? crestSvg : '🔮';
+      }
+      if (botDiffEl) {
+        botDiffEl.style.display = 'none';
+        botDiffEl.innerHTML = '';
+      }
+
+      if (statsGridEl) {
+        statsGridEl.style.display = 'grid';
+        statsGridEl.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        statsGridEl.innerHTML = '';
+        if (isTable) {
+          if (statsTitleEl) statsTitleEl.innerText = 'Runden-Statistiken (Aktuelle Partie)';
+          const bidVal = (data.bid !== null && data.bid !== undefined) ? data.bid : '-';
+          const wonVal = (data.tricksWon !== undefined) ? data.tricksWon : 0;
+          let totalPts = data.totalScore !== undefined ? data.totalScore : 0;
+          if (totalPts === 0 && typeof cachedScoreHistory !== 'undefined' && Array.isArray(cachedScoreHistory)) {
+            cachedScoreHistory.forEach(entry => {
+              if (entry.entries) {
+                const e = entry.entries.find(ent => ent.sessionId === data.sessionId);
+                if (e && e.totalScore !== undefined) totalPts = e.totalScore;
+              } else if (entry.scores && entry.scores[data.sessionId] !== undefined) {
+                totalPts += entry.scores[data.sessionId];
+              }
+            });
+          }
+
+          statsGridEl.innerHTML = `
+            <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+              <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${wonVal}</div>
+              <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Erzielte Stiche</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+              <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${bidVal}</div>
+              <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Prophezeiung</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+              <div style="font-size: 15px; font-weight: 900; color: ${totalPts >= 0 ? '#86efac' : '#f87171'}; font-family: var(--font-medieval);">${totalPts}</div>
+              <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Gesamtpunkte</div>
+            </div>
+          `;
+        } else {
+          // Karriere-Statistiken aus dem Grimoire der Gefährten
+          if (statsTitleEl) statsTitleEl.innerText = 'Karriere-Statistiken';
+          const played = data.games_played || 0;
+          const won = data.games_won || 0;
+          const winRate = played > 0 ? Math.round((won / played) * 100) : 0;
+          const high = data.highest_score || 0;
+
+          statsGridEl.innerHTML = `
+            <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+              <div style="font-size: 15px; font-weight: 900; color: var(--gold-bright); font-family: var(--font-medieval);">${played}</div>
+              <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Partien</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+              <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${won} (${winRate}%)</div>
+              <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Siege</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
+              <div style="font-size: 15px; font-weight: 900; color: #fde047; font-family: var(--font-medieval);">${high}</div>
+              <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Highscore</div>
+            </div>
+          `;
+        }
+      }
     }
-  }
 
-  // Aktionen
-  if (btnAddFriend) {
-    const isMe = (!isFriendSource && data.sessionId === mySessionId);
-    const isBotPlayer = (!isFriendSource && isBot);
-    const isFriend = Array.isArray(cachedFriends) && cachedFriends.some(f => f.username.toLowerCase() === (name || '').toLowerCase());
+    // Aktionen
+    if (btnAddFriend) {
+      const isMe = (!isFriendSource && data.sessionId === mySessionId);
+      const isBotPlayer = (!isFriendSource && isBot);
+      const friendsList = (typeof CompanionsManager !== 'undefined' && typeof CompanionsManager.getFriends === 'function')
+        ? CompanionsManager.getFriends()
+        : [];
+      const isFriend = !isBotPlayer && !isMe && Array.isArray(friendsList) && friendsList.some(f => (f && (f.username || f.name) || '').toLowerCase() === (name || '').toLowerCase());
 
-    if (isMe) {
-      btnAddFriend.style.display = 'none';
-    } else if (isBotPlayer) {
-      btnAddFriend.style.display = 'none';
-      btnAddFriend.onclick = null;
-    } else if (isFriend) {
-      if (isFriendSource) {
+      if (isMe) {
+        btnAddFriend.style.display = 'none';
+      } else if (isBotPlayer) {
+        btnAddFriend.style.display = 'none';
+        btnAddFriend.onclick = null;
+      } else if (isFriend) {
+        if (isFriendSource) {
+          btnAddFriend.style.display = 'block';
+          btnAddFriend.disabled = false;
+          btnAddFriend.style.opacity = '1';
+          btnAddFriend.style.cursor = 'pointer';
+          if (data.liveStatus === 'waiting_room' && data.liveRoomCode) {
+            btnAddFriend.innerText = '🚀 Warteraum beitreten';
+            btnAddFriend.onclick = () => {
+              modal.style.display = 'none';
+              if (typeof CompanionsManager !== 'undefined') CompanionsManager.close();
+              joinRoomWithCode(data.liveRoomCode);
+            };
+          } else {
+            btnAddFriend.innerText = '✉️ In Warteraum einladen';
+            const canInvite = (currentGameState === 'lobby' && currentRoomCode && data.liveStatus !== 'offline' && data.liveStatus !== 'in_game');
+            btnAddFriend.disabled = !canInvite;
+            btnAddFriend.style.opacity = canInvite ? '1' : '0.5';
+            btnAddFriend.onclick = () => {
+              if (canInvite) {
+                socket.emit('inviteFriendToRoom', { friendId: data.id, roomCode: currentRoomCode, token: WizardAuth.getToken() });
+                showToast(`Einladung an ${data.username} gesendet! ✉️`);
+                modal.style.display = 'none';
+              }
+            };
+          }
+        } else {
+          btnAddFriend.style.display = 'block';
+          btnAddFriend.disabled = true;
+          btnAddFriend.style.opacity = '0.7';
+          btnAddFriend.style.cursor = 'default';
+          btnAddFriend.innerText = '✅ Bereits dein Gefährte';
+          btnAddFriend.onclick = null;
+        }
+      } else {
+        // Neuer Freund hinzufügen
         btnAddFriend.style.display = 'block';
         btnAddFriend.disabled = false;
         btnAddFriend.style.opacity = '1';
         btnAddFriend.style.cursor = 'pointer';
-        if (data.liveStatus === 'waiting_room' && data.liveRoomCode) {
-          btnAddFriend.innerText = '🚀 Warteraum beitreten';
-          btnAddFriend.onclick = () => {
+        btnAddFriend.innerText = '✨ Als Gefährten hinzufügen';
+        btnAddFriend.onclick = () => {
+          const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
+          if (!user) {
             modal.style.display = 'none';
-            if (typeof CompanionsManager !== 'undefined') CompanionsManager.close();
-            joinRoomWithCode(data.liveRoomCode);
-          };
-        } else {
-          btnAddFriend.innerText = '✉️ In Warteraum einladen';
-          const canInvite = (currentGameState === 'lobby' && currentRoomCode && data.liveStatus !== 'offline' && data.liveStatus !== 'in_game');
-          btnAddFriend.disabled = !canInvite;
-          btnAddFriend.style.opacity = canInvite ? '1' : '0.5';
-          btnAddFriend.onclick = () => {
-            if (canInvite) {
-              socket.emit('inviteFriendToRoom', { friendId: data.id, roomCode: currentRoomCode, token: WizardAuth.getToken() });
-              showToast(`Einladung an ${data.username} gesendet! ✉️`);
-              modal.style.display = 'none';
+            if (typeof GrimoireDialog !== 'undefined' && GrimoireDialog.requireAuth) {
+              GrimoireDialog.requireAuth('companions');
             }
-          };
-        }
-      } else {
-        btnAddFriend.style.display = 'block';
-        btnAddFriend.disabled = true;
-        btnAddFriend.style.opacity = '0.7';
-        btnAddFriend.style.cursor = 'default';
-        btnAddFriend.innerText = '✅ Bereits dein Gefährte';
-        btnAddFriend.onclick = null;
-      }
-    } else {
-      // Neuer Freund hinzufügen
-      btnAddFriend.style.display = 'block';
-      btnAddFriend.disabled = false;
-      btnAddFriend.style.opacity = '1';
-      btnAddFriend.style.cursor = 'pointer';
-      btnAddFriend.innerText = '✨ Als Gefährten hinzufügen';
-      btnAddFriend.onclick = () => {
-        const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
-        if (!user) {
-          modal.style.display = 'none';
-          if (typeof GrimoireDialog !== 'undefined' && GrimoireDialog.requireAuth) {
-            GrimoireDialog.requireAuth('companions');
+            return;
           }
-          return;
-        }
-        socket.emit('addFriend', { friendUsername: name, token: WizardAuth.getToken() });
-        btnAddFriend.disabled = true;
-        btnAddFriend.innerText = '✨ Anfrage gesendet!';
-        setTimeout(() => {
-          modal.style.display = 'none';
-        }, 1200);
-      };
+          socket.emit('addFriend', { friendUsername: name, token: WizardAuth.getToken() });
+          btnAddFriend.disabled = true;
+          btnAddFriend.innerText = '✨ Anfrage gesendet!';
+          setTimeout(() => {
+            modal.style.display = 'none';
+          }, 1200);
+        };
+      }
     }
+
+    const closeModal = () => { modal.style.display = 'none'; };
+    if (btnClose) btnClose.onclick = closeModal;
+    if (modalClose) modalClose.onclick = closeModal;
+
+    modal.style.display = 'flex';
+  } catch (err) {
+    console.error('Fehler in openPlayerDetailModal:', err);
   }
-
-  const closeModal = () => { modal.style.display = 'none'; };
-  if (btnClose) btnClose.onclick = closeModal;
-  if (modalClose) modalClose.onclick = closeModal;
-
-  modal.style.display = 'flex';
 }
 if (typeof window !== 'undefined') window.openPlayerDetailModal = openPlayerDetailModal;
 
@@ -6234,9 +6333,9 @@ function renderBidButtons(maxBid, forbiddenBid) {
   for (let i = 0; i <= maxBid; i++) {
     const btn = document.createElement('button');
     btn.classList.add('bid-btn');
-    if (i === 0) {
+    if (i === 0 && currentScoringMode === 'skull_king_zero') {
       btn.classList.add('bid-btn-zero');
-      btn.title = '0 Stiche prophezeien (Defensiv / Fluch)';
+      btn.title = '0 Stiche prophezeien (Schattenfluch: ±Runde × 10 Punkte!)';
     }
     btn.innerText = i;
 

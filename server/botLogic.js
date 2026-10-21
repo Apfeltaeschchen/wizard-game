@@ -3,7 +3,14 @@ const { isValidMove, evaluateTrickDetails, isForbiddenBid, getEffectiveCard, sor
 // Definition der Bot-Profile nach Schwierigkeitsgrad
 const BOT_PROFILES = {
   novice: {
-    names: ['Novize Pippin (KI)', 'Novize Luna (KI)', 'Novize Sam (KI)', 'Novizin Arya (KI)'],
+    names: [
+      'Rincewind (KI)',
+      'Gilderoy Lockhart (KI)',
+      'Presto (KI)',
+      'Gargamel (KI)',
+      'Neville Longbottom (KI)',
+      'Orko (KI)'
+    ],
     avatarId: 'wizard_green',
     title: 'Zauberlehrling',
     skillRating: 850,
@@ -17,7 +24,14 @@ const BOT_PROFILES = {
     }
   },
   master: {
-    names: ['Meister Merlin (KI)', 'Meisterin Morgana (KI)', 'Meister Albus (KI)', 'Meisterin Circe (KI)'],
+    names: [
+      'Severus Snape (KI)',
+      'Doctor Strange (KI)',
+      'Yennefer von Vengerberg (KI)',
+      'Howl Pendragon (KI)',
+      'Raistlin Majere (KI)',
+      'Minerva McGonagall (KI)'
+    ],
     avatarId: 'wizard_blue',
     title: 'Meistermagier',
     skillRating: 1350,
@@ -31,7 +45,14 @@ const BOT_PROFILES = {
     }
   },
   archmage: {
-    names: ['Erzmagier Gandalf (KI)', 'Erzmagierin Yennefer (KI)', 'Erzmagier Raistlin (KI)', 'Erzmagierin Medea (KI)'],
+    names: [
+      'Gandalf (KI)',
+      'Albus Dumbledore (KI)',
+      'Merlin (KI)',
+      'Saruman (KI)',
+      'Lord Voldemort (KI)',
+      'Elminster (KI)'
+    ],
     avatarId: 'wizard_purple',
     title: 'Oberster Rat',
     skillRating: 2150,
@@ -64,8 +85,9 @@ function createBotPlayer(existingPlayers = [], difficulty = 'master') {
   const existingNames = new Set(existingPlayers.map(p => p.name));
   let chosenName = profile.names.find(n => !existingNames.has(n));
   if (!chosenName) {
-    const diffTag = diffKey === 'novice' ? 'Novize' : (diffKey === 'archmage' ? 'Erzmagier' : 'Meister');
-    chosenName = `${diffTag} ${existingPlayers.filter(p => p.isBot).length + 1} (KI)`;
+    const pool = profile.names;
+    const base = pool[existingPlayers.filter(p => p.isBot).length % pool.length].replace(' (KI)', '');
+    chosenName = `${base} II (KI)`;
   }
 
   const botSessionId = 'bot_' + Math.random().toString(36).substring(2, 9);

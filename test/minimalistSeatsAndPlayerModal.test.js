@@ -179,4 +179,102 @@ assert(firstSeat.innerHTML.includes('🏆 0 / 🎯 0'), 'Sitz muss Gemacht / Vor
 
 console.log('     ✅ renderOpponents() läuft absolut fehlerfrei, erzeugt alle Sitze & Pillen!');
 
+// 8. Verifiziere Bot-Namen ohne Titel-Präfixe & berühmte Zauberer aus Film, Serie und Buch
+console.log('  8. Prüfe berühmte Magier aus Film/Serie/Buch und Wegfall von Titel-Präfixen...');
+const botLogicPath = path.join(__dirname, '../server/botLogic.js');
+const botLogicCode = fs.readFileSync(botLogicPath, 'utf8');
+assert(botLogicCode.includes("'Gandalf (KI)'"), "Gandalf (KI) muss ohne Erzmagier-Präfix vorhanden sein");
+assert(!botLogicCode.includes("'Erzmagier Gandalf (KI)'"), "Erzmagier Gandalf (KI) darf nicht mehr vorkommen");
+assert(botLogicCode.includes("'Rincewind (KI)'"), "Rincewind (KI) muss vorhanden sein");
+assert(!botLogicCode.includes("'Novize Pippin (KI)'"), "Novize Pippin (KI) darf nicht mehr im Hauptpool sein");
+assert(botLogicCode.includes("'Severus Snape (KI)'"), "Severus Snape (KI) muss vorhanden sein");
+console.log('     ✅ Bot-Namen repräsentieren legendäre Zauberer aus Film & Literatur ohne Präfixe!');
+
+// 9. Verifiziere Biet-Button 0 Styling (Schattenfluch vs. Klassisch)
+console.log('  9. Prüfe Biet-Button 0 Styling-Isolation (nur im Schattenfluch)...');
+assert(clientJs.includes("i === 0 && currentScoringMode === 'skull_king_zero'"),
+  'Button 0 darf nur bei currentScoringMode === skull_king_zero die bid-btn-zero Klasse erhalten');
+console.log('     ✅ Button 0 sieht im klassischen Spiel normal aus und verwirrt nicht mehr!');
+
+// 10. Verifiziere openPlayerDetailModal fehlerfreie Ausführung & Lore-Rendering
+console.log('  10. Prüfe openPlayerDetailModal fehlerfreie Ausführung mit Bot-Profil & Lore-Story...');
+const mockModal = createMockElement('div', 'player-detail-modal');
+mockModal.style.display = 'none';
+
+const mockElements = {
+  'player-detail-modal': mockModal,
+  'playerDetailAvatar': createMockElement('div'),
+  'playerDetailName': createMockElement('h3'),
+  'playerDetailTitle': createMockElement('div'),
+  'playerDetailStatus': createMockElement('div'),
+  'playerDetailDivision': createMockElement('div'),
+  'playerDetailSR': createMockElement('div'),
+  'playerDetailCrest': createMockElement('div'),
+  'playerDetailBotDiff': createMockElement('div'),
+  'playerDetailStatsTitle': createMockElement('div'),
+  'playerDetailStatsGrid': createMockElement('div'),
+  'btnPlayerDetailAddFriend': createMockElement('button'),
+  'btnPlayerDetailClose': createMockElement('button'),
+  'playerDetailModalClose': createMockElement('button')
+};
+
+const modalSandbox = {
+  document: {
+    getElementById(id) {
+      return mockElements[id] || null;
+    }
+  },
+  escapeHtml(s) { return s || ''; },
+  currentGameState: 'in_game',
+  currentRoomCode: 'WIZARD',
+  mySessionId: 'sess_player',
+  console: console
+};
+
+vm.createContext(modalSandbox);
+
+// Extrahiere CompanionsManager, BOT_LORE_DATABASE, getBotLore und openPlayerDetailModal
+const modalCode = clientJs.substring(
+  clientJs.indexOf('const CompanionsManager ='),
+  clientJs.indexOf('// --- RUNDE 1 STIRNKARTEN-INSPEKTION')
+);
+
+vm.runInContext(modalCode, modalSandbox);
+
+// Teste Aufruf mit Bot Gandalf
+const testBotGandalf = {
+  sessionId: 'bot_xyz123',
+  name: 'Gandalf (KI)',
+  isBot: true,
+  difficulty: 'archmage',
+  bid: 3,
+  tricksWon: 2
+};
+
+assert.doesNotThrow(() => {
+  modalSandbox.openPlayerDetailModal(testBotGandalf, 'table');
+}, 'openPlayerDetailModal darf keinen ReferenceError (z. B. cachedFriends) werfen!');
+
+assert.strictEqual(mockModal.style.display, 'flex', 'Modal muss display: flex erhalten');
+assert(mockElements['playerDetailTitle'].innerText.includes('Herr der Ringe') || mockElements['playerDetailTitle'].innerText.includes('Weiße Bote'),
+  'Titel von Gandalf muss gesetzt sein');
+assert(mockElements['playerDetailStatsGrid'].innerHTML.includes('Du kannst nicht vorbei'),
+  'Grimoire-Chronik & Wesensart von Gandalf muss im Stats-Grid gerendert sein');
+
+// Teste Aufruf mit Novize Rincewind
+const testBotRincewind = {
+  sessionId: 'bot_rince456',
+  name: 'Rincewind (KI)',
+  isBot: true,
+  difficulty: 'novice',
+  bid: 0,
+  tricksWon: 0
+};
+
+modalSandbox.openPlayerDetailModal(testBotRincewind, 'table');
+assert(mockElements['playerDetailStatsGrid'].innerHTML.includes('Scheibenwelt'),
+  'Rincewind Lore aus der Scheibenwelt muss gerendert sein');
+
+console.log('     ✅ openPlayerDetailModal() öffnet zuverlässig jedes Bot-Profil mit vollständiger Lore-Story!');
+
 console.log('\n🎉 Alle Tests für Minimalist Seats, Player Profile Modal, Grimoire Z-Index & Stirnkarten erfolgreich bestanden!');
