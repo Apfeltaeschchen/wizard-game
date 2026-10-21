@@ -324,6 +324,16 @@ async function runSocketIntegrationTests() {
     assert.strictEqual(updatedPlayers.length, 4, 'Es müssen genau 4 Spieler im Raum sein');
     console.log('✓ 4 Spieler im Raum versammelt: ' + updatedPlayers.map(p => `${p.name} (${p.team})`).join(', '));
 
+    // Host würfelt Allianzen aus (2 in Team A, 2 in Team B)
+    hostClient.emit('randomizeTeams', { roomCode });
+    await wait(250);
+
+    const countA = updatedPlayers.filter(p => p.team === 'team_a').length;
+    const countB = updatedPlayers.filter(p => p.team === 'team_b').length;
+    assert.strictEqual(countA, 2, 'Team A muss genau 2 Spieler haben');
+    assert.strictEqual(countB, 2, 'Team B muss genau 2 Spieler haben');
+    console.log('✓ Allianzen ausgewürfelt: ' + updatedPlayers.map(p => `${p.name} (${p.team})`).join(', '));
+
     // Spiel starten und alternierende Sitzordnung prüfen
     let gameStartedData = null;
     hostClient.on('gameStarted', (data) => {

@@ -36,42 +36,57 @@ assert(clientContent.includes('waitingRoomStartBtn.classList.toggle(\'btn-not-re
 assert(clientContent.includes('waitingRoomStartBtn.disabled = false;'), 'Start-Button muss im Warteraum klickbar (disabled=false) gehalten werden');
 
 // Prüfe Alert-Dialoge bei Klick auf Start im Warteraum
-assert(clientContent.includes('2vs2 Allianzen: 4 Magier benötigt'), 'CitadelAlert Titel für <4 Magier muss vorhanden sein');
+assert(clientContent.includes('Allianzen: 4 oder 6 Magier benötigt'), 'CitadelAlert Titel für 4/6 Magier muss vorhanden sein');
 assert(clientContent.includes('Allianzen nicht ausgeglichen'), 'CitadelAlert Titel für unausgeglichene Teams muss vorhanden sein');
 assert(clientContent.includes('Mindestens 3 Magier benötigt'), 'CitadelAlert Titel für <3 FFA-Magier muss vorhanden sein');
 
 // Prüfe taktile Rückmeldung & Toast beim Modus-Wechsel
-assert(clientContent.includes('2vs2 Allianzen gewählt: Genau 4 Magier benötigt'), 'Informativer Toast beim Wechsel zu 2vs2 muss vorhanden sein');
+assert(clientContent.includes('Allianzen-Modus aktiv:'), 'Informativer Toast beim Wechsel zu Allianzen muss vorhanden sein');
 
 console.log('✓ Client-Validierungslogik und GrimoireDialog-Verdrahtung erfolgreich verifiziert!');
 
 // ============================================================================
 // 3. FUNKTIONALE LOGIK-VALIDIERUNG (SIMULATION DES START-VALIDATORS)
 // ============================================================================
-console.log('3. Teste funktionale Start-Validierungslogik für alle Spieler-Konstellationen...');
+console.log('3. Teste funktionale Start-Validierungslogik für alle Spieler-Konstellationen (2vs2 & 2vs2vs2)...');
 
 function validateGameStart(matchFormat, players) {
   const connectedCount = (players || []).filter(p => p.connected).length;
   if (matchFormat === 'team_2v2') {
-    if (connectedCount !== 4) {
+    if (connectedCount !== 4 && connectedCount !== 6) {
       return {
         canStart: false,
-        errorTitle: '2vs2 Allianzen: 4 Magier benötigt',
-        errorMessage: `Für den 2vs2 Allianzen-Modus werden genau 4 aktive Magier benötigt (aktuell: ${connectedCount}/4)!`,
+        errorTitle: 'Allianzen: 4 oder 6 Magier benötigt',
+        errorMessage: `Der Allianzen-Modus erfordert entweder genau 4 Magier (2vs2) oder genau 6 Magier (2vs2vs2)!`,
         icon: '🤝'
       };
     }
     const teamAPlayers = players.filter(p => p.connected && p.team === 'team_a');
     const teamBPlayers = players.filter(p => p.connected && p.team === 'team_b');
-    if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2) {
-      return {
-        canStart: false,
-        errorTitle: 'Allianzen nicht ausgeglichen',
-        errorMessage: `Beide Allianzen müssen genau 2 Magier zählen (Sonnenfeuer: ${teamAPlayers.length}/2, Mondschatten: ${teamBPlayers.length}/2)!`,
-        icon: '⚖️'
-      };
+    const teamCPlayers = players.filter(p => p.connected && p.team === 'team_c');
+    const neutralPlayers = players.filter(p => p.connected && (!p.team || !['team_a', 'team_b', 'team_c'].includes(p.team)));
+
+    if (connectedCount === 4) {
+      if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2 || neutralPlayers.length > 0) {
+        return {
+          canStart: false,
+          errorTitle: 'Allianzen nicht ausgeglichen',
+          errorMessage: `Beide Allianzen müssen genau 2 Magier zählen (Sonnenfeuer: ${teamAPlayers.length}/2, Mondschatten: ${teamBPlayers.length}/2)!`,
+          icon: '⚖️'
+        };
+      }
+      return { canStart: true };
+    } else if (connectedCount === 6) {
+      if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2 || teamCPlayers.length !== 2 || neutralPlayers.length > 0) {
+        return {
+          canStart: false,
+          errorTitle: 'Allianzen nicht ausgeglichen',
+          errorMessage: `Alle 3 Allianzen müssen genau 2 Magier zählen (Sonnenfeuer: ${teamAPlayers.length}/2, Mondschatten: ${teamBPlayers.length}/2, Sternenwind: ${teamCPlayers.length}/2)!`,
+          icon: '⚖️'
+        };
+      }
+      return { canStart: true };
     }
-    return { canStart: true };
   } else {
     if (connectedCount < 3) {
       return {
@@ -85,30 +100,29 @@ function validateGameStart(matchFormat, players) {
   }
 }
 
-// Fall 1: 2vs2 mit 1 Spieler (Solo im Warteraum)
+// Fall 1: Allianzen mit 1 Spieler (Solo im Warteraum)
 const v1 = validateGameStart('team_2v2', [
   { sessionId: 'p1', connected: true, team: 'team_a' }
 ]);
 assert.strictEqual(v1.canStart, false);
-assert.strictEqual(v1.errorTitle, '2vs2 Allianzen: 4 Magier benötigt');
-assert(v1.errorMessage.includes('1/4'));
+assert.strictEqual(v1.errorTitle, 'Allianzen: 4 oder 6 Magier benötigt');
 
-// Fall 2: 2vs2 mit 2 Spielern
+// Fall 2: Allianzen mit 2 Spielern
 const v2 = validateGameStart('team_2v2', [
   { sessionId: 'p1', connected: true, team: 'team_a' },
   { sessionId: 'p2', connected: true, team: 'team_b' }
 ]);
 assert.strictEqual(v2.canStart, false);
-assert(v2.errorMessage.includes('2/4'));
+assert.strictEqual(v2.errorTitle, 'Allianzen: 4 oder 6 Magier benötigt');
 
-// Fall 3: 2vs2 mit 3 Spielern
+// Fall 3: Allianzen mit 3 Spielern
 const v3 = validateGameStart('team_2v2', [
   { sessionId: 'p1', connected: true, team: 'team_a' },
   { sessionId: 'p2', connected: true, team: 'team_b' },
   { sessionId: 'p3', connected: true, team: 'team_a' }
 ]);
 assert.strictEqual(v3.canStart, false);
-assert(v3.errorMessage.includes('3/4'));
+assert.strictEqual(v3.errorTitle, 'Allianzen: 4 oder 6 Magier benötigt');
 
 // Fall 4: 2vs2 mit 4 Spielern, aber unbalanciert (3 in Team A, 1 in Team B)
 const v4 = validateGameStart('team_2v2', [
@@ -119,7 +133,6 @@ const v4 = validateGameStart('team_2v2', [
 ]);
 assert.strictEqual(v4.canStart, false);
 assert.strictEqual(v4.errorTitle, 'Allianzen nicht ausgeglichen');
-assert(v4.errorMessage.includes('Sonnenfeuer: 3/2'));
 
 // Fall 5: 2vs2 mit 4 Spielern perfekt 2/2 aufgeteilt
 const v5 = validateGameStart('team_2v2', [
@@ -130,24 +143,58 @@ const v5 = validateGameStart('team_2v2', [
 ]);
 assert.strictEqual(v5.canStart, true);
 
-// Fall 6: FFA mit 2 Spielern (<3)
-const v6 = validateGameStart('ffa', [
+// Fall 6: Allianzen mit 5 Spielern (Ungültige Spieleranzahl)
+const v6 = validateGameStart('team_2v2', [
+  { sessionId: 'p1', connected: true, team: 'team_a' },
+  { sessionId: 'p2', connected: true, team: 'team_a' },
+  { sessionId: 'p3', connected: true, team: 'team_b' },
+  { sessionId: 'p4', connected: true, team: 'team_b' },
+  { sessionId: 'p5', connected: true, team: 'team_c' }
+]);
+assert.strictEqual(v6.canStart, false);
+assert.strictEqual(v6.errorTitle, 'Allianzen: 4 oder 6 Magier benötigt');
+
+// Fall 7: 2vs2vs2 mit 6 Spielern, aber unbalanciert (z. B. neutral oder 3/1/2)
+const v7 = validateGameStart('team_2v2', [
+  { sessionId: 'p1', connected: true, team: 'team_a' },
+  { sessionId: 'p2', connected: true, team: 'team_a' },
+  { sessionId: 'p3', connected: true, team: 'team_a' },
+  { sessionId: 'p4', connected: true, team: 'team_b' },
+  { sessionId: 'p5', connected: true, team: 'team_c' },
+  { sessionId: 'p6', connected: true, team: 'team_c' }
+]);
+assert.strictEqual(v7.canStart, false);
+assert.strictEqual(v7.errorTitle, 'Allianzen nicht ausgeglichen');
+
+// Fall 8: 2vs2vs2 mit 6 Spielern perfekt 2/2/2 aufgeteilt
+const v8 = validateGameStart('team_2v2', [
+  { sessionId: 'p1', connected: true, team: 'team_a' },
+  { sessionId: 'p2', connected: true, team: 'team_a' },
+  { sessionId: 'p3', connected: true, team: 'team_b' },
+  { sessionId: 'p4', connected: true, team: 'team_b' },
+  { sessionId: 'p5', connected: true, team: 'team_c' },
+  { sessionId: 'p6', connected: true, team: 'team_c' }
+]);
+assert.strictEqual(v8.canStart, true);
+
+// Fall 9: FFA mit 2 Spielern (<3)
+const v9 = validateGameStart('ffa', [
   { sessionId: 'p1', connected: true },
   { sessionId: 'p2', connected: true }
 ]);
-assert.strictEqual(v6.canStart, false);
-assert.strictEqual(v6.errorTitle, 'Mindestens 3 Magier benötigt');
-assert(v6.errorMessage.includes('2/3'));
+assert.strictEqual(v9.canStart, false);
+assert.strictEqual(v9.errorTitle, 'Mindestens 3 Magier benötigt');
+assert(v9.errorMessage.includes('2/3'));
 
-// Fall 7: FFA mit 3 Spielern (Startklar)
-const v7 = validateGameStart('ffa', [
+// Fall 10: FFA mit 3 Spielern (Startklar)
+const v10 = validateGameStart('ffa', [
   { sessionId: 'p1', connected: true },
   { sessionId: 'p2', connected: true },
   { sessionId: 'p3', connected: true }
 ]);
-assert.strictEqual(v7.canStart, true);
+assert.strictEqual(v10.canStart, true);
 
-console.log('✓ Alle 7 Spielstart-Konstellationen fehlerfrei validiert!');
+console.log('✓ Alle 10 Spielstart-Konstellationen fehlerfrei validiert!');
 
 // ============================================================================
 // 4. SERVER-INTEGRITÄT (INDEX.JS STARTGAME ZERO-TRUST ENFORCEMENT)
@@ -157,8 +204,8 @@ console.log('4. Prüfe Server-seitige startGame Validierung in server/index.js..
 const serverPath = path.join(__dirname, '../server/index.js');
 const serverContent = fs.readFileSync(serverPath, 'utf8');
 
-assert(serverContent.includes('if (connectedCount !== 4)'), 'Server muss 4 aktive Magier im 2vs2 erzwingen');
-assert(serverContent.includes('Für 2vs2 Allianzen werden genau 4 aktive Magier benötigt!'), 'Server-Fehlermeldung für 2vs2 Unterbesetzung vorhanden');
+assert(serverContent.includes('connectedCount === 4') && serverContent.includes('connectedCount === 6'), 'Server muss 4 oder 6 aktive Magier im Allianzen-Modus prüfen');
+assert(serverContent.includes('Allianzen erfordern entweder genau 4 Magier (2vs2) oder genau 6 Magier (2vs2vs2)!'), 'Server-Fehlermeldung für Allianzen Unter-/Überbesetzung vorhanden');
 
 console.log('✓ Server-seitige Validierung ist 100% konsistent mit dem Client!');
 

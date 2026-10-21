@@ -153,6 +153,10 @@ async function runIntegration() {
     hostClient.emit('addBot', { roomCode });
     await wait(250);
 
+    // Allianzen für Spielstart auswürfeln
+    hostClient.emit('randomizeTeams', { roomCode });
+    await wait(250);
+
     // Starte Spiel
     hostClient.emit('startGame', { roomCode });
     await wait(400);

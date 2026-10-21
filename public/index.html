@@ -476,9 +476,32 @@
       border-color: #3b82f6 !important;
       box-shadow: 0 0 10px rgba(59, 130, 246, 0.5) !important;
     }
+    .player-seat.seat-team-sternenwind .seat-avatar {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5) !important;
+    }
     .player-seat.seat-team-partner {
       outline: 2px dashed #f59e0b;
       outline-offset: 3px;
+    }
+
+    .team-alliance-card {
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+    .team-alliance-card:not(.team-card-full):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .team-alliance-card.team-card-selected {
+      border-color: var(--gold-bright) !important;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.5) !important;
+    }
+    .team-alliance-card.team-card-full {
+      pointer-events: none !important;
+      opacity: 0.6 !important;
+      filter: grayscale(25%);
+      cursor: not-allowed !important;
     }
 
     .score-drawer-alliance-summary {
@@ -506,6 +529,11 @@
       background: rgba(29, 78, 216, 0.2);
       border: 1px solid #3b82f6;
       color: #93c5fd;
+    }
+    .alliance-score-box-sternenwind {
+      background: rgba(6, 78, 59, 0.25);
+      border: 1px solid #10b981;
+      color: #a7f3d0;
     }
 
     /* BOT DROPDOWN IM WARTERAUM */
@@ -5699,10 +5727,30 @@
       <!-- Liste der anwesenden Spieler (FFA) -->
       <div id="waitingRoomPlayersList" style="display: flex; flex-direction: column; gap: 8px; margin: 10px 0 16px; max-height: 240px; overflow-y: auto;"></div>
 
-      <!-- 2vs2 Allianzen Spalten-Darstellung -->
-      <div id="waitingRoomTeamsContainer" style="display: none; flex-direction: column; gap: 10px; margin: 10px 0 16px;">
-        <!-- Team A: Allianz des Sonnenfeuers -->
-        <div class="team-alliance-card team-card-sonnenfeuer" style="background: rgba(127, 29, 29, 0.25); border: 1.5px solid #ef4444; border-radius: 8px; padding: 10px 12px; text-align: left;">
+      <!-- Host-Aktion: Allianzen zufällig auswürfeln -->
+      <button id="btnRandomizeTeams" type="button" class="btn-auth-bar btn-auth-gold" style="width: 100%; justify-content: center; margin: 4px 0 10px; display: none;" title="Allianzen zufällig auswürfeln" aria-label="Allianzen zufällig würfeln">
+        <span class="btn-icon" aria-hidden="true">🎲</span>
+        <span class="btn-text">Allianzen zufällig würfeln</span>
+      </button>
+
+      <!-- Allianzen Spalten-Darstellung (4 Container-Buttons: Neutral + 3 Allianzen) -->
+      <div id="waitingRoomTeamsContainer" style="display: none; flex-direction: column; gap: 10px; margin: 6px 0 16px;">
+        <!-- Container 0: Neutrale Magier -->
+        <div id="teamContainerNeutral" class="team-alliance-card team-card-neutral" style="background: rgba(45, 30, 18, 0.45); border: 1.5px dashed rgba(212, 163, 89, 0.5); border-radius: 8px; padding: 10px 12px; text-align: left; cursor: pointer;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-subheading); font-size: 13px; color: #f1f5f9; font-weight: bold;">
+              <span>⚪</span>
+              <span class="btn-text-full">Neutrale Magier (Freie Wahl)</span>
+              <span class="btn-text-short">Neutral</span>
+              <span id="teamCountNeutral" style="font-size: 11px; opacity: 0.85;">(0)</span>
+            </div>
+            <span id="badgeTeamNeutral" style="font-size: 11px; color: var(--gold-bright); font-style: italic;">Klicken für Neutral</span>
+          </div>
+          <div id="teamPlayersListNeutral" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+
+        <!-- Container 1: Team A - Allianz des Sonnenfeuers -->
+        <div id="teamContainerA" class="team-alliance-card team-card-sonnenfeuer" style="background: rgba(127, 29, 29, 0.25); border: 1.5px solid #ef4444; border-radius: 8px; padding: 10px 12px; text-align: left; cursor: pointer;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
             <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-subheading); font-size: 13px; color: #fca5a5; font-weight: bold;">
               <span>🔥</span>
@@ -5710,16 +5758,13 @@
               <span class="btn-text-short">Sonnenfeuer</span>
               <span id="teamCountA" style="font-size: 11px; opacity: 0.85;">(0/2)</span>
             </div>
-            <button id="btnJoinTeamA" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 4px 8px; font-size: 11px; min-height: 28px; display: none;" title="Allianz des Sonnenfeuers beitreten" aria-label="Sonnenfeuer beitreten">
-              <span class="btn-icon" aria-hidden="true">🔥</span>
-              <span class="btn-text">Beitreten</span>
-            </button>
+            <span id="badgeTeamA" style="font-size: 11px; color: #fca5a5; font-weight: bold;">Klicken zum Beitreten</span>
           </div>
           <div id="teamPlayersListA" style="display: flex; flex-direction: column; gap: 6px;"></div>
         </div>
 
-        <!-- Team B: Allianz der Mondschatten -->
-        <div class="team-alliance-card team-card-mondschatten" style="background: rgba(30, 58, 138, 0.25); border: 1.5px solid #3b82f6; border-radius: 8px; padding: 10px 12px; text-align: left;">
+        <!-- Container 2: Team B - Allianz der Mondschatten -->
+        <div id="teamContainerB" class="team-alliance-card team-card-mondschatten" style="background: rgba(30, 58, 138, 0.25); border: 1.5px solid #3b82f6; border-radius: 8px; padding: 10px 12px; text-align: left; cursor: pointer;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
             <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-subheading); font-size: 13px; color: #93c5fd; font-weight: bold;">
               <span>🌙</span>
@@ -5727,12 +5772,23 @@
               <span class="btn-text-short">Mondschatten</span>
               <span id="teamCountB" style="font-size: 11px; opacity: 0.85;">(0/2)</span>
             </div>
-            <button id="btnJoinTeamB" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 4px 8px; font-size: 11px; min-height: 28px; display: none;" title="Allianz der Mondschatten beitreten" aria-label="Mondschatten beitreten">
-              <span class="btn-icon" aria-hidden="true">🌙</span>
-              <span class="btn-text">Beitreten</span>
-            </button>
+            <span id="badgeTeamB" style="font-size: 11px; color: #93c5fd; font-weight: bold;">Klicken zum Beitreten</span>
           </div>
           <div id="teamPlayersListB" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+
+        <!-- Container 3: Team C - Allianz des Sternenwinds -->
+        <div id="teamContainerC" class="team-alliance-card team-card-sternenwind" style="display: none; background: rgba(6, 78, 59, 0.28); border: 1.5px solid #10b981; border-radius: 8px; padding: 10px 12px; text-align: left; cursor: pointer;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px; font-family: var(--font-subheading); font-size: 13px; color: #a7f3d0; font-weight: bold;">
+              <span>🌪️</span>
+              <span class="btn-text-full">Allianz des Sternenwinds</span>
+              <span class="btn-text-short">Sternenwind</span>
+              <span id="teamCountC" style="font-size: 11px; opacity: 0.85;">(0/2)</span>
+            </div>
+            <span id="badgeTeamC" style="font-size: 11px; color: #6ee7b7; font-weight: bold;">Klicken zum Beitreten</span>
+          </div>
+          <div id="teamPlayersListC" style="display: flex; flex-direction: column; gap: 6px;"></div>
         </div>
       </div>
 
@@ -7072,7 +7128,7 @@
         <label for="modalFormatSelect" style="display: block; font-family: var(--font-subheading); font-size: 12px; color: var(--gold-bright); margin-bottom: 6px; letter-spacing: 0.5px;">SPIELFORMAT</label>
         <select id="modalFormatSelect" style="width: 100%; padding: 8px 10px; background: #1a1009; color: var(--gold-bright); border: 1.5px solid var(--gold-antique); border-radius: 6px; font-family: var(--font-text); font-size: 13px; outline: none;">
           <option value="ffa">⚔️ Jeder gegen Jeden (FFA)</option>
-          <option value="team_2v2">🔥🌙 2vs2 Allianzen (Team-Modus)</option>
+          <option value="team_2v2">🔥🌙🌪️ Allianzen (Team-Modus: 2vs2 / 2vs2vs2)</option>
         </select>
       </div>
 

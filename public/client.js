@@ -665,10 +665,23 @@ const guestFormatDisplay = document.getElementById('guest-format-display');
 const btnFormatFFA = document.getElementById('btnFormatFFA');
 const btnFormat2v2 = document.getElementById('btnFormat2v2');
 const waitingRoomTeamsContainer = document.getElementById('waitingRoomTeamsContainer');
+const btnRandomizeTeams = document.getElementById('btnRandomizeTeams');
+const teamContainerNeutral = document.getElementById('teamContainerNeutral');
+const teamContainerA = document.getElementById('teamContainerA');
+const teamContainerB = document.getElementById('teamContainerB');
+const teamContainerC = document.getElementById('teamContainerC');
+const teamPlayersListNeutral = document.getElementById('teamPlayersListNeutral');
 const teamPlayersListA = document.getElementById('teamPlayersListA');
 const teamPlayersListB = document.getElementById('teamPlayersListB');
+const teamPlayersListC = document.getElementById('teamPlayersListC');
+const teamCountNeutral = document.getElementById('teamCountNeutral');
 const teamCountA = document.getElementById('teamCountA');
 const teamCountB = document.getElementById('teamCountB');
+const teamCountC = document.getElementById('teamCountC');
+const badgeTeamNeutral = document.getElementById('badgeTeamNeutral');
+const badgeTeamA = document.getElementById('badgeTeamA');
+const badgeTeamB = document.getElementById('badgeTeamB');
+const badgeTeamC = document.getElementById('badgeTeamC');
 const btnJoinTeamA = document.getElementById('btnJoinTeamA');
 const btnJoinTeamB = document.getElementById('btnJoinTeamB');
 
@@ -4106,24 +4119,39 @@ if (waitingRoomStartBtn) {
   waitingRoomStartBtn.addEventListener('click', () => {
     const connectedCount = (cachedPlayers || []).filter(p => p.connected).length;
     if (currentMatchFormat === 'team_2v2') {
-      if (connectedCount !== 4) {
-        if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
-        GrimoireDialog.alert({
-          title: '2vs2 Allianzen: 4 Magier benötigt',
-          message: `Für den 2vs2 Allianzen-Modus werden genau 4 aktive Magier benötigt (aktuell: ${connectedCount}/4)!\n\nBitte füge Bots hinzu (🤖 KI hinzufügen) oder lade Gefährten in die Kammer ein.`,
-          icon: '🤝',
-          confirmText: 'Verstanden'
-        });
-        return;
-      }
       const teamAPlayers = (cachedPlayers || []).filter(p => p.connected && p.team === 'team_a');
       const teamBPlayers = (cachedPlayers || []).filter(p => p.connected && p.team === 'team_b');
-      if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2) {
+      const teamCPlayers = (cachedPlayers || []).filter(p => p.connected && p.team === 'team_c');
+      const neutralPlayers = (cachedPlayers || []).filter(p => p.connected && (!p.team || !['team_a', 'team_b', 'team_c'].includes(p.team)));
+
+      if (connectedCount === 4) {
+        if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2 || neutralPlayers.length > 0) {
+          if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+          GrimoireDialog.alert({
+            title: 'Allianzen nicht ausgeglichen',
+            message: `Für ein 2vs2-Match müssen beide Allianzen aus genau 2 Magiern bestehen (Sonnenfeuer: ${teamAPlayers.length}/2, Mondschatten: ${teamBPlayers.length}/2) und es darf keine unentschlossenen Magier mehr geben.\n\nKlicke auf die Allianz-Karten oder nutze 'Allianzen zufällig würfeln'.`,
+            icon: '⚖️',
+            confirmText: 'Verstanden'
+          });
+          return;
+        }
+      } else if (connectedCount === 6) {
+        if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2 || teamCPlayers.length !== 2 || neutralPlayers.length > 0) {
+          if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+          GrimoireDialog.alert({
+            title: 'Allianzen nicht ausgeglichen',
+            message: `Für ein 2vs2vs2-Match müssen alle 3 Allianzen aus genau 2 Magiern bestehen (Sonnenfeuer: ${teamAPlayers.length}/2, Mondschatten: ${teamBPlayers.length}/2, Sternenwind: ${teamCPlayers.length}/2) und es darf keine unentschlossenen Magier mehr geben.\n\nKlicke auf die Allianz-Karten oder nutze 'Allianzen zufällig würfeln'.`,
+            icon: '⚖️',
+            confirmText: 'Verstanden'
+          });
+          return;
+        }
+      } else {
         if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
         GrimoireDialog.alert({
-          title: 'Allianzen nicht ausgeglichen',
-          message: `Beide Allianzen müssen genau 2 Magier zählen (Sonnenfeuer: ${teamAPlayers.length}/2, Mondschatten: ${teamBPlayers.length}/2)!\n\nNutze die 'Beitreten'-Schaltflächen, um die Teams gleichmäßig aufzuteilen.`,
-          icon: '⚖️',
+          title: 'Allianzen: 4 oder 6 Magier benötigt',
+          message: `Der Allianzen-Modus erfordert entweder genau 4 Magier (2vs2) oder genau 6 Magier (2vs2vs2)!\n\nAktuell in der Kammer: ${connectedCount} Magier.\n\nFüge Bots hinzu oder lade Gefährten ein.`,
+          icon: '🤝',
           confirmText: 'Verstanden'
         });
         return;
@@ -4385,23 +4413,68 @@ if (btnFormat2v2) {
     updateWaitingRoomView(amIHost);
     socket.emit('setMatchFormat', { roomCode: currentRoomCode, matchFormat: 'team_2v2' });
     const count = (cachedPlayers || []).filter(p => p.connected).length;
-    if (count < 4) {
-      showToast(`🤝 2vs2 Allianzen gewählt: Genau 4 Magier benötigt (aktuell: ${count}/4).`);
-    } else if (count > 4) {
-      showToast(`⚠️ 2vs2 Allianzen unterstützt maximal 4 Magier (aktuell: ${count}).`);
+    if (count <= 4) {
+      showToast(`🤝 Allianzen-Modus aktiv: 4 Magier für 2vs2 (aktuell: ${count}).`);
+    } else {
+      showToast(`🤝 Allianzen-Modus aktiv: 6 Magier für 2vs2vs2 (aktuell: ${count}/6).`);
     }
   });
 }
 
-if (btnJoinTeamA) {
-  btnJoinTeamA.addEventListener('click', () => {
+// Host: Allianzen zufällig auswürfeln
+if (btnRandomizeTeams) {
+  btnRandomizeTeams.addEventListener('click', () => {
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('medium');
+    if (typeof GrimoireAudio !== 'undefined' && GrimoireAudio.playCardSnap) GrimoireAudio.playCardSnap();
+    socket.emit('randomizeTeams', { roomCode: currentRoomCode });
+  });
+}
+
+// Container-Klicks: Direkte Zuweisung zu Allianzen oder Neutral
+if (teamContainerNeutral) {
+  teamContainerNeutral.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    const me = (cachedPlayers || []).find(p => p.sessionId === mySessionId);
+    if (me && me.team !== null) {
+      if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
+      socket.emit('switchTeam', { roomCode: currentRoomCode, team: null });
+    }
+  });
+}
+
+if (teamContainerA) {
+  teamContainerA.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    const me = (cachedPlayers || []).find(p => p.sessionId === mySessionId);
+    const countA = (cachedPlayers || []).filter(p => p.team === 'team_a').length;
+    if (me && me.team === 'team_a') return;
+    if (countA >= 2) return; // Team voll - kein Klick möglich
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
     socket.emit('switchTeam', { roomCode: currentRoomCode, team: 'team_a' });
   });
 }
 
-if (btnJoinTeamB) {
-  btnJoinTeamB.addEventListener('click', () => {
+if (teamContainerB) {
+  teamContainerB.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    const me = (cachedPlayers || []).find(p => p.sessionId === mySessionId);
+    const countB = (cachedPlayers || []).filter(p => p.team === 'team_b').length;
+    if (me && me.team === 'team_b') return;
+    if (countB >= 2) return; // Team voll - kein Klick möglich
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
     socket.emit('switchTeam', { roomCode: currentRoomCode, team: 'team_b' });
+  });
+}
+
+if (teamContainerC) {
+  teamContainerC.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    const me = (cachedPlayers || []).find(p => p.sessionId === mySessionId);
+    const countC = (cachedPlayers || []).filter(p => p.team === 'team_c').length;
+    if (me && me.team === 'team_c') return;
+    if (countC >= 2) return; // Team voll - kein Klick möglich
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
+    socket.emit('switchTeam', { roomCode: currentRoomCode, team: 'team_c' });
   });
 }
 
@@ -4612,34 +4685,87 @@ function updateWaitingRoomView(amIHost) {
     }
   }
 
+  if (btnRandomizeTeams) {
+    btnRandomizeTeams.style.display = (amIHost && currentMatchFormat === 'team_2v2') ? 'inline-flex' : 'none';
+  }
+
   if (currentMatchFormat === 'team_2v2') {
-    waitingRoomCount.innerText = `${cachedPlayers.length}/4`;
     if (waitingRoomPlayersList) waitingRoomPlayersList.style.display = 'none';
     if (waitingRoomTeamsContainer) {
       waitingRoomTeamsContainer.style.display = 'flex';
 
+      const neutralPlayers = cachedPlayers.filter(p => !p.team || !['team_a', 'team_b', 'team_c'].includes(p.team));
       const teamAPlayers = cachedPlayers.filter(p => p.team === 'team_a');
       const teamBPlayers = cachedPlayers.filter(p => p.team === 'team_b');
+      const teamCPlayers = cachedPlayers.filter(p => p.team === 'team_c');
 
+      const showTeamC = (cachedPlayers.length > 4 || teamCPlayers.length > 0);
+      if (teamContainerC) {
+        teamContainerC.style.display = showTeamC ? 'block' : 'none';
+      }
+
+      waitingRoomCount.innerText = `${cachedPlayers.length}/${showTeamC ? 6 : 4}`;
+
+      if (teamCountNeutral) teamCountNeutral.innerText = `(${neutralPlayers.length})`;
       if (teamCountA) teamCountA.innerText = `(${teamAPlayers.length}/2)`;
       if (teamCountB) teamCountB.innerText = `(${teamBPlayers.length}/2)`;
+      if (teamCountC) teamCountC.innerText = `(${teamCPlayers.length}/2)`;
 
       const me = cachedPlayers.find(p => p.sessionId === mySessionId);
       const myTeam = me ? me.team : null;
 
-      if (btnJoinTeamA) {
-        const canJoinA = (myTeam !== 'team_a' && teamAPlayers.length < 2);
-        btnJoinTeamA.style.display = canJoinA ? 'inline-flex' : 'none';
+      // Container-Status & Klicksperre bei vollen Teams (pointer-events: none)
+      if (teamContainerNeutral) {
+        teamContainerNeutral.classList.toggle('team-card-selected', myTeam === null);
+        if (badgeTeamNeutral) {
+          badgeTeamNeutral.innerText = (myTeam === null) ? '✓ Dein Status' : 'Klicken für Neutral';
+        }
       }
-      if (btnJoinTeamB) {
-        const canJoinB = (myTeam !== 'team_b' && teamBPlayers.length < 2);
-        btnJoinTeamB.style.display = canJoinB ? 'inline-flex' : 'none';
+
+      if (teamContainerA) {
+        const isFullA = teamAPlayers.length >= 2;
+        const isMyA = (myTeam === 'team_a');
+        teamContainerA.classList.toggle('team-card-selected', isMyA);
+        teamContainerA.classList.toggle('team-card-full', isFullA && !isMyA);
+        if (badgeTeamA) {
+          badgeTeamA.innerText = isMyA ? '✓ Dein Bündnis' : (isFullA ? '🔒 Voll (2/2)' : 'Klicken zum Beitreten');
+        }
+      }
+
+      if (teamContainerB) {
+        const isFullB = teamBPlayers.length >= 2;
+        const isMyB = (myTeam === 'team_b');
+        teamContainerB.classList.toggle('team-card-selected', isMyB);
+        teamContainerB.classList.toggle('team-card-full', isFullB && !isMyB);
+        if (badgeTeamB) {
+          badgeTeamB.innerText = isMyB ? '✓ Dein Bündnis' : (isFullB ? '🔒 Voll (2/2)' : 'Klicken zum Beitreten');
+        }
+      }
+
+      if (teamContainerC) {
+        const isFullC = teamCPlayers.length >= 2;
+        const isMyC = (myTeam === 'team_c');
+        teamContainerC.classList.toggle('team-card-selected', isMyC);
+        teamContainerC.classList.toggle('team-card-full', isFullC && !isMyC);
+        if (badgeTeamC) {
+          badgeTeamC.innerText = isMyC ? '✓ Dein Bündnis' : (isFullC ? '🔒 Voll (2/2)' : 'Klicken zum Beitreten');
+        }
+      }
+
+      // Spielerlisten rendern
+      if (teamPlayersListNeutral) {
+        teamPlayersListNeutral.innerHTML = '';
+        if (neutralPlayers.length === 0) {
+          teamPlayersListNeutral.innerHTML = '<div style="font-size: 11px; color: #94a3b8; font-style: italic; padding: 2px 0;">Alle Magier haben ein Bündnis gewählt</div>';
+        } else {
+          neutralPlayers.forEach(p => teamPlayersListNeutral.appendChild(createPlayerWaitingItem(p, amIHost)));
+        }
       }
 
       if (teamPlayersListA) {
         teamPlayersListA.innerHTML = '';
         if (teamAPlayers.length === 0) {
-          teamPlayersListA.innerHTML = '<div style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 4px 0;">Noch keine Magier in dieser Allianz</div>';
+          teamPlayersListA.innerHTML = '<div style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 4px 0;">Noch keine Magier in diesem Bündnis</div>';
         } else {
           teamAPlayers.forEach(p => teamPlayersListA.appendChild(createPlayerWaitingItem(p, amIHost)));
         }
@@ -4648,9 +4774,18 @@ function updateWaitingRoomView(amIHost) {
       if (teamPlayersListB) {
         teamPlayersListB.innerHTML = '';
         if (teamBPlayers.length === 0) {
-          teamPlayersListB.innerHTML = '<div style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 4px 0;">Noch keine Magier in dieser Allianz</div>';
+          teamPlayersListB.innerHTML = '<div style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 4px 0;">Noch keine Magier in diesem Bündnis</div>';
         } else {
           teamBPlayers.forEach(p => teamPlayersListB.appendChild(createPlayerWaitingItem(p, amIHost)));
+        }
+      }
+
+      if (teamPlayersListC) {
+        teamPlayersListC.innerHTML = '';
+        if (teamCPlayers.length === 0) {
+          teamPlayersListC.innerHTML = '<div style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 4px 0;">Noch keine Magier in diesem Bündnis</div>';
+        } else {
+          teamCPlayers.forEach(p => teamPlayersListC.appendChild(createPlayerWaitingItem(p, amIHost)));
         }
       }
     }
@@ -4688,7 +4823,7 @@ function updateWaitingRoomView(amIHost) {
   if (hostBotControls) {
     hostBotControls.style.display = amIHost ? 'flex' : 'none';
     const botCount = cachedPlayers.filter(p => p.isBot).length;
-    const maxAllowed = (currentMatchFormat === 'team_2v2') ? 4 : 6;
+    const maxAllowed = 6;
     if (btnAddBot) btnAddBot.disabled = cachedPlayers.length >= maxAllowed;
     if (btnRemoveBot) btnRemoveBot.disabled = botCount === 0;
   }
@@ -4710,17 +4845,36 @@ function updateWaitingRoomView(amIHost) {
     };
 
     if (currentMatchFormat === 'team_2v2') {
+      const neutralPlayers = cachedPlayers.filter(p => p.connected && (!p.team || !['team_a', 'team_b', 'team_c'].includes(p.team)));
       const teamAPlayers = cachedPlayers.filter(p => p.connected && p.team === 'team_a');
       const teamBPlayers = cachedPlayers.filter(p => p.connected && p.team === 'team_b');
-      const isReady2v2 = (connectedCount === 4 && teamAPlayers.length === 2 && teamBPlayers.length === 2);
+      const teamCPlayers = cachedPlayers.filter(p => p.connected && p.team === 'team_c');
+
+      const isReady2v2 = (connectedCount === 4 && teamAPlayers.length === 2 && teamBPlayers.length === 2 && neutralPlayers.length === 0);
+      const isReady2v2v2 = (connectedCount === 6 && teamAPlayers.length === 2 && teamBPlayers.length === 2 && teamCPlayers.length === 2 && neutralPlayers.length === 0);
+      const isReadyAlliances = (isReady2v2 || isReady2v2v2);
+
       waitingRoomStartBtn.disabled = false;
-      waitingRoomStartBtn.classList.toggle('btn-not-ready', !isReady2v2);
+      waitingRoomStartBtn.classList.toggle('btn-not-ready', !isReadyAlliances);
+
       if (connectedCount < 4) {
         updateBtnLabel(`Warte auf 4 Magier für 2vs2 (${connectedCount}/4)...`, `Warten (${connectedCount}/4)`);
-      } else if (teamAPlayers.length !== 2 || teamBPlayers.length !== 2) {
-        updateBtnLabel('Allianzen ausgleichen (je 2 Magier)...', 'Ausgleichen');
+      } else if (connectedCount === 4) {
+        if (!isReady2v2) {
+          updateBtnLabel('Allianzen ausgleichen (je 2 Magier)...', 'Ausgleichen');
+        } else {
+          updateBtnLabel('2vs2 Allianzen starten', 'Starten');
+        }
+      } else if (connectedCount === 5) {
+        updateBtnLabel('Warte auf 6. Magier für 2vs2vs2 (5/6)...', 'Warten (5/6)');
+      } else if (connectedCount === 6) {
+        if (!isReady2v2v2) {
+          updateBtnLabel('3 Allianzen ausgleichen (je 2 Magier)...', 'Ausgleichen');
+        } else {
+          updateBtnLabel('2vs2vs2 Allianzen starten', 'Starten');
+        }
       } else {
-        updateBtnLabel('Partie beginnen', 'Starten');
+        updateBtnLabel('Zu viele Spieler für Allianzen', 'Überfüllt');
       }
     } else {
       const isReadyFFA = connectedCount >= 3;
@@ -5863,6 +6017,8 @@ function renderOpponents() {
         seatEl.classList.add('seat-team-sonnenfeuer');
       } else if (p.team === 'team_b') {
         seatEl.classList.add('seat-team-mondschatten');
+      } else if (p.team === 'team_c') {
+        seatEl.classList.add('seat-team-sternenwind');
       }
       if (myTeam && p.team === myTeam) {
         seatEl.classList.add('seat-team-partner');
@@ -5957,8 +6113,10 @@ function renderOpponents() {
       const isPartner = myTeam && p.team === myTeam;
       if (p.team === 'team_a') {
         teamPrefix = `<span style="margin-right: 2px;" title="Allianz des Sonnenfeuers${isPartner ? ' (Dein Gefährte)' : ''}">🔥</span>`;
-      } else {
+      } else if (p.team === 'team_b') {
         teamPrefix = `<span style="margin-right: 2px;" title="Allianz der Mondschatten${isPartner ? ' (Dein Gefährte)' : ''}">🌙</span>`;
+      } else if (p.team === 'team_c') {
+        teamPrefix = `<span style="margin-right: 2px;" title="Allianz des Sternenwinds${isPartner ? ' (Dein Gefährte)' : ''}">🌪️</span>`;
       }
     }
 
@@ -6068,11 +6226,13 @@ function updateMyStatsHUD() {
     if (teamSep) teamSep.style.display = 'inline';
     if (teamContainer) teamContainer.style.display = 'inline-flex';
     if (teamIconEl) {
-      teamIconEl.innerText = (me.team === 'team_a') ? '🔥' : '🌙';
+      const teamIcons = { team_a: '🔥', team_b: '🌙', team_c: '🌪️' };
+      teamIconEl.innerText = teamIcons[me.team] || '🛡️';
       teamIconEl.style.display = 'inline-block';
     }
     if (teamNameEl) {
-      teamNameEl.innerText = (me.team === 'team_a') ? '🔥 Allianz:' : '🌙 Allianz:';
+      const teamNames = { team_a: '🔥 Allianz:', team_b: '🌙 Allianz:', team_c: '🌪️ Allianz:' };
+      teamNameEl.innerText = teamNames[me.team] || '🛡️ Allianz:';
     }
     const myAlliancePlayers = cachedPlayers.filter(p => p.team === me.team);
     const totalWon = myAlliancePlayers.reduce((sum, p) => sum + (p.tricksWon || 0), 0);
@@ -7033,6 +7193,17 @@ function renderScoreBoard() {
       allianceOverview.style.display = 'flex';
       const scoreA = currentTeams?.team_a?.score || 0;
       const scoreB = currentTeams?.team_b?.score || 0;
+      const hasTeamC = (currentTeams?.team_c && (cachedPlayers.some(p => p.team === 'team_c') || currentTeams.team_c.score !== 0));
+      const scoreC = currentTeams?.team_c?.score || 0;
+      let teamCHtml = '';
+      if (hasTeamC) {
+        teamCHtml = `
+          <div class="alliance-score-box alliance-score-box-sternenwind">
+            <div style="font-size: 11px; opacity: 0.9;">🌪️ Sternenwind</div>
+            <div style="font-size: 16px; font-weight: bold;">${scoreC} Pkt.</div>
+          </div>
+        `;
+      }
       allianceOverview.innerHTML = `
         <div class="alliance-score-box alliance-score-box-sonnenfeuer">
           <div style="font-size: 11px; opacity: 0.9;">🔥 Sonnenfeuer</div>
@@ -7042,6 +7213,7 @@ function renderScoreBoard() {
           <div style="font-size: 11px; opacity: 0.9;">🌙 Mondschatten</div>
           <div style="font-size: 16px; font-weight: bold;">${scoreB} Pkt.</div>
         </div>
+        ${teamCHtml}
       `;
     } else {
       allianceOverview.style.display = 'none';
@@ -7063,11 +7235,16 @@ function renderScoreBoard() {
     const hostBadge = player.isHost ? '<span class="host-badge">Host</span>' : '';
     const dealerBadge = player.isDealer ? '<span class="dealer-badge">Geber</span>' : '';
     const disconnected = !player.connected ? ' (Getrennt)' : '';
-    const teamBadge = (currentMatchFormat === 'team_2v2' && player.team)
-      ? (player.team === 'team_a'
-          ? '<span style="color: #f87171; font-size: 10px; font-weight: bold; display: block;">🔥 Sonnenfeuer</span>'
-          : '<span style="color: #60a5fa; font-size: 10px; font-weight: bold; display: block;">🌙 Mondschatten</span>')
-      : '';
+    let teamBadge = '';
+    if (currentMatchFormat === 'team_2v2' && player.team) {
+      if (player.team === 'team_a') {
+        teamBadge = '<span style="color: #f87171; font-size: 10px; font-weight: bold; display: block;">🔥 Sonnenfeuer</span>';
+      } else if (player.team === 'team_b') {
+        teamBadge = '<span style="color: #60a5fa; font-size: 10px; font-weight: bold; display: block;">🌙 Mondschatten</span>';
+      } else if (player.team === 'team_c') {
+        teamBadge = '<span style="color: #10b981; font-size: 10px; font-weight: bold; display: block;">🌪️ Sternenwind</span>';
+      }
+    }
 
     th.innerHTML = `
       <div>${escapeHtml(player.name)} ${isMe ? '<b>(Du)</b>' : ''}${disconnected}</div>
@@ -7195,13 +7372,31 @@ function showGameOverScreen(amIHost) {
   if (currentMatchFormat === 'team_2v2' && currentTeams) {
     const scoreA = currentTeams.team_a?.score || 0;
     const scoreB = currentTeams.team_b?.score || 0;
+    const hasTeamC = (currentTeams.team_c && (cachedPlayers.some(p => p.team === 'team_c') || currentTeams.team_c.score !== 0));
+    const scoreC = currentTeams.team_c?.score || 0;
     let winningTeamText = '';
-    if (scoreA > scoreB) {
-      winningTeamText = `🏆 Sieg für die Allianz des Sonnenfeuers (${scoreA} : ${scoreB})`;
-    } else if (scoreB > scoreA) {
-      winningTeamText = `🏆 Sieg für die Allianz der Mondschatten (${scoreB} : ${scoreA})`;
+    if (!hasTeamC) {
+      if (scoreA > scoreB) {
+        winningTeamText = `🏆 Sieg für die Allianz des Sonnenfeuers (${scoreA} : ${scoreB})`;
+      } else if (scoreB > scoreA) {
+        winningTeamText = `🏆 Sieg für die Allianz der Mondschatten (${scoreB} : ${scoreA})`;
+      } else {
+        winningTeamText = `⚖️ Unentschieden (${scoreA} : ${scoreB})`;
+      }
     } else {
-      winningTeamText = `⚖️ Unentschieden (${scoreA} : ${scoreB})`;
+      const teamsArr = [
+        { name: 'Allianz des Sonnenfeuers', icon: '🔥', score: scoreA },
+        { name: 'Allianz der Mondschatten', icon: '🌙', score: scoreB },
+        { name: 'Allianz des Sternenwinds', icon: '🌪️', score: scoreC }
+      ];
+      const maxScore = Math.max(scoreA, scoreB, scoreC);
+      const winners = teamsArr.filter(t => t.score === maxScore);
+      const scoreStr = `(🔥 ${scoreA} : 🌙 ${scoreB} : 🌪️ ${scoreC})`;
+      if (winners.length === 1) {
+        winningTeamText = `🏆 Sieg für die ${winners[0].name} ${scoreStr}`;
+      } else {
+        winningTeamText = `⚖️ Unentschieden ${scoreStr}`;
+      }
     }
     const allianceBanner = document.createElement('div');
     allianceBanner.style.textAlign = 'center';
@@ -7268,9 +7463,16 @@ function showGameOverScreen(amIHost) {
       }
     }
 
-    const teamTag = (currentMatchFormat === 'team_2v2' && p.team)
-      ? (p.team === 'team_a' ? ' <span style="color: #f87171; font-size: 12px;">(🔥 Sonnenfeuer)</span>' : ' <span style="color: #60a5fa; font-size: 12px;">(🌙 Mondschatten)</span>')
-      : '';
+    let teamTag = '';
+    if (currentMatchFormat === 'team_2v2' && p.team) {
+      if (p.team === 'team_a') {
+        teamTag = ' <span style="color: #f87171; font-size: 12px;">(🔥 Sonnenfeuer)</span>';
+      } else if (p.team === 'team_b') {
+        teamTag = ' <span style="color: #60a5fa; font-size: 12px;">(🌙 Mondschatten)</span>';
+      } else if (p.team === 'team_c') {
+        teamTag = ' <span style="color: #10b981; font-size: 12px;">(🌪️ Sternenwind)</span>';
+      }
+    }
 
     const isWinner = (idx === 0);
     const placeBadge = isWinner ? '🥇 1.' : (idx === 1 ? '🥈 2.' : (idx === 2 ? '🥉 3.' : `${idx + 1}.`));
