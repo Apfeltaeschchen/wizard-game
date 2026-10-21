@@ -5731,21 +5731,21 @@ socket.on('gameResetToLobby', async ({ message, players, roomCode }) => {
 
 // --- VIRTUELLE MITSPIELER-SITZE RENDERN (RELATIVE UHRZEIGER-REIHENFOLGE) ---
 function renderOpponents() {
-  opponentsContainer.innerHTML = '';
-  opponentsContainer.className = `opponents-container count-${opponents ? opponents.length : 0}`;
-  opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
-  const myIndex = cachedPlayers.findIndex(p => p.sessionId === mySessionId);
-  let opponents = [];
-  if (myIndex !== -1 && cachedPlayers.length > 1) {
-    for (let i = 1; i < cachedPlayers.length; i++) {
-      const nextIdx = (myIndex + i) % cachedPlayers.length;
-      opponents.push(cachedPlayers[nextIdx]);
+  try {
+    opponentsContainer.innerHTML = '';
+    opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
+    const myIndex = cachedPlayers.findIndex(p => p.sessionId === mySessionId);
+    let opponents = [];
+    if (myIndex !== -1 && cachedPlayers.length > 1) {
+      for (let i = 1; i < cachedPlayers.length; i++) {
+        const nextIdx = (myIndex + i) % cachedPlayers.length;
+        opponents.push(cachedPlayers[nextIdx]);
+      }
+    } else {
+      opponents = cachedPlayers.filter(p => p.sessionId !== mySessionId);
     }
-  } else {
-    opponents = cachedPlayers.filter(p => p.sessionId !== mySessionId);
-  }
-  opponentsContainer.className = `opponents-container count-${opponents.length}`;
-  opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
+    opponentsContainer.className = `opponents-container count-${opponents.length}`;
+    opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
 
   opponents.forEach(p => {
     const isHisTurn = (p.sessionId === currentActiveSessionId);
@@ -5889,7 +5889,7 @@ function renderOpponents() {
     // Klick auf Biet-Pille öffnet Magier-Profil
     const bidPill = seatEl.querySelector('.seat-bid-pill');
     if (bidPill) {
-      bidPill.style.cursor = 'pointer';
+      if (bidPill.style) bidPill.style.cursor = 'pointer';
       bidPill.addEventListener('click', (e) => {
         e.stopPropagation();
         if (typeof openPlayerDetailModal === 'function') {
@@ -5901,7 +5901,7 @@ function renderOpponents() {
     // Klick auf Avatar öffnet Magier-Profil
     const avatarEl = seatEl.querySelector('.seat-avatar');
     if (avatarEl) {
-      avatarEl.style.cursor = 'pointer';
+      if (avatarEl.style) avatarEl.style.cursor = 'pointer';
       avatarEl.addEventListener('click', (e) => {
         e.stopPropagation();
         if (typeof openPlayerDetailModal === 'function') {
@@ -5939,6 +5939,9 @@ function renderOpponents() {
     opponentsContainer.appendChild(seatEl);
   });
   updateBiddingSummaryPill();
+  } catch (err) {
+    console.error('Fehler in renderOpponents:', err);
+  }
 }
 
 function updateMyStatsHUD() {

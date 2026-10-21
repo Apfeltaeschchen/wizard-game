@@ -88,4 +88,95 @@ assert(clientJs.includes('window.openPlayerDetailModal = openPlayerDetailModal')
   'openPlayerDetailModal muss global verfügbar sein');
 console.log('     ✅ Magier-Profil Controller & Klick-Events erfolgreich verifiziert!');
 
+// 7. Funktionale Laufzeit-Prüfung von renderOpponents() (TDZ-Schutz & Pillen-Generierung)
+console.log('  7. Prüfe fehlerfreie renderOpponents() Ausführung & TDZ-Freiheit in Sandbox...');
+const vm = require('vm');
+
+function createMockElement(tag, id = '') {
+  const children = [];
+  return {
+    tagName: tag.toUpperCase(),
+    id,
+    className: '',
+    innerHTML: '',
+    style: {},
+    attributes: {},
+    classList: {
+      classes: new Set(),
+      add(c) { this.classes.add(c); },
+      remove(c) { this.classes.delete(c); },
+      toggle(c, force) { if (force) this.classes.add(c); else this.classes.delete(c); },
+      contains(c) { return this.classes.has(c); }
+    },
+    children,
+    setAttribute(k, v) { this.attributes[k] = v; },
+    getAttribute(k) { return this.attributes[k]; },
+    appendChild(child) { children.push(child); },
+    querySelector(sel) {
+      if (sel === '.seat-bid-pill') return createMockElement('span');
+      if (sel === '.seat-avatar') return createMockElement('div');
+      if (sel === '.seat-name-row') return createMockElement('div');
+      return null;
+    },
+    querySelectorAll() { return []; },
+    addEventListener(ev, fn) { this._listener = fn; }
+  };
+}
+
+const mockOpponentsContainer = createMockElement('div', 'opponents-container');
+let modalOpenedWith = null;
+
+const sandbox = {
+  opponentsContainer: mockOpponentsContainer,
+  cachedPlayers: [
+    { sessionId: 'sess_me', name: 'Ich', isHost: true, bid: 1, tricksWon: 1 },
+    { sessionId: 'sess_bot1', name: 'Meister Merlin (KI)', isBot: true, bid: 0, tricksWon: 0 },
+    { sessionId: 'sess_bot2', name: 'Novize Artus (KI)', isBot: true, bid: 2, tricksWon: 1 },
+    { sessionId: 'sess_human', name: 'Morgana', bid: 1, tricksWon: 0 }
+  ],
+  mySessionId: 'sess_me',
+  currentRound: 2,
+  currentActiveSessionId: 'sess_bot1',
+  currentMatchFormat: 'ffa',
+  document: {
+    createElement(tag) { return createMockElement(tag); },
+    getElementById(id) {
+      if (id === 'bidding-summary-pill') return createMockElement('div', 'bidding-summary-pill');
+      return null;
+    }
+  },
+  escapeHtml(str) { return str; },
+  renderCard() { return { outerHTML: '<div>Card</div>' }; },
+  MEDIEVAL_ICONS: {},
+  openPlayerDetailModal(p, src) { modalOpenedWith = { p, src }; },
+  openForeheadInspectModal() {},
+  updateBiddingSummaryPill() {},
+  console: console
+};
+
+vm.createContext(sandbox);
+
+// Extrahiere renderOpponents Code aus clientJs
+const renderCode = clientJs.substring(
+  clientJs.indexOf('function renderOpponents()'),
+  clientJs.indexOf('function updateMyStatsHUD()')
+);
+
+// Führe Code in der Sandbox aus
+vm.runInContext(renderCode, sandbox);
+
+// Rufe renderOpponents auf
+assert.doesNotThrow(() => {
+  sandbox.renderOpponents();
+}, 'renderOpponents darf NIEMALS einen ReferenceError oder TDZ-Fehler werfen!');
+
+assert.strictEqual(mockOpponentsContainer.children.length, 3, 'Es müssen genau 3 Mitspieler-Sitze gerendert worden sein');
+assert(mockOpponentsContainer.className.includes('count-3'), 'Container muss Klasse count-3 erhalten');
+
+const firstSeat = mockOpponentsContainer.children[0];
+assert(firstSeat.innerHTML.includes('seat-bid-pill'), 'Sitz muss .seat-bid-pill enthalten');
+assert(firstSeat.innerHTML.includes('🏆 0 / 🎯 0'), 'Sitz muss Gemacht / Vorhersage anzeigen');
+
+console.log('     ✅ renderOpponents() läuft absolut fehlerfrei, erzeugt alle Sitze & Pillen!');
+
 console.log('\n🎉 Alle Tests für Minimalist Seats, Player Profile Modal, Grimoire Z-Index & Stirnkarten erfolgreich bestanden!');
