@@ -3384,9 +3384,10 @@ function openPlayerDetailModal(data, source = 'table') {
   const btnClose = document.getElementById('btnPlayerDetailClose');
   const modalClose = document.getElementById('playerDetailModalClose');
 
+  const isBot = Boolean(data.isBot || (data.sessionId && String(data.sessionId).startsWith('bot_')) || (data.name && data.name.includes('(KI)')));
   const name = isFriendSource ? data.username : data.name;
-  const initial = isFriendSource ? (data.username ? data.username.charAt(0).toUpperCase() : '?') : (data.isBot ? '🤖' : (data.name ? data.name.charAt(0).toUpperCase() : '?'));
-  const title = data.title || (data.isBot ? 'Virtueller Zitadellen-Gefährte' : 'Magier der Zitadelle');
+  const initial = isFriendSource ? (data.username ? data.username.charAt(0).toUpperCase() : '?') : (isBot ? '🤖' : (data.name ? data.name.charAt(0).toUpperCase() : '?'));
+  const title = data.title || (isBot ? 'Virtueller Zitadellen-Gefährte' : 'Magier der Zitadelle');
 
   if (avatarEl) avatarEl.innerText = initial;
   if (nameEl) nameEl.innerText = name || 'Magier';
@@ -3403,7 +3404,7 @@ function openPlayerDetailModal(data, source = 'table') {
       };
       const st = statusMap[data.liveStatus] || statusMap.offline;
       statusEl.innerHTML = `<span style="color: ${st.color}; font-weight: bold;">● ${escapeHtml(st.label)}</span>`;
-    } else if (data.isBot) {
+    } else if (isBot) {
       statusEl.innerHTML = '<span style="color: #c084fc; font-weight: bold;">🤖 Virtueller Rat</span>';
     } else {
       statusEl.innerHTML = data.connected === false
@@ -3413,7 +3414,7 @@ function openPlayerDetailModal(data, source = 'table') {
   }
 
   // Rang / Level
-  if (data.isBot) {
+  if (isBot) {
     const diff = data.difficulty || 'master';
     const lore = getBotLore(name, diff);
 
@@ -3545,12 +3546,12 @@ function openPlayerDetailModal(data, source = 'table') {
   // Aktionen
   if (btnAddFriend) {
     const isMe = (!isFriendSource && data.sessionId === mySessionId);
-    const isBot = (!isFriendSource && data.isBot);
+    const isBotPlayer = (!isFriendSource && isBot);
     const isFriend = Array.isArray(cachedFriends) && cachedFriends.some(f => f.username.toLowerCase() === (name || '').toLowerCase());
 
     if (isMe) {
       btnAddFriend.style.display = 'none';
-    } else if (isBot) {
+    } else if (isBotPlayer) {
       btnAddFriend.style.display = 'none';
       btnAddFriend.onclick = null;
     } else if (isFriend) {
@@ -3711,17 +3712,31 @@ socket.on('connect', () => {
 function openScoreDrawer() {
   closeRulesDrawer();
   if (typeof WizardAuth !== 'undefined') WizardAuth.closeProfileDrawer();
-  scoreDrawer.classList.add('open');
-  drawerBackdrop.classList.add('open');
+  if (scoreDrawer) {
+    if (window.innerWidth >= 768 && Array.isArray(cachedPlayers) && cachedPlayers.length > 0) {
+      const neededWidth = Math.min(
+        window.innerWidth * 0.92,
+        Math.max(520, 120 + cachedPlayers.length * 125)
+      );
+      scoreDrawer.style.width = neededWidth + 'px';
+    } else {
+      scoreDrawer.style.width = '';
+    }
+    scoreDrawer.classList.add('open');
+  }
+  if (drawerBackdrop) drawerBackdrop.classList.add('open');
 }
 
 function closeScoreDrawer() {
-  scoreDrawer.classList.remove('open');
-  if (scoreDrawer) scoreDrawer.style.zIndex = '';
+  if (scoreDrawer) {
+    scoreDrawer.classList.remove('open');
+    scoreDrawer.style.zIndex = '';
+    scoreDrawer.style.width = '';
+  }
   const profileDrawer = document.getElementById('profile-drawer');
   const profileOpen = profileDrawer && profileDrawer.classList.contains('open');
   if ((!rulesDrawer || !rulesDrawer.classList.contains('open')) && !profileOpen) {
-    drawerBackdrop.classList.remove('open');
+    if (drawerBackdrop) drawerBackdrop.classList.remove('open');
   }
 }
 
@@ -5717,6 +5732,7 @@ socket.on('gameResetToLobby', async ({ message, players, roomCode }) => {
 // --- VIRTUELLE MITSPIELER-SITZE RENDERN (RELATIVE UHRZEIGER-REIHENFOLGE) ---
 function renderOpponents() {
   opponentsContainer.innerHTML = '';
+  opponentsContainer.className = `opponents-container count-${opponents ? opponents.length : 0}`;
   opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
   const myIndex = cachedPlayers.findIndex(p => p.sessionId === mySessionId);
   let opponents = [];
@@ -5728,6 +5744,8 @@ function renderOpponents() {
   } else {
     opponents = cachedPlayers.filter(p => p.sessionId !== mySessionId);
   }
+  opponentsContainer.className = `opponents-container count-${opponents.length}`;
+  opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
 
   opponents.forEach(p => {
     const isHisTurn = (p.sessionId === currentActiveSessionId);
@@ -5867,6 +5885,41 @@ function renderOpponents() {
         ${bidPillHtml}
       </div>
     `;
+
+    // Klick auf Biet-Pille öffnet Magier-Profil
+    const bidPill = seatEl.querySelector('.seat-bid-pill');
+    if (bidPill) {
+      bidPill.style.cursor = 'pointer';
+      bidPill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof openPlayerDetailModal === 'function') {
+          openPlayerDetailModal(p, 'table');
+        }
+      });
+    }
+
+    // Klick auf Avatar öffnet Magier-Profil
+    const avatarEl = seatEl.querySelector('.seat-avatar');
+    if (avatarEl) {
+      avatarEl.style.cursor = 'pointer';
+      avatarEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof openPlayerDetailModal === 'function') {
+          openPlayerDetailModal(p, 'table');
+        }
+      });
+    }
+
+    // Klick auf Name öffnet Magier-Profil
+    const nameRow = seatEl.querySelector('.seat-name-row');
+    if (nameRow) {
+      nameRow.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof openPlayerDetailModal === 'function') {
+          openPlayerDetailModal(p, 'table');
+        }
+      });
+    }
 
     // Interaktives Magier-Profil Modal beim Klick auf den Sitz (oder Stirnkarten-Großansicht)
     seatEl.style.cursor = 'pointer';
@@ -7139,10 +7192,6 @@ function showGameOverScreen(amIHost) {
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span class="podium-score-badge">${p.totalScore || 0} Pkt.${rankedDeltaHtml}</span>
-          <button type="button" class="podium-chart-btn ${isMe ? 'my-curve' : ''}" data-session-id="${p.sessionId}" title="Punktekurve über alle Runden anzeigen">
-            <span aria-hidden="true">📈</span>
-            <span>${isMe ? 'Meine Kurve' : 'Kurve'}</span>
-          </button>
         </div>
       </div>
       <div class="podium-stats-row">
@@ -7162,17 +7211,19 @@ function showGameOverScreen(amIHost) {
       });
     }
 
-    // Klick auf Chart-Button öffnet das Punktekurven-Modal
-    const chartBtn = card.querySelector('.podium-chart-btn');
-    if (chartBtn) {
-      chartBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openScoreChartModal(p.sessionId);
-      });
-    }
-
     podiumList.appendChild(card);
   });
+
+  // Punktekurven-Diagramm (zentraler Button unter Profilen, über Grimoire-Drawer)
+  const btnGameOverScoreChart = document.getElementById('btnGameOverScoreChart');
+  if (btnGameOverScoreChart && !btnGameOverScoreChart._hasScoreChartListener) {
+    btnGameOverScoreChart._hasScoreChartListener = true;
+    btnGameOverScoreChart.addEventListener('click', () => {
+      if (typeof openScoreChartModal === 'function') {
+        openScoreChartModal(mySessionId);
+      }
+    });
+  }
 
   const btnGameOverScoreboard = document.getElementById('btnGameOverScoreboard');
   if (btnGameOverScoreboard && !btnGameOverScoreboard._hasScoreboardListener) {

@@ -16,9 +16,12 @@ const clientJs = fs.readFileSync(clientPath, 'utf-8');
 // ==========================================
 console.log('\n1. Prüfe HTML-Struktur & CSS für Diagramm, Statistiken und Block der Wahrheit...');
 
-// Button für Block der Wahrheit im Siegerehrungs-Modal
+// Button für Punktekurven-Diagramm und Block der Wahrheit im Siegerehrungs-Modal
+assert.ok(indexHtml.includes('id="btnGameOverScoreChart"'), 'btnGameOverScoreChart muss im Siegerehrungs-Modal vorhanden sein');
 assert.ok(indexHtml.includes('id="btnGameOverScoreboard"'), 'btnGameOverScoreboard muss im Siegerehrungs-Modal vorhanden sein');
+assert.ok(indexHtml.indexOf('id="btnGameOverScoreChart"') < indexHtml.indexOf('id="btnGameOverScoreboard"'), 'btnGameOverScoreChart muss VOR btnGameOverScoreboard platziert sein');
 assert.ok(indexHtml.includes('Block der Wahrheit (Spiel-Chronik)'), 'btnGameOverScoreboard muss passenden Text haben');
+assert.ok(indexHtml.includes('Punktekurven-Diagramm ansehen'), 'btnGameOverScoreChart muss passenden Text haben');
 
 // Punktekurven-Modal
 assert.ok(indexHtml.includes('id="score-chart-modal"'), 'score-chart-modal muss in index.html vorhanden sein');
@@ -50,7 +53,7 @@ console.log('\n2. Prüfe client.js Funktionen und Logik...');
 assert.ok(clientJs.includes('function openScoreChartModal('), 'openScoreChartModal Funktion fehlt');
 assert.ok(clientJs.includes('function closeScoreChartModal('), 'closeScoreChartModal Funktion fehlt');
 assert.ok(clientJs.includes('function renderScoreChart('), 'renderScoreChart Funktion fehlt');
-assert.ok(clientJs.includes('podium-chart-btn'), 'podium-chart-btn Generierung fehlt in client.js');
+assert.ok(clientJs.includes('btnGameOverScoreChart'), 'btnGameOverScoreChart Handling fehlt in client.js');
 assert.ok(clientJs.includes('btnGameOverScoreboard'), 'btnGameOverScoreboard Handling fehlt in client.js');
 assert.ok(clientJs.includes('👑 '), 'Kronen-Symbol für Spitzenreiter auf der SVG-Kurve vorhanden');
 
@@ -100,6 +103,7 @@ const mockDom = {
   'scoreChartMetrics': createMockElement('scoreChartMetrics'),
   'game-over-modal': createMockElement('game-over-modal'),
   'podium-list': createMockElement('podium-list'),
+  'btnGameOverScoreChart': createMockElement('btnGameOverScoreChart'),
   'btnGameOverScoreboard': createMockElement('btnGameOverScoreboard'),
   'resetGameBtn': createMockElement('resetGameBtn'),
   'btnClaimGlory': createMockElement('btnClaimGlory'),
@@ -182,6 +186,28 @@ assert.ok(allSvgOutput.includes('<svg'), 'Vergleichs-SVG muss gerendert werden')
 assert.ok(mockDom['scoreChartPlayerName'].innerText.includes('Alle Magier im Vergleich'), 'Titel für Multivergleich korrekt gesetzt');
 
 console.log('✓ 3. Funktionale SVG-Diagramm-Generierung, Platz-1-Kronen und Match-Kennzahlen erfolgreich validiert!');
+
+// ==========================================
+// 4. PRÜFUNG: GRIMOIRE-BREITE, PILLEN-KLICK & TISCH-LAYOUT
+// ==========================================
+console.log('\n4. Prüfe Grimoire-Drawer Laptop-Breite, Klickbare Biet-Pillen & Pokertisch-Bogen...');
+
+// Grimoire-Drawer Breite
+assert.ok(indexHtml.includes('width: clamp(520px, 60vw, 920px);'), 'score-board-drawer muss responsive clamp-Breite für Laptops besitzen');
+assert.ok(clientJs.includes('120 + cachedPlayers.length * 125'), 'openScoreDrawer muss dynamische Breite basierend auf Spieleranzahl berechnen');
+
+// Klickbare Biet-Pille & Bot-Lore Schutz
+assert.ok(clientJs.includes("seatEl.querySelector('.seat-bid-pill')"), 'renderOpponents muss Klick-Listener auf .seat-bid-pill binden');
+assert.ok(clientJs.includes("openPlayerDetailModal(p, 'table')"), 'Klick auf Pille muss openPlayerDetailModal aufrufen');
+assert.ok(indexHtml.includes('.seat-bid-pill:hover'), 'CSS für .seat-bid-pill:hover muss vorhanden sein');
+assert.ok(clientJs.includes('const isBot = Boolean(data.isBot'), 'openPlayerDetailModal muss Bot-Status robust erkennen');
+
+// Tisch-Layout & Trumpf-Entkopplung
+assert.ok(indexHtml.includes('margin-left: 82px !important;') && indexHtml.includes('width: calc(100% - 86px) !important;'), 'Mobile Opponents Container muss linken Sicherheitsabstand zum Trumpf haben');
+assert.ok(indexHtml.includes('padding: 4px 150px;'), 'Desktop Opponents Container muss linken Sicherheitsabstand (150px) zum Trumpf haben');
+assert.ok(indexHtml.includes('.opponents-container.count-3 .player-seat:nth-child(1)'), 'Pokertisch-Bogen (Hufeisen) für Sitze muss definiert sein');
+
+console.log('✓ 4. Grimoire-Breite, Klickbare Biet-Pillen & Tisch-Layout erfolgreich verifiziert!');
 
 console.log('\n======================================================');
 console.log('🏆 ALLE SIEGEREHRUNGS-STATISTIKEN & DIAGRAMM-TESTS BESTANDEN!');

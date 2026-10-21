@@ -887,7 +887,28 @@
     }
 
     /* RECHTER SLIDE-OUT: "BUCH DER WAHRHEIT" & "GRIMOIRE DER REGELN" */
-    #score-board-drawer, #rules-drawer {
+    #score-board-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: clamp(520px, 60vw, 920px);
+      max-width: 95vw;
+      height: 100dvh;
+      background: linear-gradient(180deg, #1b0f06 0%, #ecd9b3 5%, #ecd9b3 95%, #1b0f06 100%);
+      color: #1a0e04;
+      border-left: 5px solid #4a2810;
+      box-shadow: none;
+      z-index: 1500;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.32s;
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-text);
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #rules-drawer {
       position: fixed;
       top: 0;
       right: 0;
@@ -1291,15 +1312,35 @@
       justify-content: center;
       align-items: center;
       flex-wrap: wrap;
-      gap: 6px;
-      padding: 2px 4px;
+      gap: 12px;
+      padding: 4px 150px;
       margin-bottom: 2px;
       z-index: 15;
       flex-shrink: 0;
-      max-height: 80px;
+      max-height: 105px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       transition: margin-top 0.3s ease;
+    }
+
+    /* Pokertisch-Bogen (Hufeisen) auf Laptop / Desktop: Sanfte Kurve für die Sitze */
+    @media (min-width: 769px) {
+      .opponents-container.count-3 .player-seat:nth-child(1),
+      .opponents-container.count-3 .player-seat:nth-child(3) {
+        margin-top: 12px;
+      }
+      .opponents-container.count-4 .player-seat:nth-child(1),
+      .opponents-container.count-4 .player-seat:nth-child(4) {
+        margin-top: 14px;
+      }
+      .opponents-container.count-5 .player-seat:nth-child(1),
+      .opponents-container.count-5 .player-seat:nth-child(5) {
+        margin-top: 16px;
+      }
+      .opponents-container.count-5 .player-seat:nth-child(2),
+      .opponents-container.count-5 .player-seat:nth-child(4) {
+        margin-top: 5px;
+      }
     }
 
     #opponents-container.round-1-opponents {
@@ -1484,12 +1525,21 @@
       background: rgba(0, 0, 0, 0.5);
       border: 1px solid rgba(212, 163, 89, 0.45);
       border-radius: 10px;
-      padding: 1px 5px;
+      padding: 2px 7px;
       letter-spacing: 0.3px;
       display: inline-flex;
       align-items: center;
       gap: 2px;
       line-height: 1;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .seat-bid-pill:hover {
+      transform: scale(1.06);
+      border-color: var(--gold-bright);
+      background: rgba(0, 0, 0, 0.75);
     }
 
     .seat-stats {
@@ -3330,6 +3380,8 @@
       #status-message { display: none !important; }
 
       #opponents-container {
+        margin-left: 82px !important;
+        width: calc(100% - 86px) !important;
         gap: 6px !important;
         padding: 2px 2px !important;
         max-height: 54px !important;
@@ -3367,11 +3419,13 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.85) !important;
       }
       .player-seat .seat-bid-pill {
-        font-size: 9px !important;
-        padding: 0 4px !important;
+        font-size: 10px !important;
+        padding: 2px 6px !important;
         border-radius: 8px !important;
-        margin-top: -4px !important;
+        margin-top: 2px !important;
         z-index: 2 !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
       }
       .player-seat .seat-stats {
         display: none !important;
@@ -6335,6 +6389,12 @@
 
       <!-- AKTIONEN ZUM BEENDEN ODER WEITERSPIELEN -->
       <div id="game-over-actions" style="display: flex; flex-direction: column; gap: 10px; margin-top: 18px;">
+        <!-- PUNKTEKURVEN-DIAGRAMM ALLER RUNDEN ANSEHEN -->
+        <button id="btnGameOverScoreChart" type="button" aria-label="Punktekurven-Diagramm aller Runden ansehen" style="background: rgba(88, 28, 135, 0.45); color: #f3e8ff; border: 1.5px solid #c084fc; font-weight: 600; padding: 10px 18px; font-size: 13.5px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; box-shadow: 0 2px 10px rgba(147, 51, 234, 0.2);">
+          <span class="btn-icon" aria-hidden="true">📈</span>
+          <span class="btn-text">Punktekurven-Diagramm ansehen</span>
+        </button>
+
         <!-- BLOCK DER WAHRHEIT (SPIEL-CHRONIK) ANSEHEN -->
         <button id="btnGameOverScoreboard" type="button" aria-label="Block der Wahrheit (Spiel-Chronik) ansehen" style="background: rgba(0, 0, 0, 0.45); color: var(--gold-bright); border: 1.5px solid var(--gold-antique); font-weight: 600; padding: 10px 18px; font-size: 13.5px; border-radius: 8px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
           <span class="btn-icon" aria-hidden="true">📜</span>

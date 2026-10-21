@@ -91,6 +91,11 @@ async function runTests() {
     c1.emit('startGame', { roomCode });
     await wait(500);
 
+    if (lastTurnData && lastTurnData.gameState === 'choose_trump') {
+      c1.emit('selectTrumpSuit', { roomCode, suit: 'red' });
+      await wait(300);
+    }
+
     assert.ok(lastTurnData, 'turnChanged muss empfangen worden sein');
     assert.strictEqual(lastTurnData.gameState, 'bidding');
     assert.strictEqual(lastTurnData.activePlayerSessionId, 'all', 'In simultaneous mode, active player ist "all"');
@@ -168,6 +173,11 @@ async function runTests() {
 
     sHost.emit('startGame', { roomCode: sRoomCode });
     await wait(400);
+
+    if (sTurnData && sTurnData.gameState === 'choose_trump') {
+      sHost.emit('selectTrumpSuit', { roomCode: sRoomCode, suit: 'red' });
+      await wait(300);
+    }
 
     // Reihum bieten lassen: alle 3 Spieler tippen nacheinander
     // Finde heraus, wer dran ist und lass ihn tippen

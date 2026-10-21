@@ -134,6 +134,11 @@ async function runSocketTests() {
     assert.strictEqual(startedData.round, 1, 'Runde 1 gestartet');
     await wait(200);
 
+    if (startedData.gameState === 'choose_trump') {
+      c1.emit('selectTrumpSuit', { roomCode, suit: 'red' });
+      await wait(200);
+    }
+
     // Simultan-Bieten: Alle Spieler geben Tipps ab
     const revealPromise = new Promise(resolve => {
       c1.once('simultaneousBidsRevealed', resolve);
