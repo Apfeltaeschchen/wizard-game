@@ -176,7 +176,10 @@ flowchart TD
   - Einhorn: Himmlischer Sternenstaub-Ring (`.unicorn-ring`).
 * **Barrierefreiheit**: `prefers-reduced-motion` Weiche.
 
-### 4. ERWEITERUNG C: Produktiv-Deployment & Hosting
+### 4. ERWEITERUNG C: Produktiv-Deployment & Datenbank-Infrastruktur (Dual-DB Fertiggestellt ✅)
+* ✅ **PostgreSQL Dual-Support Engine**: Vollwertige PostgreSQL-Client/Server-Datenbank (`pg.Pool`) via `DATABASE_URL` für Produktiv-Hosting (Docker, Render, Supabase, Neon), mit transparentem SQLite-Fallback (`better-sqlite3`) für lokale Offline-Entwicklung und Android.
+* ✅ **Garantierter Account- & Datenerhalt (`npm run db:migrate:pg`)**: 1-Klick Migrationsskript (`server/migrateSqliteToPg.js`) überträgt alle existierenden Accounts, Passwörter, Ränge, Statistiken, Sessions und Freundschaften aus `wizard.db` nach PostgreSQL.
+* ✅ **Docker Compose & Konfiguration**: Vorkonfigurierte `docker-compose.yml` (PostgreSQL 16 Alpine mit automatischer Healthcheck-Prüfung) und `.env.example`.
 * **Docker & Container**: `Dockerfile` und `docker-compose.yml` für schnelles Deployment.
 * **SSL/WSS**: Sichere WebSocket-Verschlüsselung mit Nginx Reverse Proxy.
 * **Umgebungsvariablen**: Konsequente Trennung von `.env` (Port, JWT Secret, DB-Pfad).

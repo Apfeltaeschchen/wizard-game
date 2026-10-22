@@ -54,79 +54,81 @@ app.use(express.static(path.join(__dirname, '../public')));
 const dbModule = require('./database');
 
 // --- REST-API FÜR ACCOUNTS, STATISTIKEN & LEADERBOARDS ---
-app.get('/api/auth/check-username', (req, res) => {
+app.get('/api/auth/check-username', async (req, res) => {
   const username = req.query.username || '';
-  const result = dbModule.isUsernameAvailable(username);
+  const result = await dbModule.isUsernameAvailable(username);
   res.json(result);
 });
 
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   const { username, password, avatar_id } = req.body || {};
-  const result = dbModule.registerUser(username, password, avatar_id);
+  const result = await dbModule.registerUser(username, password, avatar_id);
   if (!result.success) {
     return res.status(400).json(result);
   }
   res.json(result);
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body || {};
-  const result = dbModule.loginUser(username, password);
+  const result = await dbModule.loginUser(username, password);
   if (!result.success) {
     return res.status(401).json(result);
   }
   res.json(result);
 });
 
-app.post('/api/auth/logout', (req, res) => {
+app.post('/api/auth/logout', async (req, res) => {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
-  dbModule.logoutUser(token);
+  await dbModule.logoutUser(token);
   res.json({ success: true });
 });
 
-app.get('/api/auth/me', (req, res) => {
+app.get('/api/auth/me', async (req, res) => {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.replace(/^Bearer\s+/i, '') || req.query.token;
-  const user = dbModule.getUserByToken(token);
+  const user = await dbModule.getUserByToken(token);
   if (!user) {
     return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
   }
   res.json({ success: true, user });
 });
 
-app.patch('/api/auth/profile', (req, res) => {
+app.patch('/api/auth/profile', async (req, res) => {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
-  const user = dbModule.getUserByToken(token);
+  const user = await dbModule.getUserByToken(token);
   if (!user) {
     return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
   }
   const { avatar_id, title } = req.body || {};
-  const updated = dbModule.updateUserProfile(user.id, { avatar_id, title });
+  const updated = await dbModule.updateUserProfile(user.id, { avatar_id, title });
   res.json({ success: true, user: updated });
 });
 
-app.get('/api/leaderboard', (req, res) => {
+app.get('/api/leaderboard', async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 10;
-  const leaderboard = dbModule.getLeaderboard(limit);
+  const leaderboard = await dbModule.getLeaderboard(limit);
   res.json({ success: true, leaderboard });
 });
 
-app.get('/api/leaderboard/ranked', (req, res) => {
+app.get('/api/leaderboard/ranked', async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 25;
-  const leaderboard = dbModule.getRankedLeaderboard(limit);
+  const leaderboard = await dbModule.getRankedLeaderboard(limit);
   res.json({ success: true, leaderboard });
 });
 
 // Socket.IO Handshake Authentifizierung
-io.use((socket, next) => {
+io.use(async (socket, next) => {
   const token = socket.handshake.auth && socket.handshake.auth.token;
   if (token) {
-    const user = dbModule.getUserByToken(token);
-    if (user) {
-      socket.user = user;
-    }
+    try {
+      const user = await dbModule.getUserByToken(token);
+      if (user) {
+        socket.user = user;
+      }
+    } catch (e) {}
   }
   next();
 });
@@ -200,9 +202,9 @@ function getUserLiveStatus(userId) {
   };
 }
 
-function sendFriendsListTo(target, userId) {
+async function sendFriendsListTo(target, userId) {
   const numId = Number(userId);
-  const friends = dbModule.getFriends(numId);
+  const friends = await dbModule.getFriends(numId);
   const enriched = friends.map(f => {
     const live = getUserLiveStatus(f.id);
     return {
@@ -339,21 +341,21 @@ io.on('connection', (socket) => {
     sendFriendsListTo(socket, socket.user.id);
   }
 
-  socket.on('authIdentify', ({ token }) => {
+  socket.on('authIdentify', async ({ token }) => {
     if (token) {
-      const user = dbModule.getUserByToken(token);
+      const user = await dbModule.getUserByToken(token);
       if (user) {
         socket.user = user;
         registerUserSocket(user.id, socket);
-        sendFriendsListTo(socket, user.id);
+        await sendFriendsListTo(socket, user.id);
       }
     }
   });
 
-  socket.on('getFriends', ({ token } = {}) => {
+  socket.on('getFriends', async ({ token } = {}) => {
     let authUser = socket.user;
     if (!authUser && token) {
-      authUser = dbModule.getUserByToken(token);
+      authUser = await dbModule.getUserByToken(token);
       if (authUser) {
         socket.user = authUser;
         registerUserSocket(authUser.id, socket);
@@ -363,13 +365,13 @@ io.on('connection', (socket) => {
       socket.emit('friendsError', { message: 'Nur angemeldete Magier können das Grimoire der Gefährten nutzen.' });
       return;
     }
-    sendFriendsListTo(socket, authUser.id);
+    await sendFriendsListTo(socket, authUser.id);
   });
 
-  socket.on('addFriend', ({ friendUsername, token }) => {
+  socket.on('addFriend', async ({ friendUsername, token }) => {
     let authUser = socket.user;
     if (!authUser && token) {
-      authUser = dbModule.getUserByToken(token);
+      authUser = await dbModule.getUserByToken(token);
       if (authUser) {
         socket.user = authUser;
         registerUserSocket(authUser.id, socket);
@@ -380,21 +382,21 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const res = dbModule.addFriend(authUser.id, friendUsername);
+    const res = await dbModule.addFriend(authUser.id, friendUsername);
     if (!res.success) {
       socket.emit('friendActionError', { message: res.error });
       return;
     }
 
     socket.emit('friendActionSuccess', { message: `${res.friend.username} ist nun dein Gefährte! ✨` });
-    sendFriendsListTo(socket, authUser.id);
-    sendFriendsListTo(res.friend.id, res.friend.id);
+    await sendFriendsListTo(socket, authUser.id);
+    await sendFriendsListTo(res.friend.id, res.friend.id);
   });
 
-  socket.on('removeFriend', ({ friendId, token }) => {
+  socket.on('removeFriend', async ({ friendId, token }) => {
     let authUser = socket.user;
     if (!authUser && token) {
-      authUser = dbModule.getUserByToken(token);
+      authUser = await dbModule.getUserByToken(token);
       if (authUser) {
         socket.user = authUser;
         registerUserSocket(authUser.id, socket);
@@ -405,16 +407,16 @@ io.on('connection', (socket) => {
       return;
     }
 
-    dbModule.removeFriend(authUser.id, friendId);
+    await dbModule.removeFriend(authUser.id, friendId);
     socket.emit('friendActionSuccess', { message: 'Gefährte wurde entfernt.' });
-    sendFriendsListTo(socket, authUser.id);
-    sendFriendsListTo(friendId, friendId);
+    await sendFriendsListTo(socket, authUser.id);
+    await sendFriendsListTo(friendId, friendId);
   });
 
-  socket.on('inviteFriendToRoom', ({ friendId, roomCode, token }) => {
+  socket.on('inviteFriendToRoom', async ({ friendId, roomCode, token }) => {
     let authUser = socket.user;
     if (!authUser && token) {
-      authUser = dbModule.getUserByToken(token);
+      authUser = await dbModule.getUserByToken(token);
       if (authUser) {
         socket.user = authUser;
         registerUserSocket(authUser.id, socket);
@@ -461,7 +463,7 @@ io.on('connection', (socket) => {
   });
 
   // Neues Spiel erstellen mit garantiert einmaligem 6-stelligen Zahlencode
-  socket.on('createRoom', ({ playerName, sessionId, roomCode, authToken, isRanked }) => {
+  socket.on('createRoom', async ({ playerName, sessionId, roomCode, authToken, isRanked }) => {
     if (!sessionId) {
       socket.emit('lobbyError', { message: 'Ungültige Session-Daten.' });
       return;
@@ -469,7 +471,7 @@ io.on('connection', (socket) => {
 
     let authUser = socket.user;
     if (!authUser && authToken) {
-      authUser = dbModule.getUserByToken(authToken);
+      authUser = await dbModule.getUserByToken(authToken);
     }
 
     const isRankedRoom = !!isRanked;
@@ -479,7 +481,7 @@ io.on('connection', (socket) => {
     }
 
     if (authUser) {
-      const penaltyNotice = dbModule.popPenaltyNotice(authUser.id);
+      const penaltyNotice = await dbModule.popPenaltyNotice(authUser.id);
       if (penaltyNotice) {
         socket.emit('rankedPenaltyNotice', {
           penaltyAmount: 50,
@@ -502,6 +504,13 @@ io.on('connection', (socket) => {
       sessionId,
       socketId: socket.id,
       userId: authUser ? authUser.id : null,
+      userStats: authUser ? {
+        gamesPlayed: authUser.games_played || 0,
+        gamesWon: authUser.games_won || 0,
+        winRate: (authUser.games_played > 0) ? Math.round(((authUser.games_won || 0) / authUser.games_played) * 100) : 0,
+        highestScore: authUser.highest_score || 0,
+        skillRating: authUser.skill_rating || 1000
+      } : null,
       name: cleanName,
       avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
       title: authUser ? authUser.title : null,
@@ -549,7 +558,7 @@ io.on('connection', (socket) => {
   });
 
   // Spieler tritt einem Raum bei
-  socket.on('joinRoom', ({ playerName, roomCode, sessionId, createIfNotExists, authToken }) => {
+  socket.on('joinRoom', async ({ playerName, roomCode, sessionId, createIfNotExists, authToken }) => {
     if (!roomCode || typeof roomCode !== 'string' || !sessionId) {
       socket.emit('lobbyError', { message: 'Ungültige Raum- oder Session-Daten.' });
       return;
@@ -557,7 +566,7 @@ io.on('connection', (socket) => {
 
     let authUser = socket.user;
     if (!authUser && authToken) {
-      authUser = dbModule.getUserByToken(authToken);
+      authUser = await dbModule.getUserByToken(authToken);
     }
 
     const normalizedCode = roomCode.trim().toUpperCase().substring(0, 10);
@@ -580,7 +589,7 @@ io.on('connection', (socket) => {
     }
 
     if (authUser) {
-      const penaltyNotice = dbModule.popPenaltyNotice(authUser.id);
+      const penaltyNotice = await dbModule.popPenaltyNotice(authUser.id);
       if (penaltyNotice) {
         socket.emit('rankedPenaltyNotice', {
           penaltyAmount: 50,
@@ -608,6 +617,13 @@ io.on('connection', (socket) => {
         existingPlayer.title = authUser.title;
         existingPlayer.skillRating = authUser.skill_rating || 1000;
         existingPlayer.rank = authUser.rank;
+        existingPlayer.userStats = {
+          gamesPlayed: authUser.games_played || 0,
+          gamesWon: authUser.games_won || 0,
+          winRate: (authUser.games_played > 0) ? Math.round(((authUser.games_won || 0) / authUser.games_played) * 100) : 0,
+          highestScore: authUser.highest_score || 0,
+          skillRating: authUser.skill_rating || 1000
+        };
       }
       if (cleanName && cleanName !== existingPlayer.name) {
         const nameTaken = room.players.some(p => p.sessionId !== sessionId && p.name.trim().toLowerCase() === cleanName.toLowerCase());
@@ -732,6 +748,13 @@ io.on('connection', (socket) => {
       sessionId,
       socketId: socket.id,
       userId: authUser ? authUser.id : null,
+      userStats: authUser ? {
+        gamesPlayed: authUser.games_played || 0,
+        gamesWon: authUser.games_won || 0,
+        winRate: (authUser.games_played > 0) ? Math.round(((authUser.games_won || 0) / authUser.games_played) * 100) : 0,
+        highestScore: authUser.highest_score || 0,
+        skillRating: authUser.skill_rating || 1000
+      } : null,
       name: cleanName,
       avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
       title: authUser ? authUser.title : null,
@@ -1754,7 +1777,7 @@ io.on('connection', (socket) => {
   });
 
   // Beendet die Rundenwertung und berechnet Punkte
-  function finishRoundScoring(roomCode) {
+  async function finishRoundScoring(roomCode) {
     const room = rooms[roomCode];
     if (!room) return;
 
@@ -1857,14 +1880,14 @@ io.on('connection', (socket) => {
     const isGameOver = room.round >= maxRounds;
 
     // Runden-Statistiken für angemeldete Spieler erfassen
-    room.players.forEach(p => {
+    for (const p of room.players) {
       if (p.userId) {
-        dbModule.recordRoundBid(p.userId, p.bid !== null ? p.bid : 0, p.tricksWon);
+        await dbModule.recordRoundBid(p.userId, p.bid !== null ? p.bid : 0, p.tricksWon);
       }
       if (p.attemptingZeroWizardRound && p.tricksWon === 0) {
         p.completedZeroWizardRound = true;
       }
-    });
+    }
 
     const rankedResults = {};
 
@@ -1873,7 +1896,8 @@ io.on('connection', (socket) => {
       const sortedByScore = [...room.players].sort((a, b) => b.totalScore - a.totalScore);
       const totalPlayers = room.players.length;
 
-      sortedByScore.forEach((p, index) => {
+      for (let index = 0; index < sortedByScore.length; index++) {
+        const p = sortedByScore[index];
         let rank = index + 1;
         if (index > 0 && p.totalScore === sortedByScore[index - 1].totalScore) {
           rank = sortedByScore[index - 1].calculatedRank || rank;
@@ -1881,7 +1905,7 @@ io.on('connection', (socket) => {
         p.calculatedRank = rank;
 
         if (p.userId) {
-          dbModule.recordGameFinished(p.userId, {
+          await dbModule.recordGameFinished(p.userId, {
             rank: rank,
             totalPlayers: totalPlayers,
             points: p.totalScore,
@@ -1901,7 +1925,7 @@ io.on('connection', (socket) => {
               });
             }
 
-            const res = dbModule.recordRankedGameFinished(p.userId, {
+            const res = await dbModule.recordRankedGameFinished(p.userId, {
               rank: rank,
               totalPlayers: totalPlayers,
               points: p.totalScore,
@@ -1921,7 +1945,7 @@ io.on('connection', (socket) => {
             }
           }
         }
-      });
+      }
     }
 
     const rankedResultsList = Object.values(rankedResults);
@@ -2827,11 +2851,11 @@ io.on('connection', (socket) => {
         }
       }
 
-      let userStats = null;
-      if (p.userId && dbModule && typeof dbModule.getUserById === 'function') {
+      let userStats = p.userStats || null;
+      if (!userStats && p.userId && dbModule && typeof dbModule.getUserById === 'function') {
         try {
           const u = dbModule.getUserById(p.userId);
-          if (u) {
+          if (u && typeof u.then !== 'function') {
             userStats = {
               gamesPlayed: u.games_played || 0,
               gamesWon: u.games_won || 0,
