@@ -181,10 +181,10 @@ assert.ok(
   '.btn-top-nav-action muss Touch-Target von min. 38px aufweisen'
 );
 
-// Landscape Blocker
+// Landscape Blocker wurde auf Wunsch ("smartphone aufrichten weg machen") entfernt
 assert.ok(
-  html.includes('max-height: 620px') && html.includes('max-width: 1000px'),
-  'Landscape Blocker Overlay muss bis max-height: 620px und max-width: 1000px greifen'
+  !html.includes('id="rotate-device-overlay"'),
+  'Landscape Blocker Overlay ("Smartphone aufrichten") muss vollständig entfernt sein'
 );
 console.log('     ✅ Layout-Härtung (0px Overflow Garantie) erfolgreich verifiziert!');
 

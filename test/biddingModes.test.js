@@ -179,16 +179,15 @@ async function runTests() {
       await wait(300);
     }
 
-    // Reihum bieten lassen: alle 3 Spieler tippen nacheinander
-    // Finde heraus, wer dran ist und lass ihn tippen
-    for (let step = 0; step < 3; step++) {
-      assert.ok(sTurnData, 'Turn Data muss vorhanden sein');
-      assert.strictEqual(sTurnData.gameState, 'bidding');
-      const activeSession = sTurnData.activePlayerSessionId;
-      const targetClient = (activeSession === 's_morgath') ? sHost : (activeSession === 's_elrond' ? sGuest1 : sGuest2);
-      targetClient.emit('submitBid', { roomCode: sRoomCode, bid: 0 });
-      await wait(300);
-    }
+    // Simultan & geheim tippen: alle 3 Spieler tippen verdeckt gleichzeitig
+    assert.ok(sTurnData, 'Turn Data muss vorhanden sein');
+    assert.strictEqual(sTurnData.gameState, 'bidding');
+    assert.strictEqual(sTurnData.activePlayerSessionId, 'all', 'Simultanes geheimes Bieten meldet activePlayerSessionId="all"');
+
+    sHost.emit('submitBid', { roomCode: sRoomCode, bid: 0 });
+    sGuest1.emit('submitBid', { roomCode: sRoomCode, bid: 0 });
+    sGuest2.emit('submitBid', { roomCode: sRoomCode, bid: 0 });
+    await wait(400);
 
     assert.strictEqual(sTurnData.gameState, 'playing_tricks', 'Spiel muss in playing_tricks wechseln');
 

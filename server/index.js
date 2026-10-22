@@ -1593,7 +1593,7 @@ io.on('connection', (socket) => {
         type: 'werewolf_trump',
         suit: suit,
         chosenSuit: suit,
-        name: 'Werwolf-Trumpf'
+        name: 'Mondbiest-Trumpf'
       };
       room.trumpSuit = suit;
       room.vampireCopiedCard = { ...room.trumpCard };
@@ -1656,7 +1656,7 @@ io.on('connection', (socket) => {
       return { success: false, message: 'Spieler nicht gefunden.' };
     }
 
-    const isSimultaneous = (room.biddingMode === 'simultaneous');
+    const isSimultaneous = (room.biddingMode === 'simultaneous' || room.biddingMode === 'secret');
 
     if (!isSimultaneous) {
       const currentPlayer = room.players[room.currentTurnIndex];
@@ -1674,7 +1674,7 @@ io.on('connection', (socket) => {
       return { success: false, message: 'Ungültiges Gebot.' };
     }
 
-    // Geber-Regel (Plus/Minus Eins) validieren: gilt nur im klassischen Modus oder Geheim-Reihum
+    // Geber-Regel (Plus/Minus Eins) validieren: gilt nur im klassischen Modus (nicht bei Simultan oder Geheim)
     if (!isSimultaneous) {
       const isLastPlayer = (room.currentTurnIndex === room.dealerIndex);
       if (isLastPlayer) {
@@ -1697,7 +1697,7 @@ io.on('connection', (socket) => {
       room.gameState = 'playing_tricks';
       room.currentTurnIndex = (room.dealerIndex + 1) % room.players.length;
 
-      if (isSimultaneous) {
+      if (room.biddingMode === 'simultaneous') {
         io.to(room.roomCode).emit('simultaneousBidsRevealed', {
           players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room)
         });
@@ -1707,6 +1707,11 @@ io.on('connection', (socket) => {
         setRoomTimeout(room, () => {
           notifyTurn(room.roomCode);
         }, 1800);
+      } else if (room.biddingMode === 'secret') {
+        // Im Geheim-Modus: KEINE Enthüllung, direkt zu den Stichen übergehen!
+        broadcastRoomUpdated(room);
+        io.to(room.roomCode).emit('biddingFinished');
+        notifyTurn(room.roomCode);
       } else {
         broadcastRoomUpdated(room);
         io.to(room.roomCode).emit('biddingFinished');
@@ -1732,7 +1737,7 @@ io.on('connection', (socket) => {
     if (!room || room.gameState !== 'bidding' || room.isPaused) return;
 
     let bidder;
-    if (room.biddingMode === 'simultaneous') {
+    if (room.biddingMode === 'simultaneous' || room.biddingMode === 'secret') {
       bidder = room.players.find(p => p.socketId === socket.id);
     } else {
       const currentPlayer = room.players[room.currentTurnIndex];
@@ -2167,7 +2172,8 @@ io.on('connection', (socket) => {
     setRoomTimeout(room, () => {
       // Pipeline: Wolke -> Hexe -> Jongleur -> Stich aufräumen & weiter
       function stepCloud(next) {
-        if (!hadCloud) return next();
+        // Bei Bombe wird der Stich zerstört und die Wolke vollständig negiert
+        if (!hadCloud || trickResult.isBombed) return next();
         const targetSessionId = trickResult.winnerPlayerId || trickResult.nextLeadPlayerId;
         const cloudWinner = room.players.find(p => p.sessionId === targetSessionId);
         if (!cloudWinner || !cloudWinner.connected) return next();
@@ -2646,7 +2652,7 @@ io.on('connection', (socket) => {
       activePlayer = room.players[room.currentTurnIndex];
     }
 
-    if (room.gameState === 'bidding' && room.biddingMode === 'simultaneous') {
+    if (room.gameState === 'bidding' && (room.biddingMode === 'simultaneous' || room.biddingMode === 'secret')) {
       io.to(roomCode).emit('turnChanged', {
         activePlayerSessionId: 'all',
         gameState: 'bidding',
@@ -2807,11 +2813,35 @@ io.on('connection', (socket) => {
             bidVal = hasBid ? '✓' : null;
           }
         }
-        // Im Geheim-Modus während des Spiels: Fremde Tipps als '?' maskieren
-        if (room.biddingMode === 'secret' && room.gameState !== 'round_over' && room.gameState !== 'lobby') {
+        // Im Geheim-Modus während der Bietphase: Fremde Tipps als '✓' maskieren
+        if (room.biddingMode === 'secret' && room.gameState === 'bidding') {
+          if (!isSelf) {
+            bidVal = hasBid ? '✓' : null;
+          }
+        }
+        // Im Geheim-Modus während des Spiels: Fremde Tipps als '?' maskieren (auch für Teampartner!)
+        if (room.biddingMode === 'secret' && room.gameState !== 'round_over' && room.gameState !== 'lobby' && room.gameState !== 'bidding') {
           if (!isSelf) {
             bidVal = hasBid ? '?' : null;
           }
+        }
+      }
+
+      let userStats = null;
+      if (p.userId && dbModule && typeof dbModule.getUserById === 'function') {
+        try {
+          const u = dbModule.getUserById(p.userId);
+          if (u) {
+            userStats = {
+              gamesPlayed: u.games_played || 0,
+              gamesWon: u.games_won || 0,
+              winRate: (u.games_played > 0) ? Math.round(((u.games_won || 0) / u.games_played) * 100) : 0,
+              highestScore: u.highest_score || 0,
+              skillRating: u.skill_rating || 1000
+            };
+          }
+        } catch (e) {
+          // Fallback falls DB temporär beschäftigt
         }
       }
 
@@ -2828,6 +2858,7 @@ io.on('connection', (socket) => {
         isHost: p.sessionId === hostSessionId,
         handCount: p.hand ? p.hand.length : 0,
         userId: p.userId || null,
+        userStats: userStats,
         isBot: !!p.isBot,
         difficulty: p.difficulty || (p.isBot ? 'master' : null),
         skillRating: p.isBot ? p.skillRating : (p.userId ? (p.skillRating || (p.rank ? p.rank.sr : 1000)) : null),
@@ -2844,8 +2875,9 @@ io.on('connection', (socket) => {
     if (!room) return;
     const isSecret = (room.biddingMode === 'secret' && room.gameState !== 'round_over' && room.gameState !== 'lobby');
     const isSimultaneousBidding = (room.biddingMode === 'simultaneous' && room.gameState === 'bidding');
+    const isSecretBidding = (room.biddingMode === 'secret' && room.gameState === 'bidding');
 
-    if (isSecret || isSimultaneousBidding) {
+    if (isSecret || isSimultaneousBidding || isSecretBidding) {
       room.players.forEach(p => {
         if (p.socketId) {
           io.to(p.socketId).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room, p.sessionId));

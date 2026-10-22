@@ -80,19 +80,19 @@
       --suit-yellow-base: #a66a0d;
 
       /* --- KARTEN-DIMENSIONEN (EXAKT 1050 × 1498 PX RATIO) --- */
-      --card-w: clamp(75px, 6.5vw, 105px);
+      --card-w: clamp(88px, 8.5vw, 135px);
       --card-h: calc(var(--card-w) * (1498 / 1050));
     }
 
     /* WEICHE SKALIERUNG BEI KOMPAKTEN BILDSCHIRMHÖHEN (LAPTOPS / TABLETS) */
     @media (max-height: 780px) {
       :root {
-        --card-w: clamp(66px, 5.6vw, 88px);
+        --card-w: clamp(75px, 6.8vw, 105px);
       }
     }
     @media (max-height: 660px) {
       :root {
-        --card-w: clamp(56px, 4.8vw, 76px);
+        --card-w: clamp(64px, 5.5vw, 88px);
       }
     }
 
@@ -1334,6 +1334,25 @@
       outline: none !important;
     }
 
+    /* EXTREMER ZUG-BLITZ (0.45s INTENSIVER GOLD-IMPULS BEI ZUGBEGINN) */
+    @keyframes turnStartExtremeFlashAnim {
+      0% {
+        box-shadow: 0 0 0 rgba(241, 196, 15, 0);
+        filter: brightness(1);
+      }
+      35% {
+        box-shadow: 0 0 65px rgba(241, 196, 15, 0.95), 0 0 100px rgba(241, 196, 15, 0.6), inset 0 0 45px rgba(241, 196, 15, 0.75);
+        filter: brightness(1.4) drop-shadow(0 0 25px rgba(241, 196, 15, 0.85));
+      }
+      100% {
+        box-shadow: 0 0 20px rgba(241, 196, 15, 0.35), inset 0 0 25px rgba(0, 0, 0, 0.8);
+        filter: brightness(1);
+      }
+    }
+    .turn-start-extreme-flash {
+      animation: turnStartExtremeFlashAnim 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+
     /* MITSPIELER-SITZE (KOMPAKTES HORIZONTALES BADGE-SYSTEM) */
     #opponents-container {
       display: flex;
@@ -1351,23 +1370,82 @@
       transition: margin-top 0.3s ease;
     }
 
-    /* Pokertisch-Bogen (Hufeisen) auf Laptop / Desktop: Sanfte Kurve für die Sitze */
-    @media (min-width: 769px) {
-      .opponents-container.count-3 .player-seat:nth-child(1),
+    /* Pokertisch-Bogen (Reihum-Hufeisen) auf Laptop / Desktop: Großzügige Kurve um den Tisch */
+    @media (min-width: 900px) {
+      #opponents-container {
+        padding: 8px 60px 8px 140px;
+        max-height: 140px;
+        gap: 16px;
+      }
+      .opponents-container.count-2 .player-seat:nth-child(1) {
+        margin-top: 26px;
+        margin-right: 30px;
+      }
+      .opponents-container.count-2 .player-seat:nth-child(2) {
+        margin-top: 26px;
+        margin-left: 30px;
+      }
+      .opponents-container.count-3 .player-seat:nth-child(1) {
+        margin-top: 36px;
+        margin-right: 20px;
+      }
+      .opponents-container.count-3 .player-seat:nth-child(2) {
+        margin-top: 0px;
+      }
       .opponents-container.count-3 .player-seat:nth-child(3) {
-        margin-top: 12px;
+        margin-top: 36px;
+        margin-left: 20px;
       }
-      .opponents-container.count-4 .player-seat:nth-child(1),
+      .opponents-container.count-4 .player-seat:nth-child(1) {
+        margin-top: 44px;
+        margin-right: 18px;
+      }
+      .opponents-container.count-4 .player-seat:nth-child(2) {
+        margin-top: 6px;
+      }
+      .opponents-container.count-4 .player-seat:nth-child(3) {
+        margin-top: 6px;
+      }
       .opponents-container.count-4 .player-seat:nth-child(4) {
-        margin-top: 14px;
+        margin-top: 44px;
+        margin-left: 18px;
       }
-      .opponents-container.count-5 .player-seat:nth-child(1),
-      .opponents-container.count-5 .player-seat:nth-child(5) {
+      .opponents-container.count-5 .player-seat:nth-child(1) {
+        margin-top: 52px;
+        margin-right: 16px;
+      }
+      .opponents-container.count-5 .player-seat:nth-child(2) {
         margin-top: 16px;
       }
-      .opponents-container.count-5 .player-seat:nth-child(2),
+      .opponents-container.count-5 .player-seat:nth-child(3) {
+        margin-top: 0px;
+      }
       .opponents-container.count-5 .player-seat:nth-child(4) {
-        margin-top: 5px;
+        margin-top: 16px;
+      }
+      .opponents-container.count-5 .player-seat:nth-child(5) {
+        margin-top: 52px;
+        margin-left: 16px;
+      }
+
+      /* Größere Pillen & Sitze auf Desktop */
+      .player-seat {
+        height: 36px !important;
+        padding: 5px 12px 5px 6px !important;
+        border-radius: 22px !important;
+      }
+      .player-seat .seat-avatar {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 14px !important;
+      }
+      .player-seat .seat-name {
+        font-size: 13px !important;
+      }
+      .seat-bid-pill {
+        font-size: 12px !important;
+        padding: 3px 9px !important;
+        border-radius: 12px !important;
       }
     }
 
@@ -2939,7 +3017,78 @@
       transform-origin: center center;
     }
 
-    /* NAMENSPLAKETTE UNTERHALB DER GESPIELTEN KARTE (AUSGEBLENDET) */
+    /* NAMENSPLAKETTE OBERHALB DER GESPIELTEN KARTE */
+    .trick-card-player-name {
+      font-family: var(--font-subheading);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      background: rgba(14, 9, 5, 0.92);
+      border: 1px solid rgba(212, 163, 89, 0.5);
+      border-radius: 6px;
+      padding: 1px 7px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      display: inline-block;
+      max-width: 95px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+    @media (min-width: 900px) {
+      .trick-card-player-name {
+        font-size: 12px;
+        padding: 2px 9px;
+        max-width: 130px;
+      }
+    }
+
+    /* STICHKARTEN-GRÖSSE IN DER TISCHMITTE */
+    #trick-container .card {
+      --card-w: clamp(68px, 7vw, 105px) !important;
+      --card-h: calc(var(--card-w) * (1498 / 1050)) !important;
+    }
+
+    /* BESCHRIFTUNGS-BANNER UNTER ARKANEN KARTEN */
+    .card-bottom-label {
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(14, 9, 5, 0.9);
+      border: 1px solid rgba(212, 163, 89, 0.5);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: var(--font-medieval);
+      font-size: clamp(8px, calc(var(--card-w) * 0.11), 11px);
+      color: var(--gold-bright);
+      white-space: nowrap;
+      z-index: 5;
+      pointer-events: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.85);
+      text-shadow: 0 1px 2px #000;
+    }
+
+    /* FARBSCHATTEN (GLOW) FÜR WOLKE & JONGLEUR */
+    .card.card-glow-red {
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.85), 0 0 6px rgba(239, 68, 68, 0.9) !important;
+      border-color: #ef4444 !important;
+    }
+    .card.card-glow-blue {
+      box-shadow: 0 0 18px rgba(59, 130, 246, 0.85), 0 0 6px rgba(59, 130, 246, 0.9) !important;
+      border-color: #3b82f6 !important;
+    }
+    .card.card-glow-green {
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.85), 0 0 6px rgba(16, 185, 129, 0.9) !important;
+      border-color: #10b981 !important;
+    }
+    .card.card-glow-yellow {
+      box-shadow: 0 0 18px rgba(234, 179, 8, 0.85), 0 0 6px rgba(234, 179, 8, 0.9) !important;
+      border-color: #eab308 !important;
+    }
+
+    /* ALTE AUSBLENDUNG */
     .trick-player-badge,
     .trick-player-name {
       display: none !important;
@@ -4817,63 +4966,25 @@
       color: #f87171;
     }
 
-    /* SPERRE QUERFORMAT AUF MOBILGERÄTEN (LANDSCAPE BLOCKER) */
-    #rotate-device-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      background: radial-gradient(circle at center, #1b0d06 0%, #080402 100%);
-      z-index: 999999;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 24px;
-      box-sizing: border-box;
+    /* KARTEN-ARTWORK THUMBNAILS IM REGELWERK & LIGHTBOX */
+    .rules-card-art-thumb {
+      width: 44px;
+      height: 62px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1.5px solid var(--gold-bright);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
-    @media screen and (orientation: landscape) and (max-height: 620px) and (max-width: 1000px), screen and (orientation: landscape) and (max-height: 550px) {
-      #rotate-device-overlay {
-        display: flex !important;
-      }
+    .rules-card-art-thumb:hover {
+      transform: scale(1.08);
+      border-color: #fef08a;
+      box-shadow: 0 0 12px rgba(254, 240, 138, 0.75);
     }
-    .rotate-device-content {
-      max-width: 340px;
-      background: rgba(28, 16, 8, 0.96);
-      border: 2px solid var(--gold-bright);
-      border-radius: 16px;
-      padding: 26px 20px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.95);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .rotate-device-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-      line-height: 1;
-      animation: phoneSpin 2.5s infinite ease-in-out;
-    }
-    @keyframes phoneSpin {
-      0%, 20% { transform: rotate(90deg); }
-      50%, 70% { transform: rotate(0deg); }
-      100% { transform: rotate(90deg); }
-    }
-    .rotate-device-title {
-      font-family: var(--font-heading);
-      font-size: 18px;
-      color: var(--gold-bright);
-      margin: 0 0 8px;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.8);
-    }
-    .rotate-device-desc {
-      font-size: 12.5px;
-      color: #ebd7af;
-      line-height: 1.45;
-      margin: 0;
+    .rules-card-art-thumb:active {
+      transform: scale(0.96);
     }
 
     /* --- SPIELMODUS-SCHALTER (LOBBY) --- */
@@ -5935,20 +6046,14 @@
 
           <div class="rules-section-title" style="margin-top: 14px;">👑 Hoher Rat &amp; Farbreiche</div>
           <div class="rules-card-entry">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #3b0764, #1e0338); border-color: #c084fc; color: #fef08a;">
-              <span>Z</span>
-              <span style="font-size: 8px;">14</span>
-            </div>
+            <img src="/images/cards/archmage_1.png" class="rules-card-art-thumb" alt="Erzmagier" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/archmage_1.png', 'Erzmagier (Zauberer)')">
             <div>
               <div class="rules-card-title">Erzmagier (Zauberer) <span class="rules-card-badge" style="background: #581c87; color: #fef08a; border: 1px solid #c084fc;">Höchste Karte</span></div>
               <p class="rules-card-desc">Hüter der Siegel des Hohen Rates. Schlägt alle Farbkarten und Scharlatane. Der erste im Stich gespielte Erzmagier gewinnt (außer der Lindwurm liegt im Stich).</p>
             </div>
           </div>
           <div class="rules-card-entry">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #334155, #0f172a); border-color: #94a3b8; color: #f8fafc;">
-              <span>N</span>
-              <span style="font-size: 8px;">0</span>
-            </div>
+            <img src="/images/cards/charlatan_1.png" class="rules-card-art-thumb" alt="Scharlatan" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/charlatan_1.png', 'Scharlatan (Narr)')">
             <div>
               <div class="rules-card-title">Scharlatan (Narr) <span class="rules-card-badge" style="background: #475569; color: #f8fafc; border: 1px solid #94a3b8;">Wert 0</span></div>
               <p class="rules-card-desc">Maskierter Illusionist der Schatten. Verliert gegen jede andere Karte und gibt keine Bedienfarbe vor. Liegen nur Scharlatane im Stich, gewinnt der erste Scharlatan.</p>
@@ -5990,10 +6095,7 @@
 
           <!-- LINDWURM -->
           <div class="rules-card-entry" style="border: 1.5px solid #f59e0b; background: rgba(127, 29, 29, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #7f1d1d, #450a0a); border-color: #f59e0b; color: #fef08a;">
-              <span>L</span>
-              <span style="font-size: 8px;">15</span>
-            </div>
+            <img src="/images/cards/lindwurm.png" class="rules-card-art-thumb" alt="Der Lindwurm" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/lindwurm.png', 'Der Lindwurm (Drache)')">
             <div>
               <div class="rules-card-title" style="color: #f59e0b;">Der Lindwurm <span class="rules-card-badge" style="background: #7f1d1d; color: #fef08a; border: 1px solid #f59e0b;">Wert 15</span></div>
               <p class="rules-card-desc">Die furchterregendste Bestie der Ascheberge! Schlägt selbst Erzmagier und Trümpfe. Wird der Lindwurm als Trumpfkarte aufgedeckt, bestimmt der Geber die Trumpffarbe.</p>
@@ -6002,10 +6104,7 @@
 
           <!-- WALDNYMPHE -->
           <div class="rules-card-entry" style="border: 1.5px solid #38bdf8; background: rgba(3, 105, 161, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #0284c7, #082f49); border-color: #38bdf8; color: #e0f2fe;">
-              <span>F</span>
-              <span style="font-size: 8px;">-1</span>
-            </div>
+            <img src="/images/cards/waldnymphe.png" class="rules-card-art-thumb" alt="Waldnymphe" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/waldnymphe.png', 'Waldnymphe (Fee)')">
             <div>
               <div class="rules-card-title" style="color: #38bdf8;">Waldnymphe <span class="rules-card-badge" style="background: #0369a1; color: #e0f2fe; border: 1px solid #38bdf8;">Wert -1</span></div>
               <p class="rules-card-desc">Unterliegt regulär allen Karten. <b>Bezwingerin des Lindwurms:</b> Liegen Lindwurm und Waldnymphe im selben Stich, gewinnt immer die Waldnymphe – selbst gegen Erzmagier! Als Trumpf aufgedeckt: kein Trumpf.</p>
@@ -6014,10 +6113,7 @@
 
           <!-- MAGIEKOLLAPS -->
           <div class="rules-card-entry" style="border: 1.5px solid #fb923c; background: rgba(234, 88, 12, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #ea580c, #431407); border-color: #fb923c; color: #fdba74;">
-              <span>K</span>
-              <span style="font-size: 8px;">💥</span>
-            </div>
+            <img src="/images/cards/magiekollaps.png" class="rules-card-art-thumb" alt="Magiekollaps" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/magiekollaps.png', 'Magiekollaps (Bombe)')">
             <div>
               <div class="rules-card-title" style="color: #fb923c;">Magiekollaps <span class="rules-card-badge" style="background: #c2410c; color: #fdba74; border: 1px solid #fb923c;">Kollaps</span></div>
               <p class="rules-card-desc">Neutralisiert den Stich vollständig! Niemand erhält den Stich oder Punkte. Die höchste reguläre Farbkarte bestimmt den nächsten Aufspieler.<br><b>Rivalen-Regel:</b> Treffen Magiekollaps und Einhorn aufeinander, entscheidet die später gespielte Karte!</p>
@@ -6026,14 +6122,11 @@
 
           <!-- EINHORN -->
           <div class="rules-card-entry" style="border: 1.5px solid #c084fc; background: rgba(88, 28, 135, 0.12);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #3b0764, #1e1b4b); border-color: #c084fc; color: #f5d0fe;">
-              <span>H</span>
-              <span style="font-size: 8px;">🦄</span>
-            </div>
+            <img src="/images/cards/unicorn.png" class="rules-card-art-thumb" alt="Das Einhorn" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/unicorn.png', 'Das Einhorn')">
             <div>
               <div class="rules-card-title" style="color: #d8b4fe;">Das Einhorn <span class="rules-card-badge" style="background: #581c87; color: #f5d0fe; border: 1px solid #c084fc;">Bann aller Magie</span></div>
               <p class="rules-card-desc">
-                <b>Kosmische Entzauberung:</b> Das Einhorn bannt augenblicklich alle Zauber und Bestienkräfte im Stich! Erzmagier, Lindwurm, Nymphe, Blutfürst, Doppelgänger und Mondbestie verlieren ihre Macht. Es gewinnt schlicht die <b>höchste reguläre Farbkarte (1 bis 13)</b>.
+                <b>Kosmische Entzauberung:</b> Das Einhorn bannt augenblicklich alle Zauber und Bestienkräfte im Stich! Erzmagier, Lindwurm, Nymphe, Blutfürst, Doppelgänger und Mondbiest verlieren ihre Macht. Es gewinnt schlicht die <b>höchste reguläre Farbkarte (1 bis 13)</b>.
                 <br><br>
                 <b>⚔️ Duell der Urgewalten (Einhorn vs. Magiekollaps):</b>
                 <br>Treffen Einhorn und Magiekollaps im selben Stich aufeinander, entscheidet die <b>Chronologie-Regel</b>: Die als <b>Zweites</b> gespielte Karte triumphiert! Spielt der Magier das Einhorn nach dem Magiekollaps, bannt das Horn die Zündung und entzaubert den Stich.
@@ -6043,61 +6136,46 @@
 
           <!-- DOPPELGÄNGER -->
           <div class="rules-card-entry" style="border: 1.5px solid #34d399; background: rgba(5, 150, 105, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #059669, #022c22); border-color: #34d399; color: #a7f3d0;">
-              <span>D</span>
-              <span style="font-size: 8px;">Z/N</span>
-            </div>
+            <img src="/images/cards/doppelganger.png" class="rules-card-art-thumb" alt="Doppelgänger" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/doppelganger.png', 'Doppelgänger (Gestaltwandler)')">
             <div>
-              <div class="rules-card-title" style="color: #34d399;">Doppelgänger <span class="rules-card-badge" style="background: #047857; color: #a7f3d0; border: 1px solid #34d399;">Z oder N</span></div>
-              <p class="rules-card-desc">Wähle beim Ausspielen, ob er als Erzmagier (Z, Wert 14) oder als Scharlatan (N, Wert 0) gespielt wird. Als Trumpf aufgedeckt: Geber wählt die Trumpffarbe.</p>
+              <div class="rules-card-title" style="color: #34d399;">Doppelgänger <span class="rules-card-badge" style="background: #047857; color: #a7f3d0; border: 1px solid #34d399;">Z/N</span> <span class="rules-card-badge" style="background: #065f46; color: #a7f3d0; border: 1px solid #34d399;">E oder S</span></div>
+              <p class="rules-card-desc">Wähle beim Ausspielen, ob er als Erzmagier (E, Wert 14) oder als Scharlatan (S, Wert 0) gespielt wird. Als Trumpf aufgedeckt: Geber wählt die Trumpffarbe.</p>
             </div>
           </div>
 
           <!-- BLUTFÜRST -->
           <div class="rules-card-entry" style="border: 1.5px solid #f43f5e; background: rgba(131, 24, 67, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #831843, #4c0519); border-color: #f43f5e; color: #fecdd3;">
-              <span>B</span>
-              <span style="font-size: 8px;">Kopie</span>
-            </div>
+            <img src="/images/cards/bloodlord.png" class="rules-card-art-thumb" alt="Der Blutfürst" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/bloodlord.png', 'Der Blutfürst (Vampir)')">
             <div>
               <div class="rules-card-title" style="color: #f43f5e;">Der Blutfürst <span class="rules-card-badge" style="background: #9f1239; color: #fecdd3; border: 1px solid #f43f5e;">Mimikry &amp; Trumpfsturz</span></div>
               <p class="rules-card-desc">
                 <b>Spiegelt den Trumpf:</b> Übernimmt 1:1 alle Werte und Fähigkeiten der aufgedeckten Trumpfkarte.
-                <br><b>Trumpfsturz bei Mondbestien-Trumpf:</b> Deckt augenblicklich die nächste Karte des Decks als neue Trumpffarbe auf – mitten im laufenden Stich!
+                <br><b>Trumpfsturz bei Mondbiest-Trumpf:</b> Deckt augenblicklich die nächste Karte des Decks als neue Trumpffarbe auf – mitten im laufenden Stich!
               </p>
             </div>
           </div>
 
           <!-- HIMMELSSCHLEIER -->
           <div class="rules-card-entry" style="border: 1.5px solid #94a3b8; background: rgba(71, 85, 105, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #475569, #0f172a); border-color: #94a3b8; color: #f1f5f9;">
-              <span style="font-size: 11px;">9¾</span>
-              <span style="font-size: 8px;">⚡</span>
-            </div>
+            <img src="/images/cards/himmelsschleier.png" class="rules-card-art-thumb" alt="Himmelsschleier" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/himmelsschleier.png', 'Himmelsschleier (Wolke)')">
             <div>
               <div class="rules-card-title" style="color: #94a3b8;">Himmelsschleier <span class="rules-card-badge" style="background: #334155; color: #f1f5f9; border: 1px solid #94a3b8;">Wert 9 ¾</span></div>
-              <p class="rules-card-desc">Arkane Gewitterwolke am Firmament mit arkanen Blitzen und Schleiern. Wähle beim Ausspielen die Farbe (Wert 9,75). <b>Schicksal des Himmelsschleiers:</b> Der Magier, der den Stich gewinnt, muss seine Prophezeiung sofort nach Stich-Ende um genau <b>+1 oder -1 anpassen</b>!</p>
+              <p class="rules-card-desc">Arkane Gewitterwolke am Firmament mit arkanen Blitzen und Schleiern. Wähle beim Ausspielen die Farbe (Wert 9,75). <b>Schicksal des Himmelsschleiers:</b> Der Magier, der den Stich gewinnt, muss seine Prophezeiung sofort nach Stich-Ende um genau <b>+1 oder -1 anpassen</b>! <i>(Wird neutralisiert, falls der Stich durch Magiekollaps gesprengt wird.)</i></p>
             </div>
           </div>
 
-          <!-- MONDBESTIE -->
+          <!-- MONDBIEST -->
           <div class="rules-card-entry" style="border: 1.5px solid #f59e0b; background: rgba(120, 53, 15, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #292524, #0c0a09); border-color: #f59e0b; color: #fef08a;">
-              <span>M</span>
-              <span style="font-size: 8px;">🐺</span>
-            </div>
+            <img src="/images/cards/moonbeast.png" class="rules-card-art-thumb" alt="Das Mondbiest" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/moonbeast.png', 'Das Mondbiest')">
             <div>
-              <div class="rules-card-title" style="color: #f59e0b;">Mondbestie <span class="rules-card-badge" style="background: #78350f; color: #fef08a; border: 1px solid #f59e0b;">Trumpfwandler</span></div>
-              <p class="rules-card-desc">Hältst du die Mondbestie auf der Hand, nimmst du die aufgedeckte Trumpfkarte auf und <b>bestimmst selbst die neue Trumpffarbe!</b> Im Stich gespielt zählt sie wie ein Scharlatan (Wert 0).</p>
+              <div class="rules-card-title" style="color: #f59e0b;">Das Mondbiest <span class="rules-card-badge" style="background: #78350f; color: #fef08a; border: 1px solid #f59e0b;">Trumpfwandler</span></div>
+              <p class="rules-card-desc">Hältst du das Mondbiest auf der Hand, nimmst du die aufgedeckte Trumpfkarte auf und <b>bestimmst selbst die neue Trumpffarbe!</b> Im Stich gespielt zählt es wie ein Scharlatan (Wert 0).</p>
             </div>
           </div>
 
           <!-- SCHATTENHEXE -->
           <div class="rules-card-entry" style="border: 1.5px solid #a855f7; background: rgba(88, 28, 135, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #2e1065, #09090b); border-color: #a855f7; color: #d8b4fe;">
-              <span>X</span>
-              <span style="font-size: 8px;">🔮</span>
-            </div>
+            <img src="/images/cards/shadowwitch.png" class="rules-card-art-thumb" alt="Die Schattenhexe" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/shadowwitch.png', 'Die Schattenhexe')">
             <div>
               <div class="rules-card-title" style="color: #c084fc;">Die Schattenhexe <span class="rules-card-badge" style="background: #581c87; color: #d8b4fe; border: 1px solid #a855f7;">Ritualtausch</span></div>
               <p class="rules-card-desc">Zählt im Stich wie ein Scharlatan (Wert 0). <b>Ritualtausch nach Stich-Ende:</b> Nimm 1 beliebige Karte (außer der Schattenhexe) aus dem beendeten Stich auf die Hand und lege 1 Handkarte hinein! Der Stichgewinner bleibt unverändert.</p>
@@ -6106,10 +6184,7 @@
 
           <!-- TASCHENSPIELER -->
           <div class="rules-card-entry" style="border: 1.5px solid #06b6d4; background: rgba(8, 145, 178, 0.1);">
-            <div class="rules-card-icon" style="background: radial-gradient(circle, #0891b2, #083344); border-color: #06b6d4; color: #cffafe;">
-              <span style="font-size: 11px;">7½</span>
-              <span style="font-size: 8px;">🎭</span>
-            </div>
+            <img src="/images/cards/trickster.png" class="rules-card-art-thumb" alt="Taschenspieler" title="Klicken für Großansicht" onclick="openCardLightbox('/images/cards/trickster.png', 'Taschenspieler (Jongleur)')">
             <div>
               <div class="rules-card-title" style="color: #67e8f9;">Taschenspieler <span class="rules-card-badge" style="background: #0e7490; color: #cffafe; border: 1px solid #06b6d4;">Wert 7 ½</span></div>
               <p class="rules-card-desc">Wähle beim Ausspielen die Farbe (Wert 7,5). Nach dem Stich müssen <b>alle Magier geheim 1 Handkarte wählen</b> und verdeckt an ihren linken Nachbarn weitergeben!</p>
@@ -6333,11 +6408,11 @@
     </div>
   </div>
 
-  <!-- MONDBESTIE KARTENTAUSCH POPUP & ANIMATION -->
+  <!-- MONDBIEST KARTENTAUSCH POPUP & ANIMATION -->
   <div id="werewolf-info-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 3, 1, 0.88); z-index: 1400; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
     <div style="background: linear-gradient(180deg, #24140b 0%, #120904 100%); border: 2px solid var(--gold-bright); border-radius: 14px; padding: 22px; max-width: 440px; width: 90%; color: #f7eedb; text-align: center; box-shadow: 0 12px 36px rgba(0,0,0,0.95);">
       <div style="font-size: 32px; margin-bottom: 6px;">🐺⚡</div>
-      <h3 id="werewolf-info-title" style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 18px;">Mondbestien-Wandlung!</h3>
+      <h3 id="werewolf-info-title" style="margin: 0 0 8px; color: var(--gold-bright); font-family: var(--font-heading); font-size: 18px;">Mondbiest-Wandlung!</h3>
       <p id="werewolf-info-desc" style="color: #ebd7af; font-size: 13px; margin: 0 0 14px;"></p>
       <div style="display: flex; justify-content: center; align-items: center; gap: 16px; margin: 12px 0;">
         <div id="werewolf-taken-slot" style="display: flex; flex-direction: column; align-items: center;">
@@ -6538,6 +6613,21 @@
         <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
           <button id="btnTestCardSound" type="button" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
             🃏 Karten-Sound testen
+          </button>
+        </div>
+      </div>
+
+      <!-- ZUG-SIGNALTON („DU BIST DRAN“) -->
+      <div style="margin-bottom: 14px; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(200, 154, 56, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-family: var(--font-subheading); color: var(--gold-bright); margin-bottom: 4px;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" id="turnSoundToggle" checked style="accent-color: var(--gold-bright); cursor: pointer;" />
+            <span>Zug-Signalton („Du bist am Zug“)</span>
+          </label>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+          <button id="btnTestTurnSound" type="button" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
+            🔔 Kristall-Gong testen
           </button>
         </div>
       </div>
@@ -7084,14 +7174,12 @@
     </div>
   </div>
 
-  <!-- SPERRE QUERFORMAT AUF MOBILGERÄTEN (LANDSCAPE BLOCKER) -->
-  <div id="rotate-device-overlay">
-    <div class="rotate-device-content">
-      <div class="rotate-device-icon">📱</div>
-      <h3 class="rotate-device-title">Bitte Smartphone aufrichten</h3>
-      <p class="rotate-device-desc">
-        Grimoire Online ist für das <b>Hochformat</b> geschmiedet. Bitte drehe dein Smartphone wieder in die aufrechte Haltung, um die Ratskammer zu betreten!
-      </p>
+  <!-- KARTEN-ARTWORK LIGHTBOX MODAL (GROSSANSICHT) -->
+  <div id="card-art-lightbox-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 3, 1, 0.92); z-index: 3500; justify-content: center; align-items: center; backdrop-filter: blur(8px); cursor: pointer;">
+    <div class="card-lightbox-content" style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; cursor: default;" onclick="event.stopPropagation()">
+      <button id="cardLightboxClose" class="drawer-close-btn" style="position: absolute; top: -16px; right: -16px; width: 36px; height: 36px; font-size: 24px; background: rgba(20, 10, 5, 0.95); border: 2px solid var(--gold-bright); border-radius: 50%; color: var(--gold-bright); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
+      <img id="cardLightboxImage" src="" alt="Großansicht" style="max-width: min(85vw, 360px); max-height: 72vh; border-radius: 14px; border: 2.5px solid var(--gold-bright); box-shadow: 0 0 35px rgba(212, 163, 89, 0.5), 0 20px 45px rgba(0,0,0,0.95); object-fit: contain;">
+      <div id="cardLightboxTitle" style="margin-top: 14px; font-family: var(--font-medieval); font-size: 18px; color: var(--gold-bright); text-shadow: 0 2px 8px rgba(0,0,0,0.9); text-align: center;"></div>
     </div>
   </div>
 

@@ -34,12 +34,11 @@ test('Mobile In-Game Layout & Orientation: Consolidated Game Menu Modal', () => 
   assert.ok(html.includes('.game-menu-item-btn'), '.game-menu-item-btn class must exist');
 });
 
-test('Mobile In-Game Layout & Orientation: Landscape Blocker Overlay', () => {
+test('Mobile In-Game Layout & Orientation: Landscape Blocker Overlay Removed', () => {
   const html = fs.readFileSync(indexHtmlPath, 'utf8');
 
-  assert.ok(html.includes('id="rotate-device-overlay"'), 'rotate-device-overlay markup must exist');
-  assert.ok(html.includes('orientation: landscape'), 'orientation: landscape media query must exist');
-  assert.ok(html.includes('max-height: 550px'), 'max-height 550px filter must exist so desktops are unaffected');
+  // Landscape-Blocker ("Smartphone aufrichten") wurde vollständig entfernt für uneingeschränkte Spielbarkeit
+  assert.ok(!html.includes('id="rotate-device-overlay"'), 'rotate-device-overlay markup must be removed');
 });
 
 test('Mobile In-Game Layout & Orientation: Android Manifest Portrait Lock', () => {

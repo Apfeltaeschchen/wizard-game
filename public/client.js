@@ -1256,7 +1256,8 @@ const WizardAudio = (() => {
     sfx: 0.9,
     music: 0.5,
     sfxMuted: false,
-    musicMuted: false
+    musicMuted: false,
+    turnSoundEnabled: true
   };
 
   try {
@@ -1503,6 +1504,32 @@ const WizardAudio = (() => {
     }
   }
 
+  // --- ZUG-HINWEISTON (KRISTALL-GONG AM ZUG) ---
+  function playTurnChime() {
+    if (isAppInBackground || settings.turnSoundEnabled === false || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+    const c = getContext();
+    if (!c) return;
+    try {
+      const t = c.currentTime;
+      // Resonanter zweistimmiger Kristall-Gong (A5 880Hz + E6 1320Hz)
+      [880, 1320].forEach((freq, idx) => {
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + idx * 0.045);
+        gain.gain.setValueAtTime(0.001, t + idx * 0.045);
+        gain.gain.exponentialRampToValueAtTime(0.26 / (idx + 1), t + idx * 0.045 + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + idx * 0.045 + 0.55);
+        osc.connect(gain);
+        gain.connect(sfxGain);
+        osc.start(t + idx * 0.045);
+        osc.stop(t + idx * 0.045 + 0.6);
+      });
+    } catch (e) {
+      console.warn('Audio playTurnChime error:', e);
+    }
+  }
+
   // --- HINTERGRUNDMUSIK-ENGINE (MEHRTEILIGE TAVERNEN-PLAYLIST: RANDOMMIND CC0) ---
   // Mit mathematisch kalibrierten gainFactor-Werten gegen Lautstärkesprünge (RMS-Normalisierung auf ~ -20 dB)
   const MUSIC_PLAYLIST = [
@@ -1684,6 +1711,7 @@ const WizardAudio = (() => {
     playCardDeal,
     playTableThump,
     playForCard,
+    playTurnChime,
     playInviteChime,
     startMusic,
     stopMusic,
@@ -1700,6 +1728,11 @@ const WizardAudio = (() => {
     getCompressorNode: () => musicCompressor,
     isMusicPlaying: () => isMusicPlaying || !!(musicAudio && !musicAudio.paused && !settings.musicMuted && settings.music > 0),
     getSettings: () => ({ ...settings }),
+    setTurnSoundEnabled: (enabled) => {
+      settings.turnSoundEnabled = !!enabled;
+      saveSettings();
+    },
+    isTurnSoundEnabled: () => settings.turnSoundEnabled !== false,
     setMasterVolume: (val) => {
       settings.master = Math.max(0, Math.min(1, val));
       applyVolumeSettings();
@@ -3609,6 +3642,42 @@ function openPlayerDetailModal(data, source = 'table') {
             });
           }
 
+          let careerHtml = '';
+          if (data.userStats) {
+            const u = data.userStats;
+            careerHtml = `
+              <div style="grid-column: 1 / -1; margin-top: 10px; padding: 10px 12px; background: rgba(20, 12, 6, 0.85); border: 1.5px solid var(--gold-antique); border-radius: 8px;">
+                <div style="font-size: 11px; font-weight: bold; color: var(--gold-bright); margin-bottom: 6px; font-family: var(--font-subheading); text-align: left;">
+                  🏆 Grimoire-Karriere (Registrierter Magier)
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center;">
+                  <div style="background: rgba(0,0,0,0.4); padding: 5px 2px; border-radius: 6px;">
+                    <div style="font-size: 13px; font-weight: bold; color: #fef08a;">${u.gamesPlayed}</div>
+                    <div style="font-size: 9px; color: #d6be90;">Partien</div>
+                  </div>
+                  <div style="background: rgba(0,0,0,0.4); padding: 5px 2px; border-radius: 6px;">
+                    <div style="font-size: 13px; font-weight: bold; color: #86efac;">${u.gamesWon} (${u.winRate}%)</div>
+                    <div style="font-size: 9px; color: #d6be90;">Siege</div>
+                  </div>
+                  <div style="background: rgba(0,0,0,0.4); padding: 5px 2px; border-radius: 6px;">
+                    <div style="font-size: 13px; font-weight: bold; color: #fde047;">${u.highestScore}</div>
+                    <div style="font-size: 9px; color: #d6be90;">Highscore</div>
+                  </div>
+                  <div style="background: rgba(0,0,0,0.4); padding: 5px 2px; border-radius: 6px;">
+                    <div style="font-size: 13px; font-weight: bold; color: #a78bfa;">${u.skillRating}</div>
+                    <div style="font-size: 9px; color: #d6be90;">SR</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else if (!isBot) {
+            careerHtml = `
+              <div style="grid-column: 1 / -1; margin-top: 8px; font-size: 10px; color: #94a3b8; font-style: italic; text-align: center;">
+                🔮 Gast-Konto (nicht registriert – keine Karriere-Chronik gespeichert)
+              </div>
+            `;
+          }
+
           statsGridEl.innerHTML = `
             <div style="background: rgba(0,0,0,0.5); padding: 8px 4px; border-radius: 8px; border: 1px solid var(--gold-antique);">
               <div style="font-size: 15px; font-weight: 900; color: #86efac; font-family: var(--font-medieval);">${wonVal}</div>
@@ -3622,6 +3691,7 @@ function openPlayerDetailModal(data, source = 'table') {
               <div style="font-size: 15px; font-weight: 900; color: ${totalPts >= 0 ? '#86efac' : '#f87171'}; font-family: var(--font-medieval);">${totalPts}</div>
               <div style="font-size: 10px; color: #d6be90; margin-top: 2px;">Gesamtpunkte</div>
             </div>
+            ${careerHtml}
           `;
         } else {
           // Karriere-Statistiken aus dem Grimoire der Gefährten
@@ -3903,6 +3973,30 @@ document.querySelectorAll('.rules-tab-btn').forEach(btn => {
   });
 });
 
+// --- KARTEN-ARTWORK LIGHTBOX (GROSSANSICHT) ---
+function openCardLightbox(imageSrc, title) {
+  const modal = document.getElementById('card-art-lightbox-modal');
+  const img = document.getElementById('cardLightboxImage');
+  const titleEl = document.getElementById('cardLightboxTitle');
+  if (!modal || !img) return;
+  img.src = imageSrc;
+  if (titleEl) titleEl.innerText = title || '';
+  modal.style.display = 'flex';
+}
+function closeCardLightbox() {
+  const modal = document.getElementById('card-art-lightbox-modal');
+  if (modal) modal.style.display = 'none';
+}
+if (typeof window !== 'undefined') {
+  window.openCardLightbox = openCardLightbox;
+  window.closeCardLightbox = closeCardLightbox;
+}
+
+const cardLightboxModal = document.getElementById('card-art-lightbox-modal');
+const btnCardLightboxClose = document.getElementById('cardLightboxClose');
+if (cardLightboxModal) cardLightboxModal.addEventListener('click', closeCardLightbox);
+if (btnCardLightboxClose) btnCardLightboxClose.addEventListener('click', closeCardLightbox);
+
 if (drawerBackdrop) {
   drawerBackdrop.addEventListener('click', () => {
     closeScoreDrawer();
@@ -3920,6 +4014,7 @@ document.addEventListener('keydown', (e) => {
     if (typeof CompanionsManager !== 'undefined' && CompanionsManager.close) CompanionsManager.close();
     const playerModal = document.getElementById('player-detail-modal');
     if (playerModal) playerModal.style.display = 'none';
+    if (typeof closeCardLightbox === 'function') closeCardLightbox();
   }
 });
 
@@ -4979,11 +5074,13 @@ socket.on('roomUpdated', (players) => {
     updateWaitingRoomView(amIHost);
   }
 
-  if (currentGameState === 'bidding' && currentBiddingMode === 'simultaneous') {
+  if (currentGameState === 'bidding' && (currentBiddingMode === 'simultaneous' || currentBiddingMode === 'secret')) {
     const me = cachedPlayers.find(p => p.sessionId === mySessionId);
     const hasAlreadyBid = me && (me.hasBid || (me.bid !== null && me.bid !== undefined));
     if (hasAlreadyBid) {
-      statusMessage.innerText = 'Tipp eingereicht! Warte auf die anderen Magier...';
+      statusMessage.innerText = currentBiddingMode === 'secret'
+        ? 'Geheimer Tipp eingereicht! Warte auf die anderen Magier...'
+        : 'Tipp eingereicht! Warte auf die anderen Magier...';
       bidOverlay.style.display = 'none';
     }
   }
@@ -5068,9 +5165,26 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   isMyTurn = (mySessionId === activePlayerSessionId);
   currentGameState = gameState;
 
-  // ANIMIERTES "DU BIST DRAN!" POP-UP FEEDBACK
+  // ANIMIERTES "DU BIST DRAN!" POP-UP FEEDBACK & EXTREM-FLASH + KRISTALL-GONG
   if (isMyTurn && (!previouslyMyTurn || gameState === 'playing_tricks' || gameState === 'bidding')) {
     triggerTurnPopup();
+    if (!previouslyMyTurn) {
+      if (typeof WizardAudio !== 'undefined' && WizardAudio.playTurnChime) {
+        WizardAudio.playTurnChime();
+      }
+      if (tableArea) {
+        tableArea.classList.remove('turn-start-extreme-flash');
+        void tableArea.offsetWidth;
+        tableArea.classList.add('turn-start-extreme-flash');
+        setTimeout(() => { if (tableArea) tableArea.classList.remove('turn-start-extreme-flash'); }, 480);
+      }
+      if (myHandSection) {
+        myHandSection.classList.remove('turn-start-extreme-flash');
+        void myHandSection.offsetWidth;
+        myHandSection.classList.add('turn-start-extreme-flash');
+        setTimeout(() => { if (myHandSection) myHandSection.classList.remove('turn-start-extreme-flash'); }, 480);
+      }
+    }
   }
 
   // SUBTILE TISCH-AURA & HANDKARTEN-FOKUS
@@ -5093,8 +5207,8 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
     const trumpTitle = document.getElementById('trump-selection-title');
     if (isMyTurn) {
       if (isWerewolfChooser) {
-        statusMessage.innerText = '🐺 Du hast die Mondbestie! Wähle die Trumpffarbe.';
-        if (trumpTitle) trumpTitle.innerText = '🐺 Du hast die Mondbestie! Wähle die Trumpffarbe:';
+        statusMessage.innerText = '🐺 Du hast das Mondbiest! Wähle die Trumpffarbe.';
+        if (trumpTitle) trumpTitle.innerText = '🐺 Du hast das Mondbiest! Wähle die Trumpffarbe:';
       } else {
         statusMessage.innerText = 'Du bist der Geber! Wähle die Trumpffarbe.';
         if (trumpTitle) trumpTitle.innerText = 'Du bist der Geber! Wähle die Trumpffarbe:';
@@ -5102,7 +5216,7 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
       trumpSelectionArea.style.display = 'block';
     } else {
       if (isWerewolfChooser) {
-        statusMessage.innerText = `🐺 ${activePlayerName} wählt als Mondbestie die Trumpffarbe...`;
+        statusMessage.innerText = `🐺 ${activePlayerName} wählt als Mondbiest die Trumpffarbe...`;
       } else {
         const dealer = cachedPlayers.find(p => p.isDealer);
         const dealerName = dealer ? escapeHtml(dealer.name) : 'Der Geber';
@@ -5113,16 +5227,20 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   } else if (gameState === 'bidding') {
     trumpSelectionArea.style.display = 'none';
 
-    if (currentBiddingMode === 'simultaneous') {
+    if (currentBiddingMode === 'simultaneous' || currentBiddingMode === 'secret') {
       const me = cachedPlayers.find(p => p.sessionId === mySessionId);
       const hasAlreadyBid = me && (me.hasBid || (me.bid !== null && me.bid !== undefined));
 
       if (!hasAlreadyBid) {
-        statusMessage.innerText = '⚡ Alle Magier tippen gleichzeitig! Wie viele Stiche prophezeist du?';
+        statusMessage.innerText = currentBiddingMode === 'secret'
+          ? '🤫 Geheimes Bieten! Alle tippen gleichzeitig & verdeckt. Wie viele Stiche prophezeist du?'
+          : '⚡ Alle Magier tippen gleichzeitig! Wie viele Stiche prophezeist du?';
         renderBidButtons(currentRound, null);
         bidOverlay.style.display = 'flex';
       } else {
-        statusMessage.innerText = 'Tipp eingereicht! Warte auf die anderen Magier...';
+        statusMessage.innerText = currentBiddingMode === 'secret'
+          ? 'Geheimer Tipp eingereicht! Warte auf die anderen Magier...'
+          : 'Tipp eingereicht! Warte auf die anderen Magier...';
         bidOverlay.style.display = 'none';
       }
     } else {
@@ -5634,13 +5752,13 @@ socket.on('witchSwapShowcase', (data) => {
   }, (data && data.durationMs) || 1500);
 });
 
-// Mondbestie: Benachrichtigung & Animation beim Trumpftausch
+// Mondbiest: Benachrichtigung & Animation beim Trumpftausch
 socket.on('werewolfTrumpSwapped', ({ werewolfPlayerName, takenCard, newTrumpCard, trumpSuit }) => {
   if (werewolfInfoTitle) {
-    werewolfInfoTitle.innerText = '🐺 Mondbestie auf der Hand!';
+    werewolfInfoTitle.innerText = '🐺 Mondbiest auf der Hand!';
   }
   if (werewolfInfoDesc) {
-    werewolfInfoDesc.innerText = `${escapeHtml(werewolfPlayerName)} besitzt die Mondbestie! Er nimmt die aufgedeckte Trumpfkarte auf die Hand und bestimmt selbst die neue Trumpffarbe:`;
+    werewolfInfoDesc.innerText = `${escapeHtml(werewolfPlayerName)} besitzt das Mondbiest! Er nimmt die aufgedeckte Trumpfkarte auf die Hand und bestimmt selbst die neue Trumpffarbe:`;
   }
   if (werewolfTakenCardContainer) {
     werewolfTakenCardContainer.innerHTML = '';
@@ -5651,7 +5769,7 @@ socket.on('werewolfTrumpSwapped', ({ werewolfPlayerName, takenCard, newTrumpCard
     if (newTrumpCard) werewolfNewCardContainer.appendChild(renderCard(newTrumpCard));
   }
   if (werewolfInfoModal) werewolfInfoModal.style.display = 'flex';
-  statusMessage.innerText = `🐺 ${escapeHtml(werewolfPlayerName)} wählt als Herr der Mondbestien die Trumpffarbe!`;
+  statusMessage.innerText = `🐺 ${escapeHtml(werewolfPlayerName)} wählt als Herr der Mondbieste die Trumpffarbe!`;
 });
 
 if (btnWerewolfInfoClose) {
@@ -6051,9 +6169,9 @@ function renderOpponents() {
         shapeshifter: { name: 'Wandler', icon: MEDIEVAL_ICONS.shapeshifter || '🎭' },
         vampire: { name: 'Vampir', icon: MEDIEVAL_ICONS.vampire || '🧛' },
         cloud: { name: 'Wolke', icon: MEDIEVAL_ICONS.cloud || '☁️' },
-        werewolf: { name: 'Werwolf', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
-        werewolf_trump: { name: 'Werwolf', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
-        werewolf_trump_pending: { name: 'Werwolf', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
+        werewolf: { name: 'Mondbiest', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
+        werewolf_trump: { name: 'Mondbiest', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
+        werewolf_trump_pending: { name: 'Mondbiest', icon: MEDIEVAL_ICONS.werewolf || '🐺' },
         witch: { name: 'Hexe', icon: MEDIEVAL_ICONS.witch || '🧙‍♀️' },
         juggler: { name: 'Jongleur', icon: MEDIEVAL_ICONS.juggler || '🤹' }
       };
@@ -6123,6 +6241,18 @@ function renderOpponents() {
     let bidPillHtml = '';
     if (p.bid === '✓') {
       bidPillHtml = `<span class="seat-bid-pill" style="border-color: #a855f7; color: #d8b4fe;" title="Tipp verdeckt abgegeben">🎯 ✓ Bereit</span>`;
+    } else if (currentMatchFormat === 'team_2v2' && p.team) {
+      const teamPlayers = cachedPlayers.filter(pl => pl.team === p.team);
+      const teamWon = teamPlayers.reduce((s, pl) => s + (pl.tricksWon || 0), 0);
+      const isSecretActive = (currentBiddingMode === 'secret' && currentGameState !== 'round_over');
+      const allHaveBid = teamPlayers.length > 0 && teamPlayers.every(pl => pl.bid !== null && pl.bid !== undefined);
+      let teamBidDisplay = '-';
+      if (isSecretActive) {
+        teamBidDisplay = '?';
+      } else if (allHaveBid) {
+        teamBidDisplay = teamPlayers.reduce((s, pl) => s + (typeof pl.bid === 'number' ? pl.bid : 0), 0);
+      }
+      bidPillHtml = `<span class="seat-bid-pill" title="Allianz-Stiche: ${teamWon} von ${teamBidDisplay}">🛡️ ${teamWon} / 🎯 ${teamBidDisplay}</span>`;
     } else if (p.bid === '?') {
       bidPillHtml = `<span class="seat-bid-pill" title="Tipp ist geheim">🏆 ${wonText} / 🎯 ?</span>`;
     } else {
@@ -6236,13 +6366,19 @@ function updateMyStatsHUD() {
     }
     const myAlliancePlayers = cachedPlayers.filter(p => p.team === me.team);
     const totalWon = myAlliancePlayers.reduce((sum, p) => sum + (p.tricksWon || 0), 0);
+    const isSecretActive = (currentBiddingMode === 'secret' && currentGameState !== 'round_over');
     const allHaveBid = myAlliancePlayers.length > 0 && myAlliancePlayers.every(p => p.bid !== null && p.bid !== undefined);
-    const totalBid = allHaveBid
-      ? myAlliancePlayers.reduce((sum, p) => sum + p.bid, 0)
-      : '-';
+    let totalBid = '-';
+    if (isSecretActive) {
+      totalBid = '?';
+    } else if (allHaveBid) {
+      totalBid = myAlliancePlayers.reduce((sum, p) => sum + (typeof p.bid === 'number' ? p.bid : 0), 0);
+    }
+    if (tricksEl) tricksEl.innerText = totalWon;
+    if (bidEl) bidEl.innerText = totalBid;
     if (teamTricksEl) {
       teamTricksEl.innerText = `${totalWon}/${totalBid}`;
-      teamTricksEl.title = `Allianz-Stiche: ${totalWon} von ${totalBid} (Du: ${tricksVal}/${bidVal})`;
+      teamTricksEl.title = `Allianz-Stiche: ${totalWon} von ${totalBid}`;
     }
   } else {
     if (teamSep) teamSep.style.display = 'none';
@@ -6274,11 +6410,9 @@ function updateBiddingSummaryPill() {
     return;
   }
 
-  // Im geheimen Bietmodus bleibt die Bilanz verdeckt, bis die Runde vorbei ist
-  if (currentBiddingMode === 'secret' && currentGameState !== 'round_over') {
-    pill.style.display = 'inline-flex';
-    pill.className = 'bidding-summary-pill bidding-summary-secret';
-    pill.innerText = `🎯 ? / ${currentRound} Stiche (Geheim)`;
+  // Im geheimen Bietmodus wird beim Trumpf keine Gesamtzahl / Bilanz mehr angezeigt
+  if (currentBiddingMode === 'secret') {
+    pill.style.display = 'none';
     return;
   }
 
@@ -6321,6 +6455,12 @@ function renderTrickCards(trickCards, animateLast = true) {
     const wrap = document.createElement('div');
     wrap.classList.add('trick-card-item');
     wrap.style.textAlign = 'center';
+
+    // Spielername über der gespielten Karte
+    const nameBadge = document.createElement('div');
+    nameBadge.className = 'trick-card-player-name';
+    nameBadge.innerText = item.playerName || 'Magier';
+    wrap.appendChild(nameBadge);
 
     // Vollwertige 3D-Karte (vollständig sichtbar, unbedeckt oben)
     const cardWrapper = document.createElement('div');
@@ -6456,11 +6596,11 @@ function renderTrumpCard(trumpCard) {
 
   if (trumpCard.type === 'werewolf_trump_pending') {
     subText.style.color = '#f59e0b';
-    subText.innerText = 'Werwolf wählt...';
+    subText.innerText = 'Mondbiest wählt...';
   } else if (trumpCard.type === 'werewolf_trump') {
     const sName = suitNames[trumpCard.chosenSuit || trumpCard.suit] || 'Unbekannt';
     subText.style.color = 'var(--gold-bright)';
-    subText.innerText = `Werwolf: ${sName}`;
+    subText.innerText = `Mondbiest: ${sName}`;
   } else if (['wizard', 'dragon', 'shapeshifter', 'cloud', 'vampire'].includes(trumpCard.type)) {
     if (trumpCard.chosenSuit) {
       subText.style.color = 'var(--gold-bright)';
@@ -7044,7 +7184,7 @@ function renderCard(card) {
       else if (card.copiedCard.type === 'unicorn') copyLabel = '<div style="font-size: 8.5px; color: #f0abfc; margin-top: 1px;">Kopie: Einhorn</div>';
       else if (card.copiedCard.type === 'werewolf' || card.copiedCard.type === 'werewolf_trump' || card.copiedCard.type === 'werewolf_trump_pending') {
         const cSuit = card.copiedCard.chosenSuit ? ` (${card.copiedCard.chosenSuit})` : '';
-        copyLabel = `<div style="font-size: 8.5px; color: #f59e0b; margin-top: 1px;">Kopie: Mondbestie${cSuit}</div>`;
+        copyLabel = `<div style="font-size: 8.5px; color: #f59e0b; margin-top: 1px;">Kopie: Mondbiest${cSuit}</div>`;
       }
       else if (card.copiedCard.type === 'witch') copyLabel = '<div style="font-size: 8.5px; color: #c084fc; margin-top: 1px;">Kopie: Schattenhexe</div>';
       else if (card.copiedCard.type === 'juggler') copyLabel = '<div style="font-size: 8.5px; color: #67e8f9; margin-top: 1px;">Kopie: Taschenspieler</div>';
@@ -7096,7 +7236,7 @@ function renderCard(card) {
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.werewolf}</div>
         <div class="card-center-val" style="font-size: 24px; color: #f59e0b; margin-top: 2px;">M</div>
-        <div class="card-name-label"><em>Mondbestie</em></div>
+        <div class="card-name-label"><em>Mondbiest</em></div>
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">M</span>
@@ -7119,7 +7259,7 @@ function renderCard(card) {
           <div style="width: 18px; height: 18px;">${suitIcon}</div>
         </div>
         <div class="card-center-val" style="font-size: 20px; color: #fde047; margin-top: 1px;">M</div>
-        <div class="card-name-label"><em>Mondbestien-Trumpf: ${suitName}</em></div>
+        <div class="card-name-label"><em>Mondbiest-Trumpf: ${suitName}</em></div>
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">M</span>
@@ -7175,6 +7315,58 @@ function renderCard(card) {
     `;
   }
 
+  // Farbschatten (Glow) für Wolke und Jongleur bei gewählter Bedienfarbe
+  if ((card.type === 'cloud' || card.type === 'juggler') && card.chosenSuit) {
+    div.classList.add(`card-glow-${card.chosenSuit}`);
+  }
+
+  // Namens-Banner unter allen arkanen Nicht-Zahlen-Karten (auch bei vollflächigem Artwork sichtbar!)
+  let bottomLabelText = '';
+  const suitNamesGerman = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
+  if (card.type === 'wizard') {
+    bottomLabelText = '🧙‍♂️ Zauberer';
+  } else if (card.type === 'jester') {
+    bottomLabelText = '🃏 Narr';
+  } else if (card.type === 'dragon') {
+    bottomLabelText = '🐉 Drache';
+  } else if (card.type === 'fairy') {
+    bottomLabelText = '🧚 Fee';
+  } else if (card.type === 'bomb') {
+    bottomLabelText = '💣 Bombe';
+  } else if (card.type === 'unicorn') {
+    bottomLabelText = '🦄 Einhorn';
+  } else if (card.type === 'werewolf' || card.type === 'werewolf_trump_pending') {
+    bottomLabelText = '🐺 Mondbiest';
+  } else if (card.type === 'werewolf_trump') {
+    const sName = suitNamesGerman[card.chosenSuit || card.suit] || '';
+    bottomLabelText = sName ? `🐺 Mondbiest (${sName})` : '🐺 Mondbiest';
+  } else if (card.type === 'witch') {
+    bottomLabelText = '🧙‍♀️ Hexe';
+  } else if (card.type === 'vampire') {
+    bottomLabelText = '🧛 Vampir';
+  } else if (card.type === 'shapeshifter') {
+    if (card.chosenRole === 'wizard') {
+      bottomLabelText = '🎭 Doppelgänger (E)';
+    } else if (card.chosenRole === 'jester') {
+      bottomLabelText = '🎭 Doppelgänger (S)';
+    } else {
+      bottomLabelText = '🎭 Doppelgänger';
+    }
+  } else if (card.type === 'cloud') {
+    const sName = suitNamesGerman[card.chosenSuit] || '';
+    bottomLabelText = sName ? `☁️ Wolke (${sName})` : '☁️ Wolke';
+  } else if (card.type === 'juggler') {
+    const sName = suitNamesGerman[card.chosenSuit] || '';
+    bottomLabelText = sName ? `🤹 Jongleur (${sName})` : '🤹 Jongleur';
+  }
+
+  if (bottomLabelText) {
+    const bLabel = document.createElement('div');
+    bLabel.className = 'card-bottom-label';
+    bLabel.innerText = bottomLabelText;
+    div.appendChild(bLabel);
+  }
+
   if (artImg) {
     div.prepend(artImg);
   }
@@ -7223,13 +7415,25 @@ function renderScoreBoard() {
 
   if (cachedPlayers.length === 0) return;
 
+  // Im Team-Modus die Spieler-Spalten sauber nach Allianzen gruppieren
+  let displayPlayers = [...cachedPlayers];
+  if (currentMatchFormat === 'team_2v2') {
+    const teamOrder = { team_a: 1, team_b: 2, team_c: 3 };
+    displayPlayers.sort((a, b) => {
+      const ordA = teamOrder[a.team] || 99;
+      const ordB = teamOrder[b.team] || 99;
+      if (ordA !== ordB) return ordA - ordB;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }
+
   const headerRow = document.createElement('tr');
   const thRound = document.createElement('th');
   thRound.innerText = 'Runde';
   thRound.style.width = '60px';
   headerRow.appendChild(thRound);
 
-  cachedPlayers.forEach(player => {
+  displayPlayers.forEach(player => {
     const th = document.createElement('th');
     const isMe = (player.sessionId === mySessionId);
     const hostBadge = player.isHost ? '<span class="host-badge">Host</span>' : '';
@@ -7263,7 +7467,7 @@ function renderScoreBoard() {
     tdRound.style.fontWeight = 'bold';
     row.appendChild(tdRound);
 
-    cachedPlayers.forEach(player => {
+    displayPlayers.forEach(player => {
       const td = document.createElement('td');
       const entry = record.entries ? record.entries.find(e => e.sessionId === player.sessionId) : null;
 
@@ -7294,9 +7498,12 @@ function renderScoreBoard() {
     tdLiveRound.innerHTML = `<b>${currentRound}</b><br><span style="font-size: 10px; color: #92400e; font-weight: bold;">(aktiv)</span>`;
     liveRow.appendChild(tdLiveRound);
 
-    cachedPlayers.forEach(player => {
+    displayPlayers.forEach(player => {
       const td = document.createElement('td');
-      const bidText = player.bid !== null ? player.bid : '-';
+      let bidText = player.bid !== null ? player.bid : '-';
+      if (currentBiddingMode === 'secret' && currentGameState !== 'round_over') {
+        bidText = '?';
+      }
       const wonText = player.tricksWon !== undefined ? player.tricksWon : 0;
 
       td.innerHTML = `<div><small>G: <b>${wonText}</b> | T: <b>${bidText}</b></small></div>`;
@@ -7996,8 +8203,10 @@ function setupAudioSettingsUI() {
 
   const sfxMute = document.getElementById('sfxMuteToggle');
   const musicMute = document.getElementById('musicMuteToggle');
+  const turnSoundToggle = document.getElementById('turnSoundToggle');
 
   const btnTestCard = document.getElementById('btnTestCardSound');
+  const btnTestTurnSound = document.getElementById('btnTestTurnSound');
   const btnToggleMusic = document.getElementById('btnToggleMusicPlayback');
   const musicStatus = document.getElementById('musicPlayingStatus');
 
@@ -8013,6 +8222,7 @@ function setupAudioSettingsUI() {
 
     if (sfxMute) sfxMute.checked = !!s.sfxMuted;
     if (musicMute) musicMute.checked = !!s.musicMuted;
+    if (turnSoundToggle) turnSoundToggle.checked = (s.turnSoundEnabled !== false);
 
     updateMusicUI();
     if (modal) modal.style.display = 'flex';
@@ -8082,9 +8292,21 @@ function setupAudioSettingsUI() {
     });
   }
 
+  if (turnSoundToggle) {
+    turnSoundToggle.addEventListener('change', (e) => {
+      WizardAudio.setTurnSoundEnabled(e.target.checked);
+    });
+  }
+
   if (btnTestCard) {
     btnTestCard.addEventListener('click', () => {
       WizardAudio.playCardSnap();
+    });
+  }
+
+  if (btnTestTurnSound) {
+    btnTestTurnSound.addEventListener('click', () => {
+      WizardAudio.playTurnChime();
     });
   }
 
