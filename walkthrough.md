@@ -118,3 +118,12 @@ In diesem Update wurden vier zentrale Kernbereiche zur Spieltiefe, Langzeitmotiv
 ### Asset-Synchronisation zu Android
 - Ausgeführt: `robocopy public android\app\src\main\assets\public /E /NP /NDL /NFL /NJH /NJS`
 - Status: Erfolgreich synchronisiert (Exit-Code 0 / synchron).
+
+### Live-Verifikation auf Render Cloud (`https://grimoire-cardgame.onrender.com`)
+- **Git Push**: Commit `4680448` erfolgreich auf `origin/main` gepusht.
+- **Auto-Deploy**: Render hat den Commit automatisch gebaut und gestartet.
+- **Live-Endpunkte verifiziert**:
+  - `GET /api/health` ➔ `200 OK`, `{"status":"ok","service":"Grimoire Server","dbEngine":"sqlite"}`.
+  - `GET /api/auth/check-username?username=Apfeltasche` ➔ `200 OK`, `{"available":true,"cleanName":"Apfeltasche"}`.
+  - `POST /api/auth/register` ➔ `200 OK`, Account `ApfeltascheLive` erfolgreich registriert mit Token und Stufe 1.
+  - `GET /api/vault/state` ➔ `200 OK`, liefert alle 6 Kosmetik-Kategorien und wöchentliche Meilensteine.
