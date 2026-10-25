@@ -46,6 +46,8 @@ app.use((req, res, next) => {
   next();
 });
 
+const dbModule = require('./database');
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -58,8 +60,6 @@ app.get('/api/health', (req, res) => {
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
-
-const dbModule = require('./database');
 
 // --- REST-API FÜR ACCOUNTS, STATISTIKEN & LEADERBOARDS ---
 app.get('/api/auth/check-username', async (req, res, next) => {

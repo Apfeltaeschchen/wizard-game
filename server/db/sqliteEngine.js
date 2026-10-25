@@ -998,6 +998,9 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
         db.pragma('wal_checkpoint(TRUNCATE)');
       }
     } catch (e) {}
+    try {
+      db.close();
+    } catch (e) {}
   }
 
   return {

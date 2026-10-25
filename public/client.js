@@ -2408,6 +2408,7 @@ const WizardAuth = (() => {
 
   let checkUsernameTimeout = null;
   let isUsernameAvailableStatus = true;
+  let checkUsernameSeq = 0;
 
   async function checkLiveUsername(username) {
     const feedbackEl = document.getElementById('authUsernameFeedback');
@@ -2438,18 +2439,21 @@ const WizardAuth = (() => {
       return;
     }
 
+    const currentSeq = ++checkUsernameSeq;
     feedbackEl.style.display = 'block';
     feedbackEl.style.color = '#94a3b8';
     feedbackEl.innerHTML = '⏳ Prüfe Gilden-Register...';
 
     try {
       const resp = await fetch(getApiUrl(`/api/auth/check-username?username=${encodeURIComponent(raw)}`));
+      if (currentSeq !== checkUsernameSeq) return;
       let data = null;
       try {
         data = await resp.json();
       } catch (parseErr) {
         data = null;
       }
+      if (currentSeq !== checkUsernameSeq) return;
       if (!resp.ok) {
         feedbackEl.style.display = 'block';
         feedbackEl.style.color = '#f87171';
@@ -2470,6 +2474,7 @@ const WizardAuth = (() => {
         isUsernameAvailableStatus = false;
       }
     } catch (e) {
+      if (currentSeq !== checkUsernameSeq) return;
       feedbackEl.style.display = 'block';
       feedbackEl.style.color = '#f87171';
       feedbackEl.innerHTML = '⚠️ Verbindung zum Server fehlgeschlagen';

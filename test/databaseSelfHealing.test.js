@@ -106,6 +106,29 @@ console.log('--- STARTE TEST FÜR SELF-HEALING DATENBANK-FACADE & API-HÄRTUNG -
 
     server.close();
 
+    // 5. Teste Quellcode-Architektur von server/index.js & public/client.js
+    console.log('5. Teste Quellcode-Architektur & Sequenz-Schutz...');
+    const fs = require('fs');
+    const path = require('path');
+    const serverSrc = fs.readFileSync(path.join(__dirname, '../server/index.js'), 'utf8');
+    const clientSrc = fs.readFileSync(path.join(__dirname, '../public/client.js'), 'utf8');
+
+    const dbModuleImportIdx = serverSrc.indexOf("const dbModule = require('./database');");
+    const healthRouteIdx = serverSrc.indexOf("app.get('/api/health'");
+    assert.ok(dbModuleImportIdx !== -1, 'dbModule muss in server/index.js importiert sein');
+    assert.ok(healthRouteIdx !== -1, '/api/health muss in server/index.js deklariert sein');
+    assert.ok(dbModuleImportIdx < healthRouteIdx, 'dbModule muss VOR /api/health importiert werden (TDZ-Schutz)');
+
+    assert.ok(serverSrc.includes('app.use((err, req, res, next) =>'), 'Globaler Express Error Handler in server/index.js vorhanden');
+    assert.ok(clientSrc.includes('checkUsernameSeq'), 'client.js checkLiveUsername muss Sequenz-Schutz besitzen');
+
+    // 6. Teste closeDatabase Lifecycle & Re-Initialisierung
+    console.log('6. Teste closeDatabase Lifecycle...');
+    await dbModule.closeDatabase();
+    assert.strictEqual(dbModule.getEngine(), 'sqlite', 'getEngine muss nach closeDatabase transparent re-initialisieren');
+    assert.ok(dbModule.db, 'dbModule.db muss nach closeDatabase wieder verfügbar sein');
+    console.log('✓ 6. closeDatabase Lifecycle & Re-Initialisierung erfolgreich!');
+
     console.log('\n======================================================');
     console.log('ALLE SELF-HEALING & FEHLERBEHANDLUNGS-TESTS BESTANDEN!');
     console.log('======================================================\n');

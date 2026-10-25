@@ -72,6 +72,9 @@ function invokeEngine(methodName, ...args) {
 }
 
 function getEngine() {
+  if (!activeEngine) {
+    activeEngine = getSqliteFallback();
+  }
   return activeEngine ? activeEngine.engine : 'sqlite';
 }
 
@@ -97,6 +100,8 @@ function closeDatabase() {
       if (res && typeof res.then === 'function') promises.push(res);
     } catch (e) {}
   }
+  activeEngine = null;
+  sqliteFallbackInstance = null;
   return promises.length ? Promise.all(promises) : undefined;
 }
 
@@ -113,6 +118,9 @@ process.once('SIGTERM', () => {
 module.exports = {
   // Underlying DB instance (better-sqlite3 db or pg.Pool)
   get db() {
+    if (!activeEngine) {
+      activeEngine = getSqliteFallback();
+    }
     return activeEngine ? activeEngine.db : null;
   },
   get pool() {
