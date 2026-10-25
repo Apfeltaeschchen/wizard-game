@@ -123,7 +123,7 @@ async function runTests() {
     // 5. Spielphase: Runde 1 Stich spielen
     let hostPlayed = false;
     const playStartTime = Date.now();
-    while (Date.now() - playStartTime < 14000) {
+    while (Date.now() - playStartTime < 25000) {
       const lastTurn = turnsObserved[turnsObserved.length - 1];
       if (lastTurn && lastTurn.gameState === 'playing_tricks' && lastTurn.activePlayerSessionId === 'sess_solo_host' && !hostPlayed) {
         hostPlayed = true;

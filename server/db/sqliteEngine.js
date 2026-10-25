@@ -3,26 +3,84 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
+const {
+  COSMETICS_CATALOG,
+  RARITY_CONFIG,
+  CHEST_TIERS,
+  WEEKLY_MILESTONES,
+  getCurrentWeeklyPeriodId,
+  rollChestRewards,
+  calculateMatchXP,
+  calculateLevelProgress,
+  XP_PER_LEVEL
+} = require('../cosmeticsData');
+
+function isDirectoryWritable(dirPath) {
+  try {
+    if (!fs.existsSync(dirPath)) return false;
+    const stat = fs.statSync(dirPath);
+    if (!stat.isDirectory()) return false;
+    fs.accessSync(dirPath, fs.constants.W_OK);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function resolveSafeDatabasePath(customDbPath) {
+  if (customDbPath) return customDbPath;
+  if (process.env.WIZARD_DB_PATH) return process.env.WIZARD_DB_PATH;
+
+  // 1. Persistent Disk auf Render (/var/data)
+  if (isDirectoryWritable('/var/data')) {
+    return path.join('/var/data', 'wizard.db');
+  }
+
+  // 2. Lokaler Daten-Ordner (server/data)
+  const dataDir = path.join(__dirname, '../data');
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    if (isDirectoryWritable(dataDir)) {
+      return path.join(dataDir, 'wizard.db');
+    }
+  } catch (e) {}
+
+  // 3. Arbeitsverzeichnis Fallback (process.cwd())
+  try {
+    if (isDirectoryWritable(process.cwd())) {
+      return path.join(process.cwd(), 'wizard.db');
+    }
+  } catch (e) {}
+
+  // 4. In-Memory als sichere Rückfallebene
+  return ':memory:';
+}
 
 function createSqliteEngine(customDbPath, sharedHelpers) {
   const { getRankDetailsFromSR, formatUserWithRank, RESERVED_USERNAMES, validateUsername } = sharedHelpers;
 
-  const dataDir = path.join(__dirname, '../data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  let dbPath = resolveSafeDatabasePath(customDbPath);
+  let db;
+  try {
+    db = new Database(dbPath);
+  } catch (err) {
+    console.warn(`[SQLite Engine] Konnte "${dbPath}" nicht öffnen (${err.message}). Verwende lokalen Ausweichpfad...`);
+    try {
+      dbPath = path.join(process.cwd(), 'wizard.db');
+      db = new Database(dbPath);
+    } catch (err2) {
+      console.warn(`[SQLite Engine] Ausweichpfad fehlgeschlagen (${err2.message}). Wechsle zu In-Memory.`);
+      dbPath = ':memory:';
+      db = new Database(':memory:');
+    }
   }
-
-  const defaultDbPath = fs.existsSync('/var/data')
-    ? path.join('/var/data', 'wizard.db')
-    : path.join(dataDir, 'wizard.db');
-
-  const dbPath = customDbPath || process.env.WIZARD_DB_PATH || defaultDbPath;
-  const db = new Database(dbPath);
 
   if (dbPath !== ':memory:') {
-    db.pragma('journal_mode = WAL');
+    try { db.pragma('journal_mode = WAL'); } catch (e) {}
   }
-  db.pragma('foreign_keys = ON');
+  try { db.pragma('foreign_keys = ON'); } catch (e) {}
 
   // Schemainitialisierung
   db.exec(`
@@ -72,6 +130,15 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(user_id, friend_id)
     );
+
+    CREATE TABLE IF NOT EXISTS user_inventory (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      item_type TEXT NOT NULL,
+      item_id TEXT NOT NULL,
+      acquired_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(user_id, item_type, item_id)
+    );
   `);
 
   // Migrationen für Ranglisten-Felder
@@ -81,6 +148,23 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
   try { db.exec('ALTER TABLE user_stats ADD COLUMN ranked_games_won INTEGER DEFAULT 0;'); } catch (e) {}
   try { db.exec('ALTER TABLE user_stats ADD COLUMN pending_penalty_notice TEXT DEFAULT NULL;'); } catch (e) {}
 
+  // Migrationen für Etappe 6: Kosmetik, Schatztruhen & Overwatch-Style Progression
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN account_level INTEGER DEFAULT 1;'); } catch (e) {}
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN account_xp INTEGER DEFAULT 0;'); } catch (e) {}
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN chests_wooden INTEGER DEFAULT 1;'); } catch (e) {}
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN chests_silver INTEGER DEFAULT 0;'); } catch (e) {}
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN chests_gold INTEGER DEFAULT 0;'); } catch (e) {}
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN astral_dust INTEGER DEFAULT 0;'); } catch (e) {}
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN weekly_matches_played INTEGER DEFAULT 0;'); } catch (e) {}
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN weekly_matches_won INTEGER DEFAULT 0;'); } catch (e) {}
+  try { db.exec('ALTER TABLE user_stats ADD COLUMN weekly_perfect_bids INTEGER DEFAULT 0;'); } catch (e) {}
+  try { db.exec("ALTER TABLE user_stats ADD COLUMN weekly_claimed_milestones TEXT DEFAULT '[]';"); } catch (e) {}
+  try { db.exec("ALTER TABLE user_stats ADD COLUMN weekly_period_id TEXT DEFAULT '';"); } catch (e) {}
+  try { db.exec("ALTER TABLE user_stats ADD COLUMN equipped_card_back TEXT DEFAULT 'default';"); } catch (e) {}
+  try { db.exec("ALTER TABLE user_stats ADD COLUMN equipped_table_skin TEXT DEFAULT 'emerald_felt';"); } catch (e) {}
+  try { db.exec("ALTER TABLE user_stats ADD COLUMN equipped_avatar_frame TEXT DEFAULT 'none';"); } catch (e) {}
+  try { db.exec("ALTER TABLE user_stats ADD COLUMN equipped_lobby_background TEXT DEFAULT 'citadel_halls';"); } catch (e) {}
+
   // Prepared Statements
   const stmtFindUserByName = db.prepare('SELECT * FROM users WHERE username = ?');
   const stmtFindUserById = db.prepare(`
@@ -89,14 +173,18 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
            s.podium_finishes, s.total_points, s.highest_score, s.bids_made, s.bids_hit,
            s.wizards_played, s.jesters_played,
            s.skill_rating, s.highest_skill_rating, s.ranked_games_played, s.ranked_games_won,
-           s.pending_penalty_notice
+           s.pending_penalty_notice,
+           s.account_level, s.account_xp, s.chests_wooden, s.chests_silver, s.chests_gold,
+           s.astral_dust, s.weekly_matches_played, s.weekly_matches_won, s.weekly_perfect_bids,
+           s.weekly_claimed_milestones, s.weekly_period_id,
+           s.equipped_card_back, s.equipped_table_skin, s.equipped_avatar_frame, s.equipped_lobby_background
     FROM users u
     LEFT JOIN user_stats s ON u.id = s.user_id
     WHERE u.id = ?
   `);
 
   const stmtInsertUser = db.prepare('INSERT INTO users (username, password_hash, avatar_id) VALUES (?, ?, ?)');
-  const stmtInsertStats = db.prepare('INSERT INTO user_stats (user_id, skill_rating, highest_skill_rating) VALUES (?, 1000, 1000)');
+  const stmtInsertStats = db.prepare('INSERT INTO user_stats (user_id, skill_rating, highest_skill_rating, chests_wooden) VALUES (?, 1000, 1000, 1)');
   const stmtCreateSession = db.prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)');
   const stmtFindSession = db.prepare(`
     SELECT s.token, s.expires_at, u.id, u.username, u.avatar_id, u.title,
@@ -104,7 +192,11 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
            st.podium_finishes, st.total_points, st.highest_score, st.bids_made, st.bids_hit,
            st.wizards_played, st.jesters_played,
            st.skill_rating, st.highest_skill_rating, st.ranked_games_played, st.ranked_games_won,
-           st.pending_penalty_notice
+           st.pending_penalty_notice,
+           st.account_level, st.account_xp, st.chests_wooden, st.chests_silver, st.chests_gold,
+           st.astral_dust, st.weekly_matches_played, st.weekly_matches_won, st.weekly_perfect_bids,
+           st.weekly_claimed_milestones, st.weekly_period_id,
+           st.equipped_card_back, st.equipped_table_skin, st.equipped_avatar_frame, st.equipped_lobby_background
     FROM sessions s
     JOIN users u ON s.user_id = u.id
     LEFT JOIN user_stats st ON u.id = st.user_id
@@ -113,6 +205,13 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
   const stmtDeleteSession = db.prepare('DELETE FROM sessions WHERE token = ?');
   const stmtTouchSession = db.prepare('UPDATE sessions SET expires_at = ? WHERE token = ?');
   const stmtUpdateProfile = db.prepare('UPDATE users SET avatar_id = COALESCE(?, avatar_id), title = COALESCE(?, title) WHERE id = ?');
+  const stmtGetInventory = db.prepare('SELECT item_type, item_id, acquired_at FROM user_inventory WHERE user_id = ?');
+  const stmtInsertInventory = db.prepare('INSERT OR IGNORE INTO user_inventory (user_id, item_type, item_id) VALUES (?, ?, ?)');
+  const stmtHasInventoryItem = db.prepare('SELECT id FROM user_inventory WHERE user_id = ? AND item_type = ? AND item_id = ?');
+  const stmtUpdateEquippedCardBack = db.prepare('UPDATE user_stats SET equipped_card_back = ? WHERE user_id = ?');
+  const stmtUpdateEquippedTableSkin = db.prepare('UPDATE user_stats SET equipped_table_skin = ? WHERE user_id = ?');
+  const stmtUpdateEquippedAvatarFrame = db.prepare('UPDATE user_stats SET equipped_avatar_frame = ? WHERE user_id = ?');
+  const stmtUpdateEquippedLobbyBackground = db.prepare('UPDATE user_stats SET equipped_lobby_background = ? WHERE user_id = ?');
   const stmtGetLeaderboard = db.prepare(`
     SELECT u.id, u.username, u.avatar_id, u.title,
            s.games_played, s.games_won, s.games_lost, s.max_win_streak, s.highest_score,
@@ -237,7 +336,8 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
   function backupDatabase() {
     if (dbPath === ':memory:' || !fs.existsSync(dbPath)) return Promise.resolve(null);
     try {
-      const backupPath = path.join(dataDir, 'wizard.db.backup');
+      const backupDir = path.dirname(dbPath);
+      const backupPath = path.join(backupDir, 'wizard.db.backup');
       if (typeof db.backup === 'function') {
         return db.backup(backupPath).then(() => backupPath).catch(err => {
           console.warn('[Database] Backup fehlgeschlagen:', err);
@@ -529,6 +629,369 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     return rows.map(r => formatUserWithRank(r));
   }
 
+  function getUserCosmetics(userId) {
+    if (!userId) return null;
+    const userRow = stmtFindUserById.get(userId);
+    if (!userRow) return null;
+
+    const curPeriod = getCurrentWeeklyPeriodId();
+    if (userRow.weekly_period_id !== curPeriod) {
+      db.prepare(`
+        UPDATE user_stats
+        SET weekly_matches_played = 0,
+            weekly_matches_won = 0,
+            weekly_perfect_bids = 0,
+            weekly_claimed_milestones = '[]',
+            weekly_period_id = ?
+        WHERE user_id = ?
+      `).run(curPeriod, userId);
+      userRow.weekly_matches_played = 0;
+      userRow.weekly_matches_won = 0;
+      userRow.weekly_perfect_bids = 0;
+      userRow.weekly_claimed_milestones = '[]';
+      userRow.weekly_period_id = curPeriod;
+    }
+
+    const inv = stmtGetInventory.all(userId);
+    let claimedMilestones = [];
+    try {
+      claimedMilestones = JSON.parse(userRow.weekly_claimed_milestones || '[]');
+    } catch (e) {
+      claimedMilestones = [];
+    }
+
+    return {
+      success: true,
+      user: formatUserWithRank(userRow),
+      inventory: inv,
+      catalog: COSMETICS_CATALOG,
+      rarityConfig: RARITY_CONFIG,
+      chestTiers: CHEST_TIERS,
+      weeklyMilestones: WEEKLY_MILESTONES,
+      weeklyStats: {
+        periodId: curPeriod,
+        matchesPlayed: userRow.weekly_matches_played || 0,
+        matchesWon: userRow.weekly_matches_won || 0,
+        perfectBids: userRow.weekly_perfect_bids || 0,
+        claimedMilestones
+      }
+    };
+  }
+
+  function openChest(userId, chestType) {
+    if (!userId) return { success: false, error: 'Nicht angemeldet.' };
+    const validTiers = ['wooden', 'silver', 'gold'];
+    if (!validTiers.includes(chestType)) {
+      return { success: false, error: 'Ungültiger Truhentyp.' };
+    }
+
+    const userRow = stmtFindUserById.get(userId);
+    if (!userRow) return { success: false, error: 'Benutzer nicht gefunden.' };
+
+    const chestCol = `chests_${chestType}`;
+    const available = userRow[chestCol] || 0;
+    if (available < 1) {
+      const tierName = CHEST_TIERS[chestType] ? CHEST_TIERS[chestType].name : 'Truhen';
+      return { success: false, error: `Keine ${tierName} verfügbar.` };
+    }
+
+    const inv = stmtGetInventory.all(userId);
+    const ownedIds = inv.map(i => i.item_id);
+
+    const rollRes = rollChestRewards(chestType, ownedIds);
+    const newChestCount = available - 1;
+    const newDust = (userRow.astral_dust || 0) + (rollRes.totalDustGained || 0);
+
+    const tx = db.transaction(() => {
+      db.prepare(`UPDATE user_stats SET ${chestCol} = ?, astral_dust = ? WHERE user_id = ?`).run(newChestCount, newDust, userId);
+      for (const item of rollRes.rewards) {
+        if (!item.isDuplicate) {
+          let singularType = item.type;
+          if (singularType.endsWith('s')) singularType = singularType.slice(0, -1);
+          if (['avatar_icon', 'card_back', 'table_skin', 'avatar_frame', 'title', 'lobby_background'].includes(singularType)) {
+            stmtInsertInventory.run(userId, singularType, item.id);
+          }
+        }
+      }
+    });
+    tx();
+
+    return {
+      success: true,
+      chestType,
+      rewards: rollRes.rewards,
+      totalDustGained: rollRes.totalDustGained,
+      remainingChests: newChestCount,
+      newDustBalance: newDust
+    };
+  }
+
+  function equipCosmetic(userId, itemType, itemId) {
+    if (!userId) return { success: false, error: 'Nicht angemeldet.' };
+    const validTypes = ['avatar_icon', 'card_back', 'table_skin', 'avatar_frame', 'title', 'lobby_background'];
+    if (!validTypes.includes(itemType)) {
+      return { success: false, error: 'Ungültiger Kosmetiktyp.' };
+    }
+
+    let catalogList = [];
+    if (itemType === 'avatar_icon') catalogList = COSMETICS_CATALOG.avatar_icons;
+    else if (itemType === 'card_back') catalogList = COSMETICS_CATALOG.card_backs;
+    else if (itemType === 'table_skin') catalogList = COSMETICS_CATALOG.table_skins;
+    else if (itemType === 'avatar_frame') catalogList = COSMETICS_CATALOG.avatar_frames;
+    else if (itemType === 'lobby_background') catalogList = COSMETICS_CATALOG.lobby_backgrounds;
+    else if (itemType === 'title') catalogList = COSMETICS_CATALOG.titles;
+
+    const catalogItem = catalogList.find(i => i.id === itemId);
+    if (!catalogItem) {
+      return { success: false, error: 'Gegenstand existiert nicht im Katalog.' };
+    }
+
+    if (!catalogItem.isDefault) {
+      const owned = stmtHasInventoryItem.get(userId, itemType, itemId);
+      if (!owned) {
+        return { success: false, error: 'Diesen Gegenstand besitzt du noch nicht.' };
+      }
+    }
+
+    if (itemType === 'avatar_icon') {
+      stmtUpdateProfile.run(itemId, null, userId);
+    } else if (itemType === 'title') {
+      stmtUpdateProfile.run(null, itemId, userId);
+    } else if (itemType === 'card_back') {
+      stmtUpdateEquippedCardBack.run(itemId, userId);
+    } else if (itemType === 'table_skin') {
+      stmtUpdateEquippedTableSkin.run(itemId, userId);
+    } else if (itemType === 'avatar_frame') {
+      stmtUpdateEquippedAvatarFrame.run(itemId, userId);
+    } else if (itemType === 'lobby_background') {
+      stmtUpdateEquippedLobbyBackground.run(itemId, userId);
+    }
+
+    const updatedUser = formatUserWithRank(stmtFindUserById.get(userId));
+    return { success: true, itemType, itemId, user: updatedUser };
+  }
+
+  function craftCosmetic(userId, itemType, itemId) {
+    if (!userId) return { success: false, error: 'Nicht angemeldet.' };
+    const validTypes = ['avatar_icon', 'card_back', 'table_skin', 'avatar_frame', 'title', 'lobby_background'];
+    if (!validTypes.includes(itemType)) return { success: false, error: 'Ungültiger Typ.' };
+
+    let catalogList = [];
+    if (itemType === 'avatar_icon') catalogList = COSMETICS_CATALOG.avatar_icons;
+    else if (itemType === 'card_back') catalogList = COSMETICS_CATALOG.card_backs;
+    else if (itemType === 'table_skin') catalogList = COSMETICS_CATALOG.table_skins;
+    else if (itemType === 'avatar_frame') catalogList = COSMETICS_CATALOG.avatar_frames;
+    else if (itemType === 'lobby_background') catalogList = COSMETICS_CATALOG.lobby_backgrounds;
+    else if (itemType === 'title') catalogList = COSMETICS_CATALOG.titles;
+
+    const catalogItem = catalogList.find(i => i.id === itemId);
+    if (!catalogItem) return { success: false, error: 'Gegenstand nicht gefunden.' };
+    if (catalogItem.isDefault) return { success: false, error: 'Standard-Gegenstände müssen nicht geschmiedet werden.' };
+
+    const owned = stmtHasInventoryItem.get(userId, itemType, itemId);
+    if (owned) return { success: false, error: 'Diesen Gegenstand besitzt du bereits.' };
+
+    const rarityMeta = RARITY_CONFIG[catalogItem.rarity] || RARITY_CONFIG.common;
+    const cost = rarityMeta.dustCost;
+
+    const userRow = stmtFindUserById.get(userId);
+    const curDust = userRow ? (userRow.astral_dust || 0) : 0;
+    if (curDust < cost) {
+      return { success: false, error: `Nicht genügend Astralstaub (benötigt: ${cost}, vorhanden: ${curDust}).` };
+    }
+
+    const newDust = curDust - cost;
+    const tx = db.transaction(() => {
+      db.prepare('UPDATE user_stats SET astral_dust = ? WHERE user_id = ?').run(newDust, userId);
+      stmtInsertInventory.run(userId, itemType, itemId);
+    });
+    tx();
+
+    return {
+      success: true,
+      item: catalogItem,
+      newDustBalance: newDust
+    };
+  }
+
+  function claimWeeklyMilestone(userId, milestoneId) {
+    if (!userId) return { success: false, error: 'Nicht angemeldet.' };
+    const milestone = WEEKLY_MILESTONES.find(m => m.id === milestoneId);
+    if (!milestone) return { success: false, error: 'Meilenstein nicht gefunden.' };
+
+    const userRow = stmtFindUserById.get(userId);
+    if (!userRow) return { success: false, error: 'Benutzer nicht gefunden.' };
+
+    let claimed = [];
+    try { claimed = JSON.parse(userRow.weekly_claimed_milestones || '[]'); } catch (e) {}
+    if (claimed.includes(milestoneId)) {
+      return { success: false, error: 'Diesen Meilenstein hast du diese Woche bereits eingelöst.' };
+    }
+
+    let currentVal = 0;
+    if (milestone.type === 'matches') currentVal = userRow.weekly_matches_played || 0;
+    else if (milestone.type === 'wins') currentVal = userRow.weekly_matches_won || 0;
+    else if (milestone.type === 'bids') currentVal = userRow.weekly_perfect_bids || 0;
+
+    if (currentVal < milestone.target) {
+      return { success: false, error: `Meilenstein noch nicht erreicht (${currentVal}/${milestone.target}).` };
+    }
+
+    claimed.push(milestoneId);
+    let newWooden = userRow.chests_wooden || 0;
+    let newSilver = userRow.chests_silver || 0;
+    let newGold = userRow.chests_gold || 0;
+    let newDust = userRow.astral_dust || 0;
+
+    if (milestone.reward.type === 'chest') {
+      if (milestone.reward.chestType === 'wooden') newWooden += (milestone.reward.amount || 1);
+      else if (milestone.reward.chestType === 'silver') newSilver += (milestone.reward.amount || 1);
+      else if (milestone.reward.chestType === 'gold') newGold += (milestone.reward.amount || 1);
+    } else if (milestone.reward.type === 'dust') {
+      newDust += (milestone.reward.amount || 0);
+    }
+
+    db.prepare(`
+      UPDATE user_stats
+      SET weekly_claimed_milestones = ?,
+          chests_wooden = ?,
+          chests_silver = ?,
+          chests_gold = ?,
+          astral_dust = ?
+      WHERE user_id = ?
+    `).run(JSON.stringify(claimed), newWooden, newSilver, newGold, newDust, userId);
+
+    return {
+      success: true,
+      milestoneId,
+      reward: milestone.reward,
+      claimedMilestones: claimed,
+      chests: { wooden: newWooden, silver: newSilver, gold: newGold },
+      newDustBalance: newDust
+    };
+  }
+
+  function applyMatchProgression(userId, matchStats = {}) {
+    if (!userId) return null;
+    const userRow = stmtFindUserById.get(userId);
+    if (!userRow) return null;
+
+    const curPeriod = getCurrentWeeklyPeriodId();
+    let weeklyPlayed = userRow.weekly_matches_played || 0;
+    let weeklyWon = userRow.weekly_matches_won || 0;
+    let weeklyBids = userRow.weekly_perfect_bids || 0;
+    let claimedMilestones = userRow.weekly_claimed_milestones || '[]';
+
+    if (userRow.weekly_period_id !== curPeriod) {
+      weeklyPlayed = 0;
+      weeklyWon = 0;
+      weeklyBids = 0;
+      claimedMilestones = '[]';
+    }
+
+    weeklyPlayed += 1;
+    if (matchStats.isWinner || matchStats.rank === 1) weeklyWon += 1;
+    if (matchStats.bidsHit > 0) weeklyBids += matchStats.bidsHit;
+
+    const gainedXP = calculateMatchXP(matchStats);
+    const progress = calculateLevelProgress(userRow.account_level || 1, userRow.account_xp || 0, gainedXP);
+
+    let newWooden = (userRow.chests_wooden || 0) + progress.chestsAwarded.wooden;
+    let newSilver = (userRow.chests_silver || 0) + progress.chestsAwarded.silver;
+    let newGold = (userRow.chests_gold || 0) + progress.chestsAwarded.gold;
+
+    db.prepare(`
+      UPDATE user_stats
+      SET account_level = ?,
+          account_xp = ?,
+          chests_wooden = ?,
+          chests_silver = ?,
+          chests_gold = ?,
+          weekly_matches_played = ?,
+          weekly_matches_won = ?,
+          weekly_perfect_bids = ?,
+          weekly_claimed_milestones = ?,
+          weekly_period_id = ?
+      WHERE user_id = ?
+    `).run(
+      progress.newLevel,
+      progress.currentXP,
+      newWooden,
+      newSilver,
+      newGold,
+      weeklyPlayed,
+      weeklyWon,
+      weeklyBids,
+      claimedMilestones,
+      curPeriod,
+      userId
+    );
+
+    return {
+      userId,
+      gainedXP,
+      oldLevel: progress.oldLevel,
+      newLevel: progress.newLevel,
+      leveledUp: progress.leveledUp,
+      currentXP: progress.currentXP,
+      xpRequired: progress.xpRequired,
+      chestsAwarded: progress.chestsAwarded,
+      chests: { wooden: newWooden, silver: newSilver, gold: newGold }
+    };
+  }
+
+  function awardBonusXP(userId, bonusXP = 50) {
+    if (!userId) return null;
+    const userRow = stmtFindUserById.get(userId);
+    if (!userRow) return null;
+
+    const gainedXP = Math.max(0, parseInt(bonusXP, 10) || 0);
+    const progress = calculateLevelProgress(userRow.account_level || 1, userRow.account_xp || 0, gainedXP);
+
+    let newWooden = (userRow.chests_wooden || 0) + progress.chestsAwarded.wooden;
+    let newSilver = (userRow.chests_silver || 0) + progress.chestsAwarded.silver;
+    let newGold = (userRow.chests_gold || 0) + progress.chestsAwarded.gold;
+
+    db.prepare(`
+      UPDATE user_stats
+      SET account_level = ?,
+          account_xp = ?,
+          chests_wooden = ?,
+          chests_silver = ?,
+          chests_gold = ?
+      WHERE user_id = ?
+    `).run(
+      progress.newLevel,
+      progress.currentXP,
+      newWooden,
+      newSilver,
+      newGold,
+      userId
+    );
+
+    return {
+      userId,
+      gainedXP,
+      oldLevel: progress.oldLevel,
+      newLevel: progress.newLevel,
+      leveledUp: progress.leveledUp,
+      currentXP: progress.currentXP,
+      xpRequired: progress.xpRequired,
+      chestsAwarded: progress.chestsAwarded,
+      chests: { wooden: newWooden, silver: newSilver, gold: newGold }
+    };
+  }
+
+  function awardCosmetic(userId, itemType, itemId) {
+    if (!userId || !itemType || !itemId) return false;
+    try {
+      stmtInsertInventory.run(userId, itemType, itemId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function closeDatabase() {
     try {
       if (dbPath !== ':memory:') {
@@ -561,6 +1024,14 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     addFriend,
     removeFriend,
     getFriends,
+    getUserCosmetics,
+    openChest,
+    equipCosmetic,
+    craftCosmetic,
+    claimWeeklyMilestone,
+    applyMatchProgression,
+    awardBonusXP,
+    awardCosmetic,
     closeDatabase
   };
 }

@@ -1504,38 +1504,39 @@ const WizardAudio = (() => {
     }
   }
 
-  // --- ZUG-HINWEISTON (KRISTALL-GONG AM ZUG) ---
+  // --- ZUG-HINWEISTON (AUTHENTISCHER BRONZEGONG AM ZUG) ---
   function playTurnChime() {
     if (isAppInBackground || settings.turnSoundEnabled === false || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
     const c = getContext();
     if (!c) return;
     try {
-      const t = c.currentTime;
-      // Resonanter zweistimmiger Kristall-Gong (A5 880Hz + E6 1320Hz)
-      [880, 1320].forEach((freq, idx) => {
+      loadBuffer('/audio/gong.ogg').then(buf => {
+        if (buf && !isAppInBackground) {
+          playBufferNode(buf, 0.85, 0.0);
+        }
+      }).catch(() => {
+        // Fallback Synthesizer falls Audio-Sample nicht lädt
+        const t = c.currentTime;
         const osc = c.createOscillator();
         const gain = c.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, t + idx * 0.045);
-        gain.gain.setValueAtTime(0.001, t + idx * 0.045);
-        gain.gain.exponentialRampToValueAtTime(0.26 / (idx + 1), t + idx * 0.045 + 0.012);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + idx * 0.045 + 0.55);
+        osc.frequency.setValueAtTime(164, t);
+        gain.gain.setValueAtTime(0.001, t);
+        gain.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
         osc.connect(gain);
         gain.connect(sfxGain);
-        osc.start(t + idx * 0.045);
-        osc.stop(t + idx * 0.045 + 0.6);
+        osc.start(t);
+        osc.stop(t + 1.2);
       });
     } catch (e) {
       console.warn('Audio playTurnChime error:', e);
     }
   }
 
-  // --- HINTERGRUNDMUSIK-ENGINE (MEHRTEILIGE TAVERNEN-PLAYLIST: RANDOMMIND CC0) ---
-  // Mit mathematisch kalibrierten gainFactor-Werten gegen Lautstärkesprünge (RMS-Normalisierung auf ~ -20 dB)
+  // --- HINTERGRUNDMUSIK-ENGINE (DEDIZIERTE RPG-TAVERNEN-SUITE: CITADEL NIGHT) ---
   const MUSIC_PLAYLIST = [
-    { title: 'The Old Tower Inn', url: '/audio/tavern_music.mp3', gainFactor: 1.0 },
-    { title: "King's Feast", url: '/audio/Kings_Feast.mp3', gainFactor: 0.62 },
-    { title: 'Market Day', url: '/audio/Market_Day.mp3', gainFactor: 0.35 }
+    { title: 'Nacht in der Zitadelle (Harfen-Meditation)', url: '/audio/citadel_night_suite.mp3', gainFactor: 1.0 }
   ];
   let currentTrackIdx = 0;
   let musicAudio = null;
@@ -1693,6 +1694,61 @@ const WizardAudio = (() => {
     }
   }
 
+  function playTick() {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(800 + Math.random() * 150, c.currentTime);
+      gain.gain.setValueAtTime(0.08 * settings.sfx * settings.master, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.04);
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start();
+      osc.stop(c.currentTime + 0.04);
+    } catch (e) {}
+  }
+
+  function playLevelUp() {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, idx) => {
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, c.currentTime + idx * 0.12);
+        gain.gain.setValueAtTime(0.2 * settings.sfx * settings.master, c.currentTime + idx * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + idx * 0.12 + 0.4);
+        osc.connect(gain);
+        gain.connect(c.destination);
+        osc.start(c.currentTime + idx * 0.12);
+        osc.stop(c.currentTime + idx * 0.12 + 0.45);
+      });
+      playInviteChime();
+    } catch (e) {}
+  }
+
+  function playMvpGong() {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      loadBuffer('/audio/gong.ogg').then(buf => {
+        if (buf && !isAppInBackground) playBufferNode(buf, 0.9, 0.0);
+      }).catch(() => {
+        playTurnChime();
+      });
+    } catch (e) {
+      playTurnChime();
+    }
+  }
+
   // Bei erstem User-Event AudioContext aufwecken, Assets cachen und Musik starten
   ['click', 'touchstart', 'keydown'].forEach(evt => {
     window.addEventListener(evt, () => {
@@ -1713,6 +1769,9 @@ const WizardAudio = (() => {
     playForCard,
     playTurnChime,
     playInviteChime,
+    playTick,
+    playLevelUp,
+    playMvpGong,
     startMusic,
     stopMusic,
     toggleMusic,
@@ -2050,9 +2109,11 @@ const WizardAuth = (() => {
         }
       });
       if (!resp.ok) {
-        setToken(null);
-        setCachedUser(null);
-        currentUser = null;
+        if (resp.status === 401 || resp.status === 403) {
+          setToken(null);
+          setCachedUser(null);
+          currentUser = null;
+        }
         try {
           const savedName = localStorage.getItem('grimoire_saved_username');
           if (savedName && nameInput && !nameInput.value) {
@@ -2060,7 +2121,7 @@ const WizardAuth = (() => {
           }
         } catch (e) {}
         renderLobbyBar();
-        return null;
+        return currentUser;
       }
       const data = await resp.json();
       if (data.success && data.user) {
@@ -2103,9 +2164,15 @@ const WizardAuth = (() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      const data = await resp.json();
-      if (!data.success) {
-        showAuthError(data.error || 'Anmeldung fehlgeschlagen.');
+      let data = null;
+      try {
+        data = await resp.json();
+      } catch (parseErr) {
+        data = null;
+      }
+      if (!resp.ok || !data?.success) {
+        const errorMsg = data?.error || (resp.status >= 500 ? `Serverfehler (${resp.status}). Bitte versuche es gleich erneut.` : 'Ungültiger Benutzername oder falsches Passwort.');
+        showAuthError(errorMsg);
         return false;
       }
       setToken(data.token);
@@ -2125,7 +2192,7 @@ const WizardAuth = (() => {
       showToast(`Willkommen zurück, ${data.user.username}!`);
       return true;
     } catch (e) {
-      showAuthError('Verbindungsfehler bei der Anmeldung.');
+      showAuthError('Verbindungsfehler bei der Anmeldung: ' + (e.message || 'Server nicht erreichbar'));
       return false;
     }
   }
@@ -2141,9 +2208,15 @@ const WizardAuth = (() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, avatar_id: avatarId || 'wizard_blue' })
       });
-      const data = await resp.json();
-      if (!data.success) {
-        showAuthError(data.error || 'Registrierung fehlgeschlagen.');
+      let data = null;
+      try {
+        data = await resp.json();
+      } catch (parseErr) {
+        data = null;
+      }
+      if (!resp.ok || !data?.success) {
+        const errorMsg = data?.error || (resp.status >= 500 ? `Serverfehler (${resp.status}). Bitte versuche es gleich erneut.` : 'Registrierung fehlgeschlagen.');
+        showAuthError(errorMsg);
         return false;
       }
       setToken(data.token);
@@ -2163,7 +2236,7 @@ const WizardAuth = (() => {
       showToast(`Willkommen im Bunde, ${data.user.username}!`);
       return true;
     } catch (e) {
-      showAuthError('Verbindungsfehler bei der Registrierung.');
+      showAuthError('Verbindungsfehler bei der Registrierung: ' + (e.message || 'Server nicht erreichbar'));
       return false;
     }
   }
@@ -2287,9 +2360,22 @@ const WizardAuth = (() => {
       safeSetDisplay(userGroup, 'flex');
       if (userNameEl) userNameEl.innerText = currentUser.username;
       if (userTitleEl) userTitleEl.innerText = currentUser.title || 'Zauberlehrling';
+      const levelEl = document.getElementById('lobbyUserLevelBadge');
+      if (levelEl) levelEl.innerText = `Lvl ${currentUser.account_level || 1}`;
       if (userAvatarEl) {
-        userAvatarEl.innerText = (currentUser.username || '?').charAt(0).toUpperCase();
+        const frameClass = `frame-${currentUser.equipped_avatar_frame || 'none'}`;
+        userAvatarEl.className = `seat-avatar ${frameClass}`;
+        const initial = (currentUser.username || '?').charAt(0).toUpperCase();
+        if (currentUser.avatar_id && currentUser.avatar_id.startsWith('icon_')) {
+          userAvatarEl.innerHTML = `<img src="/images/avatars/${currentUser.avatar_id}.png" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" onerror="this.style.display='none';">${initial}`;
+        } else if (currentUser.avatar_id && currentUser.avatar_id.startsWith('wizard_')) {
+          userAvatarEl.innerHTML = `<img src="/images/avatars/${currentUser.avatar_id}.svg" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" onerror="this.style.display='none';">${initial}`;
+        } else {
+          userAvatarEl.innerText = initial;
+        }
       }
+      const totalChests = (currentUser.chests_wooden || 0) + (currentUser.chests_silver || 0) + (currentUser.chests_gold || 0);
+      updateVaultBadgeCount(totalChests);
       safeSetDisplay(companionsGuest, 'none');
       safeSetDisplay(companionsUser, 'inline-flex');
       safeSetDisplay(lbGuest, 'none');
@@ -2297,6 +2383,7 @@ const WizardAuth = (() => {
     } else {
       safeSetDisplay(guestGroup, 'flex');
       safeSetDisplay(userGroup, 'none');
+      updateVaultBadgeCount(0);
       safeSetDisplay(companionsGuest, 'inline-flex');
       safeSetDisplay(companionsUser, 'none');
       safeSetDisplay(lbGuest, 'inline-flex');
@@ -2357,9 +2444,20 @@ const WizardAuth = (() => {
 
     try {
       const resp = await fetch(getApiUrl(`/api/auth/check-username?username=${encodeURIComponent(raw)}`));
-      if (!resp.ok) return;
-      const data = await resp.json();
-      if (data.available) {
+      let data = null;
+      try {
+        data = await resp.json();
+      } catch (parseErr) {
+        data = null;
+      }
+      if (!resp.ok) {
+        feedbackEl.style.display = 'block';
+        feedbackEl.style.color = '#f87171';
+        feedbackEl.innerHTML = `⚠️ ${data?.error || `Server antwortet nicht (${resp.status})`}`;
+        isUsernameAvailableStatus = false;
+        return;
+      }
+      if (data && data.available) {
         feedbackEl.style.display = 'block';
         feedbackEl.style.color = '#4ade80';
         feedbackEl.innerHTML = '✓ Magier-Name ist frei!';
@@ -2368,11 +2466,14 @@ const WizardAuth = (() => {
       } else {
         feedbackEl.style.display = 'block';
         feedbackEl.style.color = '#f87171';
-        feedbackEl.innerHTML = `✗ ${data.error || 'Name bereits vergeben'}`;
+        feedbackEl.innerHTML = `✗ ${data?.error || 'Name bereits vergeben'}`;
         isUsernameAvailableStatus = false;
       }
     } catch (e) {
-      feedbackEl.style.display = 'none';
+      feedbackEl.style.display = 'block';
+      feedbackEl.style.color = '#f87171';
+      feedbackEl.innerHTML = '⚠️ Verbindung zum Server fehlgeschlagen';
+      isUsernameAvailableStatus = false;
     }
   }
 
@@ -2440,6 +2541,9 @@ const WizardAuth = (() => {
     renderProfileData();
     // Im Hintergrund frische Daten laden
     refreshUser();
+    if (typeof WizardVault !== 'undefined' && WizardVault.fetchVaultState) {
+      WizardVault.fetchVaultState();
+    }
   }
 
   function closeProfileDrawer() {
@@ -2466,7 +2570,13 @@ const WizardAuth = (() => {
 
     if (usernameEl) usernameEl.innerText = u.username;
     if (titleBadgeEl) titleBadgeEl.innerText = u.title || 'Zauberlehrling';
-    if (avatarShieldEl) avatarShieldEl.innerText = (u.username || '?').charAt(0).toUpperCase();
+    if (avatarShieldEl) {
+      const a = u.avatar_id || 'wizard_blue';
+      const f = u.equipped_avatar_frame || 'none';
+      const isCustom = a.startsWith('icon_');
+      avatarShieldEl.className = `seat-avatar frame-${f}`;
+      avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.${isCustom ? 'png' : 'svg'}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.onerror=null;this.parentElement.innerText='${(u.username || '?').charAt(0).toUpperCase()}';">`;
+    }
 
     if (memberSinceEl && u.created_at) {
       try {
@@ -2523,72 +2633,142 @@ const WizardAuth = (() => {
       avgPointsEl.innerText = avg;
     }
 
-    // Titel-Auswahl Dropdown
-    renderTitleSelector();
+    // Ausrüstung & Garderobe im Profil
+    renderProfileCosmetics();
   }
 
-  function renderTitleSelector() {
+  function renderProfileCosmetics() {
     if (!currentUser) return;
-    const select = document.getElementById('profileTitleSelect');
-    const desc = document.getElementById('profileTitleStatusDesc');
-    if (!select) return;
-
     const u = currentUser;
-    const wins = u.games_won || 0;
-    const maxStreak = u.max_win_streak || 0;
-    const bidsMade = u.bids_made || 0;
-    const bidsHit = u.bids_hit || 0;
-    const pRate = bidsMade > 0 ? (bidsHit / bidsMade) : 0;
 
-    // Freischalt-Bedingungen (Standard: Zauberlehrling, Meister der Illusion, Seher von Stonehenge, Unbesiegbarer Magier, Großmagier)
-    const titleDefinitions = [
-      {
-        id: 'Zauberlehrling',
-        name: 'Zauberlehrling',
-        unlocked: true,
-        desc: 'Standard-Ehrentitel aller neuen Magier'
-      },
-      {
-        id: 'Meister der Illusion',
-        name: 'Meister der Illusion',
-        unlocked: true,
-        desc: 'Meisterhafte Täuschung – Sieg mit klugem Stichspiel'
-      },
-      {
-        id: 'Seher von Stonehenge',
-        name: 'Seher von Stonehenge',
-        unlocked: (bidsMade >= 20 && pRate >= 0.75) || (u.title === 'Seher von Stonehenge'),
-        desc: 'Erfordert mindestens 20 Vorhersagen mit ≥ 75% Trefferquote'
-      },
-      {
-        id: 'Unbesiegbarer Magier',
-        name: 'Unbesiegbarer Magier',
-        unlocked: (maxStreak >= 5) || (u.title === 'Unbesiegbarer Magier'),
-        desc: 'Erfordert eine Serie von mindestens 5 Siegen in Folge'
-      },
-      {
-        id: 'Großmagier',
-        name: 'Großmagier',
-        unlocked: (wins >= 25) || (u.title === 'Großmagier'),
-        desc: 'Erfordert mindestens 25 siegreiche Partien'
-      }
+    const avatarSelect = document.getElementById('profileSelectAvatar');
+    const frameSelect = document.getElementById('profileSelectFrame');
+    const cardBackSelect = document.getElementById('profileSelectCardBack');
+    const tableSkinSelect = document.getElementById('profileSelectTableSkin');
+    const titleSelect = document.getElementById('profileTitleSelect');
+    const lobbyBgSelect = document.getElementById('profileSelectLobbyBackground');
+    const desc = document.getElementById('profileTitleStatusDesc');
+
+    const vData = (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) ? WizardVault.getVaultData() : null;
+    const catalog = (vData && vData.catalog) ? vData.catalog : null;
+    const inventory = (vData && vData.inventory) ? vData.inventory : [];
+    const ownedIds = new Set(inventory.map(i => i.item_id));
+
+    // Falls Vault-Daten noch nicht da sind, im Hintergrund abrufen
+    if (!catalog && typeof WizardVault !== 'undefined' && WizardVault.fetchVaultState) {
+      WizardVault.fetchVaultState();
+    }
+
+    const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
+
+    function populateSelect(selectEl, items, currentVal, typeKey) {
+      if (!selectEl) return;
+      selectEl.innerHTML = '';
+      items.forEach(item => {
+        const isOwned = item.isDefault || ownedIds.has(item.id);
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.disabled = !isOwned;
+        const rarityStr = item.rarity ? ` (${rarNames[item.rarity] || item.rarity})` : '';
+        opt.innerText = isOwned ? `${item.name}${rarityStr}` : `🔒 ${item.name}${rarityStr}`;
+        if (item.id === currentVal) {
+          opt.selected = true;
+        }
+        selectEl.appendChild(opt);
+      });
+
+      selectEl.onchange = () => {
+        const chosenId = selectEl.value;
+        if (!chosenId) return;
+        if (typeKey === 'lobby_background') {
+          applyLobbyTheme(chosenId);
+        }
+        if (typeof WizardVault !== 'undefined' && WizardVault.equipItem) {
+          WizardVault.equipItem(typeKey, chosenId);
+        } else if (typeKey === 'title') {
+          updateTitle(chosenId);
+        }
+        if (desc) {
+          desc.innerText = `Ausrüstung aktualisiert: "${selectEl.options[selectEl.selectedIndex].text}"`;
+        }
+      };
+    }
+
+    // 1. AVATAR-ICONS
+    const avatarItems = (catalog && catalog.avatar_icons) ? catalog.avatar_icons : [
+      { id: 'wizard_blue', name: 'Zitadellen-Blau', isDefault: true },
+      { id: 'wizard_red', name: 'Pyromant-Rot', isDefault: true },
+      { id: 'wizard_green', name: 'Druiden-Grün', isDefault: true },
+      { id: 'wizard_yellow', name: 'Alchemisten-Gold', isDefault: true },
+      { id: 'wizard_purple', name: 'Arkan-Violett', isDefault: true },
+      { id: 'archmage', name: 'Erzmagier-Meister', isDefault: true }
     ];
+    populateSelect(avatarSelect, avatarItems, u.avatar_id || 'wizard_blue', 'avatar_icon');
 
-    select.innerHTML = '';
-    titleDefinitions.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.name;
-      opt.disabled = !t.unlocked;
-      opt.innerText = t.unlocked ? t.name : `${t.name} (Gesperrt: ${t.desc})`;
-      if (t.name === u.title) {
-        opt.selected = true;
-      }
-      select.appendChild(opt);
-    });
+    // 2. AVATAR-RAHMEN
+    const frameItems = (catalog && catalog.avatar_frames) ? catalog.avatar_frames : [
+      { id: 'none', name: 'Kein Rahmen (Schlicht)', isDefault: true },
+      { id: 'frame_wood', name: 'Holzkante', isDefault: false, rarity: 'common' },
+      { id: 'frame_copper', name: 'Runen-Kupfer', isDefault: false, rarity: 'common' },
+      { id: 'frame_silver', name: 'Silber-Filigran', isDefault: false, rarity: 'rare' },
+      { id: 'frame_gold', name: 'Goldener Sonnenkranz', isDefault: false, rarity: 'rare' },
+      { id: 'frame_amethyst', name: 'Amethyst-Glanz', isDefault: false, rarity: 'epic' },
+      { id: 'frame_cosmic', name: 'Kosmischer Äther', isDefault: false, rarity: 'legendary' }
+    ];
+    populateSelect(frameSelect, frameItems, u.equipped_avatar_frame || 'none', 'avatar_frame');
 
-    const activeDef = titleDefinitions.find(t => t.name === u.title) || titleDefinitions[0];
+    // 3. KARTENRÜCKEN
+    const cardBackItems = (catalog && catalog.card_backs) ? catalog.card_backs : [
+      { id: 'default', name: 'Zitadellen-Blau (Klassisch)', isDefault: true },
+      { id: 'ancient_parchment', name: 'Uraltes Pergament', isDefault: false, rarity: 'common' },
+      { id: 'runic_parchment', name: 'Runen-Pergament', isDefault: false, rarity: 'rare' },
+      { id: 'astral_cosmos', name: 'Astral-Kosmos', isDefault: false, rarity: 'epic' },
+      { id: 'dragon_scales', name: 'Drachenschuppen', isDefault: false, rarity: 'epic' },
+      { id: 'fairy_grove', name: 'Feenhain', isDefault: false, rarity: 'rare' },
+      { id: 'shadow_flame', name: 'Schattenflamme', isDefault: false, rarity: 'legendary' }
+    ];
+    populateSelect(cardBackSelect, cardBackItems, u.equipped_card_back || 'default', 'card_back');
+
+    // 4. SPIELTISCH-SKINS
+    const tableSkinItems = (catalog && catalog.table_skins) ? catalog.table_skins : [
+      { id: 'emerald_felt', name: 'Klassischer Smaragd-Filz', isDefault: true },
+      { id: 'tavern_wood', name: 'Tavernen-Eiche', isDefault: false, rarity: 'rare' },
+      { id: 'amethyst_crypt', name: 'Amethyst-Krypta', isDefault: false, rarity: 'epic' },
+      { id: 'volcano_keep', name: 'Vulkan-Festung', isDefault: false, rarity: 'epic' },
+      { id: 'astral_observatory', name: 'Sternen-Observatorium', isDefault: false, rarity: 'legendary' }
+    ];
+    populateSelect(tableSkinSelect, tableSkinItems, u.equipped_table_skin || 'emerald_felt', 'table_skin');
+
+    // 5. EHRENTITEL
+    let titleItems = [];
+    if (catalog && catalog.titles && catalog.titles.length > 0) {
+      titleItems = catalog.titles;
+    } else {
+      titleItems = [
+        { id: 'Zauberlehrling', name: 'Zauberlehrling', isDefault: true },
+        { id: 'Meister der Illusion', name: 'Meister der Illusion', isDefault: true },
+        { id: 'Seher von Stonehenge', name: 'Seher von Stonehenge', isDefault: false },
+        { id: 'Unbesiegbarer Magier', name: 'Unbesiegbarer Magier', isDefault: false },
+        { id: 'Großmagier', name: 'Großmagier', isDefault: false }
+      ];
+    }
+    populateSelect(titleSelect, titleItems, u.title || 'Zauberlehrling', 'title');
+
+    // 6. LOBBY-HINTERGRÜNDE
+    const lobbyBgItems = (catalog && catalog.lobby_backgrounds) ? catalog.lobby_backgrounds : [
+      { id: 'citadel_halls', name: 'Hallen der Zitadelle', isDefault: true },
+      { id: 'haunted_graveyard', name: 'Verfluchter Friedhof', isDefault: false, rarity: 'epic' },
+      { id: 'witch_hut', name: 'Hexenhütte', isDefault: false, rarity: 'rare' },
+      { id: 'tavern_fireplace', name: 'Kaminfeuer-Taverne', isDefault: false, rarity: 'rare' },
+      { id: 'astral_observatory', name: 'Sternen-Observatorium', isDefault: false, rarity: 'epic' },
+      { id: 'magma_forge', name: 'Magmaschmiede', isDefault: false, rarity: 'epic' },
+      { id: 'celestial_sanctum', name: 'Himmlisches Sanktum', isDefault: false, rarity: 'legendary' }
+    ];
+    populateSelect(lobbyBgSelect, lobbyBgItems, u.equipped_lobby_background || 'citadel_halls', 'lobby_background');
+    applyLobbyTheme(u.equipped_lobby_background || 'citadel_halls');
+
     if (desc) {
-      desc.innerText = `Aktiver Titel: "${activeDef.name}" – ${activeDef.desc}`;
+      desc.innerText = `Aktiver Titel: "${u.title || 'Zauberlehrling'}"`;
     }
   }
 
@@ -2845,12 +3025,13 @@ const WizardAuth = (() => {
     const profileCloseBtn = document.getElementById('profile-drawer-close');
     if (profileCloseBtn) profileCloseBtn.addEventListener('click', closeProfileDrawer);
 
-    // Title Selector im Profile Drawer
-    const titleSelect = document.getElementById('profileTitleSelect');
-    if (titleSelect) {
-      titleSelect.addEventListener('change', (e) => {
-        const newTitle = e.target.value;
-        if (newTitle) updateTitle(newTitle);
+    const btnProfileVault = document.getElementById('btnProfileOpenVault');
+    if (btnProfileVault) {
+      btnProfileVault.addEventListener('click', () => {
+        closeProfileDrawer();
+        if (typeof WizardVault !== 'undefined' && WizardVault.openVault) {
+          WizardVault.openVault('wardrobe');
+        }
       });
     }
 
@@ -2922,7 +3103,9 @@ const WizardAuth = (() => {
     closeLeaderboard,
     updateTitle,
     updateAvatar,
-    refreshUser
+    refreshUser,
+    renderProfileData,
+    renderProfileCosmetics
   };
 })();
 if (typeof window !== 'undefined') window.WizardAuth = WizardAuth;
@@ -3499,6 +3682,817 @@ function getBotLore(botName, botDifficulty) {
     story: 'Ein erfahrener Meistermagier der Zitadelle, der Risiken exakt abwägt und Stiche wohlüberlegt verteilt.'
   };
 }
+
+// ==========================================================================
+// ETAPPE 6: DIE SCHATZKAMMER DES ERZMAGIERS, KOSMETIK & PROGRESSION
+// ==========================================================================
+
+function applyTableSkin(skinId) {
+  const tableEl = document.getElementById('table-area') || document.querySelector('.poker-table');
+  if (!tableEl) return;
+  const skins = ['emerald_felt', 'tavern_wood', 'amethyst_crypt', 'volcano_keep', 'astral_observatory', 'haunted_crypt'];
+  skins.forEach(s => tableEl.classList.remove(`table-skin-${s}`));
+  tableEl.classList.add(`table-skin-${skinId || 'emerald_felt'}`);
+}
+
+function applyLobbyTheme(themeId) {
+  const lobby = document.getElementById('lobby-screen');
+  const waiting = document.getElementById('waiting-room-screen');
+  const themes = ['citadel_halls', 'haunted_graveyard', 'witch_hut', 'tavern_fireplace', 'astral_observatory', 'magma_forge', 'celestial_sanctum'];
+  [lobby, waiting].forEach(el => {
+    if (!el) return;
+    themes.forEach(t => el.classList.remove(`theme-${t}`));
+    el.classList.add(`theme-${themeId || 'citadel_halls'}`);
+  });
+}
+
+function updateVaultBadgeCount(count) {
+  const badge1 = document.getElementById('vaultBadge');
+  const badge2 = document.getElementById('waitingVaultBadge');
+  const badge3 = document.getElementById('vaultChestsCountBadge');
+  const c = Math.max(0, parseInt(count, 10) || 0);
+
+  const badgeText = c > 0 ? `🎁 ${c}` : '';
+  const tooltipText = c > 0 ? `Du hast ${c} ungeöffnete magische Schatztruhe${c > 1 ? 'n' : ''}!` : '';
+
+  if (badge1) {
+    badge1.innerText = badgeText;
+    badge1.title = tooltipText;
+    badge1.style.display = c > 0 ? 'inline-flex' : 'none';
+  }
+  if (badge2) {
+    badge2.innerText = badgeText;
+    badge2.title = tooltipText;
+    badge2.style.display = c > 0 ? 'inline-flex' : 'none';
+  }
+  if (badge3) {
+    badge3.innerText = c;
+  }
+}
+
+const WizardVault = (() => {
+  let vaultData = null;
+  let currentTab = 'chests'; // 'chests', 'wardrobe', 'forge'
+  let currentWardrobeCategory = 'avatar_icons';
+  let currentForgeCategory = 'all';
+
+  function updateBadges(count) {
+    updateVaultBadgeCount(count);
+  }
+
+  function openVault(targetTab = 'chests') {
+    const user = (typeof WizardAuth !== 'undefined') ? WizardAuth.getUser() : null;
+    if (!user) {
+      if (typeof WizardAuth !== 'undefined' && WizardAuth.openAuthModal) {
+        showToast('Bitte melde dich an, um die Schatzkammer zu betreten!');
+        WizardAuth.openAuthModal('login');
+      }
+      return;
+    }
+    const modal = document.getElementById('vault-modal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    switchTab(typeof targetTab === 'string' ? targetTab : 'chests');
+    fetchVaultState();
+  }
+
+  function closeVault() {
+    const modal = document.getElementById('vault-modal');
+    if (modal) modal.style.display = 'none';
+    const unbox = document.getElementById('vaultUnboxingArea');
+    if (unbox) unbox.style.display = 'none';
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    const tabChests = document.getElementById('tabVaultChests');
+    const tabWardrobe = document.getElementById('tabVaultWardrobe');
+    const tabForge = document.getElementById('tabVaultForge');
+
+    const panelChests = document.getElementById('vaultPanelChests');
+    const panelWardrobe = document.getElementById('vaultPanelWardrobe');
+    const panelForge = document.getElementById('vaultPanelForge');
+
+    [tabChests, tabWardrobe, tabForge].forEach(b => { if (b) b.classList.remove('active'); });
+    [panelChests, panelWardrobe, panelForge].forEach(p => { if (p) p.style.display = 'none'; });
+
+    if (tab === 'chests') {
+      if (tabChests) tabChests.classList.add('active');
+      if (panelChests) panelChests.style.display = 'block';
+    } else if (tab === 'wardrobe') {
+      if (tabWardrobe) tabWardrobe.classList.add('active');
+      if (panelWardrobe) panelWardrobe.style.display = 'block';
+      renderWardrobe();
+    } else if (tab === 'forge') {
+      if (tabForge) tabForge.classList.add('active');
+      if (panelForge) panelForge.style.display = 'block';
+      renderForge();
+    }
+  }
+
+  function fetchVaultState() {
+    const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
+    if (socket && socket.connected) {
+      socket.emit('vault:getState', { token });
+    }
+  }
+
+  function onVaultStateReceived(data) {
+    if (!data || !data.success) return;
+    vaultData = data;
+    if (data.user && data.user.equipped_lobby_background && typeof applyLobbyTheme === 'function') {
+      applyLobbyTheme(data.user.equipped_lobby_background);
+    }
+    renderHeader();
+    renderChests();
+    renderWeeklyMilestones();
+    if (currentTab === 'wardrobe') renderWardrobe();
+    if (currentTab === 'forge') renderForge();
+    const profileDrawer = document.getElementById('profile-drawer');
+    if (profileDrawer && profileDrawer.classList.contains('open') && typeof WizardAuth !== 'undefined' && WizardAuth.renderProfileData) {
+      WizardAuth.renderProfileData();
+    }
+  }
+
+  function renderHeader() {
+    if (!vaultData || !vaultData.user) return;
+    const u = vaultData.user;
+    const lvlEl = document.getElementById('vaultLevelDisplay');
+    const xpFill = document.getElementById('vaultXpBarFill');
+    const xpTxt = document.getElementById('vaultXpText');
+    const dustEl = document.getElementById('vaultDustDisplay');
+    const forgeDust = document.getElementById('forgeDustCounter');
+
+    const curLvl = u.account_level || 1;
+    const curXp = u.account_xp || 0;
+    const pct = Math.min(100, Math.max(0, Math.round((curXp / 1000) * 100)));
+
+    if (lvlEl) lvlEl.innerText = curLvl;
+    if (xpFill) xpFill.style.width = `${pct}%`;
+    if (xpTxt) xpTxt.innerText = `${curXp} / 1000 XP`;
+    if (dustEl) dustEl.innerText = u.astral_dust || 0;
+    if (forgeDust) forgeDust.innerText = `✨ ${u.astral_dust || 0}`;
+
+    const totalChests = (u.chests_wooden || 0) + (u.chests_silver || 0) + (u.chests_gold || 0);
+    updateBadges(totalChests);
+  }
+
+  function renderChests() {
+    if (!vaultData || !vaultData.user) return;
+    const u = vaultData.user;
+    const wCount = u.chests_wooden || 0;
+    const sCount = u.chests_silver || 0;
+    const gCount = u.chests_gold || 0;
+
+    const cw = document.getElementById('countWoodenChests');
+    const cs = document.getElementById('countSilverChests');
+    const cg = document.getElementById('countGoldChests');
+
+    const bw = document.getElementById('btnOpenWoodenChest');
+    const bs = document.getElementById('btnOpenSilverChest');
+    const bg = document.getElementById('btnOpenGoldChest');
+
+    if (cw) cw.innerText = wCount;
+    if (cs) cs.innerText = sCount;
+    if (cg) cg.innerText = gCount;
+
+    if (bw) bw.disabled = (wCount <= 0);
+    if (bs) bs.disabled = (sCount <= 0);
+    if (bg) bg.disabled = (gCount <= 0);
+  }
+
+  function renderWeeklyMilestones() {
+    if (!vaultData) return;
+    const list = document.getElementById('vaultWeeklyMilestonesList');
+    const periodTxt = document.getElementById('vaultWeeklyPeriodText');
+    if (!list) return;
+
+    const stats = vaultData.weeklyStats || {};
+    if (periodTxt && stats.periodId) {
+      periodTxt.innerText = `Woche: ${stats.periodId}`;
+    }
+
+    const milestones = vaultData.weeklyMilestones || [];
+    const claimed = stats.claimedMilestones || [];
+
+    list.innerHTML = '';
+    milestones.forEach((m) => {
+      let curVal = 0;
+      if (m.type === 'matches') curVal = stats.matchesPlayed || 0;
+      else if (m.type === 'wins') curVal = stats.matchesWon || 0;
+      else if (m.type === 'bids') curVal = stats.perfectBids || 0;
+
+      const isClaimed = claimed.includes(m.id);
+      const isDone = (curVal >= m.target);
+      const pct = Math.min(100, Math.round((curVal / m.target) * 100));
+
+      let rewardText = '';
+      if (m.reward.type === 'chest') {
+        const tNames = { wooden: '🪵 Holztruhe', silver: '🥈 Silbertruhe', gold: '👑 Goldkassette' };
+        rewardText = `${m.reward.amount}x ${tNames[m.reward.chestType] || 'Truhe'}`;
+      } else if (m.reward.type === 'dust') {
+        rewardText = `✨ ${m.reward.amount} Astralstaub`;
+      }
+
+      let btnHtml = '';
+      if (isClaimed) {
+        btnHtml = `<span style="color: #4ade80; font-size: 11.5px; font-weight: bold;">✓ Eingelöst</span>`;
+      } else if (isDone) {
+        btnHtml = `<button type="button" class="btn-auth-bar btn-auth-gold btn-claim-milestone" data-id="${m.id}" style="padding: 4px 10px; font-size: 11px;">Einfordern</button>`;
+      } else {
+        btnHtml = `<span style="color: #94a3b8; font-size: 11.5px;">${curVal} / ${m.target}</span>`;
+      }
+
+      const item = document.createElement('div');
+      item.style.display = 'flex';
+      item.style.alignItems = 'center';
+      item.style.justifyContent = 'space-between';
+      item.style.background = 'rgba(255,255,255,0.03)';
+      item.style.border = '1px solid rgba(255,255,255,0.08)';
+      item.style.borderRadius = '6px';
+      item.style.padding = '8px 12px';
+
+      item.innerHTML = `
+        <div style="flex: 1; margin-right: 12px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px;">
+            <span style="color: #fde047; font-weight: 500;">${escapeHtml(m.name)}</span>
+            <span style="font-size: 11px; color: #a855f7;">Belohnung: ${rewardText}</span>
+          </div>
+          <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden;">
+            <div style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, #d97706, #fbbf24);"></div>
+          </div>
+        </div>
+        <div>${btnHtml}</div>
+      `;
+
+      const claimBtn = item.querySelector('.btn-claim-milestone');
+      if (claimBtn) {
+        claimBtn.addEventListener('click', () => {
+          claimMilestone(m.id);
+        });
+      }
+
+      list.appendChild(item);
+    });
+  }
+
+  function openChest(tier) {
+    const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
+    if (socket && socket.connected) {
+      if (typeof WizardAudio !== 'undefined' && WizardAudio.playTurnChime) {
+        WizardAudio.playTurnChime();
+      }
+      socket.emit('vault:openChest', { chestType: tier, token });
+    }
+  }
+
+  function onChestOpened(data) {
+    if (!data || !data.success) {
+      showToast(data ? data.error : 'Fehler beim Öffnen der Truhe');
+      return;
+    }
+    if (data.user) {
+      vaultData.user = data.user;
+      renderHeader();
+      renderChests();
+    }
+    showUnboxingStage(data);
+  }
+
+  function showUnboxingStage(data) {
+    const unbox = document.getElementById('vaultUnboxingArea');
+    const dropsCont = document.getElementById('vaultUnboxingDrops');
+    const titleEl = document.getElementById('vaultUnboxingTitle');
+    const dustNotice = document.getElementById('vaultUnboxingDustNotice');
+    if (!unbox || !dropsCont) return;
+
+    unbox.style.display = 'flex';
+    dropsCont.innerHTML = '';
+
+    const tNames = { wooden: 'Holztruhe', silver: 'Silberne Magiertruhe', gold: 'Goldene Erzmagier-Kassette' };
+    if (titleEl) titleEl.innerText = `${tNames[data.chestType] || 'Truhe'} geöffnet!`;
+
+    if (dustNotice) {
+      if (data.totalDustGained > 0) {
+        dustNotice.innerText = `🔄 Duplikate erkannt: +${data.totalDustGained} Astralstaub gutgeschrieben!`;
+        dustNotice.style.display = 'block';
+      } else {
+        dustNotice.style.display = 'none';
+      }
+    }
+
+    const rewards = data.rewards || [];
+    rewards.forEach((r, idx) => {
+      const card = document.createElement('div');
+      card.className = `drop-card-reveal rarity-${r.rarity || 'common'}`;
+      card.style.animationDelay = `${idx * 0.18}s`;
+
+      let iconHtml = '';
+      if (r.image) {
+        iconHtml = `<img src="${r.image}" alt="" class="drop-card-icon">`;
+      } else if (r.icon) {
+        iconHtml = `<div class="drop-card-icon" style="display:flex;align-items:center;justify-content:center;font-size:32px;background:rgba(0,0,0,0.4);">${r.icon}</div>`;
+      } else {
+        iconHtml = `<div class="drop-card-icon" style="display:flex;align-items:center;justify-content:center;font-size:32px;background:rgba(0,0,0,0.4);">📜</div>`;
+      }
+
+      const dupHtml = r.isDuplicate ? `<div class="drop-card-duplicate">🔄 Duplikat (+${r.dustRefund} Staub)</div>` : '';
+      const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
+
+      card.innerHTML = `
+        ${iconHtml}
+        <div class="drop-card-name">${escapeHtml(r.name)}</div>
+        <div class="drop-card-rarity" style="color: ${r.rarityColor || '#cbd5e1'};">${rarNames[r.rarity] || r.rarity}</div>
+        ${dupHtml}
+      `;
+      dropsCont.appendChild(card);
+    });
+
+    fetchVaultState();
+  }
+
+  function finishUnboxing() {
+    const unbox = document.getElementById('vaultUnboxingArea');
+    if (unbox) unbox.style.display = 'none';
+  }
+
+  function claimMilestone(id) {
+    const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
+    if (socket && socket.connected) {
+      socket.emit('vault:claimMilestone', { milestoneId: id, token });
+    }
+  }
+
+  function onMilestoneClaimed(data) {
+    if (!data || !data.success) return;
+    showToast('Wöchentliche Belohnung eingelöst! 🎉');
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+      WizardAudio.playCardSnap();
+    }
+    fetchVaultState();
+  }
+
+  function renderWardrobe() {
+    if (!vaultData || !vaultData.user) return;
+    const u = vaultData.user;
+    const previewImg = document.getElementById('wardrobePreviewAvatarImg');
+    const previewWrap = document.getElementById('wardrobePreviewAvatarWrapper');
+    const previewName = document.getElementById('wardrobePreviewName');
+    const previewTitle = document.getElementById('wardrobePreviewTitle');
+    const previewDeck = document.getElementById('wardrobePreviewDeck');
+    const previewTable = document.getElementById('wardrobePreviewTable');
+    const previewFrame = document.getElementById('wardrobePreviewFrame');
+    const previewLobby = document.getElementById('wardrobePreviewLobby');
+
+    if (previewName) previewName.innerText = u.username || 'Magier';
+    if (previewTitle) previewTitle.innerText = u.title || 'Zauberlehrling';
+
+    if (previewWrap) {
+      const f = u.equipped_avatar_frame || 'none';
+      previewWrap.className = `seat-avatar frame-${f}`;
+    }
+
+    if (previewImg) {
+      const a = u.avatar_id || 'wizard_blue';
+      const isCustom = a.startsWith('icon_');
+      previewImg.src = `/images/avatars/${a}.${isCustom ? 'png' : 'svg'}`;
+    }
+
+    const cat = vaultData.catalog || {};
+    const deckItem = (cat.card_backs || []).find(i => i.id === (u.equipped_card_back || 'default'));
+    const tableItem = (cat.table_skins || []).find(i => i.id === (u.equipped_table_skin || 'emerald_felt'));
+    const frameItem = (cat.avatar_frames || []).find(i => i.id === (u.equipped_avatar_frame || 'none'));
+    const lobbyItem = (cat.lobby_backgrounds || []).find(i => i.id === (u.equipped_lobby_background || 'citadel_halls'));
+
+    if (previewDeck) previewDeck.innerText = deckItem ? deckItem.name : 'Zitadellen-Blau';
+    if (previewTable) previewTable.innerText = tableItem ? tableItem.name : 'Klassischer Filz';
+    if (previewFrame) previewFrame.innerText = frameItem ? frameItem.name : 'Schlichter Goldring';
+    if (previewLobby) previewLobby.innerText = lobbyItem ? lobbyItem.name : 'Zitadellen-Gewölbe';
+
+    renderWardrobeItems();
+  }
+
+  function renderWardrobeItems() {
+    if (!vaultData || !vaultData.catalog) return;
+    const grid = document.getElementById('wardrobeItemsGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const cat = vaultData.catalog[currentWardrobeCategory] || [];
+    const inv = vaultData.inventory || [];
+    const u = vaultData.user || {};
+
+    let equippedId = '';
+    let singularType = currentWardrobeCategory;
+    if (singularType.endsWith('s')) singularType = singularType.slice(0, -1);
+
+    if (singularType === 'avatar_icon') equippedId = u.avatar_id || 'wizard_blue';
+    else if (singularType === 'avatar_frame') equippedId = u.equipped_avatar_frame || 'none';
+    else if (singularType === 'title') equippedId = u.title || 'Zauberlehrling';
+    else if (singularType === 'card_back') equippedId = u.equipped_card_back || 'default';
+    else if (singularType === 'table_skin') equippedId = u.equipped_table_skin || 'emerald_felt';
+    else if (singularType === 'lobby_background') equippedId = u.equipped_lobby_background || 'citadel_halls';
+
+    cat.forEach(item => {
+      const isOwned = item.isDefault || inv.some(i => i.item_id === item.id);
+      const isEquipped = (item.id === equippedId);
+
+      const card = document.createElement('div');
+      card.className = `cosmetic-item-card ${isEquipped ? 'equipped' : ''} ${!isOwned ? 'locked' : ''}`;
+
+      let visualHtml = '';
+      if (item.image) {
+        visualHtml = `<img src="${item.image}" alt="" style="width:48px;height:48px;border-radius:6px;object-fit:cover;margin-bottom:6px;">`;
+      } else if (item.icon) {
+        visualHtml = `<div style="font-size:32px;line-height:48px;height:48px;margin-bottom:6px;">${item.icon}</div>`;
+      } else {
+        visualHtml = `<div style="font-size:26px;line-height:48px;height:48px;margin-bottom:6px;">📜</div>`;
+      }
+
+      let btnHtml = '';
+      if (isEquipped) {
+        btnHtml = `<button type="button" class="btn-equip is-equipped" disabled>Ausgerüstet</button>`;
+      } else if (isOwned) {
+        btnHtml = `<button type="button" class="btn-equip btn-do-equip" data-type="${singularType}" data-id="${item.id}">Ausrüsten</button>`;
+      } else {
+        btnHtml = `<button type="button" class="btn-equip" disabled style="opacity:0.5;background:#374151;border-color:#6b7280;">🔒 Gesperrt</button>`;
+      }
+
+      const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
+      const rarCol = (vaultData.rarityConfig && vaultData.rarityConfig[item.rarity]) ? vaultData.rarityConfig[item.rarity].color : '#cbd5e1';
+
+      card.innerHTML = `
+        ${visualHtml}
+        <div style="font-size:12px;font-weight:bold;color:#fef3c7;margin-bottom:2px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+        <div style="font-size:10px;font-weight:700;color:${rarCol};">${rarNames[item.rarity] || item.rarity}</div>
+        ${btnHtml}
+      `;
+
+      const eqBtn = card.querySelector('.btn-do-equip');
+      if (eqBtn) {
+        eqBtn.addEventListener('click', () => {
+          equipItem(singularType, item.id);
+        });
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  function equipItem(itemType, itemId) {
+    const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
+    if (socket && socket.connected) {
+      if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+        WizardAudio.playCardSnap();
+      }
+      socket.emit('vault:equip', { itemType, itemId, token });
+    }
+  }
+
+  function onEquipped(data) {
+    if (!data || !data.success) {
+      showToast(data ? data.error : 'Fehler beim Ausrüsten');
+      return;
+    }
+    showToast('Ausrüstung gewechselt! ✨');
+    if (data.user) {
+      vaultData.user = data.user;
+      if (typeof WizardAuth !== 'undefined' && WizardAuth.setCachedUser) {
+        WizardAuth.setCachedUser(data.user);
+      }
+      if (data.user.equipped_lobby_background && typeof applyLobbyTheme === 'function') {
+        applyLobbyTheme(data.user.equipped_lobby_background);
+      }
+      renderHeader();
+      renderWardrobe();
+      if (typeof WizardAuth !== 'undefined' && WizardAuth.renderProfileData) {
+        WizardAuth.renderProfileData();
+      }
+    }
+    if (typeof WizardAuth !== 'undefined' && WizardAuth.renderLobbyBar) {
+      WizardAuth.renderLobbyBar();
+    }
+  }
+
+  function renderForge() {
+    if (!vaultData || !vaultData.catalog) return;
+    const grid = document.getElementById('forgeItemsGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const inv = vaultData.inventory || [];
+    const ownedIds = new Set(inv.map(i => i.item_id));
+    const dust = (vaultData.user && vaultData.user.astral_dust) || 0;
+    const rarConfig = vaultData.rarityConfig || {};
+
+    const categories = (currentForgeCategory === 'all')
+      ? ['avatar_icons', 'avatar_frames', 'titles', 'card_backs', 'table_skins', 'lobby_backgrounds']
+      : [currentForgeCategory];
+
+    let itemsToForge = [];
+    categories.forEach(catKey => {
+      let singularType = catKey;
+      if (singularType.endsWith('s')) singularType = singularType.slice(0, -1);
+      const list = vaultData.catalog[catKey] || [];
+      list.forEach(item => {
+        if (!item.isDefault && !ownedIds.has(item.id)) {
+          itemsToForge.push({ ...item, singularType });
+        }
+      });
+    });
+
+    if (itemsToForge.length === 0) {
+      grid.innerHTML = `<div style="grid-column: 1 / -1; padding: 30px; text-align: center; color: #a855f7; font-style: italic;">Du besitzt bereits alle Kosmetika in dieser Kategorie! Meisterhaft! 👑</div>`;
+      return;
+    }
+
+    itemsToForge.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'forge-item-card';
+
+      const rarity = item.rarity || 'common';
+      const meta = rarConfig[rarity] || { color: '#cbd5e1', dustCost: 60 };
+      const cost = meta.dustCost || 60;
+      const canAfford = (dust >= cost);
+
+      let visualHtml = '';
+      if (item.image) {
+        visualHtml = `<img src="${item.image}" alt="" style="width:52px;height:52px;border-radius:6px;object-fit:cover;margin-bottom:6px;">`;
+      } else if (item.icon) {
+        visualHtml = `<div style="font-size:36px;line-height:52px;height:52px;margin-bottom:6px;">${item.icon}</div>`;
+      } else {
+        visualHtml = `<div style="font-size:28px;line-height:52px;height:52px;margin-bottom:6px;">📜</div>`;
+      }
+
+      card.innerHTML = `
+        ${visualHtml}
+        <div style="font-size:12.5px;font-weight:bold;color:#fef3c7;margin-bottom:2px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+        <div style="font-size:10.5px;font-weight:700;color:${meta.color};">${rarity.toUpperCase()}</div>
+        <div style="font-size:11.5px;color:#e9d5ff;margin:4px 0 2px;">Kosten: ✨ ${cost}</div>
+        <button type="button" class="btn-forge btn-do-craft" data-type="${item.singularType}" data-id="${item.id}" ${canAfford ? '' : 'disabled'}>
+          ${canAfford ? 'Schmieden' : 'Zu wenig Staub'}
+        </button>
+      `;
+
+      const craftBtn = card.querySelector('.btn-do-craft');
+      if (craftBtn && canAfford) {
+        craftBtn.addEventListener('click', () => {
+          craftItem(item.singularType, item.id);
+        });
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  function craftItem(itemType, itemId) {
+    const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
+    if (socket && socket.connected) {
+      if (typeof WizardAudio !== 'undefined' && WizardAudio.playTurnChime) {
+        WizardAudio.playTurnChime();
+      }
+      socket.emit('vault:craft', { itemType, itemId, token });
+    }
+  }
+
+  function onCrafted(data) {
+    if (!data || !data.success) {
+      showToast(data ? data.error : 'Fehler beim Schmieden');
+      return;
+    }
+    showToast(`"${data.item ? data.item.name : 'Gegenstand'}" erfolgreich geschmiedet! ✨`);
+    if (data.user) {
+      vaultData.user = data.user;
+    }
+    fetchVaultState();
+  }
+
+  function onMatchProgressionSummary(data) {
+    if (!data) return;
+    const modal = document.getElementById('progression-modal');
+    if (!modal) return;
+
+    const subEl = document.getElementById('progressionSubtitle');
+    const levelBanner = document.getElementById('progressionLevelUpBanner');
+    const newLvlBadge = document.getElementById('progNewLevelBadge');
+    const lvlHint = document.getElementById('progLevelUpRewardHint');
+    const curLvlTxt = document.getElementById('progCurrentLevelTxt');
+    const xpNumTxt = document.getElementById('progXpNumbersTxt');
+    const xpFill = document.getElementById('progXpBarFill');
+    const breakdownEl = document.getElementById('progressionXpBreakdown');
+    const modalCard = modal.querySelector('.progression-modal-card');
+
+    if (subEl) subEl.innerText = `+${data.gainedXP || 0} Erfahrungs-Punkte gewonnen`;
+    if (levelBanner) levelBanner.style.display = 'none';
+    if (modalCard) modalCard.classList.remove('levelup-burst-effect');
+
+    if (breakdownEl) {
+      breakdownEl.innerHTML = `
+        <div style="display:flex;justify-content:space-between;"><span>🎮 Teilnahme &amp; Runden:</span><b>+${Math.min(300, (data.gainedXP || 0) > 100 ? 200 : 100)} XP</b></div>
+        <div style="display:flex;justify-content:space-between;"><span>🏆 Platzierung &amp; Sieg:</span><b>+${(data.gainedXP || 0) >= 250 ? 150 : 50} XP</b></div>
+        <div style="display:flex;justify-content:space-between;"><span>🎯 Präzise Vorhersagen:</span><b>+${Math.max(0, (data.gainedXP || 0) - 250)} XP</b></div>
+      `;
+    }
+
+    modal.style.display = 'flex';
+
+    const isLevelUp = Boolean(data.leveledUp);
+    const targetLevel = data.newLevel || 1;
+    const targetXp = data.currentXP || 0;
+    const oldLevel = data.oldLevel || (isLevelUp ? Math.max(1, targetLevel - 1) : targetLevel);
+
+    let startXp = 0;
+    if (!isLevelUp) {
+      startXp = Math.max(0, targetXp - (data.gainedXP || 0));
+    } else {
+      const totalXpEarned = data.gainedXP || 0;
+      const remainingInNew = targetXp;
+      const neededInOld = Math.max(0, totalXpEarned - remainingInNew);
+      startXp = Math.max(0, 1000 - neededInOld);
+    }
+
+    if (curLvlTxt) curLvlTxt.innerText = oldLevel;
+    if (xpNumTxt) xpNumTxt.innerText = `${startXp} / 1000 XP`;
+    if (xpFill) xpFill.style.width = `${Math.min(100, Math.round((startXp / 1000) * 100))}%`;
+
+    const stepCount = 20;
+    let currentStep = 0;
+    const phase1Target = isLevelUp ? 1000 : targetXp;
+    const phase1Diff = phase1Target - startXp;
+
+    const tickInterval = setInterval(() => {
+      currentStep++;
+      const progress = Math.min(1, currentStep / stepCount);
+      const currentVal = Math.round(startXp + phase1Diff * progress);
+
+      if (xpNumTxt) xpNumTxt.innerText = `${currentVal} / 1000 XP`;
+      if (xpFill) xpFill.style.width = `${Math.min(100, Math.round((currentVal / 1000) * 100))}%`;
+
+      if (typeof WizardAudio !== 'undefined' && WizardAudio.playTick) {
+        WizardAudio.playTick();
+      }
+
+      if (currentStep >= stepCount) {
+        clearInterval(tickInterval);
+
+        if (isLevelUp) {
+          setTimeout(() => {
+            if (curLvlTxt) curLvlTxt.innerText = targetLevel;
+            if (levelBanner) levelBanner.style.display = 'block';
+            if (newLvlBadge) newLvlBadge.innerText = targetLevel;
+            if (modalCard) modalCard.classList.add('levelup-burst-effect');
+
+            let rewardTxt = 'Belohnung: ';
+            const ca = data.chestsAwarded || {};
+            if (ca.gold > 0) rewardTxt += `${ca.gold}x Goldene Erzmagier-Kassette 👑`;
+            else if (ca.silver > 0) rewardTxt += `${ca.silver}x Silberne Magiertruhe 🥈`;
+            else rewardTxt += `${ca.wooden || 1}x Holztruhe des Lehrlings 🪵`;
+            if (lvlHint) lvlHint.innerText = `🎁 ${rewardTxt}`;
+
+            if (typeof WizardAudio !== 'undefined' && WizardAudio.playLevelUp) {
+              WizardAudio.playLevelUp();
+            }
+
+            if (xpFill) xpFill.style.width = '0%';
+            if (xpNumTxt) xpNumTxt.innerText = `0 / 1000 XP`;
+
+            let phase2Step = 0;
+            const phase2Steps = 15;
+            const phase2Interval = setInterval(() => {
+              phase2Step++;
+              const p2Progress = Math.min(1, phase2Step / phase2Steps);
+              const p2Val = Math.round(targetXp * p2Progress);
+              if (xpNumTxt) xpNumTxt.innerText = `${p2Val} / 1000 XP`;
+              if (xpFill) xpFill.style.width = `${Math.min(100, Math.round((p2Val / 1000) * 100))}%`;
+              if (typeof WizardAudio !== 'undefined' && WizardAudio.playTick) {
+                WizardAudio.playTick();
+              }
+
+              if (phase2Step >= phase2Steps) {
+                clearInterval(phase2Interval);
+                finalizeProgression();
+              }
+            }, 45);
+          }, 350);
+        } else {
+          finalizeProgression();
+        }
+      }
+    }, 45);
+
+    function finalizeProgression() {
+      if (curLvlTxt) curLvlTxt.innerText = targetLevel;
+      if (xpNumTxt) xpNumTxt.innerText = `${targetXp} / 1000 XP`;
+      if (xpFill) xpFill.style.width = `${Math.min(100, Math.round((targetXp / 1000) * 100))}%`;
+      const totalChests = (data.chests && (data.chests.wooden + data.chests.silver + data.chests.gold)) || 0;
+      updateVaultBadgeCount(totalChests);
+      fetchVaultState();
+    }
+  }
+
+  function init() {
+    const btnOpenVault = document.getElementById('btnOpenVault');
+    if (btnOpenVault) btnOpenVault.addEventListener('click', () => openVault('chests'));
+
+    const btnWaitingVault = document.getElementById('waiting-vault-toggle');
+    if (btnWaitingVault) btnWaitingVault.addEventListener('click', () => openVault('chests'));
+
+    const btnClose = document.getElementById('btnVaultClose');
+    if (btnClose) btnClose.addEventListener('click', closeVault);
+
+    const btnModalClose = document.getElementById('vaultModalClose');
+    if (btnModalClose) btnModalClose.addEventListener('click', closeVault);
+
+    const tabChests = document.getElementById('tabVaultChests');
+    if (tabChests) tabChests.addEventListener('click', () => switchTab('chests'));
+
+    const tabWardrobe = document.getElementById('tabVaultWardrobe');
+    if (tabWardrobe) tabWardrobe.addEventListener('click', () => switchTab('wardrobe'));
+
+    const tabForge = document.getElementById('tabVaultForge');
+    if (tabForge) tabForge.addEventListener('click', () => switchTab('forge'));
+
+    const bw = document.getElementById('btnOpenWoodenChest');
+    if (bw) bw.addEventListener('click', () => openChest('wooden'));
+
+    const bs = document.getElementById('btnOpenSilverChest');
+    if (bs) bs.addEventListener('click', () => openChest('silver'));
+
+    const bg = document.getElementById('btnOpenGoldChest');
+    if (bg) bg.addEventListener('click', () => openChest('gold'));
+
+    const btnFinish = document.getElementById('btnFinishUnboxing');
+    if (btnFinish) btnFinish.addEventListener('click', finishUnboxing);
+
+    const wardrobePills = document.querySelectorAll('#vaultPanelWardrobe .cosmetic-cat-pill');
+    wardrobePills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        wardrobePills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentWardrobeCategory = pill.dataset.cat || 'avatar_icons';
+        renderWardrobeItems();
+      });
+    });
+
+    const forgePills = document.querySelectorAll('#vaultPanelForge .forge-cat-pill');
+    forgePills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        forgePills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentForgeCategory = pill.dataset.cat || 'all';
+        renderForge();
+      });
+    });
+
+    const btnProgClose = document.getElementById('btnProgressionClose');
+    if (btnProgClose) {
+      btnProgClose.addEventListener('click', () => {
+        const modal = document.getElementById('progression-modal');
+        if (modal) modal.style.display = 'none';
+      });
+    }
+
+    const btnProgVault = document.getElementById('btnProgressionOpenVault');
+    if (btnProgVault) {
+      btnProgVault.addEventListener('click', () => {
+        const modal = document.getElementById('progression-modal');
+        if (modal) modal.style.display = 'none';
+        openVault('chests');
+      });
+    }
+
+    if (typeof socket !== 'undefined' && socket) {
+      socket.on('vault:state', onVaultStateReceived);
+      socket.on('vault:chestOpened', onChestOpened);
+      socket.on('vault:equipped', onEquipped);
+      socket.on('vault:crafted', onCrafted);
+      socket.on('vault:milestoneClaimed', onMilestoneClaimed);
+      socket.on('progression:matchSummary', (data) => {
+        pendingProgressionSummary = data;
+        const highlightModal = document.getElementById('highlight-modal');
+        const mvpModal = document.getElementById('mvp-voting-modal');
+        const isSequencing = (highlightModal && highlightModal.style.display !== 'none') || (mvpModal && mvpModal.style.display !== 'none');
+        if (!isSequencing && (!currentGameState || currentGameState === 'lobby' || currentGameState === 'game_over')) {
+          onMatchProgressionSummary(data);
+        }
+      });
+    }
+  }
+
+  return {
+    init,
+    openVault,
+    closeVault,
+    switchTab,
+    fetchVaultState,
+    updateBadges,
+    equipItem,
+    getVaultData: () => vaultData,
+    renderWardrobe,
+    showMatchProgression: onMatchProgressionSummary
+  };
+})();
+if (typeof window !== 'undefined') window.WizardVault = WizardVault;
 
 // --- MAGIER-PROFIL & SPIELER-DETAILS MODAL (SPIELTISCH & GRIMOIRE DER GEFÄHRTEN) ---
 function openPlayerDetailModal(data, source = 'table') {
@@ -4651,12 +5645,26 @@ function createPlayerWaitingItem(p, isHostUser) {
     }
   }
 
+  const frameClass = `frame-${p.avatarFrame || 'none'}`;
+  let avatarVisualHtml = initial;
+  if (p.avatarId) {
+    if (p.avatarId.startsWith('icon_')) {
+      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none';">${initial}`;
+    } else if (p.avatarId.startsWith('wizard_')) {
+      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none';">${initial}`;
+    }
+  }
+  const levelBadgeHtml = (p.accountLevel && p.accountLevel > 0)
+    ? `<span class="user-pill-level-badge" title="Stufe ${p.accountLevel}">Lvl ${p.accountLevel}</span>`
+    : '';
+
   item.innerHTML = `
     <div style="display: flex; align-items: center; gap: 10px;">
-      <div class="seat-avatar" style="width: 32px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${initial}</div>
+      <div class="seat-avatar ${frameClass}" style="width: 32px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${avatarVisualHtml}</div>
       <div>
         <div style="font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
           <b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge} ${botBadge}
+          ${levelBadgeHtml}
           ${rankBadgeHtml}
         </div>
         ${titleHtml}
@@ -5016,6 +6024,9 @@ socket.on('syncGameState', (state) => {
   }
   if (state.biddingMode) {
     currentBiddingMode = state.biddingMode;
+  }
+  if (state.tableSkin) {
+    applyTableSkin(state.tableSkin);
   }
   updateRoomSettingsBadges(currentEdition, currentMatchFormat, currentScoringMode, currentBiddingMode);
   currentGameState = state.gameState;
@@ -5984,7 +6995,7 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, isUnicornVoid
   }, 480);
 });
 
-socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedResults, matchFormat, teams }) => {
+socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedResults, matchFormat, teams, highlight, mvpCandidates }) => {
   if (matchFormat) {
     currentMatchFormat = matchFormat;
   }
@@ -6019,11 +7030,46 @@ socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedR
   if (isGameOver) {
     statusMessage.innerText = 'Das Spiel ist beendet!';
     const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
-    showGameOverScreen(amIHost);
+    if (highlight) pendingHighlight = highlight;
+    if (mvpCandidates) pendingMvpCandidates = mvpCandidates;
+    handleGameOverSequence(amIHost);
   } else {
     statusMessage.innerText = `Runde ${round} beendet! Nächste Runde startet gleich...`;
   }
 });
+
+// Highlight & MVP Events
+socket.on('highlight:replay', (highlightData) => {
+  pendingHighlight = highlightData;
+});
+
+socket.on('mvp:startVoting', (data) => {
+  if (data && data.candidates) {
+    pendingMvpCandidates = data.candidates;
+  }
+  const highlightModal = document.getElementById('highlight-modal');
+  const mvpModal = document.getElementById('mvp-voting-modal');
+  if (mvpModal && mvpModal.style.display !== 'none') {
+    return;
+  }
+  if (!highlightModal || highlightModal.style.display === 'none') {
+    startMvpVoting(data, () => {
+      const amIHost = cachedPlayers.some(p => p.sessionId === mySessionId && p.isHost);
+      if (pendingProgressionSummary) {
+        const summary = pendingProgressionSummary;
+        pendingProgressionSummary = null;
+        if (typeof WizardVault !== 'undefined' && WizardVault.showMatchProgression) {
+          WizardVault.showMatchProgression(summary);
+        }
+      } else {
+        showGameOverScreen(amIHost);
+      }
+    });
+  }
+});
+
+socket.on('mvp:updateVotes', onMvpVotesUpdated);
+socket.on('mvp:results', onMvpResultsReceived);
 
 // Pause & Reconnect Events
 socket.on('gamePaused', ({ pausedPlayerName, sessionId }) => {
@@ -6259,15 +7305,29 @@ function renderOpponents() {
       bidPillHtml = `<span class="seat-bid-pill" title="Gewonnen: ${wonText} | Vorhersage: ${bidText}">🏆 ${wonText} / 🎯 ${bidText}</span>`;
     }
 
+    const frameClass = `frame-${p.avatarFrame || 'none'}`;
+    let avatarVisualHtml = initial;
+    if (p.avatarId) {
+      if (p.avatarId.startsWith('icon_')) {
+        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none';">${initial}`;
+      } else if (p.avatarId.startsWith('wizard_')) {
+        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none';">${initial}`;
+      }
+    }
+    const levelBadgeHtml = (p.accountLevel && p.accountLevel > 0)
+      ? `<span class="user-pill-level-badge" title="Stufe ${p.accountLevel}">Lvl ${p.accountLevel}</span>`
+      : '';
+
     seatEl.innerHTML = `
       ${foreheadCardHtml}
-      <div class="seat-avatar ${disconnectedClass}">
-        ${initial}
+      <div class="seat-avatar ${disconnectedClass} ${frameClass}">
+        ${avatarVisualHtml}
         ${dealerPinHtml}
       </div>
       <div class="seat-details">
         <div class="seat-name-row" style="cursor: pointer;" title="${nameTitle}">
           <span class="${nameClass}" title="${nameTitle}">${teamPrefix}${iconPrefix}${escapeHtml(p.name)}</span>
+          ${levelBadgeHtml}
         </div>
         ${bidPillHtml}
       </div>
@@ -7519,6 +8579,369 @@ function renderScoreBoard() {
   }
 }
 
+// ==========================================================================
+// HIGHLIGHT DES SPIELS & POST-MATCH MVP VOTING CONTROLLER
+// ==========================================================================
+let highlightActiveTimeout = null;
+let highlightCardTimeouts = [];
+let pendingHighlight = null;
+let pendingMvpCandidates = null;
+let pendingProgressionSummary = null;
+let mvpCountdownInterval = null;
+let myVotedCandidateSessionId = null;
+
+function playHighlightSequence(highlightData, onDone) {
+  if (!highlightData) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
+
+  const modal = document.getElementById('highlight-modal');
+  if (!modal) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
+
+  if (highlightActiveTimeout) clearTimeout(highlightActiveTimeout);
+  highlightCardTimeouts.forEach(t => clearTimeout(t));
+  highlightCardTimeouts = [];
+
+  const headlineEl = document.getElementById('highlightHeadline');
+  const descEl = document.getElementById('highlightDescription');
+  const avatarWrap = document.getElementById('highlightPlayerAvatarWrap');
+  const avatarImg = document.getElementById('highlightPlayerAvatarImg');
+  const nameEl = document.getElementById('highlightPlayerName');
+  const titleEl = document.getElementById('highlightPlayerTitle');
+  const track = document.getElementById('highlightCardsTrack');
+  const callout = document.getElementById('highlightWinnerCallout');
+  const calloutTxt = document.getElementById('highlightWinnerCalloutTxt');
+  const btnSkip = document.getElementById('btnSkipHighlight');
+
+  if (headlineEl) headlineEl.innerText = highlightData.headline || 'Highlight des Spiels';
+  if (descEl) descEl.innerText = highlightData.description || 'Ein spektakulärer Stich!';
+  if (nameEl) nameEl.innerText = highlightData.winnerName || 'Magier';
+  if (titleEl) titleEl.innerText = highlightData.winnerTitle || 'Magier der Zitadelle';
+
+  if (avatarWrap) {
+    avatarWrap.className = `seat-avatar frame-${highlightData.winnerFrame || 'none'}`;
+  }
+  if (avatarImg) {
+    const av = highlightData.winnerAvatar || 'wizard_blue';
+    const isCustom = av.startsWith('icon_');
+    avatarImg.src = `/images/avatars/${av}.${isCustom ? 'png' : 'svg'}`;
+  }
+
+  if (track) track.innerHTML = '';
+  if (callout) callout.style.display = 'none';
+
+  modal.style.display = 'flex';
+
+  let hasEnded = false;
+  function finishHighlight() {
+    if (hasEnded) return;
+    hasEnded = true;
+    if (highlightActiveTimeout) clearTimeout(highlightActiveTimeout);
+    highlightCardTimeouts.forEach(t => clearTimeout(t));
+    highlightCardTimeouts = [];
+    modal.style.display = 'none';
+    if (typeof onDone === 'function') onDone();
+  }
+
+  if (btnSkip) {
+    btnSkip.onclick = () => {
+      finishHighlight();
+    };
+  }
+
+  const trickCards = highlightData.trick || [];
+  const cardDelay = trickCards.length > 0 ? Math.min(650, Math.max(350, Math.floor(2500 / trickCards.length))) : 500;
+
+  trickCards.forEach((item, idx) => {
+    const t = setTimeout(() => {
+      if (hasEnded || !track) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'highlight-card-wrapper';
+      wrap.setAttribute('data-session-id', item.playerSessionId || '');
+
+      const cardNode = renderCard(item.card);
+      wrap.appendChild(cardNode);
+
+      const pLabel = document.createElement('div');
+      pLabel.style.fontSize = '11px';
+      pLabel.style.fontWeight = 'bold';
+      pLabel.style.marginTop = '6px';
+      pLabel.style.color = '#ebd7af';
+      pLabel.style.textShadow = '0 1px 3px rgba(0,0,0,0.8)';
+      pLabel.innerText = item.playerName || 'Magier';
+      wrap.appendChild(pLabel);
+
+      track.appendChild(wrap);
+
+      if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+        WizardAudio.playCardSnap();
+      }
+    }, 1500 + idx * cardDelay);
+    highlightCardTimeouts.push(t);
+  });
+
+  const totalDropTime = 1500 + trickCards.length * cardDelay;
+  const victoryTimer = setTimeout(() => {
+    if (hasEnded) return;
+
+    if (track && highlightData.winnerSessionId) {
+      const winnerWrap = track.querySelector(`[data-session-id="${highlightData.winnerSessionId}"] .card`);
+      if (winnerWrap) {
+        winnerWrap.classList.add('highlight-winner-pulse');
+      }
+    }
+
+    if (callout && calloutTxt) {
+      calloutTxt.innerText = `${highlightData.winnerName} gewinnt den Stich! 🏆`;
+      callout.style.display = 'block';
+    }
+
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playTurnChime) {
+      WizardAudio.playTurnChime();
+    }
+  }, totalDropTime);
+  highlightCardTimeouts.push(victoryTimer);
+
+  highlightActiveTimeout = setTimeout(() => {
+    finishHighlight();
+  }, totalDropTime + 1800);
+}
+
+function startMvpVoting(data, onDone) {
+  if (!data || !data.candidates || data.candidates.length === 0) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
+
+  const modal = document.getElementById('mvp-voting-modal');
+  if (!modal) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
+
+  if (modal.style.display !== 'none' && myVotedCandidateSessionId) {
+    return;
+  }
+
+  myVotedCandidateSessionId = null;
+  if (mvpCountdownInterval) clearInterval(mvpCountdownInterval);
+
+  const grid = document.getElementById('mvpCandidatesGrid');
+  const timerSec = document.getElementById('mvpTimerSec');
+  const timerPill = document.querySelector('.mvp-timer-pill');
+  const winnerBanner = document.getElementById('mvpWinnerBanner');
+  const btnProceed = document.getElementById('btnProceedFromMvp');
+
+  if (timerPill) timerPill.style.display = 'inline-block';
+  if (winnerBanner) winnerBanner.style.display = 'none';
+
+  let hasClosed = false;
+  function closeMvpModal() {
+    if (hasClosed) return;
+    hasClosed = true;
+    if (mvpCountdownInterval) clearInterval(mvpCountdownInterval);
+    modal.style.display = 'none';
+    if (typeof onDone === 'function') onDone();
+  }
+
+  if (btnProceed) {
+    btnProceed.style.display = 'inline-block';
+    btnProceed.innerText = 'Weiter zum Level-Fortschritt ➔';
+    btnProceed.onclick = () => {
+      closeMvpModal();
+    };
+  }
+
+  let timeLeft = Math.round((data.durationMs || 15000) / 1000);
+  if (timerSec) timerSec.innerText = timeLeft;
+
+  mvpCountdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timerSec) timerSec.innerText = Math.max(0, timeLeft);
+    if (timeLeft <= 0) {
+      clearInterval(mvpCountdownInterval);
+    }
+  }, 1000);
+
+  if (grid) {
+    grid.innerHTML = '';
+    data.candidates.forEach(cand => {
+      const card = document.createElement('div');
+      card.className = 'mvp-card';
+      card.setAttribute('data-session-id', cand.sessionId);
+
+      const initial = cand.name ? cand.name.charAt(0).toUpperCase() : '?';
+      const av = cand.avatarId || 'wizard_blue';
+      const isCustom = av.startsWith('icon_');
+      const imgHtml = `<img src="/images/avatars/${av}.${isCustom ? 'png' : 'svg'}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none';">`;
+
+      card.innerHTML = `
+        <div class="seat-avatar frame-${cand.frame || 'none'}" style="width: 58px; height: 66px; font-size: 26px; margin-bottom: 6px;">
+          ${imgHtml}${initial}
+        </div>
+        <div style="font-weight: 800; font-size: 14px; color: #fff; margin-bottom: 2px;">${escapeHtml(cand.name)}</div>
+        <div class="mvp-card-badge">${cand.badge || '⭐ Meistermagier'}</div>
+        <div class="mvp-card-reason">${escapeHtml(cand.reason || '')}</div>
+        <div class="mvp-card-votes" id="mvp-votes-${cand.sessionId}">0 Stimmen</div>
+        <button type="button" class="btn-auth-bar btn-auth-gold btn-vote-cand" style="margin-top: 10px; width: 100%; padding: 6px 10px; font-size: 12px; font-weight: bold;">
+          Wählen
+        </button>
+      `;
+
+      const voteBtn = card.querySelector('.btn-vote-cand');
+      if (voteBtn) {
+        voteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (myVotedCandidateSessionId) return;
+          myVotedCandidateSessionId = cand.sessionId;
+
+          const allCards = grid.querySelectorAll('.mvp-card');
+          allCards.forEach(c => {
+            const sid = c.getAttribute('data-session-id');
+            const btn = c.querySelector('.btn-vote-cand');
+            if (sid === cand.sessionId) {
+              c.classList.add('voted-mine');
+              if (btn) {
+                btn.innerText = '✓ Gewählt';
+                btn.disabled = true;
+              }
+            } else {
+              c.classList.add('voted-other');
+              if (btn) btn.disabled = true;
+            }
+          });
+
+          if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+            WizardAudio.playCardSnap();
+          }
+
+          if (socket && socket.connected) {
+            socket.emit('mvp:vote', {
+              roomCode: currentRoomCode,
+              candidateSessionId: cand.sessionId
+            });
+          }
+        });
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  modal.style.display = 'flex';
+}
+
+function onMvpVotesUpdated({ voteCounts }) {
+  if (!voteCounts) return;
+  Object.keys(voteCounts).forEach(sid => {
+    const el = document.getElementById(`mvp-votes-${sid}`);
+    if (el) {
+      const v = voteCounts[sid] || 0;
+      el.innerText = `${v} Stimme${v === 1 ? '' : 'n'}`;
+    }
+  });
+}
+
+function onMvpResultsReceived(res) {
+  if (mvpCountdownInterval) clearInterval(mvpCountdownInterval);
+  const timerPill = document.querySelector('.mvp-timer-pill');
+  if (timerPill) timerPill.style.display = 'none';
+
+  const winnerBanner = document.getElementById('mvpWinnerBanner');
+  const winnerName = document.getElementById('mvpWinnerName');
+  const winnerBadge = document.getElementById('mvpWinnerBadge');
+  const winnerReward = document.getElementById('mvpWinnerReward');
+  const btnProceed = document.getElementById('btnProceedFromMvp');
+
+  if (winnerName) winnerName.innerText = res.winnerName || 'Zitadellen-Magier';
+  if (winnerBadge) winnerBadge.innerText = res.badge || 'MVP DER ZITADELLE';
+  if (winnerReward) {
+    winnerReward.innerText = `✨ +${res.bonusXP || 50} Bonus-XP & Titel "MVP der Zitadelle" verliehen!`;
+  }
+  if (winnerBanner) {
+    winnerBanner.style.display = 'block';
+  }
+
+  if (res.winnerSessionId) {
+    const winnerCard = document.querySelector(`.mvp-card[data-session-id="${res.winnerSessionId}"]`);
+    if (winnerCard) {
+      winnerCard.style.borderColor = '#facc15';
+      winnerCard.style.boxShadow = '0 0 25px rgba(250, 204, 21, 0.7)';
+    }
+  }
+
+  if (typeof WizardAudio !== 'undefined' && WizardAudio.playMvpGong) {
+    WizardAudio.playMvpGong();
+  }
+
+  if (btnProceed) {
+    btnProceed.style.display = 'inline-block';
+    btnProceed.innerText = 'Weiter zum Level-Fortschritt ➔';
+  }
+
+  setTimeout(() => {
+    const modal = document.getElementById('mvp-voting-modal');
+    if (modal && modal.style.display !== 'none') {
+      const btn = document.getElementById('btnProceedFromMvp');
+      if (btn && btn.onclick) btn.onclick();
+    }
+  }, 4500);
+}
+
+function handleGameOverSequence(amIHost) {
+  function proceedToProgressionOrPodium() {
+    if (pendingProgressionSummary) {
+      const summary = pendingProgressionSummary;
+      pendingProgressionSummary = null;
+      if (typeof WizardVault !== 'undefined' && WizardVault.showMatchProgression) {
+        WizardVault.showMatchProgression(summary);
+      }
+      const btnProgClose = document.getElementById('btnProgressionClose');
+      const btnProgVault = document.getElementById('btnProgressionOpenVault');
+      const onProgClosed = () => {
+        showGameOverScreen(amIHost);
+      };
+      if (btnProgClose) btnProgClose.onclick = onProgClosed;
+      if (btnProgVault) {
+        btnProgVault.onclick = () => {
+          const modal = document.getElementById('progression-modal');
+          if (modal) modal.style.display = 'none';
+          showGameOverScreen(amIHost);
+          if (typeof WizardVault !== 'undefined' && WizardVault.openVault) {
+            WizardVault.openVault('chests');
+          }
+        };
+      }
+    } else {
+      showGameOverScreen(amIHost);
+    }
+  }
+
+  if (pendingHighlight) {
+    const hl = pendingHighlight;
+    pendingHighlight = null;
+    playHighlightSequence(hl, () => {
+      if (pendingMvpCandidates && pendingMvpCandidates.length > 0) {
+        startMvpVoting({ candidates: pendingMvpCandidates, durationMs: 15000 }, () => {
+          proceedToProgressionOrPodium();
+        });
+      } else {
+        proceedToProgressionOrPodium();
+      }
+    });
+  } else if (pendingMvpCandidates && pendingMvpCandidates.length > 0) {
+    startMvpVoting({ candidates: pendingMvpCandidates, durationMs: 15000 }, () => {
+      proceedToProgressionOrPodium();
+    });
+  } else {
+    proceedToProgressionOrPodium();
+  }
+}
+
 // --- SIEGEREHRUNG ---
 function showGameOverScreen(amIHost) {
   if (!gameOverModal || !podiumList) return;
@@ -8534,4 +9957,5 @@ GrimoireServerSettings.init();
 GrimoireGameMenu.init();
 WizardAuth.init();
 CompanionsManager.init();
+WizardVault.init();
 switchScreen('lobby');

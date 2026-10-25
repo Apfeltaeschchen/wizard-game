@@ -96,6 +96,34 @@
       }
     }
 
+    /* --- PROGRESSIVE SKALIERUNG FÜR GROSSE MONITORE (1080p Desktop, 1440p QHD, 4K UHD) --- */
+    @media (min-width: 1400px) and (min-height: 800px) {
+      :root {
+        --card-w: clamp(105px, 8.8vw, 160px);
+      }
+      #trick-container .card {
+        --card-w: clamp(80px, 6.8vw, 120px) !important;
+      }
+    }
+
+    @media (min-width: 1900px) and (min-height: 950px) {
+      :root {
+        --card-w: clamp(125px, 9vw, 185px);
+      }
+      #trick-container .card {
+        --card-w: clamp(95px, 7vw, 140px) !important;
+      }
+    }
+
+    @media (min-width: 2500px) and (min-height: 1200px) {
+      :root {
+        --card-w: clamp(150px, 9vw, 230px);
+      }
+      #trick-container .card {
+        --card-w: clamp(115px, 7vw, 175px) !important;
+      }
+    }
+
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
@@ -5668,6 +5696,868 @@
     .chart-node:hover {
       r: 8px !important;
     }
+
+    /* ========================================================================== */
+    /* ETAPPE 6: SCHATZKAMMER, KOSMETIK, STUFEN-PROGRESSION & TISCH-SKINS CSS    */
+    /* ========================================================================== */
+
+    .btn-vault-action {
+      position: relative;
+      border-color: #f59e0b !important;
+      color: #fbbf24 !important;
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.25), rgba(120, 53, 15, 0.4)) !important;
+    }
+    .btn-vault-action:hover {
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.4), rgba(120, 53, 15, 0.6)) !important;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.5) !important;
+    }
+    .vault-notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.6);
+      border: 1.5px solid #1a0f07;
+      animation: badgePulse 2s infinite ease-in-out;
+    }
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); box-shadow: 0 0 10px #ef4444; }
+    }
+    .user-pill-level-badge {
+      background: linear-gradient(135deg, #d97706, #92400e);
+      color: #fef3c7;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid #fbbf24;
+      margin-left: 4px;
+    }
+
+    /* TISCH-SKINS */
+    .poker-table.table-skin-emerald_felt {
+      background-color: #0b2b1a !important;
+      background-image: radial-gradient(circle at 50% 50%, rgba(22, 101, 52, 0.8) 0%, rgba(5, 46, 22, 0.95) 75%), url('/images/table_felt.svg') !important;
+    }
+    .poker-table.table-skin-tavern_wood {
+      background-color: #261408 !important;
+      background-image: radial-gradient(circle at 50% 50%, rgba(180, 83, 9, 0.25) 0%, rgba(45, 20, 8, 0.95) 80%), repeating-linear-gradient(90deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 2px, transparent 2px, transparent 40px) !important;
+      box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.85) !important;
+    }
+    .poker-table.table-skin-amethyst_crypt {
+      background-color: #170d26 !important;
+      background-image: radial-gradient(circle at 50% 50%, rgba(126, 34, 206, 0.4) 0%, rgba(30, 10, 50, 0.95) 80%), radial-gradient(ellipse at 50% 100%, rgba(168, 85, 247, 0.2) 0%, transparent 60%) !important;
+      box-shadow: inset 0 0 50px rgba(88, 28, 135, 0.5) !important;
+    }
+    .poker-table.table-skin-volcano_keep {
+      background-color: #180806 !important;
+      background-image: radial-gradient(circle at 50% 50%, rgba(185, 28, 28, 0.35) 0%, rgba(30, 7, 7, 0.98) 85%), repeating-linear-gradient(45deg, rgba(239, 68, 68, 0.05) 0px, rgba(239, 68, 68, 0.05) 3px, transparent 3px, transparent 60px) !important;
+      box-shadow: inset 0 0 50px rgba(220, 38, 38, 0.4) !important;
+    }
+    .poker-table.table-skin-astral_observatory {
+      background-color: #050a1a !important;
+      background-image: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.35) 0%, rgba(10, 15, 35, 0.98) 80%), radial-gradient(circle at 75% 25%, rgba(147, 51, 234, 0.25) 0%, transparent 50%) !important;
+      box-shadow: inset 0 0 60px rgba(30, 58, 138, 0.6) !important;
+    }
+
+    /* AVATAR RAHMEN */
+    .seat-avatar.frame-none {
+      border: 2px solid var(--gold-antique);
+    }
+    .seat-avatar.frame-iron_thorn {
+      border: 2.5px dashed #64748b;
+      box-shadow: 0 0 8px rgba(100, 116, 139, 0.7), inset 0 0 6px rgba(0,0,0,0.8);
+    }
+    .seat-avatar.frame-silver_leaf {
+      border: 2.5px solid #cbd5e1;
+      box-shadow: 0 0 12px rgba(203, 213, 225, 0.8), 0 0 4px #94a3b8;
+    }
+    .seat-avatar.frame-golden_runes {
+      border: 2.5px solid #fbbf24;
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.75), inset 0 0 8px rgba(245, 158, 11, 0.5);
+      animation: runeFramePulse 2.8s infinite ease-in-out;
+    }
+    @keyframes runeFramePulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(251, 191, 36, 0.6); }
+      50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.9), inset 0 0 10px rgba(245, 158, 11, 0.7); }
+    }
+    .seat-avatar.frame-dragon_fire {
+      border: 2.5px solid #ef4444;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.85), 0 0 6px #f97316;
+      animation: dragonFirePulse 1.8s infinite alternate ease-in-out;
+    }
+    @keyframes dragonFirePulse {
+      0% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.7), 0 0 4px #f97316; border-color: #dc2626; }
+      100% { box-shadow: 0 0 24px rgba(249, 115, 22, 0.95), 0 0 10px #ef4444; border-color: #f59e0b; }
+    }
+    .seat-avatar.frame-void_crystal {
+      border: 2.5px solid #c084fc;
+      box-shadow: 0 0 22px rgba(192, 132, 252, 0.9), inset 0 0 10px rgba(168, 85, 247, 0.6);
+      animation: voidCrystalFloat 2.4s infinite ease-in-out;
+    }
+    @keyframes voidCrystalFloat {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px #c084fc); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 14px #a855f7); }
+    }
+
+    /* SCHATZKAMMER MODAL */
+    .vault-modal-card {
+      background: radial-gradient(circle at 50% 20%, #29180c 0%, #170d06 65%, #0d0603 100%);
+      border: 2px solid var(--gold-antique);
+      border-radius: 14px;
+      width: 95%;
+      max-width: 920px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(245, 158, 11, 0.25);
+      color: #ebd7af;
+      overflow: hidden;
+      position: relative;
+    }
+    .vault-header {
+      padding: 14px 18px;
+      border-bottom: 1.5px solid rgba(217, 119, 6, 0.35);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    .vault-level-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+    .vault-xp-bar-bg {
+      width: 120px;
+      height: 9px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.5);
+    }
+    .vault-xp-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      transition: width 0.5s ease-out;
+    }
+    .vault-dust-badge {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(126, 34, 206, 0.4));
+      border: 1px solid #c084fc;
+      color: #f3e8ff;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .vault-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.5);
+      border-bottom: 1px solid rgba(217, 119, 6, 0.25);
+      padding: 0 14px;
+      gap: 4px;
+    }
+    .vault-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: #d6be90;
+      font-family: var(--font-heading);
+      font-size: 13.5px;
+      padding: 10px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .vault-tab-btn:hover {
+      color: var(--gold-bright);
+    }
+    .vault-tab-btn.active {
+      color: var(--gold-bright);
+      border-bottom-color: var(--gold-bright);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .vault-body {
+      padding: 18px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* TRUHEN GRID */
+    .chests-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .chest-card {
+      background: radial-gradient(circle at 50% 30%, rgba(245, 158, 11, 0.08) 0%, rgba(0, 0, 0, 0.6) 80%);
+      border: 1.5px solid rgba(217, 119, 6, 0.35);
+      border-radius: 12px;
+      padding: 18px 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .chest-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--gold-bright);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 15px rgba(245, 158, 11, 0.2);
+    }
+    .chest-card.tier-wooden { border-color: #854d0e; }
+    .chest-card.tier-silver { border-color: #94a3b8; }
+    .chest-card.tier-gold { border-color: #fbbf24; }
+
+    .chest-icon-visual {
+      font-size: 50px;
+      line-height: 1;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7));
+      transition: transform 0.25s ease;
+    }
+    .chest-card:hover .chest-icon-visual {
+      transform: scale(1.1) rotate(-3deg);
+    }
+    .chest-title {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      color: var(--gold-bright);
+      margin-bottom: 4px;
+    }
+    .chest-desc {
+      font-size: 11.5px;
+      color: #d6be90;
+      margin-bottom: 10px;
+      min-height: 32px;
+      line-height: 1.3;
+    }
+    .chest-count-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fef08a;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      border-radius: 20px;
+      padding: 2px 10px;
+      margin-bottom: 12px;
+    }
+    .btn-chest-open {
+      width: 100%;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-family: var(--font-heading);
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      background: linear-gradient(180deg, #d97706, #78350f);
+      color: #fff;
+      border: 1.5px solid #fbbf24;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+    }
+    .btn-chest-open:hover:not(:disabled) {
+      background: linear-gradient(180deg, #f59e0b, #92400e);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    }
+    .btn-chest-open:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.8);
+    }
+
+    /* UNBOXING STAGE */
+    .unboxing-overlay {
+      background: rgba(0, 0, 0, 0.94);
+      border: 1.5px solid var(--gold-antique);
+      border-radius: 12px;
+      padding: 22px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+      margin-bottom: 16px;
+    }
+    .unboxing-drops-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin: 18px 0;
+      width: 100%;
+    }
+    .drop-card-reveal {
+      width: 155px;
+      background: radial-gradient(circle at 50% 25%, #2a180e 0%, #150904 80%);
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.9);
+      animation: cardFlipIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    @keyframes cardFlipIn {
+      0% { transform: perspective(600px) rotateY(90deg) scale(0.6); opacity: 0; }
+      100% { transform: perspective(600px) rotateY(0deg) scale(1); opacity: 1; }
+    }
+    .drop-card-reveal.rarity-common { border-color: #cbd5e1; box-shadow: 0 0 15px rgba(203, 213, 225, 0.3); }
+    .drop-card-reveal.rarity-rare { border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.5); }
+    .drop-card-reveal.rarity-epic { border-color: #c084fc; box-shadow: 0 0 25px rgba(192, 132, 252, 0.6); }
+    .drop-card-reveal.rarity-legendary { border-color: #fbbf24; box-shadow: 0 0 35px rgba(251, 191, 36, 0.8); }
+
+    .drop-card-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .drop-card-name {
+      font-family: var(--font-heading);
+      font-size: 12.5px;
+      font-weight: bold;
+      color: #fef3c7;
+      margin-bottom: 4px;
+    }
+    .drop-card-rarity {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .drop-card-duplicate {
+      margin-top: 6px;
+      background: rgba(168, 85, 247, 0.25);
+      border: 1px solid #c084fc;
+      color: #f3e8ff;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* WARDROBE & PREVIEW */
+    .wardrobe-container {
+      display: flex;
+      gap: 18px;
+    }
+    @media (max-width: 768px) {
+      .wardrobe-container { flex-direction: column; }
+    }
+    .wardrobe-preview-panel {
+      width: 220px;
+      flex-shrink: 0;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .wardrobe-items-panel {
+      flex: 1;
+    }
+    .cosmetics-filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .cosmetics-filter-pill {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      color: #d6be90;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .cosmetics-filter-pill.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--gold-bright);
+      color: var(--gold-bright);
+    }
+    .cosmetics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .cosmetic-item-card {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .cosmetic-item-card.equipped {
+      border-color: #fbbf24;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    }
+    .cosmetic-item-card.locked {
+      opacity: 0.6;
+    }
+    .btn-equip {
+      width: 100%;
+      margin-top: 8px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid #fbbf24;
+      background: linear-gradient(180deg, #d97706, #78350f);
+      color: #fff;
+    }
+    .btn-equip.is-equipped {
+      background: #15803d;
+      border-color: #4ade80;
+      cursor: default;
+    }
+
+    /* ZAUBERSCHMIEDE */
+    .forge-header-banner {
+      background: linear-gradient(135deg, rgba(88, 28, 135, 0.4), rgba(49, 13, 80, 0.6));
+      border: 1.5px solid #a855f7;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .forge-dust-display {
+      font-size: 18px;
+      font-weight: 800;
+      color: #e9d5ff;
+      text-shadow: 0 0 10px rgba(192, 132, 252, 0.8);
+    }
+    .forge-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .forge-item-card {
+      background: rgba(0,0,0,0.5);
+      border: 1.5px solid rgba(168, 85, 247, 0.35);
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .forge-item-card:hover {
+      transform: translateY(-2px);
+      border-color: #c084fc;
+    }
+    .btn-forge {
+      width: 100%;
+      margin-top: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1.5px solid #c084fc;
+      background: linear-gradient(180deg, #9333ea, #581c87);
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+    .btn-forge:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #6b7280;
+      background: #374151;
+    }
+
+    /* POST-MATCH PROGRESSION POPUP */
+    .progression-modal-card {
+      background: radial-gradient(circle at 50% 25%, #2a1608 0%, #150903 70%, #0a0401 100%);
+      border: 2px solid var(--gold-bright);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 90%;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.95), 0 0 40px rgba(245, 158, 11, 0.35);
+      color: #ebd7af;
+    }
+    .progression-level-title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      color: var(--gold-bright);
+      margin-bottom: 6px;
+    }
+    .progression-xp-breakdown {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 14px 0;
+      text-align: left;
+      font-size: 12.5px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .progression-levelup-banner {
+      background: linear-gradient(90deg, rgba(234, 179, 8, 0.25), rgba(202, 138, 4, 0.4), rgba(234, 179, 8, 0.25));
+      border: 1.5px solid #facc15;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 14px 0;
+      font-weight: bold;
+      color: #fef08a;
+      animation: levelUpGlow 2s infinite ease-in-out;
+    }
+    @keyframes levelUpGlow {
+      0%, 100% { box-shadow: 0 0 10px rgba(250, 204, 21, 0.4); }
+      50% { box-shadow: 0 0 25px rgba(250, 204, 21, 0.85); }
+    }
+    .levelup-burst-effect {
+      animation: levelupBurst 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes levelupBurst {
+      0% { transform: scale(0.95); filter: brightness(1); }
+      50% { transform: scale(1.08); filter: brightness(1.7) drop-shadow(0 0 25px #fde047); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+
+    /* LOBBY- & WARTERAUM-THEMEN */
+    #lobby-screen.theme-citadel_halls, #waiting-room-screen.theme-citadel_halls {
+      background: url('/images/lobby_bg.svg') center center / cover no-repeat;
+    }
+    #lobby-screen.theme-haunted_graveyard, #waiting-room-screen.theme-haunted_graveyard {
+      background: radial-gradient(circle at 50% 25%, rgba(13, 148, 136, 0.3) 0%, rgba(15, 23, 42, 0.95) 70%), radial-gradient(circle at 80% 20%, rgba(249, 115, 22, 0.25) 0%, transparent 40%), #060913 !important;
+    }
+    #lobby-screen.theme-witch_hut, #waiting-room-screen.theme-witch_hut {
+      background: radial-gradient(circle at 50% 60%, rgba(147, 51, 234, 0.35) 0%, rgba(30, 10, 45, 0.95) 75%), #0c0514 !important;
+    }
+    #lobby-screen.theme-tavern_fireplace, #waiting-room-screen.theme-tavern_fireplace {
+      background: radial-gradient(circle at 50% 70%, rgba(234, 88, 12, 0.35) 0%, rgba(45, 20, 8, 0.95) 80%), #180a04 !important;
+    }
+    #lobby-screen.theme-astral_observatory, #waiting-room-screen.theme-astral_observatory {
+      background: radial-gradient(circle at 50% 40%, rgba(59, 130, 246, 0.35) 0%, rgba(15, 23, 42, 0.95) 80%), #040817 !important;
+    }
+    #lobby-screen.theme-magma_forge, #waiting-room-screen.theme-magma_forge {
+      background: radial-gradient(circle at 50% 80%, rgba(220, 38, 38, 0.4) 0%, rgba(35, 8, 8, 0.98) 85%), #150303 !important;
+    }
+    #lobby-screen.theme-celestial_sanctum, #waiting-room-screen.theme-celestial_sanctum {
+      background: radial-gradient(circle at 50% 30%, rgba(250, 204, 21, 0.35) 0%, rgba(40, 30, 10, 0.95) 85%), #1c1505 !important;
+    }
+
+    /* HALLOWEEN TISCH-SKIN */
+    .poker-table.table-skin-haunted_crypt {
+      background-color: #0b1414 !important;
+      background-image: radial-gradient(circle at 50% 50%, rgba(20, 83, 75, 0.45) 0%, rgba(8, 20, 20, 0.96) 80%), repeating-linear-gradient(45deg, rgba(45, 212, 191, 0.04) 0px, rgba(45, 212, 191, 0.04) 2px, transparent 2px, transparent 50px) !important;
+      box-shadow: inset 0 0 55px rgba(13, 148, 136, 0.5) !important;
+    }
+
+    /* HALLOWEEN & MVP AVATAR RAHMEN */
+    .seat-avatar.frame-pumpkin_lantern {
+      border: 2.5px solid #f97316;
+      box-shadow: 0 0 16px rgba(249, 115, 22, 0.85), 0 0 6px #ea580c;
+      animation: pumpkinFlicker 2s infinite alternate ease-in-out;
+    }
+    @keyframes pumpkinFlicker {
+      0% { box-shadow: 0 0 12px rgba(249, 115, 22, 0.7); border-color: #ea580c; }
+      100% { box-shadow: 0 0 24px rgba(251, 146, 60, 0.95), 0 0 8px #f97316; border-color: #f59e0b; }
+    }
+    .seat-avatar.frame-bat_swarm {
+      border: 2.5px solid #a855f7;
+      box-shadow: 0 0 18px rgba(168, 85, 247, 0.8), inset 0 0 8px rgba(88, 28, 135, 0.7);
+      animation: batSwarmPulse 2.2s infinite ease-in-out;
+    }
+    @keyframes batSwarmPulse {
+      0%, 100% { box-shadow: 0 0 14px rgba(168, 85, 247, 0.6); }
+      50% { box-shadow: 0 0 24px rgba(192, 132, 252, 0.95), inset 0 0 12px rgba(126, 34, 206, 0.8); }
+    }
+    .seat-avatar.frame-ghost_specter {
+      border: 2.5px solid #2dd4bf;
+      box-shadow: 0 0 20px rgba(45, 212, 191, 0.85), inset 0 0 10px rgba(20, 184, 166, 0.6);
+      animation: ghostSpecterFloat 2.6s infinite ease-in-out;
+    }
+    @keyframes ghostSpecterFloat {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.7)); }
+      50% { transform: scale(1.04); filter: drop-shadow(0 0 18px rgba(94, 234, 212, 0.95)); }
+    }
+    .seat-avatar.frame-mvp_glow {
+      border: 3px solid #fbbf24;
+      box-shadow: 0 0 25px rgba(251, 191, 36, 0.95), 0 0 12px #f59e0b, inset 0 0 10px rgba(251, 191, 36, 0.8);
+      animation: mvpPulseGlow 1.6s infinite alternate ease-in-out;
+    }
+    @keyframes mvpPulseGlow {
+      0% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.8), 0 0 5px #f59e0b; }
+      100% { box-shadow: 0 0 35px rgba(251, 191, 36, 1), 0 0 18px #d97706, inset 0 0 15px rgba(251, 191, 36, 0.9); }
+    }
+
+    /* CINEMATIC HIGHLIGHT DES SPIELS */
+    .cinematic-overlay {
+      background: rgba(0, 0, 0, 0.94);
+      backdrop-filter: blur(8px);
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+    }
+    .cinematic-letterbox {
+      position: absolute;
+      left: 0; right: 0;
+      height: 48px;
+      background: #000;
+      z-index: 2510;
+    }
+    .cinematic-bar-top { top: 0; border-bottom: 2px solid rgba(245, 158, 11, 0.4); }
+    .cinematic-bar-bottom { bottom: 0; border-top: 2px solid rgba(245, 158, 11, 0.4); }
+    .highlight-container {
+      position: relative;
+      z-index: 2520;
+      width: 90%;
+      max-width: 680px;
+      text-align: center;
+      color: #ebd7af;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .highlight-trophy-badge {
+      display: inline-block;
+      font-family: var(--font-heading);
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: #000;
+      background: linear-gradient(90deg, #f59e0b, #fde047, #f59e0b);
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-weight: 900;
+      box-shadow: 0 0 25px rgba(251, 191, 36, 0.8);
+      margin-bottom: 6px;
+      animation: highlightBadgeGlow 2s infinite ease-in-out;
+    }
+    @keyframes highlightBadgeGlow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(251, 191, 36, 0.6); }
+      50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(251, 191, 36, 0.95); }
+    }
+    .highlight-headline {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      color: #fff;
+      text-shadow: 0 0 12px rgba(251, 191, 36, 0.7);
+    }
+    .highlight-desc {
+      font-size: 13.5px;
+      color: #fde047;
+      font-style: italic;
+    }
+    .highlight-spotlight-player {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1.5px solid rgba(245, 158, 11, 0.5);
+      border-radius: 12px;
+      padding: 10px 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+    }
+    .highlight-player-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .highlight-player-title {
+      font-size: 12px;
+      color: #c084fc;
+    }
+    .highlight-table-stage {
+      width: 100%;
+      min-height: 200px;
+      background: radial-gradient(circle at 50% 50%, rgba(22, 101, 52, 0.4) 0%, rgba(5, 46, 22, 0.7) 75%), rgba(0,0,0,0.6);
+      border: 2px solid var(--gold-antique);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.9), 0 0 35px rgba(245, 158, 11, 0.2);
+    }
+    .highlight-cards-track {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      perspective: 1000px;
+    }
+    .highlight-card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: cardFlyIn 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    @keyframes cardFlyIn {
+      0% { opacity: 0; transform: translateY(-50px) scale(0.6) rotateX(40deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); }
+    }
+    .highlight-winner-pulse {
+      animation: winnerPulse 1s infinite alternate ease-in-out;
+      box-shadow: 0 0 25px rgba(251, 191, 36, 1) !important;
+    }
+    @keyframes winnerPulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 8px #f59e0b); }
+      100% { transform: scale(1.08); filter: drop-shadow(0 0 22px #fde047); }
+    }
+    .highlight-winner-callout {
+      margin-top: 12px;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid #facc15;
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #fef08a;
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+    }
+
+    /* MVP VOTING MODAL */
+    .mvp-modal-card {
+      background: radial-gradient(circle at 50% 20%, #2a1506 0%, #150903 70%, #0a0401 100%);
+      border: 2px solid var(--gold-bright);
+      border-radius: 16px;
+      width: 92%;
+      max-width: 780px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.95), 0 0 45px rgba(245, 158, 11, 0.4);
+      color: #ebd7af;
+    }
+    .mvp-modal-title {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      color: var(--gold-bright);
+      margin-bottom: 4px;
+    }
+    .mvp-modal-subtitle {
+      font-size: 13.5px;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+    }
+    .mvp-timer-pill {
+      display: inline-block;
+      background: rgba(220, 38, 38, 0.25);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .mvp-candidates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .mvp-card {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1.5px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .mvp-card:hover:not(.voted-other) {
+      border-color: #fbbf24;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+    }
+    .mvp-card.voted-mine {
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.15);
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+    }
+    .mvp-card-badge {
+      font-size: 12px;
+      font-weight: bold;
+      color: #fde047;
+      margin: 8px 0 4px;
+    }
+    .mvp-card-reason {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+      line-height: 1.3;
+      min-height: 28px;
+    }
+    .mvp-card-votes {
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      border-radius: 12px;
+      padding: 3px 10px;
+      margin-top: 6px;
+    }
+    .mvp-winner-banner {
+      background: linear-gradient(90deg, rgba(234, 179, 8, 0.2), rgba(202, 138, 4, 0.45), rgba(234, 179, 8, 0.2));
+      border: 2px solid #facc15;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 16px;
+      animation: mvpCrownPulse 1.8s infinite ease-in-out;
+    }
+    @keyframes mvpCrownPulse {
+      0%, 100% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.5); }
+      50% { box-shadow: 0 0 35px rgba(250, 204, 21, 0.9); }
+    }
   </style>
 </head>
 <body>
@@ -5711,9 +6601,12 @@
         <!-- ANGEMELDET-MODUS -->
         <div id="auth-user-controls" class="auth-bar-group" style="display: none;">
           <div id="authUserPill" class="user-crest-pill" title="Profil &amp; Statistiken öffnen">
-            <div id="lobbyUserAvatarShield" class="seat-avatar" style="width: 28px; height: 32px; font-size: 13px; margin: 0; box-shadow: none;">M</div>
+            <div id="lobbyUserAvatarShield" class="seat-avatar frame-none" style="width: 28px; height: 32px; font-size: 13px; margin: 0; box-shadow: none;">M</div>
             <div class="user-pill-text">
-              <span id="lobbyUserName" class="user-pill-name">Magier</span>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span id="lobbyUserName" class="user-pill-name">Magier</span>
+                <span id="lobbyUserLevelBadge" class="user-pill-level-badge">Lvl 1</span>
+              </div>
               <span id="lobbyUserTitle" class="user-pill-title">Zauberlehrling</span>
             </div>
           </div>
@@ -5723,6 +6616,13 @@
 
       <!-- RECHTS: AKTIONEN & EINSTELLUNGEN -->
       <div class="lobby-header-right">
+        <!-- SCHATZKAMMER (LOOTBOXEN & KOSMETIK) -->
+        <button id="btnOpenVault" type="button" class="btn-score-toggle btn-header-action btn-vault-action" title="Magische Schatzkammer &amp; Garderobe öffnen" aria-label="Schatzkammer">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">🎁</span>
+          <span class="btn-text score-toggle-text">Schatzkammer</span>
+          <span id="vaultBadge" class="vault-notification-badge" style="display: none;">0</span>
+        </button>
+
         <!-- GEFÄHRTEN -->
         <button id="btnOpenCompanionsGuest" type="button" class="btn-score-toggle btn-header-action" title="Grimoire der Gefährten öffnen" aria-label="Gefährten">
           <span class="btn-icon score-toggle-icon" aria-hidden="true">👥</span>
@@ -5807,6 +6707,12 @@
         <span class="waiting-header-title">🏰 DIE RATSKAMMER</span>
       </div>
       <div class="waiting-header-right">
+        <!-- SCHATZKAMMER TOGGLE IM WARTERAUM -->
+        <button id="waiting-vault-toggle" type="button" class="btn-score-toggle btn-header-action btn-vault-action" title="Magische Schatzkammer &amp; Garderobe öffnen" aria-label="Schatzkammer">
+          <span class="btn-icon score-toggle-icon" aria-hidden="true">🎁</span>
+          <span class="btn-text score-toggle-text">Schatzkammer</span>
+          <span id="waitingVaultBadge" class="vault-notification-badge" style="display: none;">0</span>
+        </button>
         <button id="waiting-audio-toggle" type="button" class="btn-score-toggle btn-header-action" title="Klang &amp; Musik" aria-label="Klang und Musik">
           <span class="btn-icon score-toggle-icon" aria-hidden="true">🔊</span>
           <span class="btn-text score-toggle-text">Klang</span>
@@ -6627,7 +7533,7 @@
         </div>
         <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
           <button id="btnTestTurnSound" type="button" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
-            🔔 Kristall-Gong testen
+            🔔 Bronzegong testen
           </button>
         </div>
       </div>
@@ -6639,17 +7545,17 @@
             <input type="checkbox" id="musicMuteToggle" style="accent-color: var(--gold-bright); cursor: pointer;" />
             <span>Hintergrundmusik</span>
           </label>
-          <span id="musicVolLabel">50%</span>
+          <span id="musicVolLabel">20%</span>
         </div>
-        <input type="range" id="musicVolSlider" class="medieval-slider" min="0" max="100" value="50" />
+        <input type="range" id="musicVolSlider" class="medieval-slider" min="0" max="100" value="20" />
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; gap: 8px;">
           <span id="musicPlayingStatus" style="font-size: 11px; color: #d6be90; font-style: italic;">Aktiv</span>
           <div style="display: flex; gap: 6px; align-items: center;">
             <button id="btnToggleMusicPlayback" type="button" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
               ⏸ Pause
             </button>
-            <button id="btnSkipMusicTrack" type="button" title="Nächsten Tavernentitel abspielen" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
-              ⏭ Weiter
+            <button id="btnSkipMusicTrack" type="button" title="Musik neu starten" style="padding: 4px 10px; font-size: 11px; background: rgba(200, 154, 56, 0.2); border: 1px solid var(--gold-antique); border-radius: 4px; color: var(--gold-bright); cursor: pointer;">
+              🔄 Neu starten
             </button>
           </div>
         </div>
@@ -6765,14 +7671,70 @@
         </div>
       </div>
 
-      <!-- TITEL-AUSWAHL -->
-      <div class="profile-section-box">
-        <div class="profile-section-title">👑 Ehrentitel anlegen</div>
-        <p style="font-size: 11.5px; color: #d6be90; margin: 0 0 10px; font-style: italic;">
-          Wähle einen deiner freigeschalteten Ehrentitel für dein Wappen:
+      <!-- AUSRÜSTUNG & KOSMETIKA (GARDEROBE IM PROFIL) -->
+      <div class="profile-section-box" id="profileCosmeticsSection">
+        <div class="profile-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>🎨 Ausrüstung &amp; Garderobe</span>
+          <button type="button" id="btnProfileOpenVault" class="btn-auth-bar btn-auth-gold" style="padding: 4px 10px; font-size: 11px; text-decoration: none;" title="Zur Schatzkammer &amp; 3D-Garderobe">
+            <span class="btn-icon">🎁</span>
+            <span class="btn-text">Zur Schatzkammer</span>
+          </button>
+        </div>
+        <p style="font-size: 11.5px; color: #d6be90; margin: 0 0 12px; font-style: italic;">
+          Passe dein Erscheinen für den Spieltisch und die Hallen der Zitadelle an:
         </p>
-        <select id="profileTitleSelect" class="profile-title-select"></select>
-        <div id="profileTitleStatusDesc" style="margin-top: 8px; font-size: 11px; color: var(--gold-antique); font-style: italic;"></div>
+
+        <div class="profile-cosmetics-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- 1. AVATAR-PORTRAIT -->
+          <div class="profile-cosmetic-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <label for="profileSelectAvatar" style="font-size: 12px; font-weight: bold; color: var(--gold-bright); display: flex; align-items: center; gap: 6px; min-width: 105px;">
+              <span>👤</span> Porträt:
+            </label>
+            <select id="profileSelectAvatar" class="profile-title-select" style="flex: 1;"></select>
+          </div>
+
+          <!-- 2. AVATAR-RAHMEN -->
+          <div class="profile-cosmetic-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <label for="profileSelectFrame" style="font-size: 12px; font-weight: bold; color: var(--gold-bright); display: flex; align-items: center; gap: 6px; min-width: 105px;">
+              <span>🖼️</span> Rahmen:
+            </label>
+            <select id="profileSelectFrame" class="profile-title-select" style="flex: 1;"></select>
+          </div>
+
+          <!-- 3. KARTENRÜCKEN -->
+          <div class="profile-cosmetic-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <label for="profileSelectCardBack" style="font-size: 12px; font-weight: bold; color: var(--gold-bright); display: flex; align-items: center; gap: 6px; min-width: 105px;">
+              <span>🎴</span> Kartenrücken:
+            </label>
+            <select id="profileSelectCardBack" class="profile-title-select" style="flex: 1;"></select>
+          </div>
+
+          <!-- 4. SPIELTISCH-SKIN -->
+          <div class="profile-cosmetic-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <label for="profileSelectTableSkin" style="font-size: 12px; font-weight: bold; color: var(--gold-bright); display: flex; align-items: center; gap: 6px; min-width: 105px;">
+              <span>🏰</span> Spieltisch:
+            </label>
+            <select id="profileSelectTableSkin" class="profile-title-select" style="flex: 1;"></select>
+          </div>
+
+          <!-- 5. EHRENTITEL -->
+          <div class="profile-cosmetic-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <label for="profileTitleSelect" style="font-size: 12px; font-weight: bold; color: var(--gold-bright); display: flex; align-items: center; gap: 6px; min-width: 105px;">
+              <span>👑</span> Ehrentitel:
+            </label>
+            <select id="profileTitleSelect" class="profile-title-select" style="flex: 1;"></select>
+          </div>
+
+          <!-- 6. LOBBY-HINTERGRUND -->
+          <div class="profile-cosmetic-row" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <label for="profileSelectLobbyBackground" style="font-size: 12px; font-weight: bold; color: var(--gold-bright); display: flex; align-items: center; gap: 6px; min-width: 105px;">
+              <span>🌌</span> Thema / Lobby:
+            </label>
+            <select id="profileSelectLobbyBackground" class="profile-title-select" style="flex: 1;"></select>
+          </div>
+        </div>
+
+        <div id="profileTitleStatusDesc" style="margin-top: 10px; font-size: 11px; color: var(--gold-antique); font-style: italic;"></div>
       </div>
 
       <!-- ABMELDEN -->
@@ -7180,6 +8142,300 @@
       <button id="cardLightboxClose" class="drawer-close-btn" style="position: absolute; top: -16px; right: -16px; width: 36px; height: 36px; font-size: 24px; background: rgba(20, 10, 5, 0.95); border: 2px solid var(--gold-bright); border-radius: 50%; color: var(--gold-bright); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
       <img id="cardLightboxImage" src="" alt="Großansicht" style="max-width: min(85vw, 360px); max-height: 72vh; border-radius: 14px; border: 2.5px solid var(--gold-bright); box-shadow: 0 0 35px rgba(212, 163, 89, 0.5), 0 20px 45px rgba(0,0,0,0.95); object-fit: contain;">
       <div id="cardLightboxTitle" style="margin-top: 14px; font-family: var(--font-medieval); font-size: 18px; color: var(--gold-bright); text-shadow: 0 2px 8px rgba(0,0,0,0.9); text-align: center;"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================== -->
+  <!-- ETAPPE 6: DIE SCHATZKAMMER DES ERZMAGIERS (LOOTBOXEN & KOSMETIK)           -->
+  <!-- ========================================================================== -->
+  <div id="vault-modal" class="modal-overlay" style="display: none; z-index: 2200;">
+    <div class="vault-modal-card">
+      <button id="vaultCloseBtn" type="button" class="drawer-close-btn" style="position: absolute; top: 14px; right: 16px; font-size: 26px; z-index: 10;" title="Schatzkammer verlassen">&times;</button>
+
+      <!-- KOPFZEILE MIT LEVEL, XP-BALKEN & ASTRALSTAUB -->
+      <div class="vault-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 28px;">🎁</span>
+          <div>
+            <h2 style="margin: 0; font-family: var(--font-heading); color: var(--gold-bright); font-size: 20px;">Die Schatzkammer des Erzmagiers</h2>
+            <div style="font-size: 11.5px; color: #d6be90; font-style: italic;">Kosmetik-Fortschritt &amp; Belohnungen (Overwatch-Progression)</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; margin-right: 36px;">
+          <!-- LEVEL & XP PROGRESSION -->
+          <div class="vault-level-bar-wrap">
+            <span style="font-weight: 800; color: #fde047; font-size: 13px;">Stufe <span id="vaultLevelDisplay">1</span></span>
+            <div class="vault-xp-bar-bg" title="EP bis zum nächsten Levelaufstieg">
+              <div id="vaultXpBarFill" class="vault-xp-bar-fill" style="width: 0%;"></div>
+            </div>
+            <span id="vaultXpText" style="font-size: 11px; color: #cbd5e1;">0 / 1000 XP</span>
+          </div>
+
+          <!-- ASTRALSTAUB GUTHABEN -->
+          <div class="vault-dust-badge" title="Astralstaub: Wird aus Truhen-Duplikaten gewonnen">
+            <span>✨</span>
+            <span id="vaultDustDisplay">0</span>
+            <span style="font-size: 11px; color: #e9d5ff;">Staub</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABS: TRUHEN / GARDEROBE / ZAUBERSCHMIEDE -->
+      <div class="vault-tabs">
+        <button type="button" id="tabVaultChests" class="vault-tab-btn active">
+          <span>🪵</span>
+          <span>Truhen öffnen (<span id="vaultChestsCountBadge">0</span>)</span>
+        </button>
+        <button type="button" id="tabVaultWardrobe" class="vault-tab-btn">
+          <span>👘</span>
+          <span>Garderobe &amp; Ausrüstung</span>
+        </button>
+        <button type="button" id="tabVaultForge" class="vault-tab-btn">
+          <span>⚒️</span>
+          <span>Zauberschmiede</span>
+        </button>
+      </div>
+
+      <!-- TAB INHALTE -->
+      <div class="vault-body">
+        <!-- 1. TAB: TRUHEN ÖFFNEN -->
+        <div id="vaultPanelChests" class="vault-tab-panel">
+          <!-- BEREICH FÜR UNBOXING REVEAL ANIMATION (ERSCHEINT BEIM ÖFFNEN) -->
+          <div id="vaultUnboxingArea" class="unboxing-overlay" style="display: none;">
+            <div id="vaultUnboxingTitle" style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 20px; margin-bottom: 6px;">Truhe wird geöffnet...</div>
+            <div id="vaultUnboxingSubtitle" style="font-size: 12px; color: #d6be90; margin-bottom: 12px;">Arkane Schätze materialisieren sich!</div>
+            <div id="vaultUnboxingDrops" class="unboxing-drops-container"></div>
+            <div id="vaultUnboxingDustNotice" style="display: none; font-size: 13px; color: #c084fc; font-weight: bold; margin-bottom: 14px;"></div>
+            <button id="btnFinishUnboxing" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 8px 24px;">Großartig!</button>
+          </div>
+
+          <!-- TRUHEN-KARTEN (3 TYPEN) -->
+          <div class="chests-grid">
+            <!-- HOLZTRUHE -->
+            <div class="chest-card tier-wooden">
+              <div class="chest-icon-visual">🪵</div>
+              <div class="chest-title">Holztruhe des Lehrlings</div>
+              <div class="chest-desc">2 Belohnungen. Erhältst du bei jedem regulären Stufenaufstieg.</div>
+              <div class="chest-count-badge">Verfügbar: <span id="countWoodenChests">0</span></div>
+              <button id="btnOpenWoodenChest" type="button" class="btn-chest-open" disabled>Truhe öffnen</button>
+            </div>
+
+            <!-- SILBERTRUHE -->
+            <div class="chest-card tier-silver">
+              <div class="chest-icon-visual">🥈</div>
+              <div class="chest-title">Silberne Magiertruhe</div>
+              <div class="chest-desc">3 Belohnungen mit hoher Chance auf Seltene &amp; Epische Schätze. Belohnung alle 5 Stufen!</div>
+              <div class="chest-count-badge">Verfügbar: <span id="countSilverChests">0</span></div>
+              <button id="btnOpenSilverChest" type="button" class="btn-chest-open" disabled>Truhe öffnen</button>
+            </div>
+
+            <!-- GOLDKASSETTE -->
+            <div class="chest-card tier-gold">
+              <div class="chest-icon-visual">👑</div>
+              <div class="chest-title">Goldene Erzmagier-Kassette</div>
+              <div class="chest-desc">4 Belohnungen. Garantiert mindestens 1 Episches oder Legendäres Prunkstück! Alle 10 Stufen.</div>
+              <div class="chest-count-badge">Verfügbar: <span id="countGoldChests">0</span></div>
+              <button id="btnOpenGoldChest" type="button" class="btn-chest-open" disabled>Kassette öffnen</button>
+            </div>
+          </div>
+
+          <!-- WÖCHENTLICHE PRÜFUNGEN (WEEKLY MILESTONES) -->
+          <div style="background: rgba(0,0,0,0.4); border: 1.5px solid rgba(217, 119, 6, 0.3); border-radius: 10px; padding: 14px 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h3 style="margin: 0; font-family: var(--font-heading); color: var(--gold-bright); font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                <span>📜</span> Wöchentliche Prüfungen der Akademie
+              </h3>
+              <span id="vaultWeeklyPeriodText" style="font-size: 11.5px; color: #a89270;">KW --</span>
+            </div>
+            <div id="vaultWeeklyMilestonesList" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Dynamisch via JavaScript befüllt -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. TAB: GARDEROBE (AUSRÜSTUNG) -->
+        <div id="vaultPanelWardrobe" class="vault-tab-panel" style="display: none;">
+          <div class="wardrobe-container">
+            <!-- VORSCHAU-PANEL (SPIEGEL DES MAGIERS) -->
+            <div class="wardrobe-preview-panel">
+              <div style="font-family: var(--font-heading); font-size: 13.5px; color: var(--gold-bright); margin-bottom: 12px;">Magier-Spiegel</div>
+              <div id="wardrobePreviewAvatarWrapper" class="seat-avatar frame-none" style="width: 72px; height: 82px; font-size: 32px; margin-bottom: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.8);">
+                <img id="wardrobePreviewAvatarImg" src="/images/avatars/wizard_blue.svg" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+              </div>
+              <div id="wardrobePreviewName" style="font-weight: bold; color: #fff; font-size: 14px; margin-bottom: 2px;">Magier</div>
+              <div id="wardrobePreviewTitle" style="font-size: 11.5px; color: #fbbf24; font-style: italic; margin-bottom: 14px;">Zauberlehrling</div>
+              
+              <div style="border-top: 1px solid rgba(255,255,255,0.1); width: 100%; padding-top: 10px; text-align: left; font-size: 11.5px; display: flex; flex-direction: column; gap: 6px;">
+                <div><b>Kartendeck:</b> <span id="wardrobePreviewDeck">Zitadellen-Blau</span></div>
+                <div><b>Spieltisch:</b> <span id="wardrobePreviewTable">Klassischer Filz</span></div>
+                <div><b>Rahmen:</b> <span id="wardrobePreviewFrame">Schlichter Goldring</span></div>
+                <div><b>Lobby:</b> <span id="wardrobePreviewLobby">Hallen der Zitadelle</span></div>
+              </div>
+            </div>
+
+            <!-- ARTIKEL-LISTE NACH KATEGORIEN -->
+            <div class="wardrobe-items-panel">
+              <div class="cosmetics-filter-pills">
+                <button type="button" class="cosmetics-filter-pill active" data-category="avatar_icons">👤 Avatar-Icons</button>
+                <button type="button" class="cosmetics-filter-pill" data-category="avatar_frames">⭕ Rahmen</button>
+                <button type="button" class="cosmetics-filter-pill" data-category="titles">📜 Titel</button>
+                <button type="button" class="cosmetics-filter-pill" data-category="card_backs">🃏 Kartendecks</button>
+                <button type="button" class="cosmetics-filter-pill" data-category="table_skins">🟢 Spieltische</button>
+                <button type="button" class="cosmetics-filter-pill" data-category="lobby_backgrounds">🏰 Lobby-Hintergründe</button>
+              </div>
+
+              <div id="wardrobeItemsGrid" class="cosmetics-grid">
+                <!-- Dynamisch generiert -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. TAB: ZAUBERSCHMIEDE -->
+        <div id="vaultPanelForge" class="vault-tab-panel" style="display: none;">
+          <div class="forge-header-banner">
+            <div>
+              <div style="font-family: var(--font-heading); color: #f3e8ff; font-size: 16px; margin-bottom: 4px;">Die Zauberschmiede der Zitadelle</div>
+              <div style="font-size: 12px; color: #d8b4fe; max-width: 500px; line-height: 1.35;">
+                Duplikate aus Truhen werden automatisch in Astralstaub verwandelt. Schmiede hier jedes gewünschte Kosmetikstück direkt frei!
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 11px; color: #c084fc; text-transform: uppercase; letter-spacing: 0.5px;">Dein Astralstaub</div>
+              <div id="forgeDustCounter" class="forge-dust-display">✨ 0</div>
+            </div>
+          </div>
+
+          <div class="cosmetics-filter-pills" style="margin-bottom: 14px;">
+            <button type="button" class="cosmetics-filter-pill active" data-forge-category="all">Alle Kategorien</button>
+            <button type="button" class="cosmetics-filter-pill" data-forge-category="avatar_icons">👤 Avatare</button>
+            <button type="button" class="cosmetics-filter-pill" data-forge-category="avatar_frames">⭕ Rahmen</button>
+            <button type="button" class="cosmetics-filter-pill" data-forge-category="titles">📜 Titel</button>
+            <button type="button" class="cosmetics-filter-pill" data-forge-category="card_backs">🃏 Decks</button>
+            <button type="button" class="cosmetics-filter-pill" data-forge-category="table_skins">🟢 Tische</button>
+            <button type="button" class="cosmetics-filter-pill" data-forge-category="lobby_backgrounds">🏰 Lobby</button>
+          </div>
+
+          <div id="forgeItemsGrid" class="forge-grid">
+            <!-- Dynamisch generiert -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ========================================================================== -->
+  <!-- HIGHLIGHT DES SPIELS (IN-ENGINE CINEMATIC REPLAY)                           -->
+  <!-- ========================================================================== -->
+  <div id="highlight-modal" class="modal-overlay cinematic-overlay" style="display: none; z-index: 2500;">
+    <div class="cinematic-letterbox cinematic-bar-top"></div>
+    <div class="cinematic-letterbox cinematic-bar-bottom"></div>
+    
+    <div class="highlight-container">
+      <div class="highlight-header">
+        <div class="highlight-trophy-badge">🏆 HIGHLIGHT DES SPIELS</div>
+        <div id="highlightHeadline" class="highlight-headline">Merlin – Der Lindwurm-Coup in Runde 8</div>
+        <div id="highlightDescription" class="highlight-desc">Erfolgreicher Stich &amp; meisterhafte Vorhersage erfüllt!</div>
+      </div>
+
+      <div class="highlight-spotlight-player">
+        <div id="highlightPlayerAvatarWrap" class="seat-avatar frame-golden_runes" style="width: 76px; height: 86px; font-size: 34px;">
+          <img id="highlightPlayerAvatarImg" src="/images/avatars/wizard_blue.svg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+        </div>
+        <div>
+          <div id="highlightPlayerName" class="highlight-player-name">Merlin</div>
+          <div id="highlightPlayerTitle" class="highlight-player-title">Oberster Erzmagier</div>
+        </div>
+      </div>
+
+      <!-- REPLAY TISCH-ARENA -->
+      <div class="highlight-table-stage">
+        <div id="highlightCardsTrack" class="highlight-cards-track">
+          <!-- Gespielte Karten fliegen nacheinander ein -->
+        </div>
+        <div id="highlightWinnerCallout" class="highlight-winner-callout" style="display: none;">
+          <span id="highlightWinnerCalloutTxt">Stich gewonnen &amp; Triumph gesichert!</span>
+        </div>
+      </div>
+
+      <div class="highlight-actions">
+        <button id="btnSkipHighlight" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 10px 20px; font-weight: bold; font-size: 14px;">
+          Überspringen ⏩
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================== -->
+  <!-- POST-MATCH MVP-VOTING (OVERWATCH-STYLE)                                    -->
+  <!-- ========================================================================== -->
+  <div id="mvp-voting-modal" class="modal-overlay" style="display: none; z-index: 2450;">
+    <div class="mvp-modal-card">
+      <div style="font-size: 40px; margin-bottom: 2px;">🌟</div>
+      <div class="mvp-modal-title">Wahl des Meistermagiers (MVP)</div>
+      <div class="mvp-modal-subtitle">Wer hat die Zitadelle in dieser Partie am meisten verzaubert?</div>
+      <div class="mvp-timer-pill">⏳ Noch <span id="mvpTimerSec">15</span> Sekunden</div>
+
+      <!-- KANDIDATEN-GRID (3-4 KARTEN) -->
+      <div id="mvpCandidatesGrid" class="mvp-candidates-grid">
+        <!-- Dynamisch befüllt mit Kandidatenkarten -->
+      </div>
+
+      <!-- GEKRÖNTER MVP BANNER (NACH VOTING-ENDE) -->
+      <div id="mvpWinnerBanner" class="mvp-winner-banner" style="display: none;">
+        <div style="font-size: 32px; margin-bottom: 4px;">👑</div>
+        <div id="mvpWinnerName" style="font-size: 20px; font-weight: 800; color: #fde047; font-family: var(--font-heading);">Merlin</div>
+        <div id="mvpWinnerBadge" style="font-size: 13px; color: #fef08a; margin: 2px 0 6px;">MVP DER ZITADELLE</div>
+        <div id="mvpWinnerReward" style="font-size: 12px; color: #a855f7;">✨ +50 Bonus-XP &amp; Titel "MVP der Zitadelle" verliehen!</div>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: center; gap: 12px;">
+        <button id="btnProceedFromMvp" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 10px 22px; font-weight: bold; font-size: 14px;">
+          Weiter zum Level-Fortschritt ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================== -->
+  <!-- POST-MATCH PROGRESSION POPUP (OVERWATCH-STYLE LEVEL-UP & BELOHNUNGEN)     -->
+  <!-- ========================================================================== -->
+  <div id="progression-modal" class="modal-overlay" style="display: none; z-index: 2400;">
+    <div class="progression-modal-card">
+      <div style="font-size: 42px; margin-bottom: 4px;">✨</div>
+      <div class="progression-level-title">Partie abgeschlossen!</div>
+      <div id="progressionSubtitle" style="font-size: 13.5px; color: #fde047; font-weight: bold; margin-bottom: 12px;">+0 Erfahrungs-Punkte gewonnen</div>
+
+      <!-- LEVEL-UP BANNER FALLS AUFGESTIEGEN -->
+      <div id="progressionLevelUpBanner" class="progression-levelup-banner" style="display: none;">
+        🎉 STUFENAUFSTIEG! Du hast Stufe <span id="progNewLevelBadge">2</span> erreicht!
+        <div id="progLevelUpRewardHint" style="font-size: 12px; color: #fff; margin-top: 4px;">🎁 Belohnung: 1x Holztruhe des Lehrlings</div>
+      </div>
+
+      <!-- ANIMIERTER LEVELBALKEN -->
+      <div style="background: rgba(0,0,0,0.55); border: 1.5px solid rgba(217, 119, 6, 0.4); border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+          <span style="font-weight: bold; color: var(--gold-bright);">Stufe <span id="progCurrentLevelTxt">1</span></span>
+          <span id="progXpNumbersTxt" style="color: #cbd5e1;">0 / 1000 XP</span>
+        </div>
+        <div class="vault-xp-bar-bg" style="width: 100%; height: 12px;">
+          <div id="progXpBarFill" class="vault-xp-bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- AUFSCHLÜSSELUNG DER MATCH-XP -->
+      <div id="progressionXpBreakdown" class="progression-xp-breakdown">
+        <!-- Dynamisch befüllt -->
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 16px;">
+        <button id="btnProgressionOpenVault" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 10px 18px; font-weight: bold; font-size: 13.5px;">
+          🎁 Truhen in Schatzkammer öffnen
+        </button>
+        <button id="btnProgressionClose" type="button" class="btn-auth-bar" style="padding: 10px 16px; font-size: 13.5px;">
+          Schließen
+        </button>
+      </div>
     </div>
   </div>
 

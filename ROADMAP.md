@@ -8,10 +8,11 @@
 > - ✅ **0px Overflow Garantie**: Vollbild-Drawers (`100vw`) bei $\le 480\text{px}$, `safe center` Flexbox mit Legacy-Fallback, `margin: clamp(8px, 2vh, 20px) auto` Warteraum-Fix, 42×42px Touch-Targets.  
 > - ✅ **Rechter Randschatten-Fix**: Drawers im geschlossenen Zustand ohne Schattenwurf in den Viewport.  
 > - ✅ **Einzeiliges Header-Layout (`flex-wrap: nowrap`)**: Kompakter `🗝️ Anmelden`-Button und feste Aktionsleiste.  
+> - ✅ **Ruhige RPG-Tavernenmusik & Authentischer Bronzegong**: Zwei langlaufende, unaufdringliche Akustik-Suiten (~16 Min *Abend am Tavernenkamin* & ~14 Min *Nacht in der Zitadelle*), Standard-Lautstärke auf 20 % dezent kalibriert, echter 164-Hz Bronzegong als Zugsignal.
 > - 🔄 **Android Sync**: Alle Assets via `npm run cap:sync` direkt in den Android-Build gespiegelt.  
 > ⚔️ **Etappe 5 (2vs2 Allianzen)**: Abgeschlossen und mit 40/40 Tests verifiziert.  
-> 🎁 **Nächster Schritt (Prio 2)**: **Magische Schatztruhen (Lootboxen) & Kosmetik-Progression** (Kartenrücken, Tisch-Skins, Avatar-Rahmen).  
-> 🏰 **Prio 3**: **„Der Turm der Erzmagier“ (Solo-Roguelike-Kampagne)**.  
+> 🎁 **Etappe 6 (Magische Schatztruhen & Kosmetik-Progression)**: Abgeschlossen ✅ (Overwatch 2-Style XP & Level-Ups, 5 Kosmetik-Kategorien, Schatztruhen, Astralstaub-Zauberschmiede, 8 KI-generierte Dark-Fantasy-Avatare).  
+> 🏰 **Nächster Schritt (Prio 3)**: **„Der Turm der Erzmagier“ (Solo-Roguelike-Kampagne)**.  
 > 📦 **Prio 4**: F-Droid Veröffentlichung (Etappe 4: FOSS-Metadaten, GPLv3-Lizenz, Fastlane).  
 
 ---
@@ -65,7 +66,7 @@ flowchart TD
     subgraph P2["PHASE 2: NEUE FEATURES"]
         S_2V2["✅ 1. Schritt: 2vs2 Allianzen (Team-Stichkampf) - FERTIG"]
         S_BID["✅ 2. Schritt: Biet-Modi (Simultan & Geheim) & Skull-King-Wertung - FERTIG"]
-        S_LOOT["🎁 3. Schritt: Magische Schatztruhen & Kosmetik"]
+        S_LOOT["✅ 3. Schritt: Magische Schatztruhen & Kosmetik - FERTIG"]
         S_TOWER["🏰 4. Schritt: 'Der Turm der Erzmagier' (Solo Roguelike)"]
         S_FDROID["📦 5. Schritt: F-Droid Veröffentlichung (FOSS & GPLv3)"]
         S_RANKED["⚔️ 6. Schritt: Automatisches Ranked-Matchmaking"]
@@ -135,13 +136,28 @@ flowchart TD
 * **Zentrales Host-Einstellungsmenü**: Alle Regeln, Editionen und Modi lassen sich im Warteraum bequem über ein eigenes modales Menü konfigurieren.
 * **Verifikation**: 100% grün via `test/skullKingZeroScoring.test.js`, `test/hostSettingsMenu.test.js`, `test/biddingModes.test.js` und Gesamt-Suite `npm test` (50/50 Tests bestanden).
 
-### 2. 🎁 ETAPPE 6: Magische Schatztruhen (Lootboxen) & Kosmetik-Progression [PRIO 2]
-* **Progression & Belohnungen**: Spieler verdienen durch gewonnene Runden und Level-Ups magische Schatztruhen (Holztruhe, Silberne Magiertruhe, Goldene Erzmagier-Kassette).
-* **Kosmetik-Portfolio**:
-  - **Kartenrücken (Card Backs)**: Uraltes Pergament, Astral-Kosmos, Drachenschuppe, Hain der Waldnymphen, Schattenflamme.
-  - **Spieltisch-Skins**: Tavernen-Holz, Amethyst-Krypta, Vulkan-Festung, Sternen-Observatorium.
-  - **Avatar-Rahmen & Titel**: Zierleisten, animierte Flammen/Runen um das Avatar-Icon.
-* **Drop-Raten & FOSS-Ethik**: 100% kostenlos erspielbar (kein Echtgeld / Pay-to-Win, reine Spielzeit- & Skill-Belohnungen).
+### 2. ✅ ETAPPE 6: Magische Schatztruhen (Lootboxen) & Kosmetik-Progression [ABGESCHLOSSEN]
+* **Overwatch 2-Style Progressionsmodell (100% FOSS & Zero-Pay-to-Win)**:
+  - **Match-XP & Level-Ups**: Match-XP errechnet sich dynamisch aus Teilnahme (150 XP), gespielten Runden (15 XP/Runde), Vorhersage-Genauigkeit (30 XP/Treffer), Platzierung (1. Platz +200 XP, 2. Platz +100 XP, 3. Platz +50 XP) und Ranglisten-Bonus (+10%). Feste Schwelle: 1.000 XP pro Stufe.
+  - **Schatztruhen-Belohnungen**: Jedes reguläre Level gewährt eine Holztruhe (`🪵`), jede 5. Stufe eine Silberne Magiertruhe (`🥈`), jede 10. Stufe eine Goldene Erzmagier-Kassette (`👑`) plus exklusiven Meilenstein-Titel.
+  - **Wöchentliche Zitadellen-Herausforderungen**: 3 rotierende Wochen-Meilensteine mit garantierter Silber- und Goldtruhe.
+* **Fünf Kosmetik-Kategorien & Großes Portfolio**:
+  - **Avatar-Porträts (Medaillons)**: 8 kunstvolle, handgefertigte Dark-Fantasy-Medaillons (Pyromant, Mondhexe, Hofnarr, Lindwurm, Waldnymphe, Nekromant, Vampir-Aristokrat, Sternen-Seherin) als 512×512 PNGs.
+  - **Kartenrücken (Card Backs)**: Uraltes Pergament, Runen-Pergament, Astral-Kosmos, Drachenschuppen, Feenhain, Schattenflamme.
+  - **Spieltisch-Skins**: Tavernen-Eiche, Amethyst-Krypta, Vulkan-Festung, Sternen-Observatorium, Smaragd-Sanktum mit atmosphärischem Ambient-Glow.
+  - **Avatar-Rahmen (Frames)**: Holzkante, Runen-Kupfer, Silber-Filigran, Goldener Sonnenkranz, Amethyst-Glanz, Kosmischer Äther mit animierten Partikeln und Schweif-Effekten.
+  - **Titel**: 44 Titel von *Novize des Lichts* bis *Beherrscher der Ewigkeit* über alle Seltenheitsstufen.
+* **Pity- & Zauberschmiede-Ökonomie (Duplicate-to-Dust)**:
+  - Duplikate aus Truhen werden automatisch in **Astralstaub** (`✨`) umgewandelt (Common 15, Rare 40, Epic 120, Legendary 400).
+  - In der **Zauberschmiede** können alle Wunschanpassungen direkt mit Staub hergestellt werden (Common 60, Rare 160, Epic 480, Legendary 1.200).
+* **UI & Interaktion**:
+  - **Schatzkammer-Modal (`#vault-modal`)**: 3 Tabs (Truhen öffnen mit 3D-Flip-Enthüllung, Garderobe mit Echtzeit-Vorschauspiegel, Zauberschmiede).
+  - **Kompakte Truhen-Badges**: Header zeigt nur noch die Gesamtzahl der ungeöffneten Truhen (`🎁 X`), statt der langen Typenaufzählung.
+  - **Post-Match Progression-Modal**: Animierter Overwatch 2 XP-Balken mit schrittweisem Ticking, Level-Up-Fanfare und Truhen-Freischaltung.
+  - **Highlight des Spiels (Play of the Game)**: 60 FPS In-Engine Cinematic Replay des spektakulärsten Stichs (Clutch Zero-Defense, Monster-Stiche, Bomben-Kollaps) mit 3D-Bogenflug und Sound.
+  - **Post-Match MVP-Voting**: 15-sekündige interaktive Abstimmung für herausragende Leistungen (Sieger, Allwissender, Stichmeister, Unangreifbarer) mit +50 Bonus-XP und "MVP der Zitadelle"-Aura.
+  - **Halloween-Themenwelt & 6. Kategorie Lobby-Hintergründe**: 7 auswählbare Lobby-Umgebungen (u. a. Verfluchter Friedhof, Hexenhütte), Kürbiskönig-Kartenrücken, Spukhaus-Tisch und Fledermausschwarm-Rahmen.
+* **Verifikation**: 100% grün via `test/halloweenMvpProgression.test.js`, `test/cosmeticsAndOverwatchProgression.test.js`, `test/databaseSelfHealing.test.js` und Gesamt-Suite `npm test` (62/62 Tests bestanden). Assets nach `android/` synchronisiert via `robocopy`.
 
 ### 3. 🏰 ETAPPE 7: „Der Turm der Erzmagier“ (Solo-Roguelike-Kampagne) [PRIO 3]
 * **Modus-Konzept**: 10 Etagen eines mystischen Turms gegen thematische Boss-Bots erklimmen (Slay the Spire / Inscryption Inspiration).

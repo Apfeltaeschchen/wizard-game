@@ -109,6 +109,17 @@ function formatUserWithRank(user) {
   if (!user) return null;
   return {
     ...user,
+    account_level: user.account_level || 1,
+    account_xp: user.account_xp || 0,
+    chests_wooden: user.chests_wooden || 0,
+    chests_silver: user.chests_silver || 0,
+    chests_gold: user.chests_gold || 0,
+    astral_dust: user.astral_dust || 0,
+    equipped_avatar_icon: user.equipped_avatar_icon || user.avatar_id || 'wizard_blue',
+    equipped_card_back: user.equipped_card_back || 'default',
+    equipped_table_skin: user.equipped_table_skin || 'emerald_felt',
+    equipped_avatar_frame: user.equipped_avatar_frame || 'none',
+    equipped_lobby_background: user.equipped_lobby_background || 'citadel_halls',
     rank: getRankDetailsFromSR(user.skill_rating || 1000)
   };
 }

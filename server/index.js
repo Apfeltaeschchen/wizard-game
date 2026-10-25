@@ -24,6 +24,13 @@ const {
   chooseBotCloudAdjustment
 } = require('./botLogic');
 
+const {
+  calculateSpectacleScore,
+  recordTrickHighlight,
+  generateMvpCandidates,
+  resolveMvpVotingWinner
+} = require('./matchHighlightAndMvp');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
@@ -43,6 +50,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'Grimoire Server',
+    dbEngine: dbModule.getEngine(),
     uptime: Math.floor(process.uptime()),
     timestamp: Date.now()
   });
@@ -54,69 +62,184 @@ app.use(express.static(path.join(__dirname, '../public')));
 const dbModule = require('./database');
 
 // --- REST-API FÜR ACCOUNTS, STATISTIKEN & LEADERBOARDS ---
-app.get('/api/auth/check-username', async (req, res) => {
-  const username = req.query.username || '';
-  const result = await dbModule.isUsernameAvailable(username);
-  res.json(result);
-});
-
-app.post('/api/auth/register', async (req, res) => {
-  const { username, password, avatar_id } = req.body || {};
-  const result = await dbModule.registerUser(username, password, avatar_id);
-  if (!result.success) {
-    return res.status(400).json(result);
+app.get('/api/auth/check-username', async (req, res, next) => {
+  try {
+    const username = req.query.username || '';
+    const result = await dbModule.isUsernameAvailable(username);
+    res.json(result);
+  } catch (err) {
+    next(err);
   }
-  res.json(result);
 });
 
-app.post('/api/auth/login', async (req, res) => {
-  const { username, password } = req.body || {};
-  const result = await dbModule.loginUser(username, password);
-  if (!result.success) {
-    return res.status(401).json(result);
+app.post('/api/auth/register', async (req, res, next) => {
+  try {
+    const { username, password, avatar_id } = req.body || {};
+    const result = await dbModule.registerUser(username, password, avatar_id);
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+    res.json(result);
+  } catch (err) {
+    next(err);
   }
-  res.json(result);
 });
 
-app.post('/api/auth/logout', async (req, res) => {
+app.post('/api/auth/login', async (req, res, next) => {
+  try {
+    const { username, password } = req.body || {};
+    const result = await dbModule.loginUser(username, password);
+    if (!result.success) {
+      return res.status(401).json(result);
+    }
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/api/auth/logout', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
+    await dbModule.logoutUser(token);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get('/api/auth/me', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '') || req.query.token;
+    const user = await dbModule.getUserByToken(token);
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+    }
+    res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.patch('/api/auth/profile', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
+    const user = await dbModule.getUserByToken(token);
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+    }
+    const { avatar_id, title } = req.body || {};
+    const updated = await dbModule.updateUserProfile(user.id, { avatar_id, title });
+    res.json({ success: true, user: updated });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get('/api/leaderboard', async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const leaderboard = await dbModule.getLeaderboard(limit);
+    res.json({ success: true, leaderboard });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get('/api/leaderboard/ranked', async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 25;
+    const leaderboard = await dbModule.getRankedLeaderboard(limit);
+    res.json({ success: true, leaderboard });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Schatzkammer & Kosmetik REST API
+async function getAuthUserFromReq(req) {
   const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
-  await dbModule.logoutUser(token);
-  res.json({ success: true });
-});
+  const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token || req.query?.token;
+  if (!token) return null;
+  return await dbModule.getUserByToken(token);
+}
 
-app.get('/api/auth/me', async (req, res) => {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '') || req.query.token;
-  const user = await dbModule.getUserByToken(token);
-  if (!user) {
-    return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+app.get('/api/vault/state', async (req, res, next) => {
+  try {
+    const user = await getAuthUserFromReq(req);
+    if (!user) return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+    const data = await dbModule.getUserCosmetics(user.id);
+    res.json(data);
+  } catch (err) {
+    next(err);
   }
-  res.json({ success: true, user });
 });
 
-app.patch('/api/auth/profile', async (req, res) => {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
-  const user = await dbModule.getUserByToken(token);
-  if (!user) {
-    return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+app.post('/api/vault/open-chest', async (req, res, next) => {
+  try {
+    const user = await getAuthUserFromReq(req);
+    if (!user) return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+    const { chestType } = req.body || {};
+    const result = await dbModule.openChest(user.id, chestType);
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (err) {
+    next(err);
   }
-  const { avatar_id, title } = req.body || {};
-  const updated = await dbModule.updateUserProfile(user.id, { avatar_id, title });
-  res.json({ success: true, user: updated });
 });
 
-app.get('/api/leaderboard', async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10;
-  const leaderboard = await dbModule.getLeaderboard(limit);
-  res.json({ success: true, leaderboard });
+app.post('/api/vault/equip', async (req, res, next) => {
+  try {
+    const user = await getAuthUserFromReq(req);
+    if (!user) return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+    const { itemType, itemId } = req.body || {};
+    const result = await dbModule.equipCosmetic(user.id, itemType, itemId);
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
 });
 
-app.get('/api/leaderboard/ranked', async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 25;
-  const leaderboard = await dbModule.getRankedLeaderboard(limit);
-  res.json({ success: true, leaderboard });
+app.post('/api/vault/craft', async (req, res, next) => {
+  try {
+    const user = await getAuthUserFromReq(req);
+    if (!user) return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+    const { itemType, itemId } = req.body || {};
+    const result = await dbModule.craftCosmetic(user.id, itemType, itemId);
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/api/vault/claim-milestone', async (req, res, next) => {
+  try {
+    const user = await getAuthUserFromReq(req);
+    if (!user) return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+    const { milestoneId } = req.body || {};
+    const result = await dbModule.claimWeeklyMilestone(user.id, milestoneId);
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Globaler Express Error Handler für saubere JSON-Fehlerausgaben
+app.use((err, req, res, next) => {
+  console.error('[API Error]:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Serverfehler'
+  });
 });
 
 // Socket.IO Handshake Authentifizierung
@@ -309,6 +432,7 @@ function createNewRoomState(hostSessionId = null, roomCode = '', isRanked = fals
     edition: 'classic', // 'classic' oder 'anniversary_30'
     scoringMode: 'classic', // 'classic' oder 'skull_king_zero'
     biddingMode: 'classic', // 'classic', 'simultaneous' oder 'secret'
+    tableSkin: 'emerald_felt',
     round: 1,
     trumpCard: null,
     trumpChooserSessionId: null,
@@ -462,6 +586,141 @@ io.on('connection', (socket) => {
     socket.emit('friendActionSuccess', { message: 'Einladung an deinen Gefährten versandt! ✉️' });
   });
 
+  // ==========================================
+  // SCHATZKAMMER & KOSMETIK (ETAPPE 6) SOCKETS
+  // ==========================================
+  socket.on('vault:getState', async ({ token } = {}) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = await dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('vault:error', { message: 'Nur angemeldete Magier können die Schatzkammer betreten.' });
+      return;
+    }
+    const state = await dbModule.getUserCosmetics(authUser.id);
+    socket.emit('vault:state', state);
+  });
+
+  socket.on('vault:openChest', async ({ chestType, token } = {}) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = await dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('vault:error', { message: 'Nicht angemeldet.' });
+      return;
+    }
+    const res = await dbModule.openChest(authUser.id, chestType);
+    if (!res.success) {
+      socket.emit('vault:error', { message: res.error });
+      return;
+    }
+    const updatedUser = await dbModule.getUserById(authUser.id);
+    socket.user = updatedUser;
+    socket.emit('vault:chestOpened', { ...res, user: updatedUser });
+  });
+
+  socket.on('vault:equip', async ({ itemType, itemId, token } = {}) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = await dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('vault:error', { message: 'Nicht angemeldet.' });
+      return;
+    }
+    const res = await dbModule.equipCosmetic(authUser.id, itemType, itemId);
+    if (!res.success) {
+      socket.emit('vault:error', { message: res.error });
+      return;
+    }
+    socket.user = res.user;
+    socket.emit('vault:equipped', res);
+
+    // Wenn der Spieler sich in einem Raum befindet: Sofort für alle Mitspieler aktualisieren
+    if (socket.roomCode && socket.sessionId) {
+      const room = rooms[socket.roomCode];
+      if (room && room.players) {
+        const p = room.players.find(pl => pl.sessionId === socket.sessionId);
+        if (p) {
+          if (itemType === 'avatar_icon') p.avatarId = itemId;
+          if (itemType === 'title') p.title = itemId;
+          if (itemType === 'card_back') p.cardBack = itemId;
+          if (itemType === 'avatar_frame') p.avatarFrame = itemId;
+          if (itemType === 'table_skin' && p.isHost) {
+            room.tableSkin = itemId;
+          }
+          broadcastRoomUpdated(room);
+          io.to(socket.roomCode).emit('playerCosmeticsUpdated', {
+            sessionId: p.sessionId,
+            itemType,
+            itemId,
+            tableSkin: room.tableSkin
+          });
+        }
+      }
+    }
+  });
+
+  socket.on('vault:craft', async ({ itemType, itemId, token } = {}) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = await dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('vault:error', { message: 'Nicht angemeldet.' });
+      return;
+    }
+    const res = await dbModule.craftCosmetic(authUser.id, itemType, itemId);
+    if (!res.success) {
+      socket.emit('vault:error', { message: res.error });
+      return;
+    }
+    const updatedUser = await dbModule.getUserById(authUser.id);
+    socket.user = updatedUser;
+    socket.emit('vault:crafted', { ...res, user: updatedUser });
+  });
+
+  socket.on('vault:claimMilestone', async ({ milestoneId, token } = {}) => {
+    let authUser = socket.user;
+    if (!authUser && token) {
+      authUser = await dbModule.getUserByToken(token);
+      if (authUser) {
+        socket.user = authUser;
+        registerUserSocket(authUser.id, socket);
+      }
+    }
+    if (!authUser) {
+      socket.emit('vault:error', { message: 'Nicht angemeldet.' });
+      return;
+    }
+    const res = await dbModule.claimWeeklyMilestone(authUser.id, milestoneId);
+    if (!res.success) {
+      socket.emit('vault:error', { message: res.error });
+      return;
+    }
+    const updatedUser = await dbModule.getUserById(authUser.id);
+    socket.user = updatedUser;
+    socket.emit('vault:milestoneClaimed', { ...res, user: updatedUser });
+  });
+
   // Neues Spiel erstellen mit garantiert einmaligem 6-stelligen Zahlencode
   socket.on('createRoom', async ({ playerName, sessionId, roomCode, authToken, isRanked }) => {
     if (!sessionId) {
@@ -500,6 +759,9 @@ io.on('connection', (socket) => {
       : generateUniqueRoomCode();
 
     const room = createNewRoomState(sessionId, code, isRankedRoom);
+    if (authUser && authUser.equipped_table_skin) {
+      room.tableSkin = authUser.equipped_table_skin;
+    }
     const hostPlayer = {
       sessionId,
       socketId: socket.id,
@@ -512,8 +774,11 @@ io.on('connection', (socket) => {
         skillRating: authUser.skill_rating || 1000
       } : null,
       name: cleanName,
-      avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
-      title: authUser ? authUser.title : null,
+      avatarId: authUser ? (authUser.avatar_id || 'wizard_blue') : 'wizard_blue',
+      title: authUser ? (authUser.title || 'Zauberlehrling') : 'Zauberlehrling',
+      accountLevel: authUser ? (authUser.account_level || 1) : 1,
+      cardBack: authUser ? (authUser.equipped_card_back || 'default') : 'default',
+      avatarFrame: authUser ? (authUser.equipped_avatar_frame || 'none') : 'none',
       skillRating: authUser ? (authUser.skill_rating || 1000) : null,
       rank: authUser ? authUser.rank : null,
       team: null,
@@ -538,6 +803,7 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
+      tableSkin: room.tableSkin || 'emerald_felt',
       teams: room.teams || null,
       isRanked: isRankedRoom,
       trumpCard: null,
@@ -613,8 +879,11 @@ io.on('connection', (socket) => {
       existingPlayer.connected = true;
       if (authUser) {
         existingPlayer.userId = authUser.id;
-        existingPlayer.avatarId = authUser.avatar_id;
-        existingPlayer.title = authUser.title;
+        existingPlayer.avatarId = authUser.avatar_id || 'wizard_blue';
+        existingPlayer.title = authUser.title || 'Zauberlehrling';
+        existingPlayer.accountLevel = authUser.account_level || 1;
+        existingPlayer.cardBack = authUser.equipped_card_back || 'default';
+        existingPlayer.avatarFrame = authUser.equipped_avatar_frame || 'none';
         existingPlayer.skillRating = authUser.skill_rating || 1000;
         existingPlayer.rank = authUser.rank;
         existingPlayer.userStats = {
@@ -673,6 +942,7 @@ io.on('connection', (socket) => {
         maxRounds: maxRounds,
         edition: room.edition || 'classic',
         gameState: room.gameState,
+        tableSkin: room.tableSkin || 'emerald_felt',
         isRanked: room.isRanked,
         trumpCard: room.trumpCard,
         trumpChooserSessionId: room.trumpChooserSessionId,
@@ -756,8 +1026,11 @@ io.on('connection', (socket) => {
         skillRating: authUser.skill_rating || 1000
       } : null,
       name: cleanName,
-      avatarId: authUser ? authUser.avatar_id : 'wizard_blue',
-      title: authUser ? authUser.title : null,
+      avatarId: authUser ? (authUser.avatar_id || 'wizard_blue') : 'wizard_blue',
+      title: authUser ? (authUser.title || 'Zauberlehrling') : 'Zauberlehrling',
+      accountLevel: authUser ? (authUser.account_level || 1) : 1,
+      cardBack: authUser ? (authUser.equipped_card_back || 'default') : 'default',
+      avatarFrame: authUser ? (authUser.equipped_avatar_frame || 'none') : 'none',
       skillRating: authUser ? (authUser.skill_rating || 1000) : null,
       rank: authUser ? authUser.rank : null,
       team: null,
@@ -779,6 +1052,7 @@ io.on('connection', (socket) => {
       matchFormat: room.matchFormat || 'ffa',
       scoringMode: room.scoringMode || 'classic',
       biddingMode: room.biddingMode || 'classic',
+      tableSkin: room.tableSkin || 'emerald_felt',
       teams: room.teams || null,
       isRanked: room.isRanked,
       trumpCard: room.trumpCard,
@@ -1776,6 +2050,232 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Spektakel-Tracking für Stiche (Highlight des Spiels)
+  function recordTrickHighlight(room, trickResult, winner) {
+    if (!room) return;
+    if (!room.matchHighlights) room.matchHighlights = [];
+
+    const trickCards = (room.currentTrick || []).map(t => ({
+      playerName: t.playerName,
+      playerSessionId: t.playerSessionId,
+      card: t.card
+    }));
+
+    const hasDragon = room.currentTrick.some(t => t.card && (t.card.type === 'dragon' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'dragon')));
+    const hasFairy = room.currentTrick.some(t => t.card && (t.card.type === 'fairy' || t.card.type === 'unicorn'));
+    const isBombed = !!trickResult.isBombed;
+    const wizardCount = room.currentTrick.filter(t => t.card && (t.card.type === 'wizard' || (t.card.type === 'shapeshifter' && t.card.chosenRole === 'wizard'))).length;
+
+    let spectacleScore = 50 + (room.round * 5);
+    let headline = `${winner ? winner.name : 'Die Zitadelle'} – Stich in Runde ${room.round}`;
+    let description = 'Ein entscheidender Moment der Partie!';
+
+    if (hasDragon && hasFairy && winner) {
+      spectacleScore += 260;
+      headline = `${winner.name} – Der Feen-Triumph über den Lindwurm!`;
+      description = 'Die scheue Fee bezwingt den mächtigen Lindwurm im Duell!';
+    } else if (hasDragon && winner) {
+      spectacleScore += 180 + (wizardCount * 30);
+      headline = `${winner.name} – Der Lindwurm-Coup in Runde ${room.round}!`;
+      description = 'Der Drache fegt über den Tisch und sichert den Triumph!';
+    } else if (isBombed) {
+      spectacleScore += 190;
+      headline = `Magiekollaps in Runde ${room.round}!`;
+      description = 'Die Bombe detoniert und neutralisiert alle Karten auf dem Tisch!';
+    } else if (wizardCount >= 2 && winner) {
+      spectacleScore += 130 + (wizardCount * 25);
+      headline = `${winner.name} – Duell der Erzmagier in Runde ${room.round}!`;
+      description = `${wizardCount} Zauberer prallten aufeinander – ${winner.name} behielt die Oberhand!`;
+    } else if (winner && winner.bid === 0 && room.round >= 2) {
+      spectacleScore += 95;
+      headline = `${winner.name} – Meisterstück der Prophezeiung!`;
+      description = 'Trotz Null-Ansage meisterhaft kalkuliert und den Stich abgetreten!';
+    } else if (winner) {
+      spectacleScore += 40 + (winner.tricksWon * 10);
+      headline = `${winner.name} – Triumphzug in Runde ${room.round}!`;
+      description = 'Wichtiger Stich zur Erfüllung der Prophezeiung gesichert!';
+    }
+
+    room.matchHighlights.push({
+      spectacleScore,
+      round: room.round,
+      winnerSessionId: winner ? winner.sessionId : null,
+      winnerName: winner ? winner.name : 'Die Zitadelle',
+      winnerAvatar: winner ? (winner.avatar_id || 'wizard_blue') : 'wizard_blue',
+      winnerFrame: winner ? (winner.equipped_avatar_frame || 'none') : 'none',
+      winnerTitle: winner ? (winner.title || 'Magier') : 'Magier der Zitadelle',
+      headline,
+      description,
+      trick: trickCards
+    });
+  }
+
+  // Erzeugt MVP-Kandidaten aus den Match-Statistiken
+  function generateMvpCandidates(room) {
+    if (!room || !room.players || room.players.length === 0) return [];
+    const players = room.players;
+    const history = room.scoreHistory || [];
+
+    const statsMap = {};
+    players.forEach(p => {
+      statsMap[p.sessionId] = {
+        player: p,
+        bidsMade: 0,
+        bidsHit: 0,
+        zeroBidsWon: 0,
+        totalTricks: 0,
+        totalScore: p.totalScore || 0
+      };
+    });
+
+    history.forEach(h => {
+      if (Array.isArray(h.entries)) {
+        h.entries.forEach(e => {
+          const s = statsMap[e.sessionId];
+          if (s && e.bid !== null && e.bid !== undefined) {
+            s.bidsMade++;
+            if (e.bid === e.tricksWon) {
+              s.bidsHit++;
+              if (e.bid === 0) s.zeroBidsWon++;
+            }
+            s.totalTricks += (e.tricksWon || 0);
+          }
+        });
+      }
+    });
+
+    const candidates = [];
+    const usedSessionIds = new Set();
+
+    // 1. Gesamtsieger
+    const sortedByScore = [...players].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+    if (sortedByScore.length > 0) {
+      const p = sortedByScore[0];
+      usedSessionIds.add(p.sessionId);
+      candidates.push({
+        sessionId: p.sessionId,
+        name: p.name,
+        avatarId: p.avatar_id || 'wizard_blue',
+        frame: p.equipped_avatar_frame || 'none',
+        title: p.title || 'Magier der Zitadelle',
+        badge: '👑 Der Sieger',
+        reason: `Erster Platz mit ${p.totalScore || 0} Punkten`,
+        votes: 0
+      });
+    }
+
+    // 2. Höchste Vorhersage-Präzision
+    const sortedByAcc = [...players].filter(p => !usedSessionIds.has(p.sessionId)).sort((a, b) => {
+      const sA = statsMap[a.sessionId];
+      const sB = statsMap[b.sessionId];
+      const accA = sA.bidsMade > 0 ? (sA.bidsHit / sA.bidsMade) : 0;
+      const accB = sB.bidsMade > 0 ? (sB.bidsHit / sB.bidsMade) : 0;
+      return accB - accA;
+    });
+    if (sortedByAcc.length > 0) {
+      const p = sortedByAcc[0];
+      const s = statsMap[p.sessionId];
+      usedSessionIds.add(p.sessionId);
+      const pct = s.bidsMade > 0 ? Math.round((s.bidsHit / s.bidsMade) * 100) : 0;
+      candidates.push({
+        sessionId: p.sessionId,
+        name: p.name,
+        avatarId: p.avatar_id || 'wizard_blue',
+        frame: p.equipped_avatar_frame || 'none',
+        title: p.title || 'Magier der Zitadelle',
+        badge: '🎯 Der Allwissende',
+        reason: `${s.bidsHit} von ${s.bidsMade} Prophezeiungen erfüllt (${pct}%)`,
+        votes: 0
+      });
+    }
+
+    // 3. Meiste Stiche
+    const sortedByTricks = [...players].filter(p => !usedSessionIds.has(p.sessionId)).sort((a, b) => {
+      return (statsMap[b.sessionId]?.totalTricks || 0) - (statsMap[a.sessionId]?.totalTricks || 0);
+    });
+    if (sortedByTricks.length > 0) {
+      const p = sortedByTricks[0];
+      const s = statsMap[p.sessionId];
+      usedSessionIds.add(p.sessionId);
+      candidates.push({
+        sessionId: p.sessionId,
+        name: p.name,
+        avatarId: p.avatar_id || 'wizard_blue',
+        frame: p.equipped_avatar_frame || 'none',
+        title: p.title || 'Magier der Zitadelle',
+        badge: '⚡ Der Stichmeister',
+        reason: `${s.totalTricks} Stiche in der Partie erobert`,
+        votes: 0
+      });
+    }
+
+    // 4. Null-Hunter oder nächstbester
+    const remaining = [...players].filter(p => !usedSessionIds.has(p.sessionId)).sort((a, b) => {
+      return (statsMap[b.sessionId]?.zeroBidsWon || 0) - (statsMap[a.sessionId]?.zeroBidsWon || 0);
+    });
+    if (remaining.length > 0 && candidates.length < 4) {
+      const p = remaining[0];
+      const s = statsMap[p.sessionId];
+      usedSessionIds.add(p.sessionId);
+      candidates.push({
+        sessionId: p.sessionId,
+        name: p.name,
+        avatarId: p.avatar_id || 'wizard_blue',
+        frame: p.equipped_avatar_frame || 'none',
+        title: p.title || 'Magier der Zitadelle',
+        badge: s.zeroBidsWon > 0 ? '🛡️ Der Unangreifbare' : '🔮 Meister des Schicksals',
+        reason: s.zeroBidsWon > 0 ? `${s.zeroBidsWon} Null-Runden bravourös gemeistert` : 'Hervorragende taktische Züge!',
+        votes: 0
+      });
+    }
+
+    return candidates;
+  }
+
+  // Schließt die MVP-Abstimmung ab und kürt den Sieger
+  async function finalizeMvpVoting(roomCode) {
+    const room = rooms[roomCode];
+    if (!room || !room.mvpState || !room.mvpState.votingActive) return;
+    room.mvpState.votingActive = false;
+
+    const counts = room.mvpState.voteCounts || {};
+    const { winnerSessionId, maxVotes } = resolveMvpVotingWinner(room.mvpState.candidates || [], counts);
+
+    const winner = room.players.find(p => p.sessionId === winnerSessionId);
+    const candInfo = (room.mvpState.candidates || []).find(c => c.sessionId === winnerSessionId);
+
+    const bonusXP = 50;
+    if (winner && winner.userId && dbModule) {
+      try {
+        if (typeof dbModule.awardBonusXP === 'function') {
+          await dbModule.awardBonusXP(winner.userId, bonusXP);
+        }
+        if (typeof dbModule.awardCosmetic === 'function') {
+          await dbModule.awardCosmetic(winner.userId, 'title', 'MVP der Zitadelle');
+          await dbModule.awardCosmetic(winner.userId, 'avatar_frame', 'mvp_glow');
+        } else if (dbModule.db && dbModule.db.prepare) {
+          try {
+            dbModule.db.prepare('INSERT OR IGNORE INTO user_inventory (user_id, item_type, item_id) VALUES (?, ?, ?)').run(winner.userId, 'title', 'MVP der Zitadelle');
+            dbModule.db.prepare('INSERT OR IGNORE INTO user_inventory (user_id, item_type, item_id) VALUES (?, ?, ?)').run(winner.userId, 'avatar_frame', 'mvp_glow');
+          } catch (e) {}
+        }
+      } catch (e) {
+        console.error('Fehler bei MVP-Bonus Vergabe:', e);
+      }
+    }
+
+    io.to(roomCode).emit('mvp:results', {
+      winnerSessionId,
+      winnerName: winner ? winner.name : (candInfo ? candInfo.name : 'Zitadellen-Magier'),
+      winnerAvatar: winner ? (winner.avatar_id || 'wizard_blue') : 'wizard_blue',
+      winnerFrame: winner ? (winner.equipped_avatar_frame || 'none') : 'none',
+      votes: Math.max(0, maxVotes),
+      badge: candInfo ? candInfo.badge : '🌟 MVP der Zitadelle',
+      reason: candInfo ? candInfo.reason : 'Herausragende Leistung in dieser Partie!',
+      bonusXP
+    });
+  }
+
   // Beendet die Rundenwertung und berechnet Punkte
   async function finishRoundScoring(roomCode) {
     const room = rooms[roomCode];
@@ -1912,18 +2412,41 @@ io.on('connection', (socket) => {
             hadZeroWizardTrickWin: !!(rank === 1 && p.completedZeroWizardRound)
           });
 
-          if (room.isRanked) {
-            let totalBidsMade = 0;
-            let totalBidsHit = 0;
-            if (room.scoreHistory) {
-              room.scoreHistory.forEach(h => {
-                const entry = h.entries ? h.entries.find(e => e.sessionId === p.sessionId) : null;
-                if (entry && entry.bid !== null && entry.bid !== undefined) {
-                  totalBidsMade++;
-                  if (entry.bid === entry.tricksWon) totalBidsHit++;
-                }
+          // Overwatch-Style Match-XP & Progression
+          let totalBidsHit = 0;
+          let totalBidsMade = 0;
+          if (room.scoreHistory) {
+            room.scoreHistory.forEach(h => {
+              const entry = h.entries ? h.entries.find(e => e.sessionId === p.sessionId) : null;
+              if (entry && entry.bid !== null && entry.bid !== undefined) {
+                totalBidsMade++;
+                if (entry.bid === entry.tricksWon) totalBidsHit++;
+              }
+            });
+          }
+
+          if (dbModule && typeof dbModule.applyMatchProgression === 'function') {
+            try {
+              const progRes = await dbModule.applyMatchProgression(p.userId, {
+                rank: rank,
+                isWinner: (rank === 1),
+                bidsHit: totalBidsHit,
+                roundsPlayed: maxRounds,
+                isRanked: !!room.isRanked
               });
+              if (progRes && p.socketId) {
+                io.to(p.socketId).emit('progression:matchSummary', {
+                  ...progRes,
+                  sessionId: p.sessionId,
+                  playerName: p.name
+                });
+              }
+            } catch (err) {
+              console.error('Fehler bei applyMatchProgression:', err);
             }
+          }
+
+          if (room.isRanked) {
 
             const res = await dbModule.recordRankedGameFinished(p.userId, {
               rank: rank,
@@ -1948,6 +2471,49 @@ io.on('connection', (socket) => {
       }
     }
 
+    let bestHighlight = null;
+    let mvpCandidates = [];
+    if (isGameOver) {
+      if (room.matchHighlights && room.matchHighlights.length > 0) {
+        bestHighlight = room.matchHighlights.reduce((best, cur) => cur.spectacleScore > best.spectacleScore ? cur : best, room.matchHighlights[0]);
+      }
+      mvpCandidates = generateMvpCandidates(room);
+      room.mvpState = {
+        candidates: mvpCandidates,
+        votes: {},
+        voteCounts: {},
+        votingActive: true
+      };
+      mvpCandidates.forEach(c => { room.mvpState.voteCounts[c.sessionId] = 0; });
+
+      setRoomTimeout(room, () => {
+        io.to(roomCode).emit('mvp:startVoting', {
+          candidates: mvpCandidates,
+          durationMs: 15000
+        });
+
+        // Bots stimmen zeitversetzt ab
+        room.players.forEach(p => {
+          if (p.isBot && p.connected !== false) {
+            setTimeout(() => {
+              if (room.mvpState && room.mvpState.votingActive && mvpCandidates.length > 0) {
+                const targetCand = mvpCandidates[Math.floor(Math.random() * mvpCandidates.length)];
+                if (targetCand) {
+                  room.mvpState.votes[p.sessionId] = targetCand.sessionId;
+                  room.mvpState.voteCounts[targetCand.sessionId] = (room.mvpState.voteCounts[targetCand.sessionId] || 0) + 1;
+                  io.to(roomCode).emit('mvp:updateVotes', { voteCounts: room.mvpState.voteCounts });
+                }
+              }
+            }, 2500 + Math.random() * 2000);
+          }
+        });
+
+        room.mvpState.timer = setRoomTimeout(room, () => {
+          finalizeMvpVoting(roomCode);
+        }, 15000);
+      }, bestHighlight ? 6000 : 1500);
+    }
+
     const rankedResultsList = Object.values(rankedResults);
 
     io.to(roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
@@ -1962,8 +2528,13 @@ io.on('connection', (socket) => {
       teamScores: teamScores,
       isRanked: !!room.isRanked,
       rankedResults: isGameOver ? rankedResultsList : null,
-      rankedResultsMap: isGameOver ? rankedResults : null
+      rankedResultsMap: isGameOver ? rankedResults : null,
+      highlight: isGameOver ? bestHighlight : null,
+      mvpCandidates: isGameOver ? mvpCandidates : null
     });
+    if (isGameOver && bestHighlight) {
+      io.to(roomCode).emit('highlight:replay', bestHighlight);
+    }
     if (isGameOver && room.isRanked && rankedResultsList.length > 0) {
       io.to(roomCode).emit('rankedResults', rankedResultsList);
     }
@@ -2188,6 +2759,8 @@ io.on('connection', (socket) => {
       });
     }
 
+    recordTrickHighlight(room, trickResult, winner);
+
     // Alle Spezial-Fähigkeiten (Jongleur, Hexe, Wolke) bleiben aktiv (auch bei Bombe oder Einhorn!)
     const hadJuggler = room.currentTrick.some(t => t.card && (t.card.type === 'juggler' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'juggler')));
     const hadCloud = room.currentTrick.some(t => t.card && (t.card.type === 'cloud' || (t.card.type === 'vampire' && t.card.copiedCard && t.card.copiedCard.type === 'cloud')));
@@ -2375,6 +2948,40 @@ io.on('connection', (socket) => {
     const result = handlePlayerPlayCard(room, currentPlayer.sessionId, cardIndex, chosenRole, chosenSuit, witchSwap);
     if (result && !result.success && result.message) {
       socket.emit(result.errorType || 'actionError', { message: result.message });
+    }
+  });
+
+  // MVP Abstimmung: Spieler gibt seine Stimme ab
+  socket.on('mvp:vote', ({ roomCode, candidateSessionId }) => {
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
+    const room = rooms[normalizedCode];
+    if (!room || !room.mvpState || !room.mvpState.votingActive) return;
+
+    const voter = room.players.find(p => p.socketId === socket.id);
+    if (!voter) return;
+
+    const prevVote = room.mvpState.votes[voter.sessionId];
+    if (prevVote === candidateSessionId) return;
+
+    if (prevVote) {
+      room.mvpState.voteCounts[prevVote] = Math.max(0, (room.mvpState.voteCounts[prevVote] || 1) - 1);
+    }
+    room.mvpState.votes[voter.sessionId] = candidateSessionId;
+    room.mvpState.voteCounts[candidateSessionId] = (room.mvpState.voteCounts[candidateSessionId] || 0) + 1;
+
+    io.to(normalizedCode).emit('mvp:updateVotes', {
+      voteCounts: room.mvpState.voteCounts
+    });
+
+    const humanPlayers = room.players.filter(p => p.connected && !p.isBot);
+    const totalVotes = Object.keys(room.mvpState.votes).filter(sId => {
+      const pl = room.players.find(p => p.sessionId === sId);
+      return pl && !pl.isBot;
+    }).length;
+
+    if (totalVotes >= humanPlayers.length && humanPlayers.length > 0) {
+      if (room.mvpState.timer) clearTimeout(room.mvpState.timer);
+      finalizeMvpVoting(normalizedCode);
     }
   });
 
@@ -2872,6 +3479,11 @@ io.on('connection', (socket) => {
       const pData = {
         sessionId: p.sessionId,
         name: p.name,
+        avatarId: p.avatarId || 'wizard_blue',
+        title: p.title || 'Zauberlehrling',
+        accountLevel: p.accountLevel || 1,
+        cardBack: p.cardBack || 'default',
+        avatarFrame: p.avatarFrame || 'none',
         team: p.team || null,
         bid: bidVal,
         hasBid: hasBid,

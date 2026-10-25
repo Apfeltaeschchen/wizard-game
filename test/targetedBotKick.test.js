@@ -4,7 +4,7 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 
-const TEST_PORT = 3973;
+const TEST_PORT = 3900 + Math.floor(Math.random() * 900);
 const SERVER_URL = `http://localhost:${TEST_PORT}`;
 
 console.log('--- TESTE SCHRITT 6: GEZIELTES BOT-KICKEN IM WARTERAUM ---');
