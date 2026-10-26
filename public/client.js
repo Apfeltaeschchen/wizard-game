@@ -1749,6 +1749,148 @@ const WizardAudio = (() => {
     }
   }
 
+  function playChestUnlock() {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      const now = c.currentTime;
+      const vol = settings.sfx * settings.master;
+
+      // Klick 1: Schlossriegel schnappt auf
+      const osc1 = c.createOscillator();
+      const gain1 = c.createGain();
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(1400, now);
+      osc1.frequency.exponentialRampToValueAtTime(320, now + 0.045);
+      gain1.gain.setValueAtTime(0.35 * vol, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc1.connect(gain1);
+      gain1.connect(c.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.055);
+
+      // Klick 2: Mechanischer Bügelanschlag
+      const osc2 = c.createOscillator();
+      const gain2 = c.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(980, now + 0.065);
+      osc2.frequency.exponentialRampToValueAtTime(180, now + 0.14);
+      gain2.gain.setValueAtTime(0.38 * vol, now + 0.065);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc2.connect(gain2);
+      gain2.connect(c.destination);
+      osc2.start(now + 0.065);
+      osc2.stop(now + 0.16);
+    } catch (e) {}
+  }
+
+  function playLidPop() {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      const now = c.currentTime;
+      const vol = settings.sfx * settings.master;
+
+      // Weißes Rauschen mit Bandpass-Sweep für Hydraulik-/Dampfzischen
+      const bufferSize = Math.floor(c.sampleRate * 0.28);
+      const noiseBuffer = c.createBuffer(1, bufferSize, c.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const whiteNoise = c.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+
+      const filter = c.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(600, now);
+      filter.frequency.exponentialRampToValueAtTime(2400, now + 0.12);
+      filter.frequency.exponentialRampToValueAtTime(800, now + 0.28);
+      filter.Q.setValueAtTime(2.5, now);
+
+      const gain = c.createGain();
+      gain.gain.setValueAtTime(0.28 * vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+      whiteNoise.connect(filter);
+      filter.connect(gain);
+      gain.connect(c.destination);
+
+      whiteNoise.start(now);
+      whiteNoise.stop(now + 0.29);
+    } catch (e) {}
+  }
+
+  function playCometLaunch() {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      const now = c.currentTime;
+      const vol = settings.sfx * settings.master;
+
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.45);
+      gain.gain.setValueAtTime(0.22 * vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start(now);
+      osc.stop(now + 0.52);
+    } catch (e) {}
+  }
+
+  function playImpact(rarity) {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      const now = c.currentTime;
+      const vol = settings.sfx * settings.master;
+
+      // 1. Satter Bass-Punch (Sub-Bass Sweep 90Hz -> 32Hz)
+      const bassOsc = c.createOscillator();
+      const bassGain = c.createGain();
+      bassOsc.type = 'sine';
+      bassOsc.frequency.setValueAtTime(90, now);
+      bassOsc.frequency.exponentialRampToValueAtTime(32, now + 0.22);
+      bassGain.gain.setValueAtTime(0.42 * vol, now);
+      bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      bassOsc.connect(bassGain);
+      bassGain.connect(c.destination);
+      bassOsc.start(now);
+      bassOsc.stop(now + 0.26);
+
+      // 2. Kristallklang je nach Seltenheit
+      const chordMap = {
+        common: [523.25],
+        rare: [523.25, 659.25],
+        epic: [523.25, 659.25, 783.99],
+        legendary: [523.25, 659.25, 783.99, 1046.5, 1318.51]
+      };
+      const freqs = chordMap[(rarity || 'common').toLowerCase()] || chordMap.common;
+      freqs.forEach((freq, idx) => {
+        const chimeOsc = c.createOscillator();
+        const chimeGain = c.createGain();
+        chimeOsc.type = 'triangle';
+        const tStart = now + idx * 0.035;
+        chimeOsc.frequency.setValueAtTime(freq, tStart);
+        chimeGain.gain.setValueAtTime(0.24 * vol, tStart);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, tStart + 0.45);
+        chimeOsc.connect(chimeGain);
+        chimeGain.connect(c.destination);
+        chimeOsc.start(tStart);
+        chimeOsc.stop(tStart + 0.48);
+      });
+    } catch (e) {}
+  }
+
   function playChestRumble() {
     if (isAppInBackground) return;
     try {
@@ -1814,6 +1956,10 @@ const WizardAudio = (() => {
     playTick,
     playLevelUp,
     playMvpGong,
+    playChestUnlock,
+    playLidPop,
+    playCometLaunch,
+    playImpact,
     playChestRumble,
     playChestBurst,
     startMusic,
@@ -4159,7 +4305,7 @@ const WizardVault = (() => {
   let unboxingStageTimer = null;
   let unboxingFlashTimer = null;
 
-  // --- 60-FPS CANVAS FX ENGINE FÜR TRUHENÖFFNUNG MIT HIGH-DPI & GOD-RAYS ---
+  // --- 60-FPS CANVAS FX ENGINE & OVERWATCH-KOMETEN-PHYSIK ---
   let chestFxCanvas = null;
   let chestFxCtx = null;
   let chestFxAnimId = null;
@@ -4167,6 +4313,204 @@ const WizardVault = (() => {
   let chestShockwaves = [];
   let chestLightRays = [];
   let chestRuneMotes = [];
+  let activeComets = [];
+
+  class CometTailParticle {
+    constructor(x, y, color, size, glowColor) {
+      this.x = x + (Math.random() - 0.5) * 4;
+      this.y = y + (Math.random() - 0.5) * 4;
+      this.vx = (Math.random() - 0.5) * 1.0;
+      this.vy = (Math.random() - 0.5) * 1.0;
+      this.color = color;
+      this.glowColor = glowColor;
+      this.size = size || (Math.random() * 3.6 + 2.0);
+      this.life = 1.0;
+      this.decay = Math.random() * 0.035 + 0.024;
+      this.isSpark = Math.random() < 0.35;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.size *= 0.94;
+      this.life -= this.decay;
+    }
+    draw(ctx) {
+      if (this.life <= 0 || this.size <= 0.2) return;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.life);
+      ctx.fillStyle = this.color;
+      ctx.shadowBlur = this.isSpark ? 10 : 6;
+      ctx.shadowColor = this.glowColor || this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  class CometProjectile {
+    constructor(index, total, reward, startX, startY, targetX, targetY, onImpact) {
+      this.index = index;
+      this.total = total;
+      this.reward = reward;
+      this.rarity = (reward.rarity || 'common').toLowerCase();
+
+      const rarityMap = {
+        common: { core: '#f8fafc', tail: '#cbd5e1', glow: 'rgba(203, 213, 225, 0.85)' },
+        rare: { core: '#38bdf8', tail: '#7dd3fc', glow: 'rgba(56, 189, 248, 0.9)' },
+        epic: { core: '#c084fc', tail: '#e9d5ff', glow: 'rgba(192, 132, 252, 0.95)' },
+        legendary: { core: '#fbbf24', tail: '#fef08a', glow: 'rgba(251, 191, 36, 1.0)' }
+      };
+      const conf = rarityMap[this.rarity] || rarityMap.common;
+      this.color = conf.core;
+      this.tailColor = conf.tail;
+      this.glowColor = conf.glow;
+
+      this.x = startX;
+      this.y = startY;
+      this.targetX = targetX;
+      this.targetY = targetY;
+      this.onImpact = onImpact;
+
+      // Flugphase nach oben mit bogenförmiger Fächerung
+      const spread = (index - (total - 1) / 2) * 0.28;
+      const launchAngle = -Math.PI / 2 + spread + (Math.random() - 0.5) * 0.05;
+      const launchSpeed = 9.2 + Math.random() * 1.6;
+
+      this.vx = Math.cos(launchAngle) * launchSpeed;
+      this.vy = Math.sin(launchAngle) * launchSpeed;
+      this.gravity = 0.36;
+      this.state = 'rising'; // 'rising' -> 'apex' -> 'homing' -> 'done'
+      this.apexTimer = 0;
+      this.apexDuration = 18 + Math.floor(Math.random() * 8);
+      this.homingSpeed = 3.8;
+      this.tail = [];
+      this.coreRadius = 6.5;
+      this.pulseAngle = 0;
+      this.done = false;
+    }
+
+    update() {
+      // Dichter Sternschnuppenschweif mit weicher Interpolation entlang der Flugbahn
+      const pCount = 5;
+      for (let i = 0; i < pCount; i++) {
+        const interp = i / pCount;
+        const px = this.x - this.vx * interp + (Math.random() - 0.5) * 3;
+        const py = this.y - this.vy * interp + (Math.random() - 0.5) * 3;
+        const pColor = (Math.random() < 0.6) ? this.color : (Math.random() < 0.85 ? this.tailColor : '#ffffff');
+        this.tail.push(new CometTailParticle(px, py, pColor, Math.random() * 3.8 + 2.2, this.glowColor));
+      }
+
+      for (let i = this.tail.length - 1; i >= 0; i--) {
+        this.tail[i].update();
+        if (this.tail[i].life <= 0) {
+          this.tail.splice(i, 1);
+        }
+      }
+
+      this.pulseAngle += 0.22;
+      if (this.done) return;
+
+      if (this.state === 'rising') {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity;
+        this.vx *= 0.98;
+
+        if (this.vy >= -0.6) {
+          this.state = 'apex';
+          this.apexTimer = 0;
+          this.vx *= 0.25;
+          this.vy = 0;
+        }
+      } else if (this.state === 'apex') {
+        // Verweilen im Scheitelpunkt in Seltenheitsfarbe (Overwatch Suspense)
+        this.apexTimer++;
+        this.x += this.vx;
+        this.y += Math.sin(this.apexTimer * 0.25) * 0.25;
+        this.vx *= 0.9;
+
+        if (this.apexTimer >= this.apexDuration) {
+          this.state = 'homing';
+          this.homingSpeed = 4.0;
+        }
+      } else if (this.state === 'homing') {
+        // Bogen nach unten auf Zielposition
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+        const dist = Math.hypot(dx, dy);
+
+        this.homingSpeed = Math.min(26, this.homingSpeed + 1.2);
+        const angle = Math.atan2(dy, dx);
+        this.vx = Math.cos(angle) * this.homingSpeed;
+        this.vy = Math.sin(angle) * this.homingSpeed;
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (dist <= Math.max(16, this.homingSpeed * 1.1) || (this.vy > 0 && this.y >= this.targetY)) {
+          this.x = this.targetX;
+          this.y = this.targetY;
+          this.state = 'done';
+          this.done = true;
+          if (typeof this.onImpact === 'function') {
+            this.onImpact(this);
+          }
+        }
+      }
+    }
+
+    draw(ctx) {
+      for (let i = 0; i < this.tail.length; i++) {
+        this.tail[i].draw(ctx);
+      }
+
+      if (this.done) return;
+
+      ctx.save();
+      ctx.translate(this.x, this.y);
+
+      const pulseScale = 1.0 + Math.sin(this.pulseAngle) * 0.16;
+      const r = this.coreRadius * pulseScale;
+
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 2.6, 0, Math.PI * 2);
+      ctx.fillStyle = this.glowColor;
+      ctx.shadowBlur = 24;
+      ctx.shadowColor = this.color;
+      ctx.globalAlpha = 0.55;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.4, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = this.color;
+      ctx.globalAlpha = 0.9;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.75, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ffffff';
+      ctx.globalAlpha = 1.0;
+      ctx.fill();
+
+      if (this.rarity !== 'common') {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.8;
+        ctx.globalAlpha = 0.85;
+        const gLen = r * 2.2;
+        ctx.beginPath();
+        ctx.moveTo(-gLen, 0); ctx.lineTo(gLen, 0);
+        ctx.moveTo(0, -gLen); ctx.lineTo(0, gLen);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+  }
 
   function initChestFxCanvas() {
     chestFxCanvas = document.getElementById('vaultFxCanvas');
@@ -4189,6 +4533,129 @@ const WizardVault = (() => {
     }
   }
 
+  function triggerImpactFx(x, y, rarityColor) {
+    if (!chestFxCanvas) initChestFxCanvas();
+    const col = rarityColor || '#fbbf24';
+
+    // 1. Aufprall-Schockwelle in Seltenheitsfarbe
+    chestShockwaves.push({
+      x,
+      y,
+      radius: 10,
+      maxRadius: 75,
+      speed: 5.5,
+      lineWidth: 7,
+      color: col,
+      alpha: 1.0,
+      decay: 0.04
+    });
+
+    // 2. Partikelsterne & Funken-Explosion
+    const pCount = 28;
+    for (let i = 0; i < pCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 6.5 + 2.5;
+      chestParticles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        gravity: 0.15,
+        drag: 0.95,
+        size: Math.random() * 3.8 + 2.0,
+        isStar: Math.random() < 0.45,
+        color: Math.random() < 0.7 ? col : '#ffffff',
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.25,
+        life: 1.0,
+        decay: Math.random() * 0.028 + 0.02
+      });
+    }
+
+    if (!chestFxAnimId) {
+      updateChestFx();
+    }
+  }
+
+  function launchComets(rewards, data) {
+    if (!chestFxCanvas) initChestFxCanvas();
+    if (!chestFxCtx || !chestFxCanvas) return;
+    resizeChestFxCanvas();
+
+    const canvasRect = chestFxCanvas.getBoundingClientRect();
+    const w = canvasRect.width || 450;
+    const h = canvasRect.height || 480;
+
+    const chestEl = document.getElementById('vaultChestInteractive');
+    let ox = w / 2;
+    let oy = h * 0.35;
+    if (chestEl) {
+      const chestRect = chestEl.getBoundingClientRect();
+      if (chestRect.width > 0 && chestRect.height > 0) {
+        ox = (chestRect.left + chestRect.width / 2) - canvasRect.left;
+        oy = (chestRect.top + chestRect.height * 0.4) - canvasRect.top;
+      }
+    }
+
+    activeComets = [];
+    const total = (rewards || []).length;
+    if (total === 0) {
+      isUnboxingAnimationRunning = false;
+      return;
+    }
+
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCometLaunch) {
+      WizardAudio.playCometLaunch();
+    }
+
+    // Zeige Beutekarten-Bereich an mit 'pending-comet'
+    showUnboxingStage(data, true);
+
+    const dropsCont = document.getElementById('vaultUnboxingDrops');
+
+    rewards.forEach((r, idx) => {
+      let tx = w * (0.2 + 0.6 * ((idx + 0.5) / Math.max(1, total)));
+      let ty = h * 0.75;
+
+      if (dropsCont && dropsCont.children[idx]) {
+        const cRect = dropsCont.children[idx].getBoundingClientRect();
+        if (cRect.width > 0 && cRect.height > 0) {
+          tx = (cRect.left + cRect.width / 2) - canvasRect.left;
+          ty = (cRect.top + cRect.height / 2) - canvasRect.top;
+        }
+      }
+
+      const comet = new CometProjectile(idx, total, r, ox, oy, tx, ty, (c) => {
+        // Impact-Slam!
+        if (typeof WizardAudio !== 'undefined' && WizardAudio.playImpact) {
+          WizardAudio.playImpact(c.rarity);
+        }
+        triggerImpactFx(c.targetX, c.targetY, c.color);
+
+        if (dropsCont && dropsCont.children[c.index]) {
+          const cardEl = dropsCont.children[c.index];
+          cardEl.classList.remove('pending-comet');
+          cardEl.classList.add('revealed');
+        }
+
+        const allDone = activeComets.every(item => item.done);
+        if (allDone) {
+          isUnboxingAnimationRunning = false;
+          if (unboxingStageTimer) {
+            clearTimeout(unboxingStageTimer);
+            unboxingStageTimer = null;
+          }
+        }
+      });
+
+      activeComets.push(comet);
+    });
+
+    if (!chestFxAnimId) {
+      updateChestFx();
+    }
+  }
+
   function triggerChestBurstFx(rarityHex, chestTier) {
     if (!chestFxCanvas) initChestFxCanvas();
     if (!chestFxCtx || !chestFxCanvas) return;
@@ -4196,11 +4663,20 @@ const WizardVault = (() => {
     resizeChestFxCanvas();
     stopChestFx();
 
-    const rect = chestFxCanvas.getBoundingClientRect();
-    const w = rect.width || 450;
-    const h = rect.height || 260;
-    const ox = w / 2;
-    const oy = h / 2 + 10;
+    const canvasRect = chestFxCanvas.getBoundingClientRect();
+    const w = canvasRect.width || 450;
+    const h = canvasRect.height || 480;
+
+    const chestEl = document.getElementById('vaultChestInteractive');
+    let ox = w / 2;
+    let oy = h * 0.35;
+    if (chestEl) {
+      const chestRect = chestEl.getBoundingClientRect();
+      if (chestRect.width > 0 && chestRect.height > 0) {
+        ox = (chestRect.left + chestRect.width / 2) - canvasRect.left;
+        oy = (chestRect.top + chestRect.height * 0.45) - canvasRect.top;
+      }
+    }
 
     const baseColor = rarityHex || '#fbbf24';
     const accentColor = '#ffffff';
@@ -4436,7 +4912,17 @@ const WizardVault = (() => {
       chestFxCtx.restore();
     }
 
-    if (chestParticles.length > 0 || chestShockwaves.length > 0 || chestLightRays.length > 0 || chestRuneMotes.length > 0) {
+    // 5. Overwatch-Kometen & Sternschnuppenschauer rendern
+    for (let i = activeComets.length - 1; i >= 0; i--) {
+      const comet = activeComets[i];
+      comet.update();
+      comet.draw(chestFxCtx);
+      if (comet.done && comet.tail.length === 0) {
+        activeComets.splice(i, 1);
+      }
+    }
+
+    if (chestParticles.length > 0 || chestShockwaves.length > 0 || chestLightRays.length > 0 || chestRuneMotes.length > 0 || activeComets.length > 0) {
       chestFxAnimId = requestAnimationFrame(updateChestFx);
     } else {
       chestFxAnimId = null;
@@ -4453,6 +4939,7 @@ const WizardVault = (() => {
     chestShockwaves = [];
     chestLightRays = [];
     chestRuneMotes = [];
+    activeComets = [];
     if (chestFxCtx && chestFxCanvas) {
       const rect = chestFxCanvas.getBoundingClientRect();
       chestFxCtx.clearRect(0, 0, rect.width || 450, rect.height || 260);
@@ -4507,7 +4994,7 @@ const WizardVault = (() => {
     if (subTitle) subTitle.innerText = 'Ein uraltes Relikt der Zitadelle erwacht...';
 
     if (chestModel) {
-      chestModel.className = `chest-artwork-container chest-3d-model tier-${tier}`;
+      chestModel.className = `stylized-chest-wrapper chest-artwork-container chest-3d-model tier-${tier}`;
       chestModel.classList.remove('shaking', 'opened', 'bursting', 'has-open-sprite');
     }
 
@@ -4562,10 +5049,9 @@ const WizardVault = (() => {
     if (prompt) prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
     if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
 
-    if (typeof WizardAudio !== 'undefined' && WizardAudio.playChestRumble) {
-      WizardAudio.playChestRumble();
-    } else if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
-      WizardAudio.playCardSnap();
+    if (typeof WizardAudio !== 'undefined') {
+      if (WizardAudio.playChestUnlock) WizardAudio.playChestUnlock();
+      if (WizardAudio.playChestRumble) WizardAudio.playChestRumble();
     }
 
     const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
@@ -4630,7 +5116,7 @@ const WizardVault = (() => {
       }, 700);
     }
 
-    // Sprite-Swap bei Apex
+    // Sprite-Swap bei Apex falls Bild-Element vorhanden
     if (data.chestType === 'gold' && imgOpen && imgClosed) {
       if (chestModel) chestModel.classList.add('has-open-sprite');
       imgOpen.style.display = 'block';
@@ -4642,7 +5128,7 @@ const WizardVault = (() => {
       legendary: '#fbbf24',
       epic: '#c084fc',
       rare: '#38bdf8',
-      common: '#f59e0b'
+      common: '#cbd5e1'
     };
 
     let highestRarity = 'common';
@@ -4658,24 +5144,28 @@ const WizardVault = (() => {
 
     const burstColor = rarityColors[highestRarity] || '#fbbf24';
 
-    if (typeof WizardAudio !== 'undefined' && WizardAudio.playChestBurst) {
-      WizardAudio.playChestBurst();
+    if (typeof WizardAudio !== 'undefined') {
+      if (WizardAudio.playLidPop) WizardAudio.playLidPop();
+      if (WizardAudio.playChestBurst) WizardAudio.playChestBurst();
     }
 
     // Schockwellen, Lichtsäulen & Partikelfontäne
     triggerChestBurstFx(burstColor, data.chestType);
 
-    // Gestaffelter Loot-Aufstieg
+    // Overwatch-Kometen & Sternschnuppenschauer starten
+    launchComets(data.rewards || [], data);
+
+    // Gestaffelter Loot-Aufstieg als Rückfallebene
     if (unboxingStageTimer) clearTimeout(unboxingStageTimer);
     unboxingStageTimer = setTimeout(() => {
       unboxingStageTimer = null;
       if (!activeUnboxingTier) return;
-      showUnboxingStage(data);
+      showUnboxingStage(data, false);
       isUnboxingAnimationRunning = false;
-    }, 750);
+    }, 1800);
   }
 
-  function showUnboxingStage(data) {
+  function showUnboxingStage(data, pendingCometMode) {
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const dropsCont = document.getElementById('vaultUnboxingDrops');
     const titleEl = document.getElementById('vaultUnboxingTitle');
@@ -4684,6 +5174,18 @@ const WizardVault = (() => {
     if (!dropsArea || !dropsCont) return;
 
     dropsArea.style.display = 'flex';
+
+    if (!pendingCometMode && dropsCont.children.length > 0) {
+      const pendingCards = dropsCont.querySelectorAll('.drop-card-reveal.pending-comet');
+      if (pendingCards.length > 0) {
+        pendingCards.forEach((c) => {
+          c.classList.remove('pending-comet');
+          c.classList.add('revealed');
+        });
+      }
+      return;
+    }
+
     dropsCont.innerHTML = '';
 
     const tNames = { wooden: 'Holztruhe', silver: 'Silberne Magiertruhe', gold: 'Goldene Erzmagier-Kassette' };
@@ -4702,7 +5204,8 @@ const WizardVault = (() => {
     const rewards = data.rewards || [];
     rewards.forEach((r, idx) => {
       const card = document.createElement('div');
-      card.className = `drop-card-reveal rarity-${r.rarity || 'common'}`;
+      const baseClass = `drop-card-reveal rarity-${r.rarity || 'common'}`;
+      card.className = pendingCometMode ? `${baseClass} pending-comet` : `${baseClass} revealed`;
       card.style.animationDelay = `${idx * 0.18}s`;
 
       const itemType = r.type || r.singularType || '';
@@ -4779,7 +5282,7 @@ const WizardVault = (() => {
     if (dropsArea) dropsArea.style.display = 'none';
     if (stage) stage.style.display = 'flex';
     if (chestModel) {
-      chestModel.className = 'chest-artwork-container chest-3d-model tier-wooden';
+      chestModel.className = 'stylized-chest-wrapper chest-artwork-container chest-3d-model tier-wooden';
       chestModel.classList.remove('shaking', 'opened', 'bursting', 'has-open-sprite');
     }
     if (imgClosed) imgClosed.style.display = 'block';
