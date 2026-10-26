@@ -21,7 +21,14 @@ function getSqliteFallback() {
   return sqliteFallbackInstance;
 }
 
+let lastPostgresError = null;
+
+function getLastError() {
+  return lastPostgresError;
+}
+
 function switchToSqlite(reason) {
+  lastPostgresError = reason || 'Unbekannter Fehler';
   if (activeEngine && activeEngine.engine === 'sqlite') {
     return activeEngine;
   }
@@ -127,6 +134,7 @@ module.exports = {
     return (activeEngine && activeEngine.pool) || null;
   },
   getEngine,
+  getLastError,
   isPostgres,
   setEngine,
   switchToSqlite,

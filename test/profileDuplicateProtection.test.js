@@ -73,7 +73,7 @@ const serverProc = spawn('node', [path.join(__dirname, '../server/index.js')], {
 
 function httpGetJson(urlPath) {
   return new Promise((resolve, reject) => {
-    http.get(`http://localhost:${TEST_PORT}${urlPath}`, (res) => {
+    http.get(`http://127.0.0.1:${TEST_PORT}${urlPath}`, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
@@ -91,9 +91,28 @@ function wait(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
+async function waitForServer(port, maxWaitMs = 5000) {
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    try {
+      await new Promise((resolve, reject) => {
+        const req = http.get(`http://127.0.0.1:${port}/api/health`, (res) => {
+          resolve(true);
+        });
+        req.on('error', reject);
+        req.setTimeout(500, () => { req.destroy(); reject(new Error('timeout')); });
+      });
+      return true;
+    } catch (e) {
+      await wait(100);
+    }
+  }
+  throw new Error('Server start timed out on port ' + port);
+}
+
 (async () => {
   try {
-    await wait(1200); // Server hochfahren
+    await waitForServer(TEST_PORT); // Robust auf Serverstart warten
 
     // Belegter Name
     const resTaken = await httpGetJson(`/api/auth/check-username?username=${encodeURIComponent(testBaseName)}`);

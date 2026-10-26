@@ -53,6 +53,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     service: 'Grimoire Server',
     dbEngine: dbModule.getEngine(),
+    dbError: typeof dbModule.getLastError === 'function' ? dbModule.getLastError() : null,
     uptime: Math.floor(process.uptime()),
     timestamp: Date.now()
   });

@@ -28,6 +28,10 @@ function createPostgresEngine(connectionStringOrConfig, sharedHelpers) {
     let connStr = poolConfig.connectionString || process.env.DATABASE_URL || '';
     if (typeof connStr === 'string') {
       connStr = connStr.trim().replace(/^['"]|['"]$/g, '');
+      // Entferne channel_binding Parameter, da node-postgres (pg) kein SCRAM-Channel-Binding unterstützt
+      connStr = connStr.replace(/([?&])channel_binding=[^&]+(&|$)/, (match, prefix, suffix) => {
+        return suffix === '&' ? prefix : '';
+      }).replace(/[?&]$/, '');
       poolConfig.connectionString = connStr;
     }
     const isCloudHost = connStr.includes('render.com') ||
@@ -40,6 +44,10 @@ function createPostgresEngine(connectionStringOrConfig, sharedHelpers) {
 
     if (connStr && isCloudHost) {
       poolConfig.ssl = poolConfig.ssl || { rejectUnauthorized: false };
+    }
+
+    if (connStr.includes('****')) {
+      console.warn('[Database] ACHTUNG: Die DATABASE_URL enthält Sternchen (****). Bitte in Neon auf "Show password" oder den "Copy snippet" Button klicken!');
     }
 
     pool = new Pool(poolConfig);
