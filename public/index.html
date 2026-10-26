@@ -6066,6 +6066,38 @@
       padding: 2px 6px;
       border-radius: 4px;
     }
+    .btn-drop-equip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 8px;
+      padding: 5px 12px;
+      font-family: var(--font-heading, inherit);
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #d97706, #b45309);
+      border: 1px solid #fde68a;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .btn-drop-equip:hover {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5);
+    }
+    .btn-drop-equip.equipped {
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-color: #a7f3d0;
+      color: #ecfdf5;
+      cursor: default;
+      pointer-events: none;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+    }
 
     /* UNBOXING OVERLAY SCHLIESSEN-BUTTON */
     .unboxing-close-btn {
@@ -6095,7 +6127,7 @@
       box-shadow: 0 0 16px var(--gold-bright);
     }
 
-    /* INTERAKTIVE 3D-TRUHE (PLASTISCHE MATERIALIEN & SCHANIER-PHYSIK) */
+    /* INTERAKTIVE UNBOXING BÜHNE MIT ARTWORK & CANVAS-FX */
     .unboxing-stage {
       position: relative;
       display: flex;
@@ -6105,7 +6137,17 @@
       padding: 24px 20px 16px;
       perspective: 1100px;
       width: 100%;
-      min-height: 220px;
+      min-height: 240px;
+      overflow: hidden;
+    }
+    .vault-fx-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
     }
     .unboxing-pedestal-glow {
       position: absolute;
@@ -6121,6 +6163,163 @@
     @keyframes pulsePedestal {
       0% { transform: scale(0.92); opacity: 0.6; }
       100% { transform: scale(1.18); opacity: 1; }
+    }
+    #vaultChestInteractive.chest-artwork-container,
+    .chest-artwork-container {
+      position: relative;
+      width: 200px;
+      height: 180px;
+      max-width: 90vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      z-index: 5;
+      animation: floatChest 3.2s ease-in-out infinite;
+      transition: transform 0.25s ease, filter 0.25s ease;
+    }
+    .chest-artwork-container:hover {
+      transform: translateY(-8px) scale(1.05);
+      filter: drop-shadow(0 14px 32px rgba(245, 158, 11, 0.75));
+    }
+    .chest-artwork-container.shaking {
+      animation: chestRumble 0.75s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
+    }
+    .chest-artwork-container.bursting {
+      animation: chestBurstApex 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes chestBurstApex {
+      0% { transform: scale(1); filter: brightness(1) drop-shadow(0 10px 24px rgba(0,0,0,0.85)); }
+      35% { transform: scale(1.18) translateY(-12px); filter: brightness(1.7) drop-shadow(0 0 35px var(--gold-bright, #fbbf24)); }
+      100% { transform: scale(1.05) translateY(-5px); filter: brightness(1.15) drop-shadow(0 0 22px var(--gold-bright, #fbbf24)); }
+    }
+    .tier-silver.chest-artwork-container.bursting {
+      animation: silverBurstApex 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes silverBurstApex {
+      0% { transform: scale(1); filter: brightness(1); }
+      35% { transform: scale(1.18) translateY(-12px); filter: brightness(1.7) drop-shadow(0 0 35px #38bdf8); }
+      100% { transform: scale(1.05) translateY(-5px); filter: brightness(1.15) drop-shadow(0 0 22px #38bdf8); }
+    }
+    .chest-artwork-container.opened {
+      filter: drop-shadow(0 12px 28px rgba(245, 158, 11, 0.65));
+    }
+    .tier-silver.chest-artwork-container.opened {
+      filter: drop-shadow(0 12px 28px rgba(56, 189, 248, 0.65));
+    }
+
+    /* VOLUMETRISCHE TRUHEN-AURA & SCHWEBENDE RUNEN-ENERGIE */
+    .chest-aura {
+      position: absolute;
+      inset: -25px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+      filter: blur(18px);
+      transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
+      animation: auraPulse 3s ease-in-out infinite alternate;
+    }
+    @keyframes auraPulse {
+      0% { transform: scale(0.92); opacity: 0.45; }
+      100% { transform: scale(1.15); opacity: 0.75; }
+    }
+    .tier-wooden .chest-aura {
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.65) 0%, rgba(217, 119, 6, 0.25) 55%, transparent 75%);
+    }
+    .tier-silver .chest-aura {
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.7) 0%, rgba(96, 165, 250, 0.3) 55%, transparent 75%);
+    }
+    .tier-gold .chest-aura {
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.75) 0%, rgba(192, 132, 252, 0.4) 55%, transparent 80%);
+    }
+    .chest-artwork-container.shaking .chest-aura {
+      opacity: 0.95;
+      transform: scale(1.25);
+      filter: blur(22px);
+      animation: auraIntense 0.25s ease-in-out infinite alternate;
+    }
+    @keyframes auraIntense {
+      0% { transform: scale(1.1); opacity: 0.8; }
+      100% { transform: scale(1.35); opacity: 1; }
+    }
+    .chest-artwork-container.bursting .chest-aura {
+      opacity: 1;
+      transform: scale(1.6);
+      filter: blur(28px);
+    }
+
+    .chest-artwork-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.85));
+      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.2, 0.8, 0.25, 1.2);
+    }
+    .chest-artwork-img.chest-state-closed {
+      position: relative;
+      z-index: 2;
+      opacity: 1;
+    }
+    .chest-artwork-img.chest-state-open {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 3;
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    .chest-artwork-container.opened .chest-artwork-img.chest-state-open {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .chest-artwork-container.opened.has-open-sprite .chest-artwork-img.chest-state-closed {
+      opacity: 0;
+    }
+    .chest-flash-overlay {
+      position: absolute;
+      inset: -30px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.98) 0%, rgba(254, 240, 138, 0.8) 45%, transparent 75%);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 8;
+      transition: opacity 0.15s ease-out;
+    }
+    .chest-flash-overlay.active {
+      animation: peakFlash 0.65s ease-out forwards;
+    }
+    @keyframes peakFlash {
+      0% { opacity: 0; transform: scale(0.5); }
+      30% { opacity: 1; transform: scale(1.35); }
+      100% { opacity: 0; transform: scale(1.75); }
+    }
+    .chest-artwork-medallion {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 2px solid var(--gold-bright, #fbbf24);
+      background: radial-gradient(circle, #2a180e 0%, #090301 90%);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4), inset 0 0 8px rgba(0,0,0,0.8);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .chest-card:hover .chest-artwork-medallion {
+      transform: scale(1.08);
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.75), inset 0 0 8px rgba(0,0,0,0.8);
+    }
+    .chest-medallion-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.35s ease;
+    }
+    .chest-card:hover .chest-medallion-img {
+      transform: scale(1.12);
     }
     .chest-3d-model {
       position: relative;
@@ -6432,8 +6631,8 @@
 
     /* MINI-TRUHEN-ILLUSTRATIONEN IN DER AUSWAHL-GRID (KEINE TEXT-EMOJIS!) */
     .chest-icon-visual {
-      width: 60px;
-      height: 50px;
+      width: 70px;
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -6754,25 +6953,140 @@
     /* WARDROBE & PREVIEW */
     .wardrobe-container {
       display: flex;
-      gap: 18px;
-    }
-    @media (max-width: 768px) {
-      .wardrobe-container { flex-direction: column; }
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
     }
     .wardrobe-preview-panel {
-      width: 220px;
-      flex-shrink: 0;
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(217, 119, 6, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      width: 100%;
+      box-sizing: border-box;
+      background: linear-gradient(180deg, rgba(20, 10, 5, 0.96) 0%, rgba(12, 6, 3, 0.94) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(217, 119, 6, 0.45);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(245, 158, 11, 0.2);
+      padding: 14px 18px;
+      margin-bottom: 4px;
+    }
+    .wardrobe-preview-stage {
+      width: 100%;
       border-radius: 10px;
-      padding: 16px;
-      text-align: center;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      background-size: cover !important;
+      background-position: center center !important;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 25px rgba(0,0,0,0.85);
+      transition: background 0.3s ease;
+    }
+    .wardrobe-preview-stage-overlay {
+      background: radial-gradient(circle at 50% 50%, rgba(10, 5, 2, 0.6) 0%, rgba(5, 2, 1, 0.88) 100%);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .wardrobe-preview-center {
       display: flex;
       flex-direction: column;
       align-items: center;
+      text-align: center;
+      min-width: 130px;
+    }
+    .wardrobe-mirror-avatar-wrap {
+      width: 76px !important;
+      height: 76px !important;
+      min-width: 76px !important;
+      min-height: 76px !important;
+      aspect-ratio: 1 / 1 !important;
+      border-radius: 50% !important;
+      position: relative !important;
+      overflow: hidden !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 auto 6px !important;
+      box-sizing: border-box !important;
+      background: radial-gradient(circle at 50% 35%, #1e1b4b, #090301) !important;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.85) !important;
+    }
+    .wardrobe-mirror-avatar-wrap #wardrobePreviewInitial,
+    .wardrobe-mirror-avatar-wrap #wardrobePreviewAvatarImg {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 50% !important;
+      object-fit: cover !important;
+      z-index: 1 !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wardrobe-avatar-frame-overlay,
+    .wardrobe-mirror-avatar-wrap::after {
+      content: '';
+      position: absolute !important;
+      inset: 0 !important;
+      border-radius: 50% !important;
+      pointer-events: none !important;
+      z-index: 2 !important;
+      border: inherit !important;
+      box-shadow: inherit !important;
+    }
+    .wardrobe-preview-name {
+      font-weight: bold;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 2px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    }
+    .wardrobe-preview-title {
+      font-size: 11.5px;
+      color: #fbbf24;
+      font-style: italic;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    }
+    .wardrobe-preview-side {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .wardrobe-preview-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 82px;
+    }
+    .wardrobe-slot-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #d6be90;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .wardrobe-slot-name {
+      font-size: 11px;
+      color: #fde68a;
+      max-width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 4px;
+      font-weight: 600;
     }
     .wardrobe-items-panel {
       flex: 1;
+      width: 100%;
     }
     .cosmetics-filter-pills {
       display: flex;
@@ -8843,28 +9157,15 @@
             <div id="vaultUnboxingTitle" style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 21px; margin-bottom: 4px;">Arkane Schatztruhe</div>
             <div id="vaultUnboxingSubtitle" style="font-size: 12.5px; color: #d6be90; margin-bottom: 8px;">Ein uraltes Relikt der Zitadelle erwacht...</div>
 
-            <!-- INTERAKTIVE 3D-TRUHE (CLICK-TO-UNLOCK) -->
+            <!-- INTERAKTIVE UNBOXING BÜHNE MIT ARTWORK & CANVAS-FX -->
             <div id="vaultUnboxingStage" class="unboxing-stage">
+              <canvas id="vaultFxCanvas" class="vault-fx-canvas"></canvas>
               <div class="unboxing-pedestal-glow"></div>
-              <div id="vaultChestInteractive" class="chest-3d-model tier-wooden" title="Klicke auf die Truhe, um sie zu öffnen!">
+              <div id="vaultChestInteractive" class="chest-artwork-container chest-3d-model tier-wooden" role="button" tabindex="0" title="Klicke auf die Truhe, um das Siegel zu brechen!">
                 <div class="chest-aura"></div>
-                <div class="chest-interior">
-                  <div class="chest-interior-glow"></div>
-                  <div class="chest-light-rays"></div>
-                </div>
-                <div class="chest-lid">
-                  <div class="chest-lid-outer">
-                    <div class="chest-lid-rivets"></div>
-                    <div class="chest-lid-crest"></div>
-                  </div>
-                </div>
-                <div class="chest-body">
-                  <div class="chest-body-planks"></div>
-                  <div class="chest-lock-plate">
-                    <div class="chest-lock-gem"></div>
-                  </div>
-                </div>
-                <div class="chest-light-burst"></div>
+                <img id="vaultChestImgClosed" class="chest-artwork-img chest-state-closed" src="images/chests/chest_wooden_closed.png" alt="Schatztruhe">
+                <img id="vaultChestImgOpen" class="chest-artwork-img chest-state-open" src="images/chests/chest_gold_open.png" alt="Geöffnete Schatztruhe" style="display: none;">
+                <div id="vaultChestFlashOverlay" class="chest-flash-overlay"></div>
               </div>
               <div id="vaultChestClickPrompt" class="chest-click-prompt">
                 <span>✨</span>
@@ -8889,7 +9190,9 @@
             <!-- HOLZTRUHE -->
             <div class="chest-card tier-wooden">
               <div class="chest-icon-visual chest-icon-wooden">
-                <div class="mini-chest-wood"></div>
+                <div class="chest-artwork-medallion mini-chest-wood">
+                  <img src="images/chests/chest_wooden_closed.png" alt="Holztruhe des Lehrlings" class="chest-medallion-img">
+                </div>
               </div>
               <div class="chest-title">Holztruhe des Lehrlings</div>
               <div class="chest-desc">2 Belohnungen. Erhältst du bei jedem regulären Stufenaufstieg.</div>
@@ -8900,7 +9203,9 @@
             <!-- SILBERTRUHE -->
             <div class="chest-card tier-silver">
               <div class="chest-icon-visual chest-icon-silver">
-                <div class="mini-chest-silver"></div>
+                <div class="chest-artwork-medallion mini-chest-silver">
+                  <img src="images/chests/chest_silver_closed.png" alt="Silberne Magiertruhe" class="chest-medallion-img">
+                </div>
               </div>
               <div class="chest-title">Silberne Magiertruhe</div>
               <div class="chest-desc">3 Belohnungen mit hoher Chance auf Seltene &amp; Epische Schätze. Belohnung alle 5 Stufen!</div>
@@ -8911,7 +9216,9 @@
             <!-- GOLDKASSETTE -->
             <div class="chest-card tier-gold">
               <div class="chest-icon-visual chest-icon-gold">
-                <div class="mini-chest-gold"></div>
+                <div class="chest-artwork-medallion mini-chest-gold">
+                  <img src="images/chests/chest_gold_closed.png" alt="Goldene Erzmagier-Kassette" class="chest-medallion-img">
+                </div>
               </div>
               <div class="chest-title">Goldene Erzmagier-Kassette</div>
               <div class="chest-desc">4 Belohnungen. Garantiert mindestens 1 Episches oder Legendäres Prunkstück! Alle 10 Stufen.</div>
@@ -8944,21 +9251,55 @@
         <!-- 2. TAB: GARDEROBE (AUSRÜSTUNG) -->
         <div id="vaultPanelWardrobe" class="vault-tab-panel" style="display: none;">
           <div class="wardrobe-container">
-            <!-- VORSCHAU-PANEL (SPIEGEL DES MAGIERS) -->
-            <div class="wardrobe-preview-panel">
-              <div style="font-family: var(--font-heading); font-size: 13.5px; color: var(--gold-bright); margin-bottom: 12px;">Magier-Spiegel</div>
-              <div id="wardrobePreviewAvatarWrapper" class="seat-avatar frame-none" style="width: 76px; height: 86px; font-size: 32px; margin-bottom: 10px; box-shadow: 0 4px 18px rgba(0,0,0,0.85); position: relative;">
-                <div id="wardrobePreviewInitial" class="wardrobe-mirror-initial" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 36px; color: var(--gold-bright); text-shadow: 0 0 14px rgba(245, 158, 11, 0.85); background: radial-gradient(circle at 50% 40%, #1e1b4b, #090301);">M</div>
-                <img id="wardrobePreviewAvatarImg" src="" alt="Avatar" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+            <!-- VORSCHAU-PANEL (MAGIER-SPIEGEL & SHOWROOM, STICKY TOP) -->
+            <div id="wardrobePreviewPanel" class="wardrobe-preview-panel">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-family: var(--font-heading); font-size: 13.5px; color: var(--gold-bright);">🪞 Magier-Spiegel &amp; Prunksaal</div>
+                <div style="font-size: 11px; color: #d6be90; font-style: italic;">Live-Vorschau aller Kosmetika</div>
               </div>
-              <div id="wardrobePreviewName" style="font-weight: bold; color: #fff; font-size: 14px; margin-bottom: 2px;">Magier</div>
-              <div id="wardrobePreviewTitle" style="font-size: 11.5px; color: #fbbf24; font-style: italic; margin-bottom: 14px;">Zauberlehrling</div>
-              
-              <div style="border-top: 1px solid rgba(255,255,255,0.1); width: 100%; padding-top: 10px; text-align: left; font-size: 11.5px; display: flex; flex-direction: column; gap: 6px;">
-                <div><b>Kartendeck:</b> <span id="wardrobePreviewDeck">Novizen-Pergament</span></div>
-                <div><b>Spieltisch:</b> <span id="wardrobePreviewTable">Klassischer Filz</span></div>
-                <div><b>Rahmen:</b> <span id="wardrobePreviewFrame">Schlichter Goldring</span></div>
-                <div><b>Raum-Welt:</b> <span id="wardrobePreviewLobby">Hallen der Zitadelle</span></div>
+
+              <div id="wardrobePreviewStage" class="wardrobe-preview-stage lobby-theme-citadel_halls">
+                <div class="wardrobe-preview-stage-overlay">
+                  <!-- LINKE SEITE: RAUM-WELT & SPIELTISCH -->
+                  <div class="wardrobe-preview-side">
+                    <div class="wardrobe-preview-slot" title="Raum-Welt / Hintergrund">
+                      <div class="wardrobe-slot-label">Raum-Welt</div>
+                      <div id="wardrobePreviewLobbyBox" class="cosmetic-mini-lobby lobby-theme-citadel_halls" style="margin-bottom: 0;"></div>
+                      <div id="wardrobePreviewLobby" class="wardrobe-slot-name">Hallen der Zitadelle</div>
+                    </div>
+                    <div class="wardrobe-preview-slot" title="Spieltisch-Filz">
+                      <div class="wardrobe-slot-label">Spieltisch</div>
+                      <div id="wardrobePreviewTableBox" class="cosmetic-mini-table table-theme-emerald_felt" style="margin-bottom: 0;"></div>
+                      <div id="wardrobePreviewTable" class="wardrobe-slot-name">Klassischer Filz</div>
+                    </div>
+                  </div>
+
+                  <!-- MITTE: AVATAR & RAHMEN -->
+                  <div class="wardrobe-preview-center">
+                    <div id="wardrobePreviewAvatarWrapper" class="wardrobe-mirror-avatar-wrap seat-avatar frame-none" style="font-size: 34px;">
+                      <div id="wardrobePreviewInitial" class="wardrobe-mirror-initial" style="font-family: var(--font-heading); font-size: 34px; color: var(--gold-bright); text-shadow: 0 0 14px rgba(245, 158, 11, 0.85);">M</div>
+                      <img id="wardrobePreviewAvatarImg" src="" alt="Avatar" style="display: none;">
+                      <div class="wardrobe-avatar-frame-overlay" aria-hidden="true"></div>
+                    </div>
+                    <div id="wardrobePreviewName" class="wardrobe-preview-name">Magier</div>
+                    <div id="wardrobePreviewTitle" class="wardrobe-preview-title">Zauberlehrling</div>
+                  </div>
+
+                  <!-- RECHTE SEITE: KARTENDECK & RAHMEN -->
+                  <div class="wardrobe-preview-side">
+                    <div class="wardrobe-preview-slot" title="Kartendeck-Rücken">
+                      <div class="wardrobe-slot-label">Kartendeck</div>
+                      <div id="wardrobePreviewDeckBox" class="cosmetic-mini-cardback cardback-theme-default" style="margin-bottom: 0;">
+                        <div class="cosmetic-mini-cardback-inner"></div>
+                      </div>
+                      <div id="wardrobePreviewDeck" class="wardrobe-slot-name">Novizen-Pergament</div>
+                    </div>
+                    <div class="wardrobe-preview-slot" title="Avatar-Rahmen">
+                      <div class="wardrobe-slot-label">Rahmen</div>
+                      <div id="wardrobePreviewFrame" class="wardrobe-slot-name" style="margin-top: 14px; font-weight: bold; color: var(--gold-bright);">Schlichter Goldring</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -8977,13 +9318,6 @@
                 <!-- Dynamisch generiert -->
               </div>
             </div>
-          </div>
-
-          <div class="vault-panel-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(212,175,55,0.2); text-align: center;">
-            <button type="button" class="btn-auth-bar btn-vault-close-action" style="padding: 9px 24px; font-size: 13px; margin: 0 auto;">
-              <span class="btn-icon">🏛️</span>
-              <span class="btn-text">Zurück zur Zitadelle</span>
-            </button>
           </div>
         </div>
 
@@ -9212,7 +9546,7 @@
   </div>
 
   <script src="socket.io.min.js"></script>
-  <script src="client.js"></script>
+  <script src="client.js?v=20261026_wardrobe"></script>
 
   </body>
 </html>

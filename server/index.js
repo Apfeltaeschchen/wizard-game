@@ -698,7 +698,7 @@ io.on('connection', (socket) => {
     socket.emit('vault:chestOpened', { ...res, user: updatedUser });
   });
 
-  socket.on('vault:equip', async ({ itemType, itemId, token } = {}) => {
+  const handleCosmeticEquip = async ({ itemType, itemId, token } = {}) => {
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -742,7 +742,10 @@ io.on('connection', (socket) => {
         }
       }
     }
-  });
+  };
+
+  socket.on('vault:equip', handleCosmeticEquip);
+  socket.on('wardrobe:equip', handleCosmeticEquip);
 
   socket.on('vault:craft', async ({ itemType, itemId, token } = {}) => {
     let authUser = socket.user;

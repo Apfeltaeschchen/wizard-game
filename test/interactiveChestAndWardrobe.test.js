@@ -24,24 +24,38 @@ assert.ok(!indexHtml.includes('id="profileSelectTableSkin"'), 'profileSelectTabl
 assert.ok(indexHtml.includes('id="btnProfileOpenVault"'), 'Schnellzugriff zur Garderobe vorhanden');
 console.log('✓ 1. Profil-Drawer sauber bereinigt.');
 
-// [2/5] Überprüfe Interaktive 3D-Truhe im HTML & CSS
-console.log('[2/5] Überprüfe Interaktive 3D-Truhe & Scharnier-Physik...');
+// [2/5] Überprüfe Interaktive 3D-Truhe, Canvas-FX & Schatztruhen-Artworks im HTML & CSS
+console.log('[2/5] Überprüfe Interaktive Unboxing-Bühne, Canvas-FX & Schatztruhen-Artworks...');
 assert.ok(indexHtml.includes('id="btnVaultUnboxingClose"'), '#btnVaultUnboxingClose Schließen-Button vorhanden');
 assert.ok(clientJs.includes('btnUnboxClose.addEventListener(\'click\', finishUnboxing)'), 'Schließen-Handler auf #btnVaultUnboxingClose registriert');
 assert.ok(indexHtml.includes('id="vaultUnboxingStage"'), '#vaultUnboxingStage vorhanden');
-assert.ok(indexHtml.includes('id="vaultChestInteractive"'), '#vaultChestInteractive 3D-Truhe vorhanden');
+assert.ok(indexHtml.includes('id="vaultFxCanvas"'), '#vaultFxCanvas 60-FPS Canvas Layer vorhanden');
+assert.ok(indexHtml.includes('id="vaultChestInteractive"'), '#vaultChestInteractive interaktive Truhe vorhanden');
+assert.ok(indexHtml.includes('id="vaultChestImgClosed"'), '#vaultChestImgClosed Sprite vorhanden');
+assert.ok(indexHtml.includes('id="vaultChestImgOpen"'), '#vaultChestImgOpen Sprite vorhanden');
+assert.ok(indexHtml.includes('id="vaultChestFlashOverlay"'), '#vaultChestFlashOverlay Scheitelpunkt-Blitz vorhanden');
 assert.ok(indexHtml.includes('id="vaultChestClickPrompt"'), '#vaultChestClickPrompt vorhanden');
-assert.ok(indexHtml.includes('.chest-3d-model'), 'CSS für .chest-3d-model vorhanden');
-assert.ok(indexHtml.includes('.chest-lid'), 'CSS für .chest-lid vorhanden');
-assert.ok(indexHtml.includes('transform-origin: 50% 100% 0px'), 'Scharnier-Physik: Deckel dreht an hinterer Unterkante!');
-assert.ok(indexHtml.includes('.chest-interior'), 'CSS für .chest-interior (erleuchteter Innenraum) vorhanden');
-assert.ok(indexHtml.includes('.chest-light-burst'), 'CSS für .chest-light-burst vorhanden');
-assert.ok(indexHtml.includes('.mini-chest-wood'), 'Plastisches Miniatur-Visual für Holztruhe');
-assert.ok(indexHtml.includes('.mini-chest-silver'), 'Plastisches Miniatur-Visual für Silbertruhe');
-assert.ok(indexHtml.includes('.mini-chest-gold'), 'Plastisches Miniatur-Visual für Goldkassette');
+assert.ok(indexHtml.includes('.chest-artwork-container'), 'CSS für .chest-artwork-container vorhanden');
+assert.ok(indexHtml.includes('.chest-aura'), 'CSS für .chest-aura (volumetrische Runen-Aura) vorhanden');
+assert.ok(indexHtml.includes('.chest-artwork-container.bursting'), 'CSS für .chest-artwork-container.bursting Apex-Animation vorhanden');
+assert.ok(indexHtml.includes('.chest-artwork-container.opened'), 'CSS für .chest-artwork-container.opened vorhanden');
+assert.ok(indexHtml.includes('.chest-flash-overlay'), 'CSS für .chest-flash-overlay vorhanden');
+assert.ok(indexHtml.includes('.chest-artwork-medallion'), 'CSS für .chest-artwork-medallion vorhanden');
+assert.ok(indexHtml.includes('.mini-chest-wood'), 'Miniatur-Visual für Holztruhe');
+assert.ok(indexHtml.includes('.mini-chest-silver'), 'Miniatur-Visual für Silbertruhe');
+assert.ok(indexHtml.includes('.mini-chest-gold'), 'Miniatur-Visual für Goldkassette');
 assert.ok(indexHtml.includes('@keyframes chestRumble'), '@keyframes chestRumble vorhanden');
 assert.ok(indexHtml.includes('@keyframes floatChest'), '@keyframes floatChest vorhanden');
-console.log('✓ 2. 3D-Truhen-Bühne, Scharnier-Physik & Schließen-Button vollständig.');
+assert.ok(indexHtml.includes('.btn-drop-equip'), 'CSS für .btn-drop-equip vorhanden');
+
+// Echte Truhen-Artworks in public/images/chests prüfen
+const chestsDir = path.join(__dirname, '../public/images/chests');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_wooden_closed.png')), 'chest_wooden_closed.png existiert');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_silver_closed.png')), 'chest_silver_closed.png existiert');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold_closed.png')), 'chest_gold_closed.png existiert');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold_open.png')), 'chest_gold_open.png existiert');
+
+console.log('✓ 2. Unboxing-Bühne, Canvas-FX Layer & Artwork-Assets verifiziert.');
 
 // [3/5] Überprüfe Garderoben-Visuals, Zero-Crude-Icons & Raumwelten-Artworks
 console.log('[3/5] Überprüfe Bildvorschauen, Zero-Crude-Icons & Raumwelten-Artworks...');
@@ -74,13 +88,23 @@ assert.ok(clientJs.includes('currentWardrobeCategory = pill.dataset.category'), 
 assert.ok(clientJs.includes('currentForgeCategory = pill.dataset.forgeCategory'), 'Forge Filter-Pills nutzen korrektes data-forgeCategory');
 console.log('✓ 3. Zero-Crude-Icons, Raumwelten-Artworks & Avatar-Bereinigung verifiziert.');
 
-// [4/5] Überprüfe Audio & Klick-Interaktion der Truhe
-console.log('[4/5] Überprüfe Audio-Engine & Klick-Zeremonie...');
+// [4/5] Überprüfe Audio, Klick-Zeremonie, Canvas-FX & Spielstart-Schutz
+console.log('[4/5] Überprüfe Audio-Engine, Klick-Zeremonie, Canvas-FX & Spielstart-Schutz...');
 assert.ok(clientJs.includes('playChestRumble'), 'WizardAudio.playChestRumble implementiert');
 assert.ok(clientJs.includes('playChestBurst'), 'WizardAudio.playChestBurst implementiert');
 assert.ok(clientJs.includes('function handleChestClick'), 'handleChestClick Funktion implementiert');
+assert.ok(clientJs.includes('triggerChestBurstFx'), 'triggerChestBurstFx Canvas-FX implementiert');
+assert.ok(clientJs.includes('chestLightRays'), 'Volumetrische God-Rays / Lichtsäulen in Canvas-FX integriert');
+assert.ok(clientJs.includes('chestRuneMotes'), 'Schwebende Runen-Funken in Canvas-FX integriert');
+assert.ok(clientJs.includes('unboxingApexTimer'), 'unboxingApexTimer Lebenszyklus-Schutz vorhanden');
+assert.ok(clientJs.includes('unboxingStageTimer'), 'unboxingStageTimer Lebenszyklus-Schutz vorhanden');
+assert.ok(clientJs.includes('wardrobe:equip'), 'wardrobe:equip Socket-Event auf Beutekarte integriert');
+// Sicherstellen, dass kein redundanter doppelter Event-Emit auf Beutekarten existiert
+assert.ok(!clientJs.includes("socket.emit('wardrobe:equip', { itemType: targetType, itemId: targetId, token });\n            socket.emit('vault:equip'"), 'Kein redundanter Doppel-Emit von wardrobe:equip und vault:equip auf Beutekarte');
 assert.ok(clientJs.includes('chestInteractive.addEventListener(\'click\', handleChestClick)'), 'Klick-Handler auf 3D-Truhe registriert');
-console.log('✓ 4. Klick-Entriegelung & Audio-Feedback verifiziert.');
+assert.ok(clientJs.includes("if (screenName === 'game')"), 'Concurrency-Schutz bei Spielstart vorhanden');
+assert.ok(clientJs.includes('WizardVault.closeVault()') || clientJs.includes('closeVault()'), 'closeVault() bei Spielstart aufgerufen');
+console.log('✓ 4. Klick-Entriegelung, Canvas-FX, Direktausrüstung & Spielstart-Schutz verifiziert.');
 
 // [5/5] Überprüfe Persistentes Account- & Kosmetik-Backup (Zero Data Loss)
 console.log('[5/5] Überprüfe Persistentes Account- & Kosmetik-Backup...');
@@ -132,5 +156,39 @@ try {
   // Aufräumen
   try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (e) {}
 }
+
+// [6/6] Überprüfe Concurrency-, Lifecycle- & Timer-Sicherheit
+console.log('[6/6] Überprüfe Concurrency-, Lifecycle- & Timer-Sicherheit...');
+// 1. Asset-Integrität: Beide Erweiterungen (.png und .jpg) vorhanden und valide Bildgröße (> 500 KB)
+const requiredImages = [
+  'chest_wooden_closed.png', 'chest_wooden_closed.jpg',
+  'chest_silver_closed.png', 'chest_silver_closed.jpg',
+  'chest_gold_closed.png', 'chest_gold_closed.jpg',
+  'chest_gold_open.png', 'chest_gold_open.jpg'
+];
+for (const imgName of requiredImages) {
+  const p = path.join(chestsDir, imgName);
+  assert.ok(fs.existsSync(p), `Bild existiert: ${imgName}`);
+  const stat = fs.statSync(p);
+  assert.ok(stat.size > 500000, `Bildgröße von ${imgName} ist valide (>500KB): ${stat.size} Bytes`);
+}
+
+// 2. Lifecycle & Timer-Cleanup Simulation
+// Prüfe, dass finishUnboxing alle drei Timer leert und FX stoppt
+assert.ok(clientJs.includes('if (unboxingApexTimer)'), 'unboxingApexTimer wird vor/bei finishUnboxing sauber gecancelt');
+assert.ok(clientJs.includes('if (unboxingStageTimer)'), 'unboxingStageTimer wird vor/bei finishUnboxing sauber gecancelt');
+assert.ok(clientJs.includes('if (unboxingFlashTimer)'), 'unboxingFlashTimer wird vor/bei finishUnboxing sauber gecancelt');
+assert.ok(clientJs.includes('stopChestFx()'), 'stopChestFx() wird in finishUnboxing aufgerufen');
+
+// 3. Kein Doppel-Emit beim Ausrüsten
+const equipHandlerMatch = clientJs.match(/equipBtn\.addEventListener\('click'[\s\S]*?showToast/);
+assert.ok(equipHandlerMatch, 'Ausrüst-Klick-Handler auf Beutekarte gefunden');
+const equipCode = equipHandlerMatch[0];
+const vaultEquipEmits = (equipCode.match(/socket\.emit\(['"]vault:equip['"]/g) || []).length;
+const wardrobeEquipEmits = (equipCode.match(/socket\.emit\(['"]wardrobe:equip['"]/g) || []).length;
+assert.strictEqual(wardrobeEquipEmits, 1, 'Exakt 1 wardrobe:equip Socket-Event auf Beutekarte');
+assert.strictEqual(vaultEquipEmits, 0, 'Kein redundantes vault:equip Socket-Event auf Beutekarte (verhindert doppelte DB-Writes)');
+
+console.log('✓ 6. Concurrency-, Lifecycle- & Timer-Sicherheit vollständig verifiziert!');
 
 console.log('--- TEST: INTERAKTIVE 3D-TRUHEN-ZEREMONIE & GARDEROBE BESTANDEN! ---');

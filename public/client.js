@@ -4154,8 +4154,330 @@ const WizardVault = (() => {
 
   let activeUnboxingTier = null;
   let isUnboxingAnimationRunning = false;
+  let chestClickStartTime = 0;
+  let unboxingApexTimer = null;
+  let unboxingStageTimer = null;
+  let unboxingFlashTimer = null;
+
+  // --- 60-FPS CANVAS FX ENGINE FÜR TRUHENÖFFNUNG MIT HIGH-DPI & GOD-RAYS ---
+  let chestFxCanvas = null;
+  let chestFxCtx = null;
+  let chestFxAnimId = null;
+  let chestParticles = [];
+  let chestShockwaves = [];
+  let chestLightRays = [];
+  let chestRuneMotes = [];
+
+  function initChestFxCanvas() {
+    chestFxCanvas = document.getElementById('vaultFxCanvas');
+    if (!chestFxCanvas) return;
+    chestFxCtx = chestFxCanvas.getContext('2d');
+    resizeChestFxCanvas();
+  }
+
+  function resizeChestFxCanvas() {
+    if (!chestFxCanvas) return;
+    const rect = chestFxCanvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = Math.round(rect.width || 450);
+    const cssH = Math.round(rect.height || 260);
+
+    chestFxCanvas.width = cssW * dpr;
+    chestFxCanvas.height = cssH * dpr;
+    if (chestFxCtx) {
+      chestFxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+  }
+
+  function triggerChestBurstFx(rarityHex, chestTier) {
+    if (!chestFxCanvas) initChestFxCanvas();
+    if (!chestFxCtx || !chestFxCanvas) return;
+
+    resizeChestFxCanvas();
+    stopChestFx();
+
+    const rect = chestFxCanvas.getBoundingClientRect();
+    const w = rect.width || 450;
+    const h = rect.height || 260;
+    const ox = w / 2;
+    const oy = h / 2 + 10;
+
+    const baseColor = rarityHex || '#fbbf24';
+    const accentColor = '#ffffff';
+
+    // Tier-spezifische Farbpalette für Volumetrik & God-Rays
+    let tierRayColor = 'rgba(251, 191, 36, 0.45)';
+    if (chestTier === 'silver') {
+      tierRayColor = 'rgba(56, 189, 248, 0.55)';
+    } else if (chestTier === 'wooden') {
+      tierRayColor = 'rgba(245, 158, 11, 0.5)';
+    } else if (chestTier === 'gold') {
+      tierRayColor = 'rgba(251, 191, 36, 0.65)';
+    }
+
+    // 1. Volumetrische God-Rays / Lichtsäulen nach oben
+    const rayCount = 7;
+    for (let r = 0; r < rayCount; r++) {
+      const spread = (r - (rayCount - 1) / 2) * 0.18 + (Math.random() - 0.5) * 0.08;
+      chestLightRays.push({
+        ox: ox + (r - (rayCount - 1) / 2) * 12,
+        oy: oy - 5,
+        angle: -Math.PI / 2 + spread,
+        length: Math.max(w, h) * (0.85 + Math.random() * 0.35),
+        baseWidth: Math.random() * 18 + 14,
+        color: tierRayColor,
+        alpha: 0.9,
+        decay: Math.random() * 0.012 + 0.015,
+        swing: (Math.random() - 0.5) * 0.003
+      });
+    }
+
+    // 2. Gestaffelte Schockwellen-Ringe
+    chestShockwaves.push({
+      x: ox,
+      y: oy,
+      radius: 14,
+      maxRadius: Math.max(w, h) * 0.65,
+      speed: 7.5,
+      lineWidth: 9,
+      color: baseColor,
+      alpha: 1.0,
+      decay: 0.024
+    });
+
+    setTimeout(() => {
+      if (chestFxAnimId) {
+        chestShockwaves.push({
+          x: ox,
+          y: oy,
+          radius: 10,
+          maxRadius: Math.max(w, h) * 0.55,
+          speed: 6.2,
+          lineWidth: 6,
+          color: accentColor,
+          alpha: 0.92,
+          decay: 0.028
+        });
+      }
+    }, 85);
+
+    // 3. 80 physikalische Partikel (Fontäne & Sternfunken)
+    const particleCount = 80;
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5;
+      const speed = Math.random() * 8.5 + 3.5;
+      const isStar = Math.random() < 0.38;
+      const colChoice = Math.random();
+      const color = colChoice < 0.6 ? baseColor : (colChoice < 0.85 ? '#fde68a' : accentColor);
+
+      chestParticles.push({
+        x: ox + (Math.random() - 0.5) * 22,
+        y: oy + (Math.random() - 0.5) * 16,
+        vx: Math.cos(angle) * speed * (0.85 + Math.random() * 0.55),
+        vy: (Math.sin(angle) * speed * 0.8) - (Math.random() * 4.5 + 2.5),
+        gravity: 0.17,
+        drag: 0.976,
+        size: Math.random() * 4.2 + 2.5,
+        isStar,
+        color,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.22,
+        life: 1.0,
+        decay: Math.random() * 0.016 + 0.013
+      });
+    }
+
+    // 4. Sanft schwebende Runen-Funken nach oben
+    const runeMoteCount = 18;
+    for (let m = 0; m < runeMoteCount; m++) {
+      chestRuneMotes.push({
+        x: ox + (Math.random() - 0.5) * 90,
+        y: oy + (Math.random() - 0.5) * 20,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: -(Math.random() * 2.2 + 1.2),
+        oscFreq: Math.random() * 0.08 + 0.04,
+        oscAmp: Math.random() * 1.5 + 0.8,
+        size: Math.random() * 3 + 1.8,
+        color: baseColor,
+        alpha: 0.95,
+        decay: Math.random() * 0.012 + 0.01,
+        time: Math.random() * 10
+      });
+    }
+
+    updateChestFx();
+  }
+
+  function updateChestFx() {
+    if (!chestFxCtx || !chestFxCanvas) return;
+    const rect = chestFxCanvas.getBoundingClientRect();
+    const w = rect.width || 450;
+    const h = rect.height || 260;
+
+    chestFxCtx.clearRect(0, 0, w, h);
+
+    // 1. God-Rays / Lichtsäulen rendern
+    for (let i = chestLightRays.length - 1; i >= 0; i--) {
+      const ray = chestLightRays[i];
+      ray.alpha -= ray.decay;
+      ray.angle += ray.swing;
+      if (ray.alpha <= 0) {
+        chestLightRays.splice(i, 1);
+        continue;
+      }
+      chestFxCtx.save();
+      chestFxCtx.translate(ray.ox, ray.oy);
+      chestFxCtx.rotate(ray.angle);
+
+      const grad = chestFxCtx.createLinearGradient(0, 0, ray.length, 0);
+      grad.addColorStop(0, ray.color);
+      grad.addColorStop(0.35, ray.color);
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      chestFxCtx.fillStyle = grad;
+      chestFxCtx.globalAlpha = Math.max(0, ray.alpha);
+      chestFxCtx.beginPath();
+      chestFxCtx.moveTo(0, -ray.baseWidth * 0.3);
+      chestFxCtx.lineTo(ray.length, -ray.baseWidth * 2.2);
+      chestFxCtx.lineTo(ray.length, ray.baseWidth * 2.2);
+      chestFxCtx.lineTo(0, ray.baseWidth * 0.3);
+      chestFxCtx.closePath();
+      chestFxCtx.fill();
+      chestFxCtx.restore();
+    }
+
+    // 2. Schockwellen rendern
+    for (let i = chestShockwaves.length - 1; i >= 0; i--) {
+      const sw = chestShockwaves[i];
+      sw.radius += sw.speed;
+      sw.alpha -= sw.decay;
+      if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) {
+        chestShockwaves.splice(i, 1);
+        continue;
+      }
+      chestFxCtx.save();
+      chestFxCtx.beginPath();
+      chestFxCtx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+      chestFxCtx.strokeStyle = sw.color;
+      chestFxCtx.globalAlpha = Math.max(0, sw.alpha);
+      chestFxCtx.lineWidth = Math.max(1, sw.lineWidth * sw.alpha);
+      chestFxCtx.shadowBlur = 14;
+      chestFxCtx.shadowColor = sw.color;
+      chestFxCtx.stroke();
+      chestFxCtx.restore();
+    }
+
+    // 3. Physikalische Partikel rendern
+    for (let i = chestParticles.length - 1; i >= 0; i--) {
+      const p = chestParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravity;
+      p.vx *= p.drag;
+      p.vy *= p.drag;
+      p.life -= p.decay;
+      p.rotation += p.rotSpeed;
+
+      if (p.life <= 0) {
+        chestParticles.splice(i, 1);
+        continue;
+      }
+
+      chestFxCtx.save();
+      chestFxCtx.translate(p.x, p.y);
+      chestFxCtx.rotate(p.rotation);
+      chestFxCtx.globalAlpha = Math.max(0, p.life);
+      chestFxCtx.fillStyle = p.color;
+      chestFxCtx.shadowBlur = 8;
+      chestFxCtx.shadowColor = p.color;
+
+      if (p.isStar) {
+        const s = p.size * 1.35;
+        chestFxCtx.beginPath();
+        chestFxCtx.moveTo(0, -s);
+        chestFxCtx.lineTo(s * 0.28, -s * 0.28);
+        chestFxCtx.lineTo(s, 0);
+        chestFxCtx.lineTo(s * 0.28, s * 0.28);
+        chestFxCtx.lineTo(0, s);
+        chestFxCtx.lineTo(-s * 0.28, s * 0.28);
+        chestFxCtx.lineTo(-s, 0);
+        chestFxCtx.lineTo(-s * 0.28, -s * 0.28);
+        chestFxCtx.closePath();
+        chestFxCtx.fill();
+      } else {
+        chestFxCtx.beginPath();
+        chestFxCtx.arc(0, 0, p.size, 0, Math.PI * 2);
+        chestFxCtx.fill();
+      }
+      chestFxCtx.restore();
+    }
+
+    // 4. Runen-Funken rendern
+    for (let i = chestRuneMotes.length - 1; i >= 0; i--) {
+      const m = chestRuneMotes[i];
+      m.time += 1;
+      m.x += m.vx + Math.sin(m.time * m.oscFreq) * m.oscAmp;
+      m.y += m.vy;
+      m.alpha -= m.decay;
+
+      if (m.alpha <= 0) {
+        chestRuneMotes.splice(i, 1);
+        continue;
+      }
+
+      chestFxCtx.save();
+      chestFxCtx.globalAlpha = Math.max(0, m.alpha);
+      chestFxCtx.fillStyle = m.color;
+      chestFxCtx.shadowBlur = 10;
+      chestFxCtx.shadowColor = m.color;
+      chestFxCtx.beginPath();
+      chestFxCtx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
+      chestFxCtx.fill();
+      chestFxCtx.restore();
+    }
+
+    if (chestParticles.length > 0 || chestShockwaves.length > 0 || chestLightRays.length > 0 || chestRuneMotes.length > 0) {
+      chestFxAnimId = requestAnimationFrame(updateChestFx);
+    } else {
+      chestFxAnimId = null;
+      chestFxCtx.clearRect(0, 0, w, h);
+    }
+  }
+
+  function stopChestFx() {
+    if (chestFxAnimId) {
+      cancelAnimationFrame(chestFxAnimId);
+      chestFxAnimId = null;
+    }
+    chestParticles = [];
+    chestShockwaves = [];
+    chestLightRays = [];
+    chestRuneMotes = [];
+    if (chestFxCtx && chestFxCanvas) {
+      const rect = chestFxCanvas.getBoundingClientRect();
+      chestFxCtx.clearRect(0, 0, rect.width || 450, rect.height || 260);
+    }
+  }
+
+  function checkIfEquipped(itemType, itemId) {
+    const u = (vaultData && vaultData.user) || (typeof WizardAuth !== 'undefined' ? WizardAuth.getUser() : null);
+    if (!u) return false;
+    let type = itemType || '';
+    if (type.endsWith('s')) type = type.slice(0, -1);
+    if (type === 'avatar_icon') return u.equipped_avatar_icon === itemId;
+    if (type === 'avatar_frame') return u.equipped_avatar_frame === itemId;
+    if (type === 'card_back') return u.equipped_card_back === itemId;
+    if (type === 'table_skin') return u.equipped_table_skin === itemId;
+    if (type === 'title') return u.equipped_title === itemId;
+    if (type === 'lobby_background') return u.equipped_lobby_background === itemId;
+    return false;
+  }
 
   function openChest(tier) {
+    if (unboxingApexTimer) { clearTimeout(unboxingApexTimer); unboxingApexTimer = null; }
+    if (unboxingStageTimer) { clearTimeout(unboxingStageTimer); unboxingStageTimer = null; }
+    if (unboxingFlashTimer) { clearTimeout(unboxingFlashTimer); unboxingFlashTimer = null; }
+
     activeUnboxingTier = tier;
     isUnboxingAnimationRunning = false;
 
@@ -4166,6 +4488,9 @@ const WizardVault = (() => {
     const prompt = document.getElementById('vaultChestClickPrompt');
     const titleEl = document.getElementById('vaultUnboxingTitle');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
+    const imgClosed = document.getElementById('vaultChestImgClosed');
+    const imgOpen = document.getElementById('vaultChestImgOpen');
+    const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
     if (!unbox) return;
 
@@ -4182,12 +4507,39 @@ const WizardVault = (() => {
     if (subTitle) subTitle.innerText = 'Ein uraltes Relikt der Zitadelle erwacht...';
 
     if (chestModel) {
-      chestModel.className = `chest-3d-model tier-${tier}`;
+      chestModel.className = `chest-artwork-container chest-3d-model tier-${tier}`;
+      chestModel.classList.remove('shaking', 'opened', 'bursting', 'has-open-sprite');
     }
+
+    const closedImgs = {
+      wooden: 'images/chests/chest_wooden_closed.png',
+      silver: 'images/chests/chest_silver_closed.png',
+      gold: 'images/chests/chest_gold_closed.png'
+    };
+    const openImgs = {
+      wooden: 'images/chests/chest_wooden_closed.png',
+      silver: 'images/chests/chest_silver_closed.png',
+      gold: 'images/chests/chest_gold_open.png'
+    };
+
+    if (imgClosed) {
+      imgClosed.src = closedImgs[tier] || closedImgs.wooden;
+      imgClosed.style.display = 'block';
+    }
+    if (imgOpen) {
+      imgOpen.src = openImgs[tier] || openImgs.gold;
+      imgOpen.style.display = 'none';
+    }
+    if (flashOverlay) {
+      flashOverlay.classList.remove('active');
+    }
+
     if (prompt) {
       prompt.style.display = 'flex';
       prompt.innerHTML = `<span>✨</span><span>Klicke auf die Truhe, um das Siegel zu brechen!</span><span>✨</span>`;
     }
+
+    initChestFxCanvas();
 
     if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
       WizardAudio.playCardSnap();
@@ -4197,13 +4549,14 @@ const WizardVault = (() => {
   function handleChestClick() {
     if (isUnboxingAnimationRunning || !activeUnboxingTier) return;
     isUnboxingAnimationRunning = true;
+    chestClickStartTime = Date.now();
 
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
 
     if (chestModel) {
-      chestModel.classList.remove('opened', 'bursting');
+      chestModel.classList.remove('opened', 'bursting', 'has-open-sprite');
       chestModel.classList.add('shaking');
     }
     if (prompt) prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
@@ -4222,6 +4575,10 @@ const WizardVault = (() => {
   }
 
   function onChestOpened(data) {
+    if (!activeUnboxingTier) {
+      isUnboxingAnimationRunning = false;
+      return;
+    }
     if (!data || !data.success) {
       showToast(data ? data.error : 'Fehler beim Öffnen der Truhe');
       isUnboxingAnimationRunning = false;
@@ -4235,22 +4592,87 @@ const WizardVault = (() => {
       renderChests();
     }
 
+    const elapsed = Date.now() - chestClickStartTime;
+    const remainingRumble = Math.max(0, 750 - elapsed);
+
+    if (unboxingApexTimer) clearTimeout(unboxingApexTimer);
+    unboxingApexTimer = setTimeout(() => {
+      unboxingApexTimer = null;
+      if (!activeUnboxingTier) return;
+      executeChestApex(data);
+    }, remainingRumble);
+  }
+
+  function executeChestApex(data) {
+    if (!activeUnboxingTier) return;
+
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
+    const imgClosed = document.getElementById('vaultChestImgClosed');
+    const imgOpen = document.getElementById('vaultChestImgOpen');
+    const flashOverlay = document.getElementById('vaultChestFlashOverlay');
+
     if (chestModel) {
       chestModel.classList.remove('shaking');
       chestModel.classList.add('opened', 'bursting');
     }
     if (prompt) prompt.style.display = 'none';
 
+    // Scheitelpunkt-Blitz
+    if (flashOverlay) {
+      flashOverlay.classList.remove('active');
+      void flashOverlay.offsetWidth;
+      flashOverlay.classList.add('active');
+      if (unboxingFlashTimer) clearTimeout(unboxingFlashTimer);
+      unboxingFlashTimer = setTimeout(() => {
+        unboxingFlashTimer = null;
+        if (flashOverlay) flashOverlay.classList.remove('active');
+      }, 700);
+    }
+
+    // Sprite-Swap bei Apex
+    if (data.chestType === 'gold' && imgOpen && imgClosed) {
+      if (chestModel) chestModel.classList.add('has-open-sprite');
+      imgOpen.style.display = 'block';
+    }
+
+    // Dynamische Partikelfarbe nach höchster Seltenheit
+    const rarityRank = { common: 1, rare: 2, epic: 3, legendary: 4 };
+    const rarityColors = {
+      legendary: '#fbbf24',
+      epic: '#c084fc',
+      rare: '#38bdf8',
+      common: '#f59e0b'
+    };
+
+    let highestRarity = 'common';
+    let highestRank = 1;
+    (data.rewards || []).forEach(r => {
+      const rKey = (r.rarity || 'common').toLowerCase();
+      const rank = rarityRank[rKey] || 1;
+      if (rank > highestRank) {
+        highestRank = rank;
+        highestRarity = rKey;
+      }
+    });
+
+    const burstColor = rarityColors[highestRarity] || '#fbbf24';
+
     if (typeof WizardAudio !== 'undefined' && WizardAudio.playChestBurst) {
       WizardAudio.playChestBurst();
     }
 
-    setTimeout(() => {
+    // Schockwellen, Lichtsäulen & Partikelfontäne
+    triggerChestBurstFx(burstColor, data.chestType);
+
+    // Gestaffelter Loot-Aufstieg
+    if (unboxingStageTimer) clearTimeout(unboxingStageTimer);
+    unboxingStageTimer = setTimeout(() => {
+      unboxingStageTimer = null;
+      if (!activeUnboxingTier) return;
       showUnboxingStage(data);
       isUnboxingAnimationRunning = false;
-    }, 700);
+    }, 750);
   }
 
   function showUnboxingStage(data) {
@@ -4281,18 +4703,50 @@ const WizardVault = (() => {
     rewards.forEach((r, idx) => {
       const card = document.createElement('div');
       card.className = `drop-card-reveal rarity-${r.rarity || 'common'}`;
-      card.style.animationDelay = `${idx * 0.16}s`;
+      card.style.animationDelay = `${idx * 0.18}s`;
 
-      const visualHtml = getCosmeticVisualHtml(r, r.type || r.singularType);
+      const itemType = r.type || r.singularType || '';
+      const visualHtml = getCosmeticVisualHtml(r, itemType);
       const dupHtml = r.isDuplicate ? `<div class="drop-card-duplicate">🔄 Duplikat (+${r.dustRefund} Staub)</div>` : '';
       const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
+
+      const isEquipped = checkIfEquipped(itemType, r.id);
+      const equipBtnHtml = isEquipped
+        ? `<button type="button" class="btn-drop-equip equipped" disabled><span>✓</span> Ausgerüstet</button>`
+        : `<button type="button" class="btn-drop-equip" data-item-type="${itemType}" data-item-id="${r.id}"><span>⚡</span> Ausrüsten</button>`;
 
       card.innerHTML = `
         ${visualHtml}
         <div class="drop-card-name">${escapeHtml(r.name)}</div>
         <div class="drop-card-rarity" style="color: ${r.rarityColor || '#cbd5e1'};">${rarNames[r.rarity] || r.rarity}</div>
         ${dupHtml}
+        ${equipBtnHtml}
       `;
+
+      // Direkte Ausrüstung auf der Beutekarte via socket.emit('wardrobe:equip')
+      const equipBtn = card.querySelector('.btn-drop-equip');
+      if (equipBtn && !isEquipped) {
+        equipBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const targetType = equipBtn.dataset.itemType;
+          const targetId = equipBtn.dataset.itemId;
+          const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
+
+          if (socket && socket.connected) {
+            socket.emit('wardrobe:equip', { itemType: targetType, itemId: targetId, token });
+          }
+
+          equipBtn.classList.add('equipped');
+          equipBtn.disabled = true;
+          equipBtn.innerHTML = '<span>✓</span> Ausgerüstet';
+
+          if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+            WizardAudio.playCardSnap();
+          }
+          showToast(`"${r.name}" ausgerüstet! ✨`);
+        });
+      }
+
       dropsCont.appendChild(card);
     });
 
@@ -4300,14 +4754,39 @@ const WizardVault = (() => {
   }
 
   function finishUnboxing() {
+    if (unboxingApexTimer) {
+      clearTimeout(unboxingApexTimer);
+      unboxingApexTimer = null;
+    }
+    if (unboxingStageTimer) {
+      clearTimeout(unboxingStageTimer);
+      unboxingStageTimer = null;
+    }
+    if (unboxingFlashTimer) {
+      clearTimeout(unboxingFlashTimer);
+      unboxingFlashTimer = null;
+    }
+
     const unbox = document.getElementById('vaultUnboxingArea');
     const stage = document.getElementById('vaultUnboxingStage');
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const chestModel = document.getElementById('vaultChestInteractive');
+    const imgClosed = document.getElementById('vaultChestImgClosed');
+    const imgOpen = document.getElementById('vaultChestImgOpen');
+    const flashOverlay = document.getElementById('vaultChestFlashOverlay');
+
     if (unbox) unbox.style.display = 'none';
     if (dropsArea) dropsArea.style.display = 'none';
     if (stage) stage.style.display = 'flex';
-    if (chestModel) chestModel.className = 'chest-3d-model tier-wooden';
+    if (chestModel) {
+      chestModel.className = 'chest-artwork-container chest-3d-model tier-wooden';
+      chestModel.classList.remove('shaking', 'opened', 'bursting', 'has-open-sprite');
+    }
+    if (imgClosed) imgClosed.style.display = 'block';
+    if (imgOpen) imgOpen.style.display = 'none';
+    if (flashOverlay) flashOverlay.classList.remove('active');
+
+    stopChestFx();
     activeUnboxingTier = null;
     isUnboxingAnimationRunning = false;
   }
@@ -4415,7 +4894,7 @@ const WizardVault = (() => {
 
     if (previewWrap) {
       const f = u.equipped_avatar_frame || 'none';
-      previewWrap.className = `seat-avatar frame-${f}`;
+      previewWrap.className = `wardrobe-mirror-avatar-wrap seat-avatar frame-${f}`;
     }
 
     const a = u.avatar_id || 'default';
@@ -4446,6 +4925,15 @@ const WizardVault = (() => {
     if (previewTable) previewTable.innerText = tableItem ? tableItem.name : 'Klassischer Filz';
     if (previewFrame) previewFrame.innerText = frameItem ? frameItem.name : 'Schlichter Goldring';
     if (previewLobby) previewLobby.innerText = lobbyItem ? lobbyItem.name : 'Hallen der Zitadelle';
+
+    const previewDeckBox = document.getElementById('wardrobePreviewDeckBox');
+    if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${u.equipped_card_back || 'default'}`;
+    const previewTableBox = document.getElementById('wardrobePreviewTableBox');
+    if (previewTableBox) previewTableBox.className = `cosmetic-mini-table table-theme-${u.equipped_table_skin || 'emerald_felt'}`;
+    const previewLobbyBox = document.getElementById('wardrobePreviewLobbyBox');
+    if (previewLobbyBox) previewLobbyBox.className = `cosmetic-mini-lobby lobby-theme-${u.equipped_lobby_background || 'citadel_halls'}`;
+    const previewStage = document.getElementById('wardrobePreviewStage');
+    if (previewStage) previewStage.className = `wardrobe-preview-stage lobby-theme-${u.equipped_lobby_background || 'citadel_halls'}`;
 
     renderWardrobeItems();
   }
@@ -4479,11 +4967,15 @@ const WizardVault = (() => {
     const previewFrame = document.getElementById('wardrobePreviewFrame');
     const previewLobby = document.getElementById('wardrobePreviewLobby');
     const previewTitle = document.getElementById('wardrobePreviewTitle');
+    const previewDeckBox = document.getElementById('wardrobePreviewDeckBox');
+    const previewTableBox = document.getElementById('wardrobePreviewTableBox');
+    const previewLobbyBox = document.getElementById('wardrobePreviewLobbyBox');
+    const previewStage = document.getElementById('wardrobePreviewStage');
     const initial = u.username ? u.username.charAt(0).toUpperCase() : 'M';
 
     grid.onmouseleave = () => {
       // Magier-Spiegel auf echten ausgerüsteten Stand zurücksetzen
-      if (previewWrap) previewWrap.className = `seat-avatar frame-${u.equipped_avatar_frame || 'none'}`;
+      if (previewWrap) previewWrap.className = `wardrobe-mirror-avatar-wrap seat-avatar frame-${u.equipped_avatar_frame || 'none'}`;
       if (previewInitial && previewImg) {
         const curA = u.avatar_id || 'default';
         if (!curA || curA === 'default' || curA === 'wizard_blue' || !curA.startsWith('icon_')) {
@@ -4506,9 +4998,25 @@ const WizardVault = (() => {
       if (previewFrame) previewFrame.innerText = curFrame ? curFrame.name : 'Schlichter Goldring';
       if (previewLobby) previewLobby.innerText = curLobby ? curLobby.name : 'Hallen der Zitadelle';
       if (previewTitle) previewTitle.innerText = u.title || 'Zauberlehrling';
+
+      if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${u.equipped_card_back || 'default'}`;
+      if (previewTableBox) previewTableBox.className = `cosmetic-mini-table table-theme-${u.equipped_table_skin || 'emerald_felt'}`;
+      if (previewLobbyBox) previewLobbyBox.className = `cosmetic-mini-lobby lobby-theme-${u.equipped_lobby_background || 'citadel_halls'}`;
+      if (previewStage) previewStage.className = `wardrobe-preview-stage lobby-theme-${u.equipped_lobby_background || 'citadel_halls'}`;
     };
 
-    cat.forEach(item => {
+    // Nach Seltenheit sortieren (Common -> Rare -> Epic -> Legendary)
+    const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4 };
+    const sortedCat = [...cat].sort((a, b) => {
+      const rA = rarityOrder[a.rarity] || 1;
+      const rB = rarityOrder[b.rarity] || 1;
+      if (rA !== rB) return rA - rB;
+      if (a.isDefault && !b.isDefault) return -1;
+      if (!a.isDefault && b.isDefault) return 1;
+      return (a.name || '').localeCompare(b.name || '', 'de');
+    });
+
+    sortedCat.forEach(item => {
       const isOwned = item.isDefault || inv.some(i => i.item_id === item.id);
       const isEquipped = (item.id === equippedId);
 
@@ -4550,14 +5058,18 @@ const WizardVault = (() => {
             }
           }
         } else if (singularType === 'avatar_frame') {
-          if (previewWrap) previewWrap.className = `seat-avatar frame-${item.id}`;
+          if (previewWrap) previewWrap.className = `wardrobe-mirror-avatar-wrap seat-avatar frame-${item.id}`;
           if (previewFrame) previewFrame.innerText = item.name;
         } else if (singularType === 'card_back') {
           if (previewDeck) previewDeck.innerText = item.name;
+          if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${item.id}`;
         } else if (singularType === 'table_skin') {
           if (previewTable) previewTable.innerText = item.name;
+          if (previewTableBox) previewTableBox.className = `cosmetic-mini-table table-theme-${item.id}`;
         } else if (singularType === 'lobby_background') {
           if (previewLobby) previewLobby.innerText = item.name;
+          if (previewLobbyBox) previewLobbyBox.className = `cosmetic-mini-lobby lobby-theme-${item.id}`;
+          if (previewStage) previewStage.className = `wardrobe-preview-stage lobby-theme-${item.id}`;
         } else if (singularType === 'title') {
           if (previewTitle) previewTitle.innerText = item.name;
         }
@@ -4730,6 +5242,16 @@ const WizardVault = (() => {
       `;
     }
 
+    const btnProgVaultDefault = document.getElementById('btnProgressionOpenVault');
+    if (btnProgVaultDefault) {
+      btnProgVaultDefault.innerHTML = `<span>🗝️</span> <span>Schatzkammer öffnen</span>`;
+      btnProgVaultDefault.onclick = () => {
+        const pModal = document.getElementById('progression-modal');
+        if (pModal) pModal.style.display = 'none';
+        openVault('chests');
+      };
+    }
+
     modal.style.display = 'flex';
 
     const isLevelUp = Boolean(data.leveledUp);
@@ -4779,11 +5301,32 @@ const WizardVault = (() => {
             if (modalCard) modalCard.classList.add('levelup-burst-effect');
 
             let rewardTxt = 'Belohnung: ';
+            let awardedTier = 'wooden';
             const ca = data.chestsAwarded || {};
-            if (ca.gold > 0) rewardTxt += `${ca.gold}x Goldene Erzmagier-Kassette 👑`;
-            else if (ca.silver > 0) rewardTxt += `${ca.silver}x Silberne Magiertruhe 🥈`;
-            else rewardTxt += `${ca.wooden || 1}x Holztruhe des Lehrlings 🪵`;
+            if (ca.gold > 0) {
+              rewardTxt += `${ca.gold}x Goldene Erzmagier-Kassette 👑`;
+              awardedTier = 'gold';
+            } else if (ca.silver > 0) {
+              rewardTxt += `${ca.silver}x Silberne Magiertruhe 🥈`;
+              awardedTier = 'silver';
+            } else {
+              rewardTxt += `${ca.wooden || 1}x Holztruhe des Lehrlings 🪵`;
+              awardedTier = 'wooden';
+            }
             if (lvlHint) lvlHint.innerText = `🎁 ${rewardTxt}`;
+
+            const btnProgVault = document.getElementById('btnProgressionOpenVault');
+            if (btnProgVault) {
+              btnProgVault.innerHTML = `<span>🎁</span> <span>Jetzt Truhe entriegeln</span>`;
+              btnProgVault.onclick = () => {
+                const modal = document.getElementById('progression-modal');
+                if (modal) modal.style.display = 'none';
+                openVault('chests');
+                setTimeout(() => {
+                  openChest(awardedTier);
+                }, 150);
+              };
+            }
 
             if (typeof WizardAudio !== 'undefined' && WizardAudio.playLevelUp) {
               WizardAudio.playLevelUp();
@@ -5346,6 +5889,14 @@ function switchScreen(screenName) {
   lobbyScreen.style.display = (screenName === 'lobby') ? 'flex' : 'none';
   waitingRoomScreen.style.display = (screenName === 'waiting') ? 'flex' : 'none';
   gameScreen.style.display = (screenName === 'game') ? 'flex' : 'none';
+
+  if (screenName === 'game') {
+    if (typeof WizardVault !== 'undefined' && WizardVault.closeVault) {
+      WizardVault.closeVault();
+    } else if (typeof closeVault === 'function') {
+      closeVault();
+    }
+  }
 
   if (screenName !== 'game') {
     hideSpecialModals();
