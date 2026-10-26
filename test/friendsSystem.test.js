@@ -2,9 +2,8 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 
-// Isoliertes Test-DB-File
-const testDbPath = path.join(__dirname, 'test_friends_' + Date.now() + '.db');
-process.env.WIZARD_DB_PATH = testDbPath;
+// Isoliertes Test-DB-File (:memory:)
+process.env.WIZARD_DB_PATH = ':memory:';
 
 const dbModule = require('../server/database');
 
@@ -81,9 +80,4 @@ try {
   console.log('=========================================\n');
 } finally {
   dbModule.closeDatabase();
-  try {
-    if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);
-    if (fs.existsSync(testDbPath + '-wal')) fs.unlinkSync(testDbPath + '-wal');
-    if (fs.existsSync(testDbPath + '-shm')) fs.unlinkSync(testDbPath + '-shm');
-  } catch (e) {}
 }

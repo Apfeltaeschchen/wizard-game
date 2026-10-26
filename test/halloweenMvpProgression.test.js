@@ -41,10 +41,9 @@ console.log('✓ Katalog, Halloween-Kosmetika und Lobby-Hintergründe vollständ
 console.log('[2/6] Überprüfe SQLite Engine für lobby_background, awardBonusXP und awardCosmetic...');
 const { createSqliteEngine } = require('../server/db/sqliteEngine');
 const sharedHelpers = require('../server/db/sharedHelpers');
-const testDbFile = path.join(__dirname, `test_halloween_${Date.now()}.db`);
 
 try {
-  const dbEngine = createSqliteEngine(testDbFile, sharedHelpers);
+  const dbEngine = createSqliteEngine(':memory:', sharedHelpers);
   const regRes = dbEngine.registerUser('HalloweenMage', 'hex123456');
   assert(regRes.success, 'Registrierung fehlgeschlagen');
   const user = dbEngine.getUserByToken(regRes.token);
@@ -84,11 +83,7 @@ try {
 
   dbEngine.closeDatabase();
   console.log('✓ SQLite lobby_background, awardBonusXP & awardCosmetic verifiziert!');
-} finally {
-  if (fs.existsSync(testDbFile)) {
-    try { fs.unlinkSync(testDbFile); } catch (e) {}
-  }
-}
+} finally {}
 
 // [3/6] Test Highlight of the Game (POTG) aus matchHighlightAndMvp.js
 console.log('[3/6] Überprüfe Highlight of the Game (POTG) Spektakel-Score & Auswahl aus Modul...');

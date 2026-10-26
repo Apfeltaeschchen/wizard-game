@@ -115,7 +115,7 @@ function formatUserWithRank(user) {
     chests_silver: user.chests_silver || 0,
     chests_gold: user.chests_gold || 0,
     astral_dust: user.astral_dust || 0,
-    equipped_avatar_icon: user.equipped_avatar_icon || user.avatar_id || 'wizard_blue',
+    equipped_avatar_icon: (user.equipped_avatar_icon && user.equipped_avatar_icon !== 'wizard_blue') ? user.equipped_avatar_icon : ((user.avatar_id && user.avatar_id !== 'wizard_blue') ? user.avatar_id : 'default'),
     equipped_card_back: user.equipped_card_back || 'default',
     equipped_table_skin: user.equipped_table_skin || 'emerald_felt',
     equipped_avatar_frame: user.equipped_avatar_frame || 'none',

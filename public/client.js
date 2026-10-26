@@ -2620,11 +2620,15 @@ const WizardAuth = (() => {
     if (usernameEl) usernameEl.innerText = u.username;
     if (titleBadgeEl) titleBadgeEl.innerText = u.title || 'Zauberlehrling';
     if (avatarShieldEl) {
-      const a = u.avatar_id || 'wizard_blue';
+      const a = u.avatar_id || 'default';
       const f = u.equipped_avatar_frame || 'none';
-      const isCustom = a.startsWith('icon_');
+      const initial = (u.username || '?').charAt(0).toUpperCase();
       avatarShieldEl.className = `seat-avatar frame-${f}`;
-      avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.${isCustom ? 'png' : 'svg'}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.onerror=null;this.parentElement.innerText='${(u.username || '?').charAt(0).toUpperCase()}';">`;
+      if (a && a.startsWith('icon_')) {
+        avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.png" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.parentElement.innerText='${initial}';">`;
+      } else {
+        avatarShieldEl.innerHTML = `<span style="font-family:var(--font-heading);font-size:28px;color:var(--gold-bright);">${initial}</span>`;
+      }
     }
 
     if (memberSinceEl && u.created_at) {
@@ -3813,8 +3817,7 @@ const WizardVault = (() => {
   function closeVault() {
     const modal = document.getElementById('vault-modal');
     if (modal) modal.style.display = 'none';
-    const unbox = document.getElementById('vaultUnboxingArea');
-    if (unbox) unbox.style.display = 'none';
+    if (typeof finishUnboxing === 'function') finishUnboxing();
   }
 
   function switchTab(tab) {
@@ -4200,56 +4203,59 @@ const WizardVault = (() => {
     let type = singularType || item.singularType || item.type || '';
     if (type.endsWith('s')) type = type.slice(0, -1);
 
+    const u = (vaultData && vaultData.user) || {};
+    const initial = (u.username ? u.username.charAt(0).toUpperCase() : 'M');
+
     if (type === 'avatar_icon') {
       const isCustom = (item.id || '').startsWith('icon_');
-      const img = item.image || (`/images/avatars/${item.id}.${isCustom ? 'png' : 'svg'}`);
+      if (!isCustom) {
+        return `
+          <div style="width:52px;height:52px;border-radius:50%;border:2px solid #fbbf24;background:radial-gradient(circle at 50% 35%, #1e1b4b, #090301);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,0.7);margin-bottom:6px;">
+            <span style="font-family:var(--font-heading);font-size:26px;color:#fde047;text-shadow:0 0 10px #f59e0b;">${initial}</span>
+          </div>
+        `;
+      }
+      const img = item.image || `/images/avatars/${item.id}.png`;
       const rarCol = (vaultData && vaultData.rarityConfig && vaultData.rarityConfig[item.rarity]) ? vaultData.rarityConfig[item.rarity].color : '#fbbf24';
       return `<img src="${img}" alt="" style="width:52px;height:52px;border-radius:50%;object-fit:cover;margin-bottom:6px;border:2px solid ${rarCol};box-shadow:0 3px 10px rgba(0,0,0,0.6);">`;
     }
 
     if (type === 'card_back') {
       const themeClass = `cardback-theme-${item.id}`;
-      const icon = item.icon || '🃏';
       return `
         <div class="cosmetic-mini-cardback ${themeClass}" title="${escapeHtml(item.name || '')}">
-          <div class="cosmetic-mini-cardback-inner">${icon}</div>
+          <div class="cosmetic-mini-cardback-inner"></div>
         </div>
       `;
     }
 
     if (type === 'table_skin') {
       const themeClass = `table-theme-${item.id}`;
-      const icon = item.icon || '🟢';
       return `
-        <div class="cosmetic-mini-table ${themeClass}" title="${escapeHtml(item.name || '')}">
-          <span>${icon}</span>
-        </div>
+        <div class="cosmetic-mini-table ${themeClass}" title="${escapeHtml(item.name || '')}"></div>
       `;
     }
 
     if (type === 'avatar_frame') {
       const frameId = item.id || 'none';
       return `
-        <div class="seat-avatar frame-${frameId}" style="width:48px;height:54px;font-size:22px;margin-bottom:6px;box-shadow:0 3px 8px rgba(0,0,0,0.6);" title="${escapeHtml(item.name || '')}">
-          <img src="/images/avatars/wizard_blue.svg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+        <div class="seat-avatar frame-${frameId}" style="width:48px;height:54px;margin-bottom:6px;box-shadow:0 3px 8px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;" title="${escapeHtml(item.name || '')}">
+          <span style="font-family:var(--font-heading);font-size:22px;color:var(--gold-bright);">${initial}</span>
         </div>
       `;
     }
 
     if (type === 'lobby_background') {
       const themeClass = `lobby-theme-${item.id}`;
-      const icon = item.icon || '🏰';
       return `
-        <div class="cosmetic-mini-lobby ${themeClass}" title="${escapeHtml(item.name || '')}">
-          <span>${icon}</span>
-        </div>
+        <div class="cosmetic-mini-lobby ${themeClass}" title="${escapeHtml(item.name || '')}"></div>
       `;
     }
 
     if (type === 'title') {
       return `
         <div class="cosmetic-mini-title" title="${escapeHtml(item.name || '')}">
-          <span>📜</span>
+          <span style="font-size:11px;font-weight:bold;color:#78350f;letter-spacing:0.5px;">TITEL</span>
         </div>
       `;
     }
@@ -4257,7 +4263,7 @@ const WizardVault = (() => {
     if (item.image) {
       return `<img src="${item.image}" alt="" style="width:50px;height:50px;border-radius:6px;object-fit:cover;margin-bottom:6px;">`;
     }
-    return `<div style="font-size:32px;line-height:48px;height:48px;margin-bottom:6px;">${item.icon || '📜'}</div>`;
+    return `<div style="font-size:24px;line-height:48px;height:48px;margin-bottom:6px;">✨</div>`;
   }
 
   function claimMilestone(id) {
@@ -4280,6 +4286,7 @@ const WizardVault = (() => {
     if (!vaultData || !vaultData.user) return;
     const u = vaultData.user;
     const previewImg = document.getElementById('wardrobePreviewAvatarImg');
+    const previewInitial = document.getElementById('wardrobePreviewInitial');
     const previewWrap = document.getElementById('wardrobePreviewAvatarWrapper');
     const previewName = document.getElementById('wardrobePreviewName');
     const previewTitle = document.getElementById('wardrobePreviewTitle');
@@ -4288,6 +4295,7 @@ const WizardVault = (() => {
     const previewFrame = document.getElementById('wardrobePreviewFrame');
     const previewLobby = document.getElementById('wardrobePreviewLobby');
 
+    const initial = u.username ? u.username.charAt(0).toUpperCase() : 'M';
     if (previewName) previewName.innerText = u.username || 'Magier';
     if (previewTitle) previewTitle.innerText = u.title || 'Zauberlehrling';
 
@@ -4296,10 +4304,22 @@ const WizardVault = (() => {
       previewWrap.className = `seat-avatar frame-${f}`;
     }
 
-    if (previewImg) {
-      const a = u.avatar_id || 'wizard_blue';
-      const isCustom = a.startsWith('icon_');
-      previewImg.src = `/images/avatars/${a}.${isCustom ? 'png' : 'svg'}`;
+    const a = u.avatar_id || 'default';
+    if (previewInitial && previewImg) {
+      if (!a || a === 'default' || a === 'wizard_blue' || !a.startsWith('icon_')) {
+        previewInitial.style.display = 'flex';
+        previewInitial.innerText = initial;
+        previewImg.style.display = 'none';
+      } else {
+        previewInitial.style.display = 'none';
+        previewImg.style.display = 'block';
+        previewImg.src = `/images/avatars/${a}.png`;
+        previewImg.onerror = function() {
+          previewImg.style.display = 'none';
+          previewInitial.style.display = 'flex';
+          previewInitial.innerText = initial;
+        };
+      }
     }
 
     const cat = vaultData.catalog || {};
@@ -4308,10 +4328,10 @@ const WizardVault = (() => {
     const frameItem = (cat.avatar_frames || []).find(i => i.id === (u.equipped_avatar_frame || 'none'));
     const lobbyItem = (cat.lobby_backgrounds || []).find(i => i.id === (u.equipped_lobby_background || 'citadel_halls'));
 
-    if (previewDeck) previewDeck.innerText = deckItem ? deckItem.name : 'Zitadellen-Blau';
+    if (previewDeck) previewDeck.innerText = deckItem ? deckItem.name : 'Novizen-Pergament';
     if (previewTable) previewTable.innerText = tableItem ? tableItem.name : 'Klassischer Filz';
     if (previewFrame) previewFrame.innerText = frameItem ? frameItem.name : 'Schlichter Goldring';
-    if (previewLobby) previewLobby.innerText = lobbyItem ? lobbyItem.name : 'Zitadellen-Gewölbe';
+    if (previewLobby) previewLobby.innerText = lobbyItem ? lobbyItem.name : 'Hallen der Zitadelle';
 
     renderWardrobeItems();
   }
@@ -4330,12 +4350,49 @@ const WizardVault = (() => {
     let singularType = currentWardrobeCategory;
     if (singularType.endsWith('s')) singularType = singularType.slice(0, -1);
 
-    if (singularType === 'avatar_icon') equippedId = u.avatar_id || 'wizard_blue';
+    if (singularType === 'avatar_icon') equippedId = (u.avatar_id && u.avatar_id !== 'wizard_blue') ? u.avatar_id : 'default';
     else if (singularType === 'avatar_frame') equippedId = u.equipped_avatar_frame || 'none';
     else if (singularType === 'title') equippedId = u.title || 'Zauberlehrling';
     else if (singularType === 'card_back') equippedId = u.equipped_card_back || 'default';
     else if (singularType === 'table_skin') equippedId = u.equipped_table_skin || 'emerald_felt';
     else if (singularType === 'lobby_background') equippedId = u.equipped_lobby_background || 'citadel_halls';
+
+    const previewImg = document.getElementById('wardrobePreviewAvatarImg');
+    const previewInitial = document.getElementById('wardrobePreviewInitial');
+    const previewWrap = document.getElementById('wardrobePreviewAvatarWrapper');
+    const previewDeck = document.getElementById('wardrobePreviewDeck');
+    const previewTable = document.getElementById('wardrobePreviewTable');
+    const previewFrame = document.getElementById('wardrobePreviewFrame');
+    const previewLobby = document.getElementById('wardrobePreviewLobby');
+    const previewTitle = document.getElementById('wardrobePreviewTitle');
+    const initial = u.username ? u.username.charAt(0).toUpperCase() : 'M';
+
+    grid.onmouseleave = () => {
+      // Magier-Spiegel auf echten ausgerüsteten Stand zurücksetzen
+      if (previewWrap) previewWrap.className = `seat-avatar frame-${u.equipped_avatar_frame || 'none'}`;
+      if (previewInitial && previewImg) {
+        const curA = u.avatar_id || 'default';
+        if (!curA || curA === 'default' || curA === 'wizard_blue' || !curA.startsWith('icon_')) {
+          previewInitial.style.display = 'flex';
+          previewInitial.innerText = initial;
+          previewImg.style.display = 'none';
+        } else {
+          previewInitial.style.display = 'none';
+          previewImg.style.display = 'block';
+          previewImg.src = `/images/avatars/${curA}.png`;
+        }
+      }
+      const catList = vaultData.catalog || {};
+      const curDeck = (catList.card_backs || []).find(i => i.id === (u.equipped_card_back || 'default'));
+      const curTable = (catList.table_skins || []).find(i => i.id === (u.equipped_table_skin || 'emerald_felt'));
+      const curFrame = (catList.avatar_frames || []).find(i => i.id === (u.equipped_avatar_frame || 'none'));
+      const curLobby = (catList.lobby_backgrounds || []).find(i => i.id === (u.equipped_lobby_background || 'citadel_halls'));
+      if (previewDeck) previewDeck.innerText = curDeck ? curDeck.name : 'Novizen-Pergament';
+      if (previewTable) previewTable.innerText = curTable ? curTable.name : 'Klassischer Filz';
+      if (previewFrame) previewFrame.innerText = curFrame ? curFrame.name : 'Schlichter Goldring';
+      if (previewLobby) previewLobby.innerText = curLobby ? curLobby.name : 'Hallen der Zitadelle';
+      if (previewTitle) previewTitle.innerText = u.title || 'Zauberlehrling';
+    };
 
     cat.forEach(item => {
       const isOwned = item.isDefault || inv.some(i => i.item_id === item.id);
@@ -4364,6 +4421,40 @@ const WizardVault = (() => {
         <div style="font-size:10px;font-weight:700;color:${rarCol};">${rarNames[item.rarity] || item.rarity}</div>
         ${btnHtml}
       `;
+
+      // Interaktive Live-Vorschau im Magier-Spiegel bei Hover & Klick
+      const triggerPreview = () => {
+        if (singularType === 'avatar_icon') {
+          if (!item.id || item.id === 'default' || !item.id.startsWith('icon_')) {
+            if (previewInitial) { previewInitial.style.display = 'flex'; previewInitial.innerText = initial; }
+            if (previewImg) previewImg.style.display = 'none';
+          } else {
+            if (previewInitial) previewInitial.style.display = 'none';
+            if (previewImg) {
+              previewImg.style.display = 'block';
+              previewImg.src = `/images/avatars/${item.id}.png`;
+            }
+          }
+        } else if (singularType === 'avatar_frame') {
+          if (previewWrap) previewWrap.className = `seat-avatar frame-${item.id}`;
+          if (previewFrame) previewFrame.innerText = item.name;
+        } else if (singularType === 'card_back') {
+          if (previewDeck) previewDeck.innerText = item.name;
+        } else if (singularType === 'table_skin') {
+          if (previewTable) previewTable.innerText = item.name;
+        } else if (singularType === 'lobby_background') {
+          if (previewLobby) previewLobby.innerText = item.name;
+        } else if (singularType === 'title') {
+          if (previewTitle) previewTitle.innerText = item.name;
+        }
+      };
+
+      card.addEventListener('mouseenter', triggerPreview);
+      card.addEventListener('click', (e) => {
+        if (!e.target.closest('.btn-do-equip')) {
+          triggerPreview();
+        }
+      });
 
       const eqBtn = card.querySelector('.btn-do-equip');
       if (eqBtn) {
@@ -4653,6 +4744,27 @@ const WizardVault = (() => {
 
     const btnFinish = document.getElementById('btnFinishUnboxing');
     if (btnFinish) btnFinish.addEventListener('click', finishUnboxing);
+
+    const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
+    if (btnUnboxClose) btnUnboxClose.addEventListener('click', finishUnboxing);
+
+    const unboxOverlay = document.getElementById('vaultUnboxingArea');
+    if (unboxOverlay) {
+      unboxOverlay.addEventListener('click', (e) => {
+        if (e.target === unboxOverlay && !isUnboxingAnimationRunning) {
+          finishUnboxing();
+        }
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        const unbox = document.getElementById('vaultUnboxingArea');
+        if (unbox && unbox.style.display !== 'none' && !isUnboxingAnimationRunning) {
+          finishUnboxing();
+        }
+      }
+    });
 
     const chestInteractive = document.getElementById('vaultChestInteractive');
     if (chestInteractive) {
@@ -7546,13 +7658,9 @@ function renderOpponents() {
     }
 
     const frameClass = `frame-${p.avatarFrame || 'none'}`;
-    let avatarVisualHtml = initial;
-    if (p.avatarId) {
-      if (p.avatarId.startsWith('icon_')) {
-        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none';">${initial}`;
-      } else if (p.avatarId.startsWith('wizard_')) {
-        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none';">${initial}`;
-      }
+    let avatarVisualHtml = `<span class="seat-avatar-initial">${initial}</span>`;
+    if (p.avatarId && p.avatarId.startsWith('icon_')) {
+      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.remove();">${initial}`;
     }
     const levelBadgeHtml = (p.accountLevel && p.accountLevel > 0)
       ? `<span class="user-pill-level-badge" title="Stufe ${p.accountLevel}">Lvl ${p.accountLevel}</span>`
@@ -8866,9 +8974,17 @@ function playHighlightSequence(highlightData, onDone) {
     avatarWrap.className = `seat-avatar frame-${highlightData.winnerFrame || 'none'}`;
   }
   if (avatarImg) {
-    const av = highlightData.winnerAvatar || 'wizard_blue';
-    const isCustom = av.startsWith('icon_');
-    avatarImg.src = `/images/avatars/${av}.${isCustom ? 'png' : 'svg'}`;
+    const av = highlightData.winnerAvatar || 'default';
+    if (av.startsWith('icon_')) {
+      avatarImg.style.display = 'block';
+      avatarImg.src = `/images/avatars/${av}.png`;
+    } else {
+      avatarImg.style.display = 'none';
+      if (avatarWrap) {
+        const init = (highlightData.winnerName || 'M').charAt(0).toUpperCase();
+        avatarWrap.innerHTML = `<span style="font-family:var(--font-heading);font-size:28px;color:var(--gold-bright);">${init}</span>`;
+      }
+    }
   }
 
   if (track) track.innerHTML = '';
@@ -9015,9 +9131,9 @@ function startMvpVoting(data, onDone) {
       card.setAttribute('data-session-id', cand.sessionId);
 
       const initial = cand.name ? cand.name.charAt(0).toUpperCase() : '?';
-      const av = cand.avatarId || 'wizard_blue';
+      const av = cand.avatarId || 'default';
       const isCustom = av.startsWith('icon_');
-      const imgHtml = `<img src="/images/avatars/${av}.${isCustom ? 'png' : 'svg'}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none';">`;
+      const imgHtml = isCustom ? `<img src="/images/avatars/${av}.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.remove();">${initial}` : initial;
 
       card.innerHTML = `
         <div class="seat-avatar frame-${cand.frame || 'none'}" style="width: 58px; height: 66px; font-size: 26px; margin-bottom: 6px;">

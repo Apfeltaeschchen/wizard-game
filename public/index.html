@@ -6067,7 +6067,35 @@
       border-radius: 4px;
     }
 
-    /* INTERAKTIVE 3D-TRUHE (CLICK-TO-UNLOCK) */
+    /* UNBOXING OVERLAY SCHLIESSEN-BUTTON */
+    .unboxing-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(20, 10, 5, 0.92);
+      border: 2px solid var(--gold-bright);
+      color: var(--gold-bright);
+      font-size: 22px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 60;
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.85);
+    }
+    .unboxing-close-btn:hover {
+      transform: scale(1.1) rotate(90deg);
+      background: #78350f;
+      color: #fff;
+      box-shadow: 0 0 16px var(--gold-bright);
+    }
+
+    /* INTERAKTIVE 3D-TRUHE (PLASTISCHE MATERIALIEN & SCHANIER-PHYSIK) */
     .unboxing-stage {
       position: relative;
       display: flex;
@@ -6075,43 +6103,44 @@
       align-items: center;
       justify-content: center;
       padding: 24px 20px 16px;
-      perspective: 900px;
+      perspective: 1100px;
       width: 100%;
-      min-height: 200px;
+      min-height: 220px;
     }
     .unboxing-pedestal-glow {
       position: absolute;
-      width: 220px;
-      height: 65px;
-      background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.45) 0%, rgba(245, 158, 11, 0) 70%);
+      width: 240px;
+      height: 70px;
+      background: radial-gradient(ellipse at center, rgba(245, 158, 11, 0.5) 0%, rgba(245, 158, 11, 0) 70%);
       border-radius: 50%;
-      bottom: 52px;
-      filter: blur(8px);
+      bottom: 48px;
+      filter: blur(10px);
       pointer-events: none;
       animation: pulsePedestal 2.5s ease-in-out infinite alternate;
     }
     @keyframes pulsePedestal {
-      0% { transform: scale(0.9); opacity: 0.6; }
-      100% { transform: scale(1.15); opacity: 1; }
+      0% { transform: scale(0.92); opacity: 0.6; }
+      100% { transform: scale(1.18); opacity: 1; }
     }
     .chest-3d-model {
       position: relative;
-      width: 130px;
-      height: 105px;
+      width: 144px;
+      height: 112px;
       cursor: pointer;
       user-select: none;
       transform-style: preserve-3d;
-      animation: floatChest 3s ease-in-out infinite;
+      perspective: 1000px;
+      animation: floatChest 3.2s ease-in-out infinite;
       transition: transform 0.25s ease, filter 0.25s ease;
       z-index: 5;
     }
     .chest-3d-model:hover {
-      transform: translateY(-8px) scale(1.06);
-      filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.8));
+      transform: translateY(-8px) scale(1.05);
+      filter: drop-shadow(0 12px 28px rgba(245, 158, 11, 0.75));
     }
     @keyframes floatChest {
       0%, 100% { transform: translateY(0px) rotateY(0deg); }
-      50% { transform: translateY(-10px) rotateY(2deg); }
+      50% { transform: translateY(-8px) rotateY(1.5deg); }
     }
     .chest-3d-model.shaking {
       animation: chestRumble 0.85s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
@@ -6122,91 +6151,252 @@
       30%, 50%, 70% { transform: translate3d(-5px, -2px, 0) rotate(-3.5deg); }
       40%, 60% { transform: translate3d(5px, 2px, 0) rotate(4deg); }
     }
+
+    /* TRUHEN-SCHANIER & DECKEL-PHYSIK (DREHT AN HINTERER BASISKANTE) */
     .chest-lid {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 48px;
-      transform-origin: top center;
-      transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 3;
+      transform-origin: 50% 100% 0px;
+      transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.25, 1.2);
+      z-index: 5;
+      transform-style: preserve-3d;
     }
-    .chest-lid-top {
+    .chest-lid-outer {
       position: absolute;
       width: 100%;
       height: 100%;
-      border-radius: 20px 20px 6px 6px;
-      box-shadow: inset 0 3px 6px rgba(255,255,255,0.3), 0 4px 10px rgba(0,0,0,0.6);
+      border-radius: 20px 20px 4px 4px;
+      box-shadow: inset 0 4px 8px rgba(255,255,255,0.25), 0 6px 14px rgba(0,0,0,0.7);
+      position: relative;
+      overflow: hidden;
     }
+    .chest-lid-rivets {
+      position: absolute;
+      inset: 4px;
+      border: 1.5px dashed rgba(255,255,255,0.3);
+      border-radius: 16px 16px 2px 2px;
+      pointer-events: none;
+    }
+
+    /* ERLEUCHTETES TRUHENINNERES (WIRD BEIM AUFKLAPPEN SICHTBAR) */
+    .chest-interior {
+      position: absolute;
+      top: 42px;
+      left: 8px;
+      width: calc(100% - 16px);
+      height: 30px;
+      background: radial-gradient(ellipse at 50% 50%, #450a0a 0%, #150303 90%);
+      border-radius: 4px;
+      box-shadow: inset 0 8px 18px rgba(0,0,0,0.95);
+      z-index: 2;
+      overflow: hidden;
+    }
+    .chest-interior-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.8) 0%, rgba(245, 158, 11, 0.2) 60%, transparent 80%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .chest-light-rays {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 160px;
+      background: conic-gradient(from 0deg, transparent 0deg, rgba(254, 240, 138, 0.4) 30deg, transparent 60deg, rgba(254, 240, 138, 0.5) 120deg, transparent 150deg, rgba(254, 240, 138, 0.4) 210deg, transparent 240deg, rgba(254, 240, 138, 0.5) 300deg, transparent 330deg);
+      opacity: 0;
+      pointer-events: none;
+      animation: spinRays 8s linear infinite;
+    }
+    @keyframes spinRays {
+      0% { transform: translateX(-50%) rotate(0deg); }
+      100% { transform: translateX(-50%) rotate(360deg); }
+    }
+
+    /* TRUHEN-KÖRPER */
     .chest-body {
       position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 64px;
-      border-radius: 4px 4px 12px 12px;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.85);
-      z-index: 2;
+      height: 66px;
+      border-radius: 4px 4px 14px 14px;
+      box-shadow: 0 14px 32px rgba(0,0,0,0.85);
+      z-index: 4;
+      position: relative;
     }
-    .chest-lock {
+    .chest-body-planks {
       position: absolute;
-      top: -6px;
+      inset: 0;
+      border-radius: inherit;
+    }
+    .chest-lock-plate {
+      position: absolute;
+      top: -8px;
       left: 50%;
       transform: translateX(-50%);
-      width: 26px;
-      height: 28px;
+      width: 30px;
+      height: 32px;
       border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
-      z-index: 4;
-    }
-    .chest-lock::after {
-      content: '🔑';
-      font-size: 11px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+      z-index: 6;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100%;
     }
-    .chest-3d-model.tier-wooden .chest-lid-top,
+    .chest-lock-gem {
+      width: 12px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    /* --- MATERIAL 1: HOLZTRUHE DES LEHRLINGS (URIGES EICHENHOLZ & SCHMIEDEEISEN) --- */
+    .chest-3d-model.tier-wooden .chest-lid-outer,
     .chest-3d-model.tier-wooden .chest-body {
-      background: linear-gradient(180deg, #92400e 0%, #451a03 100%);
-      border: 3px solid #d97706;
+      background: repeating-linear-gradient(0deg, #3b1604 0px, #3b1604 13px, #1a0801 14px), radial-gradient(ellipse at 50% 25%, #78350f, #271004);
+      border: 3px solid #78350f;
     }
-    .chest-3d-model.tier-wooden .chest-lock {
-      background: linear-gradient(180deg, #f59e0b, #78350f);
-      border: 1.5px solid #fde68a;
+    .chest-3d-model.tier-wooden .chest-lid-outer::before,
+    .chest-3d-model.tier-wooden .chest-body::before {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 24px; width: 14px;
+      background: linear-gradient(90deg, #1e293b, #475569 50%, #0f172a);
+      box-shadow: 0 0 4px rgba(0,0,0,0.8);
+      border-radius: 2px;
     }
-    .chest-3d-model.tier-silver .chest-lid-top,
+    .chest-3d-model.tier-wooden .chest-lid-outer::after,
+    .chest-3d-model.tier-wooden .chest-body::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      right: 24px; width: 14px;
+      background: linear-gradient(90deg, #1e293b, #475569 50%, #0f172a);
+      box-shadow: 0 0 4px rgba(0,0,0,0.8);
+      border-radius: 2px;
+    }
+    .chest-3d-model.tier-wooden .chest-lock-plate {
+      background: linear-gradient(135deg, #d97706, #78350f 70%, #451a03);
+      border: 2px solid #fde68a;
+    }
+    .chest-3d-model.tier-wooden .chest-lock-gem {
+      background: #1a0801;
+      border: 1px solid #d97706;
+      border-radius: 2px;
+      position: relative;
+    }
+    .chest-3d-model.tier-wooden .chest-lock-gem::after {
+      content: '';
+      position: absolute;
+      bottom: 2px; left: 50%;
+      transform: translateX(-50%);
+      width: 2px; height: 5px;
+      background: #fde68a;
+    }
+
+    /* --- MATERIAL 2: SILBERNE MAGIERTRUHE (STERLINGSILBER & SAPHIR) --- */
+    .chest-3d-model.tier-silver .chest-lid-outer,
     .chest-3d-model.tier-silver .chest-body {
-      background: linear-gradient(180deg, #64748b 0%, #1e293b 100%);
-      border: 3px solid #94a3b8;
+      background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 20%, #64748b 50%, #1e293b 80%, #475569 100%);
+      border: 3px solid #cbd5e1;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
     }
-    .chest-3d-model.tier-silver .chest-lock {
-      background: linear-gradient(180deg, #38bdf8, #0369a1);
-      border: 1.5px solid #bae6fd;
+    .chest-3d-model.tier-silver .chest-lid-outer::before,
+    .chest-3d-model.tier-silver .chest-body::before {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; left: 24px; width: 14px;
+      background: linear-gradient(90deg, #0284c7, #38bdf8 50%, #0369a1);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+      border-radius: 2px;
     }
-    .chest-3d-model.tier-gold .chest-lid-top,
+    .chest-3d-model.tier-silver .chest-lid-outer::after,
+    .chest-3d-model.tier-silver .chest-body::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; right: 24px; width: 14px;
+      background: linear-gradient(90deg, #0284c7, #38bdf8 50%, #0369a1);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+      border-radius: 2px;
+    }
+    .chest-3d-model.tier-silver .chest-lock-plate {
+      background: linear-gradient(135deg, #e2e8f0, #94a3b8 70%, #475569);
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+    }
+    .chest-3d-model.tier-silver .chest-lock-gem {
+      background: radial-gradient(circle at 35% 35%, #7dd3fc 0%, #0284c7 60%, #0369a1 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #38bdf8;
+    }
+    .chest-3d-model.tier-silver .chest-interior {
+      background: radial-gradient(ellipse at 50% 50%, #0c1c38 0%, #030712 90%);
+    }
+
+    /* --- MATERIAL 3: GOLDENE ERZMAGIER-KASSETTE (24K GOLD & FLAMMENDER RUBIN) --- */
+    .chest-3d-model.tier-gold .chest-lid-outer,
     .chest-3d-model.tier-gold .chest-body {
-      background: linear-gradient(180deg, #d97706 0%, #78350f 100%);
+      background: linear-gradient(135deg, #fffbeb 0%, #fef08a 20%, #f59e0b 50%, #b45309 80%, #78350f 100%);
       border: 3px solid #fbbf24;
-      box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+      box-shadow: 0 0 25px rgba(251, 191, 36, 0.55);
     }
-    .chest-3d-model.tier-gold .chest-lock {
-      background: linear-gradient(180deg, #f59e0b, #b45309);
-      border: 1.5px solid #fef08a;
-      box-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+    .chest-3d-model.tier-gold .chest-lid-outer::before,
+    .chest-3d-model.tier-gold .chest-body::before {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; left: 24px; width: 14px;
+      background: linear-gradient(90deg, #991b1b, #ef4444 50%, #7f1d1d);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+      border-radius: 2px;
     }
+    .chest-3d-model.tier-gold .chest-lid-outer::after,
+    .chest-3d-model.tier-gold .chest-body::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0; right: 24px; width: 14px;
+      background: linear-gradient(90deg, #991b1b, #ef4444 50%, #7f1d1d);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+      border-radius: 2px;
+    }
+    .chest-3d-model.tier-gold .chest-lock-plate {
+      background: linear-gradient(135deg, #fef08a, #d97706 70%, #78350f);
+      border: 2px solid #fffbeb;
+      box-shadow: 0 0 15px rgba(251, 191, 36, 0.9);
+    }
+    .chest-3d-model.tier-gold .chest-lock-gem {
+      background: radial-gradient(circle at 35% 35%, #fda4af 0%, #e11d48 60%, #881337 100%);
+      border: 1px solid #fecdd3;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #f43f5e;
+    }
+    .chest-3d-model.tier-gold .chest-interior {
+      background: radial-gradient(ellipse at 50% 50%, #581c87 0%, #150324 90%);
+    }
+
+    /* REALE SCHARNIER-ÖFFNUNG (KLAPPT NACH HINTEN WEG - KEIN SCHWEBEN!) */
     .chest-3d-model.opened .chest-lid {
-      transform: perspective(600px) rotateX(-120deg) translateY(-8px);
+      transform: perspective(800px) rotateX(-125deg);
     }
+    .chest-3d-model.opened .chest-interior-glow,
+    .chest-3d-model.opened .chest-light-rays {
+      opacity: 1;
+    }
+
+    /* LICHT-ERUPTION */
     .chest-light-burst {
       position: absolute;
       top: 25%;
       left: 50%;
       transform: translate(-50%, -50%) scale(0);
-      width: 280px;
-      height: 280px;
+      width: 320px;
+      height: 320px;
       background: radial-gradient(circle, rgba(254, 240, 138, 0.95) 0%, rgba(245, 158, 11, 0.6) 35%, rgba(168, 85, 247, 0) 70%);
       border-radius: 50%;
       opacity: 0;
@@ -6224,8 +6414,8 @@
       font-family: var(--font-heading);
       font-size: 13.5px;
       color: var(--gold-bright);
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(251, 191, 36, 0.4);
+      background: rgba(0,0,0,0.65);
+      border: 1px solid rgba(251, 191, 36, 0.45);
       padding: 6px 18px;
       border-radius: 20px;
       animation: bouncePrompt 1.8s ease-in-out infinite;
@@ -6240,86 +6430,309 @@
       50% { transform: translateY(-4px); }
     }
 
-    /* MINIATUR-VORSCHAU FÜR KOSMETIKEN (GARDEROBE, ZAUBERSCHMIEDE & DROPS) */
+    /* MINI-TRUHEN-ILLUSTRATIONEN IN DER AUSWAHL-GRID (KEINE TEXT-EMOJIS!) */
+    .chest-icon-visual {
+      width: 60px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      position: relative;
+    }
+    .mini-chest-wood, .mini-chest-silver, .mini-chest-gold {
+      width: 46px;
+      height: 36px;
+      border-radius: 6px 6px 4px 4px;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    }
+    .mini-chest-wood::before, .mini-chest-silver::before, .mini-chest-gold::before {
+      content: '';
+      position: absolute;
+      top: 12px; left: 0; right: 0; height: 3px;
+      background: rgba(0,0,0,0.5);
+    }
+    .mini-chest-wood {
+      background: linear-gradient(180deg, #78350f, #3b1604);
+      border: 1.5px solid #d97706;
+    }
+    .mini-chest-wood::after {
+      content: '';
+      position: absolute;
+      top: 10px; left: 50%; transform: translateX(-50%);
+      width: 8px; height: 8px;
+      background: #f59e0b;
+      border-radius: 2px;
+      border: 1px solid #fef08a;
+    }
+    .mini-chest-silver {
+      background: linear-gradient(135deg, #cbd5e1, #475569);
+      border: 1.5px solid #e2e8f0;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+    .mini-chest-silver::after {
+      content: '';
+      position: absolute;
+      top: 10px; left: 50%; transform: translateX(-50%);
+      width: 8px; height: 8px;
+      background: #38bdf8;
+      border-radius: 50%;
+      border: 1px solid #bae6fd;
+      box-shadow: 0 0 6px #38bdf8;
+    }
+    .mini-chest-gold {
+      background: linear-gradient(135deg, #fef08a, #d97706);
+      border: 1.5px solid #fde68a;
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.7);
+    }
+    .mini-chest-gold::after {
+      content: '';
+      position: absolute;
+      top: 9px; left: 50%; transform: translateX(-50%);
+      width: 9px; height: 9px;
+      background: #f43f5e;
+      border-radius: 50%;
+      border: 1px solid #fef08a;
+      box-shadow: 0 0 8px #f43f5e;
+    }
+
+    /* =====================================================================
+       ZERO CRUDE ICONS: AUTHENTISCHE FANTASY-KARTENRÜCKEN (HEARTHSTONE / MTG STIL)
+       ===================================================================== */
     .cosmetic-mini-cardback {
-      width: 50px;
-      height: 72px;
-      border-radius: 5px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
-      margin-bottom: 6px;
-      border: 1.5px solid #fbbf24;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .cosmetic-mini-cardback-inner {
-      width: calc(100% - 6px);
-      height: calc(100% - 6px);
-      border-radius: 3px;
-      border: 1px solid rgba(255,255,255,0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-    .cardback-theme-default { background: linear-gradient(135deg, #1e3a8a, #0f172a); }
-    .cardback-theme-parchment { background: linear-gradient(135deg, #b45309, #451a03); }
-    .cardback-theme-astral { background: linear-gradient(135deg, #312e81, #020617); }
-    .cardback-theme-forest { background: linear-gradient(135deg, #065f46, #022c22); }
-    .cardback-theme-shadow { background: linear-gradient(135deg, #3b0764, #0f051d); }
-    .cardback-theme-dragon { background: linear-gradient(135deg, #991b1b, #450a0a); }
-    .cardback-theme-pumpkin_king { background: linear-gradient(135deg, #ea580c, #431407); }
-    .cardback-theme-spider_queen { background: linear-gradient(135deg, #581c87, #18052e); }
-    .cardback-theme-gravestone_runes { background: linear-gradient(135deg, #334155, #0f172a); }
-
-    .cosmetic-mini-table {
-      width: 66px;
-      height: 44px;
-      border-radius: 22px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 4px 10px rgba(0,0,0,0.8);
-      margin-bottom: 6px;
-      border: 2px solid #78350f;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-    .table-theme-emerald_felt { background: radial-gradient(circle, #059669 0%, #064e3b 85%); border-color: #d97706; }
-    .table-theme-tavern_wood { background: linear-gradient(180deg, #78350f, #271004); border-color: #92400e; }
-    .table-theme-amethyst_crypt { background: radial-gradient(circle, #6b21a8 0%, #1e1035 85%); border-color: #a855f7; }
-    .table-theme-volcano_keep { background: radial-gradient(circle, #b91c1c 0%, #18181b 80%); border-color: #ef4444; }
-    .table-theme-astral_observatory { background: radial-gradient(circle, #1d4ed8 0%, #030712 85%); border-color: #38bdf8; }
-    .table-theme-haunted_crypt { background: radial-gradient(circle, #0f766e 0%, #0f172a 85%); border-color: #10b981; }
-
-    .cosmetic-mini-lobby {
-      width: 74px;
-      height: 46px;
+      width: 54px;
+      height: 78px;
       border-radius: 6px;
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.85);
       margin-bottom: 6px;
-      border: 1.5px solid rgba(255,255,255,0.2);
-      font-size: 18px;
+      border: 1.5px solid var(--gold-bright);
       overflow: hidden;
       flex-shrink: 0;
+      box-sizing: border-box;
     }
-    .lobby-theme-citadel_halls { background: linear-gradient(135deg, #1e3a8a, #111827); border-color: #fbbf24; }
-    .lobby-theme-haunted_graveyard { background: linear-gradient(135deg, #581c87, #020617); border-color: #ea580c; }
-    .lobby-theme-witch_hut { background: linear-gradient(135deg, #064e3b, #111827); border-color: #34d399; }
-    .lobby-theme-tavern_fireplace { background: linear-gradient(135deg, #9a3412, #1c1917); border-color: #f59e0b; }
-    .lobby-theme-astral_observatory { background: linear-gradient(135deg, #312e81, #09090b); border-color: #818cf8; }
-    .lobby-theme-magma_forge { background: linear-gradient(135deg, #7f1d1d, #18181b); border-color: #f97316; }
-    .lobby-theme-celestial_sanctum { background: linear-gradient(135deg, #fef08a, #713f12); border-color: #fef08a; }
+    .cosmetic-mini-cardback-inner {
+      width: calc(100% - 6px);
+      height: calc(100% - 6px);
+      border-radius: 4px;
+      border: 1px solid rgba(240, 195, 85, 0.5);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .cosmetic-mini-cardback-inner::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border: 1px dashed rgba(240, 195, 85, 0.35);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    /* 1. NOVIZEN-PERGAMENT (STANDARD / COMMON) */
+    .cardback-theme-default {
+      background: radial-gradient(circle at 50% 35%, #fef3c7 0%, #fde68a 40%, #b45309 90%, #78350f 100%) !important;
+      border-color: #d97706 !important;
+    }
+    .cardback-theme-default .cosmetic-mini-cardback-inner::after {
+      content: '✦';
+      font-size: 22px;
+      font-weight: 900;
+      color: #78350f;
+      text-shadow: 0 1px 2px rgba(254, 240, 138, 0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* 2. ARKANE ZITADELLE (LEGENDÄRES ALTES DECK / GOLDJUBILÄUM) */
+    .cardback-theme-citadel_ancient {
+      background: radial-gradient(circle at 50% 40%, #1e3a8a 0%, #0c1836 75%, #050b1a 100%) !important;
+      border-color: #fbbf24 !important;
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.6) !important;
+    }
+    .cardback-theme-citadel_ancient .cosmetic-mini-cardback-inner {
+      border: 1.5px solid #fef08a !important;
+    }
+    .cardback-theme-citadel_ancient .cosmetic-mini-cardback-inner::after {
+      content: '❂';
+      font-size: 24px;
+      color: #fef08a;
+      text-shadow: 0 0 10px #f59e0b, 0 2px 4px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* 3. URALTES ALCHEMISTEN-LEDER (RARE) */
+    .cardback-theme-parchment {
+      background: linear-gradient(145deg, #5c2c10 0%, #381504 55%, #1f0b02 100%) !important;
+      border-color: #b45309 !important;
+    }
+    .cardback-theme-parchment .cosmetic-mini-cardback-inner::after {
+      content: '⚜';
+      font-size: 22px;
+      color: #fbbf24;
+      text-shadow: 0 0 6px #78350f, 0 1px 2px rgba(0,0,0,0.8);
+      font-family: var(--font-heading);
+    }
+
+    /* 4. HAIN DER WALDNYMPHEN (RARE) */
+    .cardback-theme-forest {
+      background: radial-gradient(circle at 50% 30%, #065f46 0%, #022c22 80%, #011712 100%) !important;
+      border-color: #34d399 !important;
+    }
+    .cardback-theme-forest .cosmetic-mini-cardback-inner::after {
+      content: '❧';
+      font-size: 24px;
+      color: #a7f3d0;
+      text-shadow: 0 0 10px #10b981, 0 1px 3px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* 5. SPINNENKÖNIGIN (RARE HALLOWEEN) */
+    .cardback-theme-spider_queen {
+      background: radial-gradient(circle at 50% 35%, #4c1d95 0%, #17072b 85%, #0b0217 100%) !important;
+      border-color: #c084fc !important;
+    }
+    .cardback-theme-spider_queen .cosmetic-mini-cardback-inner::after {
+      content: '🕸';
+      font-size: 22px;
+      color: #e9d5ff;
+      filter: drop-shadow(0 0 6px #a855f7);
+    }
+
+    /* 6. SCHATTENFLAMME (EPIC) */
+    .cardback-theme-shadow {
+      background: radial-gradient(circle at 50% 40%, #2e0854 0%, #0a0112 85%, #000000 100%) !important;
+      border-color: #c084fc !important;
+      box-shadow: 0 0 12px rgba(192, 132, 252, 0.4) !important;
+    }
+    .cardback-theme-shadow .cosmetic-mini-cardback-inner::after {
+      content: '☬';
+      font-size: 22px;
+      color: #e9d5ff;
+      text-shadow: 0 0 10px #9333ea, 0 1px 2px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* 7. KÜRBIKÖNIG (EPIC HALLOWEEN) */
+    .cardback-theme-pumpkin_king {
+      background: radial-gradient(circle at 50% 35%, #7c2d12 0%, #431407 65%, #1c0602 100%) !important;
+      border-color: #fb923c !important;
+      box-shadow: 0 0 12px rgba(249, 115, 22, 0.4) !important;
+    }
+    .cardback-theme-pumpkin_king .cosmetic-mini-cardback-inner::after {
+      content: '❖';
+      font-size: 24px;
+      color: #fed7aa;
+      text-shadow: 0 0 12px #ea580c, 0 2px 4px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* 8. GRABSTEIN-RUNEN (EPIC HALLOWEEN) */
+    .cardback-theme-gravestone_runes {
+      background: linear-gradient(145deg, #334155 0%, #1e293b 55%, #090d16 100%) !important;
+      border-color: #94a3b8 !important;
+    }
+    .cardback-theme-gravestone_runes .cosmetic-mini-cardback-inner::after {
+      content: '☩';
+      font-size: 24px;
+      color: #cbd5e1;
+      text-shadow: 0 0 8px #38bdf8, 0 2px 4px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* 9. ASTRAL-KOSMOS (EPIC) */
+    .cardback-theme-astral {
+      background: radial-gradient(ellipse at 50% 30%, #312e81 0%, #030712 85%, #000000 100%) !important;
+      border-color: #818cf8 !important;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.45) !important;
+    }
+    .cardback-theme-astral .cosmetic-mini-cardback-inner::after {
+      content: '✵';
+      font-size: 24px;
+      color: #c7d2fe;
+      text-shadow: 0 0 10px #6366f1, 0 1px 3px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* 10. DRACHENSCHUPPE (LEGENDÄR) */
+    .cardback-theme-dragon {
+      background: repeating-radial-gradient(circle at 50% 0%, #991b1b, #450a0a 12px) !important;
+      border-color: #fbbf24 !important;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+    }
+    .cardback-theme-dragon .cosmetic-mini-cardback-inner::after {
+      content: '◈';
+      font-size: 26px;
+      color: #fef08a;
+      text-shadow: 0 0 12px #dc2626, 0 2px 4px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* =====================================================================
+       ZERO CRUDE ICONS: SPIELTISCH-VORSCHAUEN (MINI-POKERTISCHE OHNE EMOJIS)
+       ===================================================================== */
+    .cosmetic-mini-table {
+      width: 70px;
+      height: 44px;
+      border-radius: 22px;
+      position: relative;
+      box-shadow: inset 0 2px 4px rgba(255,255,255,0.25), 0 5px 12px rgba(0,0,0,0.85);
+      margin-bottom: 6px;
+      border: 3px solid #78350f;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .cosmetic-mini-table::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 18px;
+      border: 1px dashed rgba(255,255,255,0.25);
+    }
+    .table-theme-emerald_felt { background: radial-gradient(circle, #059669 0%, #064e3b 85%); border-color: #78350f; }
+    .table-theme-tavern_wood { background: repeating-linear-gradient(90deg, #451a03 0px, #451a03 8px, #271004 9px); border-color: #92400e; }
+    .table-theme-amethyst_crypt { background: radial-gradient(circle, #6b21a8 0%, #1e1035 85%); border-color: #a855f7; }
+    .table-theme-volcano_keep { background: radial-gradient(circle, #991b1b 0%, #18181b 80%); border-color: #ef4444; }
+    .table-theme-astral_observatory { background: radial-gradient(circle, #1d4ed8 0%, #030712 85%); border-color: #38bdf8; }
+    .table-theme-haunted_crypt { background: radial-gradient(circle, #0f766e 0%, #0f172a 85%); border-color: #14b8a6; }
+
+    /* =====================================================================
+       ZERO CRUDE ICONS: RAUM-WELTEN VORSCHAUEN (ECHTE ARTWORK-THUMBNAILS)
+       ===================================================================== */
+    .cosmetic-mini-lobby {
+      width: 76px;
+      height: 46px;
+      border-radius: 6px;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.85);
+      margin-bottom: 6px;
+      border: 1.5px solid var(--gold-antique);
+      overflow: hidden;
+      background-size: cover !important;
+      background-position: center center !important;
+      flex-shrink: 0;
+    }
+    .cosmetic-mini-lobby::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
+    }
+    .lobby-theme-citadel_halls { background: url('/images/lobby_bg.svg'); }
+    .lobby-theme-haunted_graveyard { background: url('/images/backgrounds/bg_haunted_graveyard.jpg'); }
+    .lobby-theme-witch_hut { background: url('/images/backgrounds/bg_witch_hut.jpg'); }
+    .lobby-theme-tavern_fireplace { background: url('/images/backgrounds/bg_tavern_fireplace.jpg'); }
+    .lobby-theme-astral_observatory { background: url('/images/backgrounds/bg_astral_observatory.jpg'); }
+    .lobby-theme-magma_forge { background: url('/images/backgrounds/bg_magma_forge.jpg'); }
+    .lobby-theme-celestial_sanctum { background: url('/images/backgrounds/bg_celestial_sanctum.jpg'); }
+
 
     .cosmetic-mini-title {
       width: 78px;
@@ -6532,27 +6945,30 @@
       100% { transform: scale(1); filter: brightness(1); }
     }
 
-    /* LOBBY- & WARTERAUM-THEMEN */
-    #lobby-screen.theme-citadel_halls, #waiting-room-screen.theme-citadel_halls {
-      background: url('/images/lobby_bg.svg') center center / cover no-repeat;
+    /* LOBBY- & WARTERAUM-THEMEN (ECHTE ARTWORKS MIT MAGIE-VIGNETTE) */
+    #lobby-screen.theme-citadel_halls {
+      background: url('/images/lobby_bg.svg') center center / cover no-repeat !important;
+    }
+    #waiting-room-screen.theme-citadel_halls {
+      background: url('/images/waiting_bg.svg') center center / cover no-repeat !important;
     }
     #lobby-screen.theme-haunted_graveyard, #waiting-room-screen.theme-haunted_graveyard {
-      background: radial-gradient(circle at 50% 25%, rgba(13, 148, 136, 0.3) 0%, rgba(15, 23, 42, 0.95) 70%), radial-gradient(circle at 80% 20%, rgba(249, 115, 22, 0.25) 0%, transparent 40%), #060913 !important;
+      background: linear-gradient(180deg, rgba(5, 8, 15, 0.4) 0%, rgba(5, 8, 15, 0.78) 100%), url('/images/backgrounds/bg_haunted_graveyard.jpg') center center / cover no-repeat !important;
     }
     #lobby-screen.theme-witch_hut, #waiting-room-screen.theme-witch_hut {
-      background: radial-gradient(circle at 50% 60%, rgba(147, 51, 234, 0.35) 0%, rgba(30, 10, 45, 0.95) 75%), #0c0514 !important;
+      background: linear-gradient(180deg, rgba(8, 4, 15, 0.4) 0%, rgba(8, 4, 15, 0.8) 100%), url('/images/backgrounds/bg_witch_hut.jpg') center center / cover no-repeat !important;
     }
     #lobby-screen.theme-tavern_fireplace, #waiting-room-screen.theme-tavern_fireplace {
-      background: radial-gradient(circle at 50% 70%, rgba(234, 88, 12, 0.35) 0%, rgba(45, 20, 8, 0.95) 80%), #180a04 !important;
+      background: linear-gradient(180deg, rgba(15, 8, 4, 0.35) 0%, rgba(15, 8, 4, 0.78) 100%), url('/images/backgrounds/bg_tavern_fireplace.jpg') center center / cover no-repeat !important;
     }
     #lobby-screen.theme-astral_observatory, #waiting-room-screen.theme-astral_observatory {
-      background: radial-gradient(circle at 50% 40%, rgba(59, 130, 246, 0.35) 0%, rgba(15, 23, 42, 0.95) 80%), #040817 !important;
+      background: linear-gradient(180deg, rgba(3, 5, 18, 0.35) 0%, rgba(3, 5, 18, 0.8) 100%), url('/images/backgrounds/bg_astral_observatory.jpg') center center / cover no-repeat !important;
     }
     #lobby-screen.theme-magma_forge, #waiting-room-screen.theme-magma_forge {
-      background: radial-gradient(circle at 50% 80%, rgba(220, 38, 38, 0.4) 0%, rgba(35, 8, 8, 0.98) 85%), #150303 !important;
+      background: linear-gradient(180deg, rgba(18, 4, 4, 0.35) 0%, rgba(18, 4, 4, 0.82) 100%), url('/images/backgrounds/bg_magma_forge.jpg') center center / cover no-repeat !important;
     }
     #lobby-screen.theme-celestial_sanctum, #waiting-room-screen.theme-celestial_sanctum {
-      background: radial-gradient(circle at 50% 30%, rgba(250, 204, 21, 0.35) 0%, rgba(40, 30, 10, 0.95) 85%), #1c1505 !important;
+      background: linear-gradient(180deg, rgba(20, 16, 5, 0.3) 0%, rgba(20, 16, 5, 0.75) 100%), url('/images/backgrounds/bg_celestial_sanctum.jpg') center center / cover no-repeat !important;
     }
 
     /* HALLOWEEN TISCH-SKIN */
@@ -8423,6 +8839,7 @@
         <div id="vaultPanelChests" class="vault-tab-panel">
           <!-- BEREICH FÜR INTERAKTIVE UNBOXING ZEREMONIE (ERSCHEINT BEIM ÖFFNEN) -->
           <div id="vaultUnboxingArea" class="unboxing-overlay" style="display: none;">
+            <button id="btnVaultUnboxingClose" type="button" class="drawer-close-btn unboxing-close-btn" title="Truhenöffnung schließen">&times;</button>
             <div id="vaultUnboxingTitle" style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 21px; margin-bottom: 4px;">Arkane Schatztruhe</div>
             <div id="vaultUnboxingSubtitle" style="font-size: 12.5px; color: #d6be90; margin-bottom: 8px;">Ein uraltes Relikt der Zitadelle erwacht...</div>
 
@@ -8431,11 +8848,21 @@
               <div class="unboxing-pedestal-glow"></div>
               <div id="vaultChestInteractive" class="chest-3d-model tier-wooden" title="Klicke auf die Truhe, um sie zu öffnen!">
                 <div class="chest-aura"></div>
+                <div class="chest-interior">
+                  <div class="chest-interior-glow"></div>
+                  <div class="chest-light-rays"></div>
+                </div>
                 <div class="chest-lid">
-                  <div class="chest-lid-top"></div>
+                  <div class="chest-lid-outer">
+                    <div class="chest-lid-rivets"></div>
+                    <div class="chest-lid-crest"></div>
+                  </div>
                 </div>
                 <div class="chest-body">
-                  <div class="chest-lock"></div>
+                  <div class="chest-body-planks"></div>
+                  <div class="chest-lock-plate">
+                    <div class="chest-lock-gem"></div>
+                  </div>
                 </div>
                 <div class="chest-light-burst"></div>
               </div>
@@ -8461,7 +8888,9 @@
           <div class="chests-grid">
             <!-- HOLZTRUHE -->
             <div class="chest-card tier-wooden">
-              <div class="chest-icon-visual">🪵</div>
+              <div class="chest-icon-visual chest-icon-wooden">
+                <div class="mini-chest-wood"></div>
+              </div>
               <div class="chest-title">Holztruhe des Lehrlings</div>
               <div class="chest-desc">2 Belohnungen. Erhältst du bei jedem regulären Stufenaufstieg.</div>
               <div class="chest-count-badge">Verfügbar: <span id="countWoodenChests">0</span></div>
@@ -8470,7 +8899,9 @@
 
             <!-- SILBERTRUHE -->
             <div class="chest-card tier-silver">
-              <div class="chest-icon-visual">🥈</div>
+              <div class="chest-icon-visual chest-icon-silver">
+                <div class="mini-chest-silver"></div>
+              </div>
               <div class="chest-title">Silberne Magiertruhe</div>
               <div class="chest-desc">3 Belohnungen mit hoher Chance auf Seltene &amp; Epische Schätze. Belohnung alle 5 Stufen!</div>
               <div class="chest-count-badge">Verfügbar: <span id="countSilverChests">0</span></div>
@@ -8479,7 +8910,9 @@
 
             <!-- GOLDKASSETTE -->
             <div class="chest-card tier-gold">
-              <div class="chest-icon-visual">👑</div>
+              <div class="chest-icon-visual chest-icon-gold">
+                <div class="mini-chest-gold"></div>
+              </div>
               <div class="chest-title">Goldene Erzmagier-Kassette</div>
               <div class="chest-desc">4 Belohnungen. Garantiert mindestens 1 Episches oder Legendäres Prunkstück! Alle 10 Stufen.</div>
               <div class="chest-count-badge">Verfügbar: <span id="countGoldChests">0</span></div>
@@ -8507,29 +8940,30 @@
             <!-- VORSCHAU-PANEL (SPIEGEL DES MAGIERS) -->
             <div class="wardrobe-preview-panel">
               <div style="font-family: var(--font-heading); font-size: 13.5px; color: var(--gold-bright); margin-bottom: 12px;">Magier-Spiegel</div>
-              <div id="wardrobePreviewAvatarWrapper" class="seat-avatar frame-none" style="width: 72px; height: 82px; font-size: 32px; margin-bottom: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.8);">
-                <img id="wardrobePreviewAvatarImg" src="/images/avatars/wizard_blue.svg" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+              <div id="wardrobePreviewAvatarWrapper" class="seat-avatar frame-none" style="width: 76px; height: 86px; font-size: 32px; margin-bottom: 10px; box-shadow: 0 4px 18px rgba(0,0,0,0.85); position: relative;">
+                <div id="wardrobePreviewInitial" class="wardrobe-mirror-initial" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 36px; color: var(--gold-bright); text-shadow: 0 0 14px rgba(245, 158, 11, 0.85); background: radial-gradient(circle at 50% 40%, #1e1b4b, #090301);">M</div>
+                <img id="wardrobePreviewAvatarImg" src="" alt="Avatar" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
               </div>
               <div id="wardrobePreviewName" style="font-weight: bold; color: #fff; font-size: 14px; margin-bottom: 2px;">Magier</div>
               <div id="wardrobePreviewTitle" style="font-size: 11.5px; color: #fbbf24; font-style: italic; margin-bottom: 14px;">Zauberlehrling</div>
               
               <div style="border-top: 1px solid rgba(255,255,255,0.1); width: 100%; padding-top: 10px; text-align: left; font-size: 11.5px; display: flex; flex-direction: column; gap: 6px;">
-                <div><b>Kartendeck:</b> <span id="wardrobePreviewDeck">Zitadellen-Blau</span></div>
+                <div><b>Kartendeck:</b> <span id="wardrobePreviewDeck">Novizen-Pergament</span></div>
                 <div><b>Spieltisch:</b> <span id="wardrobePreviewTable">Klassischer Filz</span></div>
                 <div><b>Rahmen:</b> <span id="wardrobePreviewFrame">Schlichter Goldring</span></div>
-                <div><b>Lobby:</b> <span id="wardrobePreviewLobby">Hallen der Zitadelle</span></div>
+                <div><b>Raum-Welt:</b> <span id="wardrobePreviewLobby">Hallen der Zitadelle</span></div>
               </div>
             </div>
 
             <!-- ARTIKEL-LISTE NACH KATEGORIEN -->
             <div class="wardrobe-items-panel">
               <div class="cosmetics-filter-pills">
-                <button type="button" class="cosmetics-filter-pill active" data-category="avatar_icons">👤 Avatar-Icons</button>
+                <button type="button" class="cosmetics-filter-pill active" data-category="avatar_icons">👤 Avatare</button>
                 <button type="button" class="cosmetics-filter-pill" data-category="avatar_frames">⭕ Rahmen</button>
                 <button type="button" class="cosmetics-filter-pill" data-category="titles">📜 Titel</button>
                 <button type="button" class="cosmetics-filter-pill" data-category="card_backs">🃏 Kartendecks</button>
                 <button type="button" class="cosmetics-filter-pill" data-category="table_skins">🟢 Spieltische</button>
-                <button type="button" class="cosmetics-filter-pill" data-category="lobby_backgrounds">🏰 Lobby-Hintergründe</button>
+                <button type="button" class="cosmetics-filter-pill" data-category="lobby_backgrounds">🏰 Raum-Welten</button>
               </div>
 
               <div id="wardrobeItemsGrid" class="cosmetics-grid">

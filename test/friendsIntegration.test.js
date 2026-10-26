@@ -168,6 +168,8 @@ async function runTests() {
       if (fs.existsSync(testDbPath)) fs.unlinkSync(testDbPath);
       if (fs.existsSync(testDbPath + '-wal')) fs.unlinkSync(testDbPath + '-wal');
       if (fs.existsSync(testDbPath + '-shm')) fs.unlinkSync(testDbPath + '-shm');
+      const testBackup = path.join(__dirname, 'wizard_accounts_backup.json');
+      if (fs.existsSync(testBackup)) fs.unlinkSync(testBackup);
     } catch (e) {}
   }
 }

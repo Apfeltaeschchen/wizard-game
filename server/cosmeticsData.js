@@ -33,13 +33,8 @@ const CHEST_TIERS = {
 
 const COSMETICS_CATALOG = {
   avatar_icons: [
-    // Standard-Avatare
-    { id: 'wizard_blue', name: 'Blauer Magier', rarity: 'common', isDefault: true, image: '/images/avatars/wizard_blue.svg' },
-    { id: 'wizard_red', name: 'Roter Pyromant', rarity: 'common', isDefault: true, image: '/images/avatars/wizard_red.svg' },
-    { id: 'wizard_green', name: 'Grüner Druide', rarity: 'common', isDefault: true, image: '/images/avatars/wizard_green.svg' },
-    { id: 'wizard_purple', name: 'Violetter Arkanist', rarity: 'common', isDefault: true, image: '/images/avatars/wizard_purple.svg' },
-    { id: 'wizard_gold', name: 'Goldener Sonnenmeister', rarity: 'common', isDefault: true, image: '/images/avatars/wizard_gold.svg' },
-    { id: 'wizard_dark', name: 'Dunkler Schattenmagier', rarity: 'common', isDefault: true, image: '/images/avatars/wizard_dark.svg' },
+    // Standard-Avatar: Initialen-Medaillon mit großem Anfangsbuchstaben
+    { id: 'default', name: 'Initialen-Medaillon', rarity: 'common', isDefault: true, lore: 'Dein persönliches Magier-Siegel mit deinem großen Anfangsbuchstaben.' },
 
     // Freischaltbare Artworks (via image-generator)
     { id: 'icon_pyromancer', name: 'Flammen-Erzmagier', rarity: 'epic', image: '/images/avatars/icon_pyromancer.png', lore: 'Gebieter über die sengende Glut der Zitadelle.' },
@@ -53,16 +48,23 @@ const COSMETICS_CATALOG = {
   ],
 
   card_backs: [
-    { id: 'default', name: 'Zitadellen-Blau', rarity: 'common', isDefault: true, icon: '🔷', lore: 'Das klassische kobaltblaue Siegel der Zitadelle.' },
-    { id: 'parchment', name: 'Uraltes Pergament', rarity: 'common', icon: '📜', lore: 'Vergilbtes Kalbsleder mit handgravierten goldenen Schutzrunen.' },
-    { id: 'astral', name: 'Astral-Kosmos', rarity: 'rare', icon: '✨', lore: 'Ein mitternachtsblaues Sternenrad mit glimmenden Konstellationen.' },
-    { id: 'forest', name: 'Hain der Waldnymphen', rarity: 'rare', icon: '🌿', lore: 'Lebendiges Geäst, umschlungen von leuchtendem Feenstaub.' },
-    { id: 'shadow', name: 'Schattenflamme', rarity: 'epic', icon: '🔥', lore: 'Dunkler Obsidian, durchzuckt von violetten Höllenflammen.' },
-    { id: 'dragon', name: 'Drachenschuppe', rarity: 'legendary', icon: '🐉', lore: 'Echte rote Lindwurmschuppen, geschmiedet im Kraterfeuer.' },
-    // Halloween Spezial
-    { id: 'pumpkin_king', name: 'Kürbiskönig', rarity: 'epic', icon: '🎃', lore: 'Ein furchterregender Schnitzkürbis mit feurig glühendem Dämonengrinsen.' },
-    { id: 'spider_queen', name: 'Spinnenkönigin', rarity: 'rare', icon: '🕷️', lore: 'Ein filigranes violettes Spinnennetz, benetzt mit taufrischem Gift.' },
-    { id: 'gravestone_runes', name: 'Grabstein-Runen', rarity: 'epic', icon: '🪦', lore: 'Verwitterter Schiefer mit uralten Totenkopf-Gravuren und Moos.' }
+    // Standard-Deck (Gewöhnlich, vollwertig und edel)
+    { id: 'default', name: 'Novizen-Pergament', rarity: 'common', isDefault: true, lore: 'Handbeschöpftes Lederpergament mit arkanen Schutzrunen und Lehrlingszirkel.' },
+    
+    // Selten (Rare)
+    { id: 'parchment', name: 'Uraltes Alchemisten-Leder', rarity: 'rare', lore: 'Dunkelbraunes Leder mit alchemistischem Kreis und glänzendem Wachssiegel.' },
+    { id: 'forest', name: 'Hain der Waldnymphen', rarity: 'rare', lore: 'Lebendiges Elfenholz, umschlungen von leuchtendem Feenstaub und Smaragd-Lilien.' },
+    { id: 'spider_queen', name: 'Spinnenkönigin', rarity: 'rare', lore: 'Tiefvioletter Samt mit filigranem silbernem Spinnennetz und Amethystspinne.' },
+
+    // Episch (Epic)
+    { id: 'shadow', name: 'Schattenflamme', rarity: 'epic', lore: 'Dunkler Obsidian, durchzuckt von violetten Höllenflammen und Dämonenrunen.' },
+    { id: 'astral', name: 'Astral-Kosmos', rarity: 'epic', lore: 'Ein mitternachtsblaues Sternenrad mit glimmenden Konstellationen und Astrolabium.' },
+    { id: 'pumpkin_king', name: 'Kürbiskönig', rarity: 'epic', lore: 'Furchterregender Schnitzkürbis mit feurig glühendem Dämonengrinsen und Herbstlaub.' },
+    { id: 'gravestone_runes', name: 'Grabstein-Runen', rarity: 'epic', lore: 'Verwitterter gotischer Schiefer mit uralten Moos-Totenkopfgravuren und Seelenleuchten.' },
+
+    // Legendär (Legendary)
+    { id: 'dragon', name: 'Drachenschuppe', rarity: 'legendary', lore: 'Echte rote Lindwurmschuppen-Panzerung mit feuerfesten Goldbeschlägen und Schlitzauge.' },
+    { id: 'citadel_ancient', name: 'Arkane Zitadelle (30 Jahre Jubiläums-Gold)', rarity: 'legendary', lore: 'Das berühmte kobaltblaue Meisterstück der Hohen Zitadelle mit echten Goldfiligran-Bordüren und Arkan-Kompass.' }
   ],
 
   table_skins: [

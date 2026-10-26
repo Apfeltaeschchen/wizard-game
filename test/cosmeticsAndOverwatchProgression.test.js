@@ -26,7 +26,7 @@ console.log('--- TESTSUITE: SCHATZKAMMER & PROGRESSION (ETAPPE 6) START ---');
 // 1. KATALOG & ASSET-INTEGRITÄT
 console.log('[1/5] Überprüfe Katalog-Struktur und Bilddateien...');
 
-assert(COSMETICS_CATALOG.avatar_icons.length >= 14, 'Katalog muss mindestens 14 Avatar-Icons enthalten');
+assert(COSMETICS_CATALOG.avatar_icons.length >= 9, 'Katalog muss mindestens 9 Avatar-Icons enthalten (1 Initialen-Medaillon + 8 Artworks)');
 assert(COSMETICS_CATALOG.table_skins.length >= 5, 'Katalog muss mindestens 5 Spieltische enthalten');
 assert(COSMETICS_CATALOG.card_backs.length >= 6, 'Katalog muss mindestens 6 Kartendecks enthalten');
 assert(COSMETICS_CATALOG.avatar_frames.length >= 6, 'Katalog muss mindestens 6 Rahmen enthalten');

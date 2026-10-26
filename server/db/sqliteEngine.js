@@ -167,18 +167,15 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
 
   // --- AUTOMATISCHES PERSISTENTES ACCOUNT- & KOSMETIK-BACKUP ---
   function getBackupJsonPath() {
-    if (dbPath && dbPath !== ':memory:') {
-      return path.join(path.dirname(dbPath), 'wizard_accounts_backup.json');
+    if (!dbPath || dbPath === ':memory:') {
+      return null;
     }
-    const defaultDataDir = path.join(__dirname, '../data');
-    if (!fs.existsSync(defaultDataDir)) {
-      try { fs.mkdirSync(defaultDataDir, { recursive: true }); } catch (e) {}
-    }
-    return path.join(defaultDataDir, 'wizard_accounts_backup.json');
+    return path.join(path.dirname(dbPath), 'wizard_accounts_backup.json');
   }
 
   let backupTimer = null;
   function triggerAccountsBackup() {
+    if (!getBackupJsonPath()) return;
     if (backupTimer) clearTimeout(backupTimer);
     backupTimer = setTimeout(() => {
       exportAccountsBackup();
@@ -189,6 +186,7 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     try {
       if (!db || !db.open) return;
       const backupPath = getBackupJsonPath();
+      if (!backupPath) return;
       const users = db.prepare('SELECT id, username, password_hash, avatar_id, title, created_at FROM users').all();
       if (!users || users.length === 0) return;
       const stats = db.prepare('SELECT * FROM user_stats').all();
@@ -214,7 +212,7 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
   function importAccountsBackupIfEmpty() {
     try {
       const backupPath = getBackupJsonPath();
-      if (!fs.existsSync(backupPath)) return;
+      if (!backupPath || !fs.existsSync(backupPath)) return;
       const content = fs.readFileSync(backupPath, 'utf8');
       const data = JSON.parse(content);
       if (!data || !Array.isArray(data.users) || data.users.length === 0) return;
