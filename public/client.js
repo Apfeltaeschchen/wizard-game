@@ -4072,10 +4072,10 @@ const WizardVault = (() => {
     modal.style.display = 'flex';
     switchTab(typeof targetTab === 'string' ? targetTab : 'chests');
     fetchVaultState();
-    if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.preloadChestVideos) {
+    if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.preloadChestAnimations) {
+      VaultLottieEngine.preloadChestAnimations();
+    } else if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.preloadChestVideos) {
       VaultVideoEngine.preloadChestVideos('wooden');
-      VaultVideoEngine.preloadChestVideos('silver');
-      VaultVideoEngine.preloadChestVideos('gold');
     }
   }
 
@@ -4083,7 +4083,9 @@ const WizardVault = (() => {
     const modal = document.getElementById('vault-modal');
     if (modal) modal.style.display = 'none';
     if (typeof finishUnboxing === 'function') finishUnboxing();
-    if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.cleanup) {
+    if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.destroy) {
+      VaultLottieEngine.destroy();
+    } else if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.cleanup) {
       VaultVideoEngine.cleanup();
     }
   }
@@ -4594,9 +4596,9 @@ const WizardVault = (() => {
     const w = canvasRect.width || 450;
     const h = canvasRect.height || 480;
 
+    const lottieStage = document.getElementById('vaultLottieContainer');
     const videoStage = document.getElementById('vaultVideoStage');
-    const isVideo = videoStage && videoStage.style.display !== 'none';
-    const chestEl = isVideo ? videoStage : document.getElementById('vaultChestInteractive');
+    const chestEl = lottieStage || videoStage || document.getElementById('vaultChestInteractive');
     let ox = w / 2;
     let oy = h * 0.35;
     if (chestEl) {
@@ -4971,95 +4973,103 @@ const WizardVault = (() => {
   }
 
   // =========================================================================
-  // METHODE A: KINOREIFE VIDEO LOOTBOX ENGINE (RIOT / BLIZZARD PIPELINE)
-  // Hardware-beschleunigtes Video mit CSS mix-blend-mode: screen Transparenz
+  // WEG 2: HOCHPERFORMANTE LOTTIE LOOTBOX MOTION ENGINE (SUPERCELL / CLASH PIPELINE)
+  // 60-FPS Vektor-Motion mit elastischer Bézier-Physik & synchronem Kometen-Apex
   // =========================================================================
-  const VaultVideoEngine = {
+  const VaultLottieEngine = {
+    isOpenStarted: false,
     currentTier: null,
+    lottieAnim: null,
     pendingData: null,
     pendingApexCallback: null,
     hasApexReachedTime: false,
     hasApexFired: false,
     apexSafetyTimer: null,
-    timeUpdateHandler: null,
+    frameUpdateHandler: null,
+    animationCache: {},
 
-    getElements() {
-      return {
-        stage: document.getElementById('vaultVideoStage'),
-        fallbackStage: document.getElementById('vaultChestInteractive'),
-        videoIdle: document.getElementById('vaultChestVideoIdle'),
-        videoOpen: document.getElementById('vaultChestVideoOpen'),
-        flashOverlay: document.getElementById('vaultChestFlashOverlay')
-      };
+    getContainer() {
+      return document.getElementById('vaultLottieContainer');
     },
 
-    getVideoExtension(videoEl) {
-      try {
-        const v = videoEl || document.createElement('video');
-        if (v && v.canPlayType) {
-          const canMp4 = v.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"').replace(/no/, '') || v.canPlayType('video/mp4').replace(/no/, '');
-          const canWebm = v.canPlayType('video/webm; codecs="vp9"').replace(/no/, '') || v.canPlayType('video/webm').replace(/no/, '');
-          if (!canMp4 && canWebm) return 'webm';
+    async preloadChestAnimations(tier) {
+      const tiers = tier ? [tier] : ['wooden', 'silver', 'gold'];
+      for (const t of tiers) {
+        if (!this.animationCache[t] && typeof fetch !== 'undefined') {
+          try {
+            const res = await fetch(`animations/chests/chest_${t}_lottie.json`);
+            if (res.ok) {
+              this.animationCache[t] = await res.json();
+            }
+          } catch (e) {
+            // Local fallback
+          }
         }
-      } catch (e) {}
-      return 'mp4';
+      }
     },
 
     preloadChestVideos(tier) {
-      if (!tier) return;
-      this.currentTier = tier;
-      const { videoIdle, videoOpen } = this.getElements();
-      if (!videoIdle || !videoOpen) return;
-
-      const ext = this.getVideoExtension(videoIdle);
-      const idleSrc = `video/chests/chest_${tier}_idle.${ext}`;
-      const openSrc = `video/chests/chest_${tier}_open.${ext}`;
-
-      if (!videoIdle.src || !videoIdle.src.includes(`chest_${tier}_idle`)) {
-        videoIdle.src = idleSrc;
-        videoIdle.load();
-      }
-      if (!videoOpen.src || !videoOpen.src.includes(`chest_${tier}_open`)) {
-        videoOpen.src = openSrc;
-        videoOpen.load();
-      }
+      return this.preloadChestAnimations(tier);
     },
 
-    playIdle(tier) {
-      this.currentTier = tier;
-      this.clearTimers();
+    init(tier, containerEl) {
+      this.currentTier = tier || 'wooden';
+      this.cleanup();
+      this.isOpenStarted = false;
       this.hasApexFired = false;
       this.hasApexReachedTime = false;
       this.pendingData = null;
       this.pendingApexCallback = null;
 
-      const { stage, fallbackStage, videoIdle, videoOpen } = this.getElements();
-      if (!stage || !videoIdle || !videoOpen) {
-        this.fallbackToCss();
+      const container = containerEl || this.getContainer();
+      if (!container) return;
+
+      container.className = `vault-lottie-container tier-${this.currentTier}`;
+      container.innerHTML = '';
+      container.style.display = 'flex';
+
+      if (typeof lottie === 'undefined') {
+        console.warn('[VaultLottieEngine] lottie-web not found, check script inclusion');
         return;
       }
 
-      this.preloadChestVideos(tier);
+      try {
+        const cachedData = this.animationCache[this.currentTier];
+        const animConfig = {
+          container: container,
+          renderer: 'svg',
+          loop: true,
+          autoplay: false
+        };
 
-      stage.className = `vault-video-stage tier-${tier}`;
-      stage.classList.remove('shaking');
-      stage.style.display = 'flex';
-      if (fallbackStage) fallbackStage.style.display = 'none';
+        if (cachedData) {
+          // Bodymovin mutiert animationData in-place; erstelle saubere Kopie
+          animConfig.animationData = (typeof structuredClone === 'function')
+            ? structuredClone(cachedData)
+            : JSON.parse(JSON.stringify(cachedData));
+        } else {
+          animConfig.path = `animations/chests/chest_${this.currentTier}_lottie.json`;
+        }
 
-      videoIdle.style.display = 'block';
-      videoOpen.style.display = 'none';
-      videoOpen.pause();
-      try { videoOpen.currentTime = 0; } catch (e) {}
+        this.lottieAnim = lottie.loadAnimation(animConfig);
 
-      try { videoIdle.currentTime = 0; } catch (e) {}
-      const playPromise = videoIdle.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(err => {
-          if (err && err.name === 'AbortError') return;
-          console.warn('[VaultVideoEngine] Idle Autoplay blocked, falling back to CSS stage:', err);
-          this.fallbackToCss();
+        this.lottieAnim.addEventListener('DOMLoaded', () => {
+          if (this.lottieAnim && !this.hasApexFired) {
+            if (this.isOpenStarted) {
+              try { this.lottieAnim.playSegments([60, 150], false); } catch (e) {}
+            } else {
+              // Idle-Loop: Sanftes Schweben / Atmen zwischen Frame 0 und 60
+              this.lottieAnim.playSegments([0, 60], true);
+            }
+          }
         });
+      } catch (err) {
+        console.error('[VaultLottieEngine] Error loading animation:', err);
       }
+    },
+
+    playIdle(tier) {
+      this.init(tier);
     },
 
     setChestData(data) {
@@ -5080,6 +5090,7 @@ const WizardVault = (() => {
 
     playOpen(data, onApex) {
       this.clearTimers();
+      this.isOpenStarted = true;
       this.hasApexFired = false;
       this.hasApexReachedTime = false;
 
@@ -5092,71 +5103,53 @@ const WizardVault = (() => {
         this.pendingData = data;
       }
 
-      const { stage, videoIdle, videoOpen } = this.getElements();
-      if (!stage || !videoOpen || stage.style.display === 'none') {
-        if (typeof this.pendingApexCallback === 'function') {
-          this.pendingApexCallback(this.pendingData);
+      const container = this.getContainer();
+      if (!container || !this.lottieAnim) {
+        this.hasApexReachedTime = true;
+        if (this.pendingData) {
+          this.fireApexOnce();
+        } else {
+          this.apexSafetyTimer = setTimeout(() => {
+            this.hasApexReachedTime = true;
+            if (this.pendingData) {
+              this.fireApexOnce();
+            }
+          }, 450);
         }
         return;
       }
 
-      stage.classList.remove('shaking');
-      if (videoIdle) {
-        videoIdle.pause();
-        videoIdle.style.display = 'none';
+      container.classList.remove('shaking');
+
+      // Frame 60 -> 150: Squash & Stretch Antizipation, Riegel schnappt auf, Deckel federt zurück
+      try {
+        this.lottieAnim.playSegments([60, 150], false);
+      } catch (e) {
+        try { this.lottieAnim.play(); } catch (err) {}
       }
 
-      videoOpen.style.display = 'block';
-      try { videoOpen.currentTime = 0; } catch (e) {}
-
-      // Timestamp-Synchronisation (Marker bei Scheitelpunkt ~0.65s)
-      this.timeUpdateHandler = () => {
-        if (videoOpen.currentTime >= 0.62) {
+      // Synchroner Apex-Trigger exakt bei Frame 85 (Deckel öffnet sich maximal und Lichtstrahlen brechen hervor)
+      // Bei lottie.playSegments([60, 150]) läuft e.currentTime von 0 bis 90 (firstFrame = 60). Frame 85 = Segment-Frame 25!
+      this.frameUpdateHandler = (e) => {
+        const curFrame = (e && typeof e.currentTime === 'number') ? e.currentTime : 0;
+        const firstFrame = (this.lottieAnim && typeof this.lottieAnim.firstFrame === 'number') ? this.lottieAnim.firstFrame : 0;
+        const absFrame = curFrame + firstFrame;
+        if (curFrame >= 85 || absFrame >= 85 || curFrame >= 25) {
           this.hasApexReachedTime = true;
           if (this.pendingData) {
             this.fireApexOnce();
           }
         }
       };
-      videoOpen.addEventListener('timeupdate', this.timeUpdateHandler);
+      this.lottieAnim.addEventListener('enterFrame', this.frameUpdateHandler);
 
-      // Sicherheitspuffer falls timeupdate blockiert oder verzögert wird
+      // Sicherheitstimer falls enterFrame blockiert oder gedrosselt wird (25 frames @ 60fps ~ 420ms)
       this.apexSafetyTimer = setTimeout(() => {
         this.hasApexReachedTime = true;
         if (this.pendingData) {
           this.fireApexOnce();
         }
-      }, 750);
-
-      const playPromise = videoOpen.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(err => {
-          if (err && err.name === 'AbortError') return;
-          console.warn('[VaultVideoEngine] Open Video blocked, executing apex immediately:', err);
-          this.hasApexReachedTime = true;
-          if (this.pendingData) {
-            this.fireApexOnce();
-          }
-          this.fallbackToCss();
-        });
-      }
-    },
-
-    fallbackToCss() {
-      const { stage, fallbackStage, videoIdle, videoOpen } = this.getElements();
-      if (videoIdle) {
-        videoIdle.pause();
-        videoIdle.style.display = 'none';
-      }
-      if (videoOpen) {
-        videoOpen.pause();
-        videoOpen.style.display = 'none';
-      }
-      if (stage) stage.style.display = 'none';
-      if (fallbackStage) {
-        fallbackStage.style.display = 'flex';
-        fallbackStage.classList.remove('shaking', 'opened', 'bursting');
-      }
+      }, 450);
     },
 
     clearTimers() {
@@ -5164,39 +5157,41 @@ const WizardVault = (() => {
         clearTimeout(this.apexSafetyTimer);
         this.apexSafetyTimer = null;
       }
-      const { videoOpen } = this.getElements();
-      if (videoOpen && this.timeUpdateHandler) {
-        videoOpen.removeEventListener('timeupdate', this.timeUpdateHandler);
-        this.timeUpdateHandler = null;
+      if (this.lottieAnim && this.frameUpdateHandler) {
+        try {
+          this.lottieAnim.removeEventListener('enterFrame', this.frameUpdateHandler);
+        } catch (e) {}
+        this.frameUpdateHandler = null;
       }
     },
 
     cleanup() {
       this.clearTimers();
+      this.isOpenStarted = false;
       this.hasApexFired = false;
       this.hasApexReachedTime = false;
       this.pendingData = null;
       this.pendingApexCallback = null;
-      const { stage, fallbackStage, videoIdle, videoOpen } = this.getElements();
-      if (videoIdle) {
-        videoIdle.pause();
-        try { videoIdle.currentTime = 0; } catch (e) {}
+      if (this.lottieAnim) {
+        try {
+          this.lottieAnim.destroy();
+        } catch (e) {}
+        this.lottieAnim = null;
       }
-      if (videoOpen) {
-        videoOpen.pause();
-        try { videoOpen.currentTime = 0; } catch (e) {}
-        videoOpen.style.display = 'none';
+      const container = this.getContainer();
+      if (container) {
+        container.classList.remove('shaking');
+        container.innerHTML = '';
       }
-      if (stage) {
-        stage.classList.remove('shaking');
-        stage.style.display = 'flex';
-      }
-      if (fallbackStage) {
-        fallbackStage.classList.remove('shaking', 'opened', 'bursting', 'has-open-sprite');
-        fallbackStage.style.display = 'none';
-      }
+    },
+
+    destroy() {
+      this.cleanup();
     }
   };
+
+  // Rückwärtskompatibles Alias für etwaige Alt-Referenzen
+  const VaultVideoEngine = VaultLottieEngine;
 
   function openChest(tier) {
     if (unboxingApexTimer) { clearTimeout(unboxingApexTimer); unboxingApexTimer = null; }
@@ -5213,14 +5208,15 @@ const WizardVault = (() => {
     const prompt = document.getElementById('vaultChestClickPrompt');
     const titleEl = document.getElementById('vaultUnboxingTitle');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
-    const imgClosed = document.getElementById('vaultChestImgClosed');
-    const imgOpen = document.getElementById('vaultChestImgOpen');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
     if (!unbox) return;
 
     unbox.style.display = 'flex';
-    if (stage) stage.style.display = 'flex';
+    if (stage) {
+      stage.style.display = 'flex';
+      stage.className = `unboxing-stage tier-${tier}`;
+    }
     if (dropsArea) dropsArea.style.display = 'none';
 
     const tNames = {
@@ -5231,33 +5227,14 @@ const WizardVault = (() => {
     if (titleEl) titleEl.innerText = tNames[tier] || 'Arkane Schatztruhe';
     if (subTitle) subTitle.innerText = 'Ein uraltes Relikt der Zitadelle erwacht...';
 
-    // Methode A: Video-Bühne aktivieren & vorladen
-    VaultVideoEngine.playIdle(tier);
+    // Weg 2: Lottie Vektor-Bühne initialisieren & Idle-Atmen starten
+    VaultLottieEngine.init(tier);
 
     if (chestModel) {
-      chestModel.className = `stylized-chest-wrapper chest-artwork-container chest-3d-model tier-${tier}`;
-      chestModel.classList.remove('shaking', 'opened', 'bursting', 'has-open-sprite');
+      chestModel.className = `stylized-chest-wrapper chest-artwork-container tier-${tier}`;
+      chestModel.classList.remove('shaking', 'opened', 'bursting');
     }
 
-    const closedImgs = {
-      wooden: 'images/chests/chest_wooden_closed.png',
-      silver: 'images/chests/chest_silver_closed.png',
-      gold: 'images/chests/chest_gold_closed.png'
-    };
-    const openImgs = {
-      wooden: 'images/chests/chest_wooden_closed.png',
-      silver: 'images/chests/chest_silver_closed.png',
-      gold: 'images/chests/chest_gold_open.png'
-    };
-
-    if (imgClosed) {
-      imgClosed.src = closedImgs[tier] || closedImgs.wooden;
-      imgClosed.style.display = 'block';
-    }
-    if (imgOpen) {
-      imgOpen.src = openImgs[tier] || openImgs.gold;
-      imgOpen.style.display = 'none';
-    }
     if (flashOverlay) {
       flashOverlay.classList.remove('active');
     }
@@ -5279,25 +5256,22 @@ const WizardVault = (() => {
     isUnboxingAnimationRunning = true;
     chestClickStartTime = Date.now();
 
-    const videoStage = document.getElementById('vaultVideoStage');
+    const lottieStage = document.getElementById('vaultLottieContainer');
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
 
-    const isVideoMode = videoStage && videoStage.style.display !== 'none';
-
-    if (isVideoMode) {
-      // Umschalten von Idle auf Öffnungsvideo beim Klick mit sofortigem play()
-      VaultVideoEngine.playOpen(null, (d) => {
-        executeChestApex(d);
-      });
-    } else {
-      if (videoStage) videoStage.classList.add('shaking');
-      if (chestModel) {
-        chestModel.classList.remove('opened', 'bursting', 'has-open-sprite');
-        chestModel.classList.add('shaking');
-      }
+    if (lottieStage) {
+      lottieStage.classList.add('shaking');
     }
+    if (chestModel) {
+      chestModel.classList.remove('opened', 'bursting');
+      chestModel.classList.add('shaking');
+    }
+
+    VaultLottieEngine.playOpen(null, (d) => {
+      executeChestApex(d);
+    });
 
     if (prompt) prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
     if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
@@ -5336,12 +5310,12 @@ const WizardVault = (() => {
     if (!data || !data.success) {
       showToast(data ? data.error : 'Fehler beim Öffnen der Truhe');
       isUnboxingAnimationRunning = false;
-      const videoStage = document.getElementById('vaultVideoStage');
+      const lottieStage = document.getElementById('vaultLottieContainer');
       const chestModel = document.getElementById('vaultChestInteractive');
-      if (videoStage) videoStage.classList.remove('shaking');
+      if (lottieStage) lottieStage.classList.remove('shaking');
       if (chestModel) chestModel.classList.remove('shaking');
-      if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.playIdle) {
-        VaultVideoEngine.playIdle(activeUnboxingTier);
+      if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.init) {
+        VaultLottieEngine.init(activeUnboxingTier);
       }
       return;
     }
@@ -5351,34 +5325,21 @@ const WizardVault = (() => {
       renderChests();
     }
 
-    const videoStage = document.getElementById('vaultVideoStage');
-    const isVideoMode = videoStage && videoStage.style.display !== 'none';
-
-    if (isVideoMode) {
-      VaultVideoEngine.setChestData(data);
-    } else {
-      const elapsed = Date.now() - chestClickStartTime;
-      const remainingRumble = Math.max(0, 750 - elapsed);
-
-      if (unboxingApexTimer) clearTimeout(unboxingApexTimer);
-      unboxingApexTimer = setTimeout(() => {
-        unboxingApexTimer = null;
-        if (!activeUnboxingTier) return;
-        executeChestApex(data);
-      }, remainingRumble);
-    }
+    VaultLottieEngine.setChestData(data);
   }
 
   function executeChestApex(data) {
     if (!activeUnboxingTier) return;
     const safeData = data || { chestType: activeUnboxingTier, rewards: [] };
 
+    const lottieStage = document.getElementById('vaultLottieContainer');
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
-    const imgClosed = document.getElementById('vaultChestImgClosed');
-    const imgOpen = document.getElementById('vaultChestImgOpen');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
+    if (lottieStage) {
+      lottieStage.classList.remove('shaking');
+    }
     if (chestModel) {
       chestModel.classList.remove('shaking');
       chestModel.classList.add('opened', 'bursting');
@@ -5397,11 +5358,7 @@ const WizardVault = (() => {
       }, 700);
     }
 
-    // Sprite-Swap bei Apex falls Bild-Element vorhanden
-    if (safeData.chestType === 'gold' && imgOpen && imgClosed) {
-      if (chestModel) chestModel.classList.add('has-open-sprite');
-      imgOpen.style.display = 'block';
-    }
+
 
     // Dynamische Partikelfarbe nach höchster Seltenheit
     const rarityRank = { common: 1, rare: 2, epic: 3, legendary: 4 };
@@ -5551,7 +5508,9 @@ const WizardVault = (() => {
       unboxingFlashTimer = null;
     }
 
-    if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.cleanup) {
+    if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.destroy) {
+      VaultLottieEngine.destroy();
+    } else if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.cleanup) {
       VaultVideoEngine.cleanup();
     }
 
@@ -5559,19 +5518,18 @@ const WizardVault = (() => {
     const stage = document.getElementById('vaultUnboxingStage');
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const chestModel = document.getElementById('vaultChestInteractive');
-    const imgClosed = document.getElementById('vaultChestImgClosed');
-    const imgOpen = document.getElementById('vaultChestImgOpen');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
     if (unbox) unbox.style.display = 'none';
     if (dropsArea) dropsArea.style.display = 'none';
-    if (stage) stage.style.display = 'flex';
-    if (chestModel) {
-      chestModel.className = 'stylized-chest-wrapper chest-artwork-container chest-3d-model tier-wooden';
-      chestModel.classList.remove('shaking', 'opened', 'bursting', 'has-open-sprite');
+    if (stage) {
+      stage.style.display = 'flex';
+      stage.className = 'unboxing-stage tier-wooden';
     }
-    if (imgClosed) imgClosed.style.display = 'block';
-    if (imgOpen) imgOpen.style.display = 'none';
+    if (chestModel) {
+      chestModel.className = 'stylized-chest-wrapper chest-artwork-container tier-wooden';
+      chestModel.classList.remove('shaking', 'opened', 'bursting');
+    }
     if (flashOverlay) flashOverlay.classList.remove('active');
 
     stopChestFx();
@@ -6236,6 +6194,16 @@ const WizardVault = (() => {
       }
     });
 
+    const lottieContainer = document.getElementById('vaultLottieContainer');
+    if (lottieContainer) {
+      lottieContainer.addEventListener('click', handleChestClick);
+      lottieContainer.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleChestClick();
+        }
+      });
+    }
     const chestInteractive = document.getElementById('vaultChestInteractive');
     if (chestInteractive) {
       chestInteractive.addEventListener('click', handleChestClick);
@@ -6255,6 +6223,11 @@ const WizardVault = (() => {
           handleChestClick();
         }
       });
+    }
+
+    const promptEl = document.getElementById('vaultChestClickPrompt');
+    if (promptEl) {
+      promptEl.addEventListener('click', handleChestClick);
     }
 
     const wardrobePills = document.querySelectorAll('#vaultPanelWardrobe .cosmetics-filter-pill, #vaultPanelWardrobe .cosmetic-cat-pill');
@@ -6328,6 +6301,7 @@ const WizardVault = (() => {
     renderWardrobeItems,
     renderForge,
     showMatchProgression: onMatchProgressionSummary,
+    VaultLottieEngine,
     VaultVideoEngine
   };
 })();
@@ -6698,7 +6672,9 @@ function switchScreen(screenName) {
   if (screenName === 'game') {
     if (typeof WizardVault !== 'undefined') {
       if (WizardVault.closeVault) WizardVault.closeVault();
-      if (WizardVault.VaultVideoEngine && WizardVault.VaultVideoEngine.cleanup) {
+      if (WizardVault.VaultLottieEngine && WizardVault.VaultLottieEngine.destroy) {
+        WizardVault.VaultLottieEngine.destroy();
+      } else if (WizardVault.VaultVideoEngine && WizardVault.VaultVideoEngine.cleanup) {
         WizardVault.VaultVideoEngine.cleanup();
       }
     } else if (typeof closeVault === 'function') {

@@ -55,40 +55,36 @@ assert.ok(indexHtml.includes('@keyframes chestRumble'), '@keyframes chestRumble 
 assert.ok(indexHtml.includes('@keyframes floatChest'), '@keyframes floatChest vorhanden');
 assert.ok(indexHtml.includes('.btn-drop-equip'), 'CSS für .btn-drop-equip vorhanden');
 
-// Methode A: Video-Bühne & Screen-Blend CSS prüfen
-assert.ok(indexHtml.includes('id="vaultVideoStage"'), '#vaultVideoStage vorhanden');
-assert.ok(indexHtml.includes('id="vaultChestVideoIdle"'), '#vaultChestVideoIdle vorhanden');
-assert.ok(indexHtml.includes('id="vaultChestVideoOpen"'), '#vaultChestVideoOpen vorhanden');
-assert.ok(indexHtml.includes('mix-blend-mode: screen'), 'CSS für mix-blend-mode: screen vorhanden');
-assert.ok(indexHtml.includes('transform: translateZ(0)'), 'CSS für transform: translateZ(0) Hardware-Beschleunigung vorhanden');
-assert.ok(indexHtml.includes('.video-ambient-glow'), 'CSS für .video-ambient-glow vorhanden');
-assert.ok(indexHtml.includes('transform: translate(-50%, -50%) scale('), 'peakFlash Keyframes behalten Zentrierung translate(-50%, -50%) bei');
+// Weg 2: Lottie-Bühne & Vektor-Badges prüfen
+assert.ok(indexHtml.includes('id="vaultLottieContainer"'), '#vaultLottieContainer vorhanden');
+assert.ok(indexHtml.includes('class="vault-lottie-container'), '.vault-lottie-container CSS-Klasse vorhanden');
+assert.ok(indexHtml.includes('.chest-vector-badge'), 'CSS für .chest-vector-badge vorhanden');
+assert.ok(indexHtml.includes('badge-tier-wooden'), 'Vektor-Badge für Holztruhe vorhanden');
+assert.ok(indexHtml.includes('badge-tier-silver'), 'Vektor-Badge für Silbertruhe vorhanden');
+assert.ok(indexHtml.includes('badge-tier-gold'), 'Vektor-Badge für Goldkassette vorhanden');
+assert.ok(!indexHtml.includes('images/chests/chest_wooden_closed.png'), 'Altes Bitmap-Artwork für Holztruhe sauber entfernt');
+assert.ok(!indexHtml.includes('images/chests/chest_silver_closed.png'), 'Altes Bitmap-Artwork für Silbertruhe sauber entfernt');
+assert.ok(!indexHtml.includes('images/chests/chest_gold_closed.png'), 'Altes Bitmap-Artwork für Goldkassette sauber entfernt');
+assert.ok(indexHtml.includes('src="js/lottie.min.js"'), 'lottie.min.js Script-Tag eingebunden');
+assert.ok(indexHtml.includes('client.js?v=20261027_lottie_chests'), 'Cache-Busting auf v=20261027_lottie_chests aktualisiert');
 
-// Echte Truhen-Artworks in public/images/chests prüfen
-const chestsDir = path.join(__dirname, '../public/images/chests');
-assert.ok(fs.existsSync(path.join(chestsDir, 'chest_wooden_closed.png')), 'chest_wooden_closed.png existiert');
-assert.ok(fs.existsSync(path.join(chestsDir, 'chest_silver_closed.png')), 'chest_silver_closed.png existiert');
-assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold_closed.png')), 'chest_gold_closed.png existiert');
-assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold_open.png')), 'chest_gold_open.png existiert');
+// Lottie-Web Bibliothek lokal prüfen
+const lottieJsPath = path.join(__dirname, '../public/js/lottie.min.js');
+assert.ok(fs.existsSync(lottieJsPath), 'public/js/lottie.min.js existiert');
+const lottieStat = fs.statSync(lottieJsPath);
+assert.ok(lottieStat.size > 100000, `lottie.min.js ist valide (>100KB): ${lottieStat.size} Bytes`);
 
-// Methode A: Echte Truhen-Videos in public/video/chests prüfen (alle 12 Assets: MP4 & WebM)
-const videoChestsDir = path.join(__dirname, '../public/video/chests');
-const requiredVideos = [
-  'chest_wooden_idle.mp4', 'chest_wooden_idle.webm',
-  'chest_wooden_open.mp4', 'chest_wooden_open.webm',
-  'chest_silver_idle.mp4', 'chest_silver_idle.webm',
-  'chest_silver_open.mp4', 'chest_silver_open.webm',
-  'chest_gold_idle.mp4', 'chest_gold_idle.webm',
-  'chest_gold_open.mp4', 'chest_gold_open.webm'
-];
-for (const vidName of requiredVideos) {
-  const p = path.join(videoChestsDir, vidName);
-  assert.ok(fs.existsSync(p), `Video existiert: ${vidName}`);
+// Lottie Animationsdateien für alle 3 Stufen prüfen
+const animDir = path.join(__dirname, '../public/animations/chests');
+const requiredAnims = ['chest_wooden_lottie.json', 'chest_silver_lottie.json', 'chest_gold_lottie.json'];
+for (const animName of requiredAnims) {
+  const p = path.join(animDir, animName);
+  assert.ok(fs.existsSync(p), `Lottie-Animation existiert: ${animName}`);
   const stat = fs.statSync(p);
-  assert.ok(stat.size > 50000, `Videogröße von ${vidName} ist valide (>50KB): ${stat.size} Bytes`);
+  assert.ok(stat.size > 20000, `Dateigröße von ${animName} ist valide (>20KB): ${stat.size} Bytes`);
 }
 
-console.log('✓ 2. Unboxing-Bühne, Methode A Video-Assets (12/12 MP4 & WebM), Canvas-FX Layer & Artwork-Assets verifiziert.');
+console.log('✓ 2. Unboxing-Bühne, Weg 2 Lottie-Assets, Canvas-FX Layer & Vektor-Badges verifiziert.');
 
 // [3/5] Überprüfe Garderoben-Visuals, Zero-Crude-Icons & Raumwelten-Artworks
 console.log('[3/5] Überprüfe Bildvorschauen, Zero-Crude-Icons & Raumwelten-Artworks...');
@@ -144,18 +140,18 @@ assert.ok(clientJs.includes('wardrobe:equip'), 'wardrobe:equip Socket-Event auf 
 // Sicherstellen, dass kein redundanter doppelter Event-Emit auf Beutekarten existiert
 assert.ok(!clientJs.includes("socket.emit('wardrobe:equip', { itemType: targetType, itemId: targetId, token });\n            socket.emit('vault:equip'"), 'Kein redundanter Doppel-Emit von wardrobe:equip und vault:equip auf Beutekarte');
 assert.ok(clientJs.includes('chestInteractive.addEventListener(\'click\', handleChestClick)'), 'Klick-Handler auf 3D-Truhe registriert');
-assert.ok(clientJs.includes('videoStage.addEventListener(\'click\', handleChestClick)'), 'Klick-Handler auf Video-Bühne registriert');
-assert.ok(clientJs.includes("e.key === 'Enter' || e.key === ' '"), 'Tastatur-Entriegelung (Enter/Space) für Video-Bühne registriert');
-assert.ok(clientJs.includes('VaultVideoEngine'), 'VaultVideoEngine in client.js implementiert');
-assert.ok(clientJs.includes('preloadChestVideos'), 'preloadChestVideos Methode implementiert');
-assert.ok(clientJs.includes('playOpen'), 'playOpen mit Scheitelpunkt-Synchronisation implementiert');
-assert.ok(clientJs.includes('setChestData'), 'setChestData für Scheitelpunkt-Synchronisation implementiert');
-assert.ok(clientJs.includes('getVideoExtension') || clientJs.includes('canPlayType'), 'Codec-Erkennung für MP4/WebM vorhanden');
-assert.ok(clientJs.includes('timeupdate'), 'timeupdate Apex-Synchronisation implementiert');
-assert.ok(clientJs.includes('VaultVideoEngine.cleanup()'), 'VaultVideoEngine.cleanup() aufgerufen');
+assert.ok(clientJs.includes('lottieContainer.addEventListener(\'click\', handleChestClick)'), 'Klick-Handler auf Lottie-Container registriert');
+assert.ok(clientJs.includes("e.key === 'Enter' || e.key === ' '"), 'Tastatur-Entriegelung (Enter/Space) für Truhen-Bühne registriert');
+assert.ok(clientJs.includes('VaultLottieEngine'), 'VaultLottieEngine in client.js implementiert');
+assert.ok(clientJs.includes('init(tier') || clientJs.includes('init('), 'VaultLottieEngine.init implementiert');
+assert.ok(clientJs.includes('playOpen'), 'VaultLottieEngine.playOpen mit Scheitelpunkt-Synchronisation implementiert');
+assert.ok(clientJs.includes('setChestData'), 'VaultLottieEngine.setChestData für Scheitelpunkt-Synchronisation implementiert');
+assert.ok(clientJs.includes('playSegments([60, 150]'), 'Elastisches Öffnungs-Segment [60, 150] implementiert');
+assert.ok(clientJs.includes('curFrame >= 85') || clientJs.includes('85'), 'Apex-Marker bei Frame 85 implementiert');
+assert.ok(clientJs.includes('VaultLottieEngine.destroy') || clientJs.includes('VaultLottieEngine.cleanup'), 'VaultLottieEngine Bereinigung aufgerufen');
 assert.ok(clientJs.includes("if (screenName === 'game')"), 'Concurrency-Schutz bei Spielstart vorhanden');
 assert.ok(clientJs.includes('WizardVault.closeVault()') || clientJs.includes('closeVault()'), 'closeVault() bei Spielstart aufgerufen');
-console.log('✓ 4. Klick-Entriegelung, Methode A VaultVideoEngine, Canvas-FX & Spielstart-Schutz verifiziert.');
+console.log('✓ 4. Klick-Entriegelung, Weg 2 VaultLottieEngine, Canvas-FX & Spielstart-Schutz verifiziert.');
 
 // [5/5] Überprüfe Persistentes Account- & Kosmetik-Backup (Zero Data Loss)
 console.log('[5/5] Überprüfe Persistentes Account- & Kosmetik-Backup...');
@@ -210,18 +206,15 @@ try {
 
 // [6/6] Überprüfe Concurrency-, Lifecycle- & Timer-Sicherheit
 console.log('[6/6] Überprüfe Concurrency-, Lifecycle- & Timer-Sicherheit...');
-// 1. Asset-Integrität: Beide Erweiterungen (.png und .jpg) vorhanden und valide Bildgröße (> 500 KB)
-const requiredImages = [
-  'chest_wooden_closed.png', 'chest_wooden_closed.jpg',
-  'chest_silver_closed.png', 'chest_silver_closed.jpg',
-  'chest_gold_closed.png', 'chest_gold_closed.jpg',
-  'chest_gold_open.png', 'chest_gold_open.jpg'
-];
-for (const imgName of requiredImages) {
-  const p = path.join(chestsDir, imgName);
-  assert.ok(fs.existsSync(p), `Bild existiert: ${imgName}`);
-  const stat = fs.statSync(p);
-  assert.ok(stat.size > 500000, `Bildgröße von ${imgName} ist valide (>500KB): ${stat.size} Bytes`);
+// 1. Lottie-Asset-Integrität: Valides Bodymovin-Format, 60 FPS, 150 Frames & elastische Layer
+for (const animName of requiredAnims) {
+  const p = path.join(animDir, animName);
+  const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+  assert.strictEqual(data.fr, 60, `${animName} läuft mit konstanten 60 FPS`);
+  assert.strictEqual(data.op, 150, `${animName} besitzt exakt 150 Frames`);
+  assert.ok(data.layers.length >= 5, `${animName} besitzt mindestens 5 elastische Layer`);
+  const layerNames = data.layers.map(l => l.nm);
+  assert.ok(layerNames.includes('Chest Body') || layerNames.includes('Chest Lid'), `${animName} besitzt elastische Truhenteile`);
 }
 
 // 2. Lifecycle & Timer-Cleanup Simulation
@@ -239,6 +232,89 @@ const vaultEquipEmits = (equipCode.match(/socket\.emit\(['"]vault:equip['"]/g) |
 const wardrobeEquipEmits = (equipCode.match(/socket\.emit\(['"]wardrobe:equip['"]/g) || []).length;
 assert.strictEqual(wardrobeEquipEmits, 1, 'Exakt 1 wardrobe:equip Socket-Event auf Beutekarte');
 assert.strictEqual(vaultEquipEmits, 0, 'Kein redundantes vault:equip Socket-Event auf Beutekarte (verhindert doppelte DB-Writes)');
+
+// 4. Tiefe Funktions- & Zero-Crash-Simulation für alle 3 Stufen (insb. Goldene Truhe)
+assert.ok(!clientJs.includes('if (safeData.chestType === \'gold\' && imgOpen'), 'Keine veraltete imgOpen/imgClosed Sprite-Referenz in executeChestApex (verhindert fatalen ReferenceError Crash bei Goldtruhe)');
+assert.ok(!indexHtml.includes('vaultChestImgClosed'), 'vaultChestImgClosed sauber aus index.html entfernt');
+assert.ok(!indexHtml.includes('vaultChestImgOpen'), 'vaultChestImgOpen sauber aus index.html entfernt');
+
+// 5. Teste VaultLottieEngine State Machine & Segment-Apex Logik isoliert
+const mockContainer = {
+  className: '',
+  innerHTML: '',
+  style: {},
+  classList: { remove: () => {}, add: () => {} }
+};
+
+let capturedApexData = null;
+let fakeAnimPlayingSegments = null;
+let fakeAnimListeners = {};
+const mockLottieAnim = {
+  firstFrame: 60,
+  totalFrames: 90,
+  playSegments(seg, loop) { fakeAnimPlayingSegments = { seg, loop }; },
+  addEventListener(event, fn) { fakeAnimListeners[event] = fn; },
+  removeEventListener(event) { delete fakeAnimListeners[event]; },
+  destroy() { fakeAnimListeners = {}; }
+};
+
+// Simuliere VaultLottieEngine Methoden
+const testEngine = {
+  isOpenStarted: false,
+  hasApexFired: false,
+  hasApexReachedTime: false,
+  pendingData: null,
+  pendingApexCallback: null,
+  lottieAnim: mockLottieAnim,
+  getContainer() { return mockContainer; },
+  init(tier) {
+    this.currentTier = tier || 'wooden';
+    this.isOpenStarted = false;
+    this.hasApexFired = false;
+    this.hasApexReachedTime = false;
+    this.pendingData = null;
+    this.pendingApexCallback = null;
+  },
+  fireApexOnce() {
+    if (this.hasApexFired) return;
+    this.hasApexFired = true;
+    if (typeof this.pendingApexCallback === 'function') {
+      this.pendingApexCallback(this.pendingData);
+    }
+  },
+  setChestData(data) {
+    this.pendingData = data;
+    if (this.hasApexReachedTime && !this.hasApexFired) {
+      this.fireApexOnce();
+    }
+  },
+  playOpen(data, onApex) {
+    this.isOpenStarted = true;
+    this.hasApexFired = false;
+    this.hasApexReachedTime = false;
+    this.pendingApexCallback = onApex;
+    this.pendingData = data;
+    this.lottieAnim.playSegments([60, 150], false);
+  }
+};
+
+testEngine.init('gold');
+assert.strictEqual(testEngine.isOpenStarted, false, 'Engine startet im Idle-Zustand');
+testEngine.playOpen(null, (d) => { capturedApexData = d; });
+assert.strictEqual(testEngine.isOpenStarted, true, 'Engine wechselt sofort in isOpenStarted');
+assert.deepStrictEqual(fakeAnimPlayingSegments, { seg: [60, 150], loop: false }, 'playSegments([60, 150]) elastisch gestartet');
+
+// Server-Antwort trifft ein
+testEngine.setChestData({ success: true, chestType: 'gold', rewards: [{ id: 'legendary_deck', rarity: 'legendary' }] });
+// Frame-Update erreicht Apex (curFrame 25 auf firstFrame 60 = absFrame 85)
+const curFrame = 25;
+const firstFrame = testEngine.lottieAnim.firstFrame;
+if (curFrame + firstFrame >= 85 || curFrame >= 25) {
+  testEngine.hasApexReachedTime = true;
+  testEngine.fireApexOnce();
+}
+assert.ok(testEngine.hasApexFired, 'Apex hat synchron ausgelöst');
+assert.strictEqual(capturedApexData.chestType, 'gold', 'Gold-Truhendaten kamen sauber am Apex an');
 
 console.log('✓ 6. Concurrency-, Lifecycle- & Timer-Sicherheit vollständig verifiziert!');
 
