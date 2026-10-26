@@ -1133,6 +1133,107 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     }
   }
 
+  function restoreUserPhoenix(payload) {
+    if (!payload || !payload.username) {
+      return { success: false, error: 'Ungültiger Wiederherstellungs-Payload.' };
+    }
+    const cleanName = payload.username.trim();
+    if (!cleanName || cleanName.length < 2) {
+      return { success: false, error: 'Ungültiger Benutzername.' };
+    }
+
+    try {
+      let user = db.prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE').get(cleanName);
+      let userId;
+
+      if (!user) {
+        const passHash = payload.passwordHash || (payload.recoveryKey ? bcrypt.hashSync(payload.recoveryKey, 10) : bcrypt.hashSync('phoenix_' + Date.now(), 10));
+        const res = db.prepare(`
+          INSERT INTO users (username, password_hash, avatar_id, title)
+          VALUES (?, ?, ?, ?)
+        `).run(cleanName, passHash, payload.avatarId || 'default', payload.title || 'Novize der Akademie');
+        userId = res.lastInsertRowid;
+
+        db.prepare(`
+          INSERT INTO user_stats (
+            user_id, account_level, account_xp, chests_wooden, chests_silver, chests_gold, astral_dust,
+            equipped_card_back, equipped_table_skin, equipped_avatar_frame, equipped_lobby_background
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          userId,
+          Math.max(1, payload.accountLevel || 1),
+          Math.max(0, payload.currentXp || 0),
+          Math.max(0, payload.chestsWooden ?? 1),
+          Math.max(0, payload.chestsSilver || 0),
+          Math.max(0, payload.chestsGold || 0),
+          Math.max(0, payload.astralDust || 0),
+          payload.equipped?.equipped_card_back || 'default',
+          payload.equipped?.equipped_table_skin || 'emerald_felt',
+          payload.equipped?.equipped_avatar_frame || 'none',
+          payload.equipped?.equipped_lobby_background || 'citadel_halls'
+        );
+      } else {
+        userId = user.id;
+        if (payload.avatarId || payload.title) {
+          db.prepare('UPDATE users SET avatar_id = COALESCE(?, avatar_id), title = COALESCE(?, title) WHERE id = ?')
+            .run(payload.avatarId || null, payload.title || null, userId);
+        }
+        db.prepare(`
+          UPDATE user_stats SET
+            account_level = MAX(account_level, ?),
+            account_xp = MAX(account_xp, ?),
+            astral_dust = MAX(astral_dust, ?),
+            chests_wooden = MAX(chests_wooden, ?),
+            chests_silver = MAX(chests_silver, ?),
+            chests_gold = MAX(chests_gold, ?),
+            equipped_card_back = COALESCE(?, equipped_card_back),
+            equipped_table_skin = COALESCE(?, equipped_table_skin),
+            equipped_avatar_frame = COALESCE(?, equipped_avatar_frame),
+            equipped_lobby_background = COALESCE(?, equipped_lobby_background)
+          WHERE user_id = ?
+        `).run(
+          payload.accountLevel || 1,
+          payload.currentXp || 0,
+          payload.astralDust || 0,
+          payload.chestsWooden || 0,
+          payload.chestsSilver || 0,
+          payload.chestsGold || 0,
+          payload.equipped?.equipped_card_back || null,
+          payload.equipped?.equipped_table_skin || null,
+          payload.equipped?.equipped_avatar_frame || null,
+          payload.equipped?.equipped_lobby_background || null,
+          userId
+        );
+      }
+
+      if (Array.isArray(payload.inventory)) {
+        const insertInv = db.prepare(`
+          INSERT OR IGNORE INTO user_inventory (user_id, item_type, item_id, acquired_at)
+          VALUES (?, ?, ?, ?)
+        `);
+        payload.inventory.forEach(item => {
+          if (item && item.item_type && item.item_id) {
+            try {
+              insertInv.run(userId, item.item_type, item.item_id, item.acquired_at || new Date().toISOString());
+            } catch (e) {}
+          }
+        });
+      }
+
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      db.prepare('INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)').run(token, userId, expiresAt);
+
+      triggerAccountsBackup();
+
+      const fullUser = getUserById(userId);
+      return { success: true, token, user: fullUser };
+    } catch (err) {
+      console.error('[Database] restoreUserPhoenix Fehler:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
   function closeDatabase() {
     if (backupTimer) {
       clearTimeout(backupTimer);
@@ -1183,6 +1284,7 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     applyMatchProgression,
     awardBonusXP,
     awardCosmetic,
+    restoreUserPhoenix,
     exportAccountsBackup,
     importAccountsBackupIfEmpty,
     closeDatabase

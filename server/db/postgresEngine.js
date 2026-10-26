@@ -1052,6 +1052,113 @@ function createPostgresEngine(connectionStringOrConfig, sharedHelpers) {
     });
   }
 
+  async function restoreUserPhoenix(payload) {
+    if (!payload || !payload.username) {
+      return { success: false, error: 'Ungültiger Wiederherstellungs-Payload.' };
+    }
+    const cleanName = payload.username.trim();
+    if (!cleanName || cleanName.length < 2) {
+      return { success: false, error: 'Ungültiger Benutzername.' };
+    }
+
+    await ensureInitialized();
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const userRes = await client.query('SELECT id, username FROM users WHERE LOWER(username) = LOWER($1)', [cleanName]);
+      let userId;
+
+      if (userRes.rows.length === 0) {
+        const passHash = payload.passwordHash || (payload.recoveryKey ? await bcrypt.hash(payload.recoveryKey, 10) : await bcrypt.hash('phoenix_' + Date.now(), 10));
+        const insUser = await client.query(`
+          INSERT INTO users (username, password_hash, avatar_id, title)
+          VALUES ($1, $2, $3, $4)
+          RETURNING id
+        `, [cleanName, passHash, payload.avatarId || 'default', payload.title || 'Novize der Akademie']);
+        userId = insUser.rows[0].id;
+
+        await client.query(`
+          INSERT INTO user_stats (
+            user_id, account_level, account_xp, chests_wooden, chests_silver, chests_gold, astral_dust,
+            equipped_card_back, equipped_table_skin, equipped_avatar_frame, equipped_lobby_background
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `, [
+          userId,
+          Math.max(1, payload.accountLevel || 1),
+          Math.max(0, payload.currentXp || 0),
+          Math.max(0, payload.chestsWooden ?? 1),
+          Math.max(0, payload.chestsSilver || 0),
+          Math.max(0, payload.chestsGold || 0),
+          Math.max(0, payload.astralDust || 0),
+          payload.equipped?.equipped_card_back || 'default',
+          payload.equipped?.equipped_table_skin || 'emerald_felt',
+          payload.equipped?.equipped_avatar_frame || 'none',
+          payload.equipped?.equipped_lobby_background || 'citadel_halls'
+        ]);
+      } else {
+        userId = userRes.rows[0].id;
+        if (payload.avatarId || payload.title) {
+          await client.query('UPDATE users SET avatar_id = COALESCE($1, avatar_id), title = COALESCE($2, title) WHERE id = $3',
+            [payload.avatarId || null, payload.title || null, userId]);
+        }
+        await client.query(`
+          UPDATE user_stats SET
+            account_level = GREATEST(account_level, $1),
+            account_xp = GREATEST(account_xp, $2),
+            astral_dust = GREATEST(astral_dust, $3),
+            chests_wooden = GREATEST(chests_wooden, $4),
+            chests_silver = GREATEST(chests_silver, $5),
+            chests_gold = GREATEST(chests_gold, $6),
+            equipped_card_back = COALESCE($7, equipped_card_back),
+            equipped_table_skin = COALESCE($8, equipped_table_skin),
+            equipped_avatar_frame = COALESCE($9, equipped_avatar_frame),
+            equipped_lobby_background = COALESCE($10, equipped_lobby_background)
+          WHERE user_id = $11
+        `, [
+          payload.accountLevel || 1,
+          payload.currentXp || 0,
+          payload.astralDust || 0,
+          payload.chestsWooden || 0,
+          payload.chestsSilver || 0,
+          payload.chestsGold || 0,
+          payload.equipped?.equipped_card_back || null,
+          payload.equipped?.equipped_table_skin || null,
+          payload.equipped?.equipped_avatar_frame || null,
+          payload.equipped?.equipped_lobby_background || null,
+          userId
+        ]);
+      }
+
+      if (Array.isArray(payload.inventory)) {
+        for (const item of payload.inventory) {
+          if (item && item.item_type && item.item_id) {
+            await client.query(`
+              INSERT INTO user_inventory (user_id, item_type, item_id, acquired_at)
+              VALUES ($1, $2, $3, $4)
+              ON CONFLICT (user_id, item_type, item_id) DO NOTHING
+            `, [userId, item.item_type, item.item_id, item.acquired_at || new Date().toISOString()]);
+          }
+        }
+      }
+
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await client.query('INSERT INTO sessions (token, user_id, expires_at) VALUES ($1, $2, $3)', [token, userId, expiresAt]);
+
+      await client.query('COMMIT');
+
+      const fullUser = await getUserById(userId);
+      return { success: true, token, user: fullUser };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('[Database] PostgreSQL restoreUserPhoenix Fehler:', err);
+      return { success: false, error: err.message };
+    } finally {
+      client.release();
+    }
+  }
+
   async function closeDatabase() {
     try {
       await pool.end();
@@ -1091,6 +1198,7 @@ function createPostgresEngine(connectionStringOrConfig, sharedHelpers) {
     applyMatchProgression,
     awardBonusXP,
     awardCosmetic,
+    restoreUserPhoenix,
     exportAccountsBackup: async () => true,
     importAccountsBackupIfEmpty: async () => true,
     closeDatabase

@@ -123,6 +123,23 @@ app.get('/api/auth/me', async (req, res, next) => {
   }
 });
 
+app.post('/api/auth/phoenix-restore', async (req, res, next) => {
+  try {
+    const payload = req.body || {};
+    if (!payload.username || typeof payload.username !== 'string') {
+      return res.status(400).json({ success: false, error: 'Benutzername ist erforderlich für die Wiederherstellung.' });
+    }
+    const result = await dbModule.restoreUserPhoenix(payload);
+    if (!result || !result.success) {
+      return res.status(400).json({ success: false, error: result?.error || 'Wiederherstellung fehlgeschlagen.' });
+    }
+    console.log(`[PhoenixRestore] Account "${result.user.username}" (Stufe ${result.user.account_level}) erfolgreich wiederhergestellt!`);
+    res.json({ success: true, token: result.token, user: result.user });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/api/auth/sync-backup', async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization || '';

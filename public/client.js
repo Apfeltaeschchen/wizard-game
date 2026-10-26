@@ -2108,6 +2108,104 @@ const WizardAuth = (() => {
     }
   }
 
+  function updatePhoenixVault(user, additionalData = {}) {
+    if (!user || !user.username) return;
+    try {
+      const existingRaw = localStorage.getItem('grimoire_phoenix_vault') || sessionStorage.getItem('grimoire_phoenix_vault');
+      const existing = existingRaw ? JSON.parse(existingRaw) : {};
+
+      const vData = (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) ? WizardVault.getVaultData() : null;
+      const inv = additionalData.inventory || (vData && vData.inventory) || existing.inventory || [];
+
+      const vault = {
+        username: user.username,
+        recoveryKey: existing.recoveryKey || user.recoveryKey || ('key_' + Math.random().toString(36).slice(2) + Date.now()),
+        accountLevel: Math.max(existing.accountLevel || 1, user.account_level || 1),
+        currentXp: Math.max(existing.currentXp || 0, user.account_xp || 0),
+        astralDust: Math.max(existing.astralDust || 0, user.astral_dust || 0),
+        chestsWooden: user.chests_wooden !== undefined ? user.chests_wooden : (existing.chestsWooden !== undefined ? existing.chestsWooden : 1),
+        chestsSilver: user.chests_silver !== undefined ? user.chests_silver : (existing.chestsSilver || 0),
+        chestsGold: user.chests_gold !== undefined ? user.chests_gold : (existing.chestsGold || 0),
+        avatarId: user.avatar_id || existing.avatarId || 'default',
+        title: user.title || existing.title || 'Novize der Akademie',
+        inventory: Array.isArray(inv) ? inv : [],
+        equipped: {
+          equipped_card_back: user.equipped_card_back || existing.equipped?.equipped_card_back || 'default',
+          equipped_table_skin: user.equipped_table_skin || existing.equipped?.equipped_table_skin || 'emerald_felt',
+          equipped_avatar_frame: user.equipped_avatar_frame || existing.equipped?.equipped_avatar_frame || 'none',
+          equipped_lobby_background: user.equipped_lobby_background || existing.equipped?.equipped_lobby_background || 'citadel_halls',
+          ...(additionalData.equipped || {})
+        },
+        savedAt: new Date().toISOString()
+      };
+
+      const jsonStr = JSON.stringify(vault);
+      localStorage.setItem('grimoire_phoenix_vault', jsonStr);
+      sessionStorage.setItem('grimoire_phoenix_vault', jsonStr);
+      if (typeof GrimoireStorage !== 'undefined') {
+        GrimoireStorage.set('phoenix_vault', vault).catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Fehler beim Speichern des Phoenix Vaults:', e);
+    }
+  }
+
+  function getPhoenixVault() {
+    try {
+      const raw = localStorage.getItem('grimoire_phoenix_vault') || sessionStorage.getItem('grimoire_phoenix_vault');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function tryPhoenixRestore() {
+    if (localStorage.getItem('grimoire_explicit_logout') === 'true') {
+      return null;
+    }
+    let vault = getPhoenixVault();
+    if (!vault && typeof GrimoireStorage !== 'undefined') {
+      try {
+        vault = await GrimoireStorage.get('phoenix_vault');
+      } catch (e) {}
+    }
+    if (!vault || !vault.username) return null;
+
+    try {
+      console.log(`[PhoenixClient] Aktiviere Magische Re-Synchronisation für "${vault.username}"...`);
+      const resp = await fetch(getApiUrl('/api/auth/phoenix-restore'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(vault)
+      });
+      if (!resp.ok) return null;
+      const data = await resp.json();
+      if (data.success && data.user && data.token) {
+        setToken(data.token);
+        currentUser = data.user;
+        setCachedUser(currentUser);
+        localStorage.removeItem('grimoire_explicit_logout');
+
+        if (socket) {
+          socket.auth = { token: data.token };
+          if (socket.connected) {
+            socket.emit('authIdentify', { token: data.token });
+          }
+        }
+        if (nameInput) {
+          nameInput.value = data.user.username;
+          sessionStorage.setItem('wizard_last_name', data.user.username);
+        }
+        renderLobbyBar();
+        showToast(`⚡ Magische Re-Synchronisation: Account "${data.user.username}" (Stufe ${data.user.account_level}) nach Server-Update wiederhergestellt!`);
+        return data.user;
+      }
+    } catch (err) {
+      console.warn('[PhoenixClient] Re-Synchronisation fehlgeschlagen:', err);
+    }
+    return null;
+  }
+
   function setCachedUser(user) {
     try {
       if (user) {
@@ -2115,6 +2213,7 @@ const WizardAuth = (() => {
         localStorage.setItem('wizard_cached_user', json);
         sessionStorage.setItem('wizard_cached_user', json);
         GrimoireStorage.set('user', user).catch(() => {});
+        updatePhoenixVault(user);
       } else {
         localStorage.removeItem('wizard_cached_user');
         sessionStorage.removeItem('wizard_cached_user');
@@ -2140,6 +2239,8 @@ const WizardAuth = (() => {
     }
 
     if (!token) {
+      const restored = await tryPhoenixRestore();
+      if (restored) return restored;
       currentUser = null;
       setCachedUser(null);
       renderLobbyBar();
@@ -2154,6 +2255,10 @@ const WizardAuth = (() => {
       });
       if (!resp.ok) {
         if (resp.status === 401 || resp.status === 403) {
+          const restored = await tryPhoenixRestore();
+          if (restored) {
+            return restored;
+          }
           setToken(null);
           setCachedUser(null);
           currentUser = null;
@@ -2184,6 +2289,8 @@ const WizardAuth = (() => {
         renderLobbyBar();
         return data.user;
       } else {
+        const restored = await tryPhoenixRestore();
+        if (restored) return restored;
         setToken(null);
         setCachedUser(null);
         currentUser = null;
@@ -2192,6 +2299,8 @@ const WizardAuth = (() => {
       }
     } catch (e) {
       console.warn('Fehler bei auth/me:', e);
+      const restored = await tryPhoenixRestore();
+      if (restored) return restored;
       renderLobbyBar();
       return null;
     }
@@ -2221,6 +2330,7 @@ const WizardAuth = (() => {
       }
       setToken(data.token);
       currentUser = data.user;
+      try { localStorage.removeItem('grimoire_explicit_logout'); } catch (e) {}
       setCachedUser(currentUser);
       if (socket) {
         socket.auth = { token: data.token };
@@ -2265,6 +2375,7 @@ const WizardAuth = (() => {
       }
       setToken(data.token);
       currentUser = data.user;
+      try { localStorage.removeItem('grimoire_explicit_logout'); } catch (e) {}
       setCachedUser(currentUser);
       if (socket) {
         socket.auth = { token: data.token };
@@ -2298,6 +2409,7 @@ const WizardAuth = (() => {
     setToken(null);
     setCachedUser(null);
     currentUser = null;
+    try { localStorage.setItem('grimoire_explicit_logout', 'true'); } catch (e) {}
     if (socket) {
       socket.auth = {};
     }
@@ -3163,7 +3275,9 @@ const WizardAuth = (() => {
     updateAvatar,
     refreshUser,
     renderProfileData,
-    renderProfileCosmetics
+    renderProfileCosmetics,
+    updatePhoenixVault,
+    tryPhoenixRestore
   };
 })();
 if (typeof window !== 'undefined') window.WizardAuth = WizardAuth;
@@ -4485,8 +4599,9 @@ const WizardVault = (() => {
     showToast('Ausrüstung gewechselt! ✨');
     if (data.user) {
       vaultData.user = data.user;
-      if (typeof WizardAuth !== 'undefined' && WizardAuth.setCachedUser) {
-        WizardAuth.setCachedUser(data.user);
+      if (typeof WizardAuth !== 'undefined') {
+        if (WizardAuth.setCachedUser) WizardAuth.setCachedUser(data.user);
+        if (WizardAuth.updatePhoenixVault) WizardAuth.updatePhoenixVault(data.user, { inventory: vaultData.inventory });
       }
       if (data.user.equipped_lobby_background && typeof applyLobbyTheme === 'function') {
         applyLobbyTheme(data.user.equipped_lobby_background);
@@ -4721,8 +4836,27 @@ const WizardVault = (() => {
     const btnClose = document.getElementById('btnVaultClose');
     if (btnClose) btnClose.addEventListener('click', closeVault);
 
+    const vaultCloseBtn = document.getElementById('vaultCloseBtn');
+    if (vaultCloseBtn) vaultCloseBtn.addEventListener('click', closeVault);
+
     const btnModalClose = document.getElementById('vaultModalClose');
     if (btnModalClose) btnModalClose.addEventListener('click', closeVault);
+
+    // Alle "Zurück zur Zitadelle"-Schaltflächen in den Tab-Fußzeilen
+    const footerCloseBtns = document.querySelectorAll('.btn-vault-close-action');
+    footerCloseBtns.forEach(btn => {
+      btn.addEventListener('click', closeVault);
+    });
+
+    // Klick auf den abgedunkelten Hintergrund (Backdrop)
+    const vaultModalEl = document.getElementById('vault-modal');
+    if (vaultModalEl) {
+      vaultModalEl.addEventListener('click', (e) => {
+        if (e.target === vaultModalEl) {
+          closeVault();
+        }
+      });
+    }
 
     const tabChests = document.getElementById('tabVaultChests');
     if (tabChests) tabChests.addEventListener('click', () => switchTab('chests'));
@@ -4762,6 +4896,11 @@ const WizardVault = (() => {
         const unbox = document.getElementById('vaultUnboxingArea');
         if (unbox && unbox.style.display !== 'none' && !isUnboxingAnimationRunning) {
           finishUnboxing();
+          return;
+        }
+        const vaultModal = document.getElementById('vault-modal');
+        if (vaultModal && vaultModal.style.display !== 'none') {
+          closeVault();
         }
       }
     });

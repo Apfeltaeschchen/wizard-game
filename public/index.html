@@ -8786,7 +8786,7 @@
   <!-- ========================================================================== -->
   <div id="vault-modal" class="modal-overlay" style="display: none; z-index: 2200;">
     <div class="vault-modal-card">
-      <button id="vaultCloseBtn" type="button" class="drawer-close-btn" style="position: absolute; top: 14px; right: 16px; font-size: 26px; z-index: 10;" title="Schatzkammer verlassen">&times;</button>
+      <button id="vaultCloseBtn" type="button" class="drawer-close-btn btn-vault-close-action" style="position: absolute; top: 14px; right: 16px; font-size: 26px; z-index: 10;" title="Schatzkammer verlassen" aria-label="Schatzkammer verlassen">&times;</button>
 
       <!-- KOPFZEILE MIT LEVEL, XP-BALKEN & ASTRALSTAUB -->
       <div class="vault-header">
@@ -8932,6 +8932,13 @@
               <!-- Dynamisch via JavaScript befüllt -->
             </div>
           </div>
+
+          <div class="vault-panel-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(212,175,55,0.2); text-align: center;">
+            <button type="button" class="btn-auth-bar btn-vault-close-action" style="padding: 9px 24px; font-size: 13px; margin: 0 auto;">
+              <span class="btn-icon">🏛️</span>
+              <span class="btn-text">Zurück zur Zitadelle</span>
+            </button>
+          </div>
         </div>
 
         <!-- 2. TAB: GARDEROBE (AUSRÜSTUNG) -->
@@ -8971,6 +8978,13 @@
               </div>
             </div>
           </div>
+
+          <div class="vault-panel-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(212,175,55,0.2); text-align: center;">
+            <button type="button" class="btn-auth-bar btn-vault-close-action" style="padding: 9px 24px; font-size: 13px; margin: 0 auto;">
+              <span class="btn-icon">🏛️</span>
+              <span class="btn-text">Zurück zur Zitadelle</span>
+            </button>
+          </div>
         </div>
 
         <!-- 3. TAB: ZAUBERSCHMIEDE -->
@@ -9000,6 +9014,13 @@
 
           <div id="forgeItemsGrid" class="forge-grid">
             <!-- Dynamisch generiert -->
+          </div>
+
+          <div class="vault-panel-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(212,175,55,0.2); text-align: center;">
+            <button type="button" class="btn-auth-bar btn-vault-close-action" style="padding: 9px 24px; font-size: 13px; margin: 0 auto;">
+              <span class="btn-icon">🏛️</span>
+              <span class="btn-text">Zurück zur Zitadelle</span>
+            </button>
           </div>
         </div>
       </div>
