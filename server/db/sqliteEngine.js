@@ -165,6 +165,142 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
   try { db.exec("ALTER TABLE user_stats ADD COLUMN equipped_avatar_frame TEXT DEFAULT 'none';"); } catch (e) {}
   try { db.exec("ALTER TABLE user_stats ADD COLUMN equipped_lobby_background TEXT DEFAULT 'citadel_halls';"); } catch (e) {}
 
+  // --- AUTOMATISCHES PERSISTENTES ACCOUNT- & KOSMETIK-BACKUP ---
+  function getBackupJsonPath() {
+    if (dbPath && dbPath !== ':memory:') {
+      return path.join(path.dirname(dbPath), 'wizard_accounts_backup.json');
+    }
+    const defaultDataDir = path.join(__dirname, '../data');
+    if (!fs.existsSync(defaultDataDir)) {
+      try { fs.mkdirSync(defaultDataDir, { recursive: true }); } catch (e) {}
+    }
+    return path.join(defaultDataDir, 'wizard_accounts_backup.json');
+  }
+
+  let backupTimer = null;
+  function triggerAccountsBackup() {
+    if (backupTimer) clearTimeout(backupTimer);
+    backupTimer = setTimeout(() => {
+      exportAccountsBackup();
+    }, 1000);
+  }
+
+  function exportAccountsBackup() {
+    try {
+      if (!db || !db.open) return;
+      const backupPath = getBackupJsonPath();
+      const users = db.prepare('SELECT id, username, password_hash, avatar_id, title, created_at FROM users').all();
+      if (!users || users.length === 0) return;
+      const stats = db.prepare('SELECT * FROM user_stats').all();
+      const inventory = db.prepare('SELECT * FROM user_inventory').all();
+      const sessions = db.prepare("SELECT * FROM sessions WHERE expires_at > datetime('now')").all();
+
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        version: 2,
+        users,
+        stats,
+        inventory,
+        sessions
+      };
+      const tmpPath = backupPath + '.tmp';
+      fs.writeFileSync(tmpPath, JSON.stringify(payload, null, 2), 'utf8');
+      fs.renameSync(tmpPath, backupPath);
+    } catch (e) {
+      console.warn('[Database] Account-Backup Export Fehler:', e.message);
+    }
+  }
+
+  function importAccountsBackupIfEmpty() {
+    try {
+      const backupPath = getBackupJsonPath();
+      if (!fs.existsSync(backupPath)) return;
+      const content = fs.readFileSync(backupPath, 'utf8');
+      const data = JSON.parse(content);
+      if (!data || !Array.isArray(data.users) || data.users.length === 0) return;
+
+      const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get()?.count || 0;
+      if (userCount > 0) {
+        // Wenn Benutzer existieren, stelle sicher, dass fehlende Inventar-Items nachsynchronisiert werden
+        if (Array.isArray(data.inventory)) {
+          const insertInv = db.prepare(`
+            INSERT OR IGNORE INTO user_inventory (user_id, item_type, item_id, acquired_at)
+            VALUES (?, ?, ?, ?)
+          `);
+          const txInv = db.transaction(() => {
+            data.inventory.forEach(inv => {
+              try { insertInv.run(inv.user_id, inv.item_type, inv.item_id, inv.acquired_at || new Date().toISOString()); } catch (e) {}
+            });
+          });
+          txInv();
+        }
+        return;
+      }
+
+      console.log(`[Database] Stelle ${data.users.length} Accounts & Inventar aus Backup wieder her...`);
+      const insertUser = db.prepare(`
+        INSERT OR IGNORE INTO users (id, username, password_hash, avatar_id, title, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+      const insertStats = db.prepare(`
+        INSERT OR REPLACE INTO user_stats (
+          user_id, games_played, games_won, total_points, bids_made, bids_hit, wizards_played, jesters_played,
+          skill_rating, highest_skill_rating, ranked_games_played, ranked_games_won,
+          account_level, account_xp, chests_wooden, chests_silver, chests_gold, astral_dust,
+          equipped_card_back, equipped_table_skin, equipped_avatar_frame, equipped_lobby_background
+        ) VALUES (
+          ?, ?, ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?
+        )
+      `);
+      const insertInv = db.prepare(`
+        INSERT OR IGNORE INTO user_inventory (user_id, item_type, item_id, acquired_at)
+        VALUES (?, ?, ?, ?)
+      `);
+      const insertSession = db.prepare(`
+        INSERT OR REPLACE INTO sessions (token, user_id, created_at, expires_at)
+        VALUES (?, ?, ?, ?)
+      `);
+
+      const tx = db.transaction(() => {
+        data.users.forEach(u => {
+          insertUser.run(u.id, u.username, u.password_hash, u.avatar_id, u.title, u.created_at);
+        });
+        if (Array.isArray(data.stats)) {
+          data.stats.forEach(s => {
+            insertStats.run(
+              s.user_id, s.games_played || 0, s.games_won || 0, s.total_points || 0, s.bids_made || 0, s.bids_hit || s.perfect_bids || 0, s.wizards_played || 0, s.jesters_played || 0,
+              s.skill_rating || 1000, s.highest_skill_rating || 1000, s.ranked_games_played || 0, s.ranked_games_won || 0,
+              s.account_level || 1, s.account_xp || 0, s.chests_wooden || 1, s.chests_silver || 0, s.chests_gold || 0, s.astral_dust || 0,
+              s.equipped_card_back || 'default', s.equipped_table_skin || 'emerald_felt', s.equipped_avatar_frame || 'none', s.equipped_lobby_background || 'citadel_halls'
+            );
+          });
+        }
+        if (Array.isArray(data.inventory)) {
+          data.inventory.forEach(inv => {
+            insertInv.run(inv.user_id, inv.item_type, inv.item_id, inv.acquired_at || new Date().toISOString());
+          });
+        }
+        if (Array.isArray(data.sessions)) {
+          data.sessions.forEach(sess => {
+            if (new Date(sess.expires_at) > new Date()) {
+              insertSession.run(sess.token, sess.user_id, sess.created_at, sess.expires_at);
+            }
+          });
+        }
+      });
+      tx();
+      console.log('[Database] Account-Wiederherstellung erfolgreich abgeschlossen!');
+    } catch (e) {
+      console.warn('[Database] Account-Backup Import Fehler:', e.message);
+    }
+  }
+
+  // Initialer Import beim Start
+  importAccountsBackupIfEmpty();
+
   // Prepared Statements
   const stmtFindUserByName = db.prepare('SELECT * FROM users WHERE username = ?');
   const stmtFindUserById = db.prepare(`
@@ -298,6 +434,7 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     stmtCreateSession.run(token, userId, expiresAt);
 
     const user = stmtFindUserById.get(userId);
+    triggerAccountsBackup();
     return { success: true, token, user: formatUserWithRank(user) };
   }
 
@@ -715,6 +852,7 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
       }
     });
     tx();
+    triggerAccountsBackup();
 
     return {
       success: true,
@@ -768,6 +906,7 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     }
 
     const updatedUser = formatUserWithRank(stmtFindUserById.get(userId));
+    triggerAccountsBackup();
     return { success: true, itemType, itemId, user: updatedUser };
   }
 
@@ -806,6 +945,7 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
       stmtInsertInventory.run(userId, itemType, itemId);
     });
     tx();
+    triggerAccountsBackup();
 
     return {
       success: true,
@@ -860,6 +1000,8 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
           astral_dust = ?
       WHERE user_id = ?
     `).run(JSON.stringify(claimed), newWooden, newSilver, newGold, newDust, userId);
+
+    triggerAccountsBackup();
 
     return {
       success: true,
@@ -986,6 +1128,7 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     if (!userId || !itemType || !itemId) return false;
     try {
       stmtInsertInventory.run(userId, itemType, itemId);
+      triggerAccountsBackup();
       return true;
     } catch (e) {
       return false;
@@ -993,6 +1136,13 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
   }
 
   function closeDatabase() {
+    if (backupTimer) {
+      clearTimeout(backupTimer);
+      backupTimer = null;
+    }
+    try {
+      exportAccountsBackup();
+    } catch (e) {}
     try {
       if (dbPath !== ':memory:') {
         db.pragma('wal_checkpoint(TRUNCATE)');
@@ -1035,6 +1185,8 @@ function createSqliteEngine(customDbPath, sharedHelpers) {
     applyMatchProgression,
     awardBonusXP,
     awardCosmetic,
+    exportAccountsBackup,
+    importAccountsBackupIfEmpty,
     closeDatabase
   };
 }

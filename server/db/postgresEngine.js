@@ -1091,6 +1091,8 @@ function createPostgresEngine(connectionStringOrConfig, sharedHelpers) {
     applyMatchProgression,
     awardBonusXP,
     awardCosmetic,
+    exportAccountsBackup: async () => true,
+    importAccountsBackupIfEmpty: async () => true,
     closeDatabase
   };
 }

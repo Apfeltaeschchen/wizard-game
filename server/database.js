@@ -169,5 +169,7 @@ module.exports = {
   applyMatchProgression: (...args) => invokeEngine('applyMatchProgression', ...args),
   awardBonusXP: (...args) => invokeEngine('awardBonusXP', ...args),
   awardCosmetic: (...args) => invokeEngine('awardCosmetic', ...args),
+  exportAccountsBackup: (...args) => invokeEngine('exportAccountsBackup', ...args),
+  importAccountsBackupIfEmpty: (...args) => invokeEngine('importAccountsBackupIfEmpty', ...args),
   closeDatabase
 };

@@ -123,6 +123,35 @@ app.get('/api/auth/me', async (req, res, next) => {
   }
 });
 
+app.post('/api/auth/sync-backup', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '') || req.body?.token;
+    const user = await dbModule.getUserByToken(token);
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Nicht authentifiziert' });
+    }
+    const { inventory = [], equipped = {} } = req.body || {};
+    if (Array.isArray(inventory)) {
+      for (const item of inventory) {
+        if (item && item.item_type && item.item_id) {
+          await dbModule.awardCosmetic(user.id, item.item_type, item.item_id);
+        }
+      }
+    }
+    if (equipped.equipped_card_back) await dbModule.equipCosmetic(user.id, 'card_back', equipped.equipped_card_back);
+    if (equipped.equipped_table_skin) await dbModule.equipCosmetic(user.id, 'table_skin', equipped.equipped_table_skin);
+    if (equipped.equipped_avatar_frame) await dbModule.equipCosmetic(user.id, 'avatar_frame', equipped.equipped_avatar_frame);
+    if (equipped.equipped_lobby_background) await dbModule.equipCosmetic(user.id, 'lobby_background', equipped.equipped_lobby_background);
+
+    const freshUser = await dbModule.getUserById(user.id);
+    const freshCosmetics = await dbModule.getUserCosmetics(user.id);
+    res.json({ success: true, user: freshUser, inventory: freshCosmetics.inventory });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.patch('/api/auth/profile', async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization || '';

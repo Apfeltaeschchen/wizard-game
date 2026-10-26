@@ -13,16 +13,14 @@ assert.ok(fs.existsSync(clientJsPath), 'client.js existiert');
 const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
 const clientJs = fs.readFileSync(clientJsPath, 'utf8');
 
-// [1/3] Überprüfe Profil-Drawer Ausrüstungs-Bereich
+// [1/3] Überprüfe Profil-Drawer Ausrüstungs-Bereich (Dropdown-Menü bereinigt, Schnellzugriff zur Garderobe)
 console.log('[1/3] Überprüfe Profil-Garderobe Elemente...');
-assert.ok(indexHtml.includes('id="profileCosmeticsSection"'), 'profileCosmeticsSection vorhanden');
-assert.ok(indexHtml.includes('id="profileSelectAvatar"'), 'profileSelectAvatar Dropdown vorhanden');
-assert.ok(indexHtml.includes('id="profileSelectFrame"'), 'profileSelectFrame Dropdown vorhanden');
-assert.ok(indexHtml.includes('id="profileSelectCardBack"'), 'profileSelectCardBack Dropdown vorhanden');
-assert.ok(indexHtml.includes('id="profileSelectTableSkin"'), 'profileSelectTableSkin Dropdown vorhanden');
-assert.ok(indexHtml.includes('id="profileTitleSelect"'), 'profileTitleSelect Dropdown vorhanden');
-assert.ok(indexHtml.includes('id="btnProfileOpenVault"'), 'btnProfileOpenVault Button vorhanden');
-console.log('✓ Profil-Garderoben HTML-Struktur vollständig.');
+assert.ok(!indexHtml.includes('id="profileSelectAvatar"'), 'profileSelectAvatar Dropdown erfolgreich aus Profil entfernt');
+assert.ok(!indexHtml.includes('id="profileSelectFrame"'), 'profileSelectFrame Dropdown erfolgreich aus Profil entfernt');
+assert.ok(!indexHtml.includes('id="profileSelectCardBack"'), 'profileSelectCardBack Dropdown erfolgreich aus Profil entfernt');
+assert.ok(!indexHtml.includes('id="profileSelectTableSkin"'), 'profileSelectTableSkin Dropdown erfolgreich aus Profil entfernt');
+assert.ok(indexHtml.includes('id="btnProfileOpenVault"'), 'btnProfileOpenVault Button für direkte Garderoben-Verwaltung vorhanden');
+console.log('✓ Profil-Drawer sauber bereinigt: Garderobe wird exklusiv in der Schatzkammer verwaltet.');
 
 // [2/3] Überprüfe progressive CSS-Skalierung für große Monitore
 console.log('[2/3] Überprüfe progressive CSS-Skalierung für große Monitore (1080p, 1440p, 4K)...');

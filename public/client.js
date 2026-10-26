@@ -1749,6 +1749,48 @@ const WizardAudio = (() => {
     }
   }
 
+  function playChestRumble() {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      playCardSnap();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(48, c.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(115, c.currentTime + 0.6);
+      gain.gain.setValueAtTime(0.25 * settings.sfx * settings.master, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.65);
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + 0.65);
+    } catch (e) {}
+  }
+
+  function playChestBurst() {
+    if (isAppInBackground) return;
+    try {
+      const c = getContext();
+      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
+      playMvpGong();
+      const notes = [440, 554.37, 659.25, 880, 1108.73];
+      notes.forEach((freq, idx) => {
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, c.currentTime + idx * 0.08);
+        gain.gain.setValueAtTime(0.25 * settings.sfx * settings.master, c.currentTime + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + idx * 0.08 + 0.5);
+        osc.connect(gain);
+        gain.connect(c.destination);
+        osc.start(c.currentTime + idx * 0.08);
+        osc.stop(c.currentTime + idx * 0.08 + 0.55);
+      });
+    } catch (e) {}
+  }
+
   // Bei erstem User-Event AudioContext aufwecken, Assets cachen und Musik starten
   ['click', 'touchstart', 'keydown'].forEach(evt => {
     window.addEventListener(evt, () => {
@@ -1772,6 +1814,8 @@ const WizardAudio = (() => {
     playTick,
     playLevelUp,
     playMvpGong,
+    playChestRumble,
+    playChestBurst,
     startMusic,
     stopMusic,
     toggleMusic,
@@ -2653,6 +2697,11 @@ const WizardAuth = (() => {
     const titleSelect = document.getElementById('profileTitleSelect');
     const lobbyBgSelect = document.getElementById('profileSelectLobbyBackground');
     const desc = document.getElementById('profileTitleStatusDesc');
+
+    if (!avatarSelect && !frameSelect && !cardBackSelect && !tableSkinSelect && !titleSelect && !lobbyBgSelect) {
+      // Profil-Menü bereinigt: Garderobe wird exklusiv in der Schatzkammer verwaltet
+      return;
+    }
 
     const vData = (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) ? WizardVault.getVaultData() : null;
     const catalog = (vData && vData.catalog) ? vData.catalog : null;
@@ -3805,6 +3854,51 @@ const WizardVault = (() => {
   function onVaultStateReceived(data) {
     if (!data || !data.success) return;
     vaultData = data;
+    try {
+      const savedSnapshotRaw = localStorage.getItem('grimoire_account_snapshot');
+      if (savedSnapshotRaw && data.user) {
+        const savedSnapshot = JSON.parse(savedSnapshotRaw);
+        const serverInvCount = (data.inventory || []).length;
+        const localInvCount = (savedSnapshot.inventory || []).length;
+        if (localInvCount > serverInvCount && savedSnapshot.user && savedSnapshot.user.username === data.user.username) {
+          // Server hat nach Update/Neustart weniger Items als der Client persistent gemerkt hat -> Automatische Synchronisation
+          const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
+          if (token) {
+            fetch(getApiUrl('/api/auth/sync-backup'), {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                inventory: savedSnapshot.inventory,
+                equipped: {
+                  equipped_card_back: savedSnapshot.user.equipped_card_back,
+                  equipped_table_skin: savedSnapshot.user.equipped_table_skin,
+                  equipped_avatar_frame: savedSnapshot.user.equipped_avatar_frame,
+                  equipped_lobby_background: savedSnapshot.user.equipped_lobby_background
+                }
+              })
+            }).then(r => r.json()).then(syncRes => {
+              if (syncRes && syncRes.success && syncRes.inventory) {
+                data.inventory = syncRes.inventory;
+                if (syncRes.user) data.user = syncRes.user;
+                renderWardrobe();
+              }
+            }).catch(() => {});
+          }
+        }
+      }
+
+      localStorage.setItem('grimoire_account_snapshot', JSON.stringify({
+        user: data.user,
+        inventory: data.inventory || [],
+        timestamp: Date.now()
+      }));
+      if (typeof GrimoireStorage !== 'undefined') {
+        GrimoireStorage.set('account_snapshot', { user: data.user, inventory: data.inventory || [] }).catch(() => {});
+      }
+    } catch (e) {}
     if (data.user && data.user.equipped_lobby_background && typeof applyLobbyTheme === 'function') {
       applyLobbyTheme(data.user.equipped_lobby_background);
     }
@@ -3941,19 +4035,81 @@ const WizardVault = (() => {
     });
   }
 
+  let activeUnboxingTier = null;
+  let isUnboxingAnimationRunning = false;
+
   function openChest(tier) {
+    activeUnboxingTier = tier;
+    isUnboxingAnimationRunning = false;
+
+    const unbox = document.getElementById('vaultUnboxingArea');
+    const stage = document.getElementById('vaultUnboxingStage');
+    const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+    const chestModel = document.getElementById('vaultChestInteractive');
+    const prompt = document.getElementById('vaultChestClickPrompt');
+    const titleEl = document.getElementById('vaultUnboxingTitle');
+    const subTitle = document.getElementById('vaultUnboxingSubtitle');
+
+    if (!unbox) return;
+
+    unbox.style.display = 'flex';
+    if (stage) stage.style.display = 'flex';
+    if (dropsArea) dropsArea.style.display = 'none';
+
+    const tNames = {
+      wooden: 'Holztruhe des Lehrlings',
+      silver: 'Silberne Magiertruhe',
+      gold: 'Goldene Erzmagier-Kassette'
+    };
+    if (titleEl) titleEl.innerText = tNames[tier] || 'Arkane Schatztruhe';
+    if (subTitle) subTitle.innerText = 'Ein uraltes Relikt der Zitadelle erwacht...';
+
+    if (chestModel) {
+      chestModel.className = `chest-3d-model tier-${tier}`;
+    }
+    if (prompt) {
+      prompt.style.display = 'flex';
+      prompt.innerHTML = `<span>✨</span><span>Klicke auf die Truhe, um das Siegel zu brechen!</span><span>✨</span>`;
+    }
+
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+      WizardAudio.playCardSnap();
+    }
+  }
+
+  function handleChestClick() {
+    if (isUnboxingAnimationRunning || !activeUnboxingTier) return;
+    isUnboxingAnimationRunning = true;
+
+    const chestModel = document.getElementById('vaultChestInteractive');
+    const prompt = document.getElementById('vaultChestClickPrompt');
+    const subTitle = document.getElementById('vaultUnboxingSubtitle');
+
+    if (chestModel) {
+      chestModel.classList.remove('opened', 'bursting');
+      chestModel.classList.add('shaking');
+    }
+    if (prompt) prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
+    if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
+
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playChestRumble) {
+      WizardAudio.playChestRumble();
+    } else if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+      WizardAudio.playCardSnap();
+    }
+
     const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
     if (socket && socket.connected) {
-      if (typeof WizardAudio !== 'undefined' && WizardAudio.playTurnChime) {
-        WizardAudio.playTurnChime();
-      }
-      socket.emit('vault:openChest', { chestType: tier, token });
+      socket.emit('vault:openChest', { chestType: activeUnboxingTier, token });
     }
   }
 
   function onChestOpened(data) {
     if (!data || !data.success) {
       showToast(data ? data.error : 'Fehler beim Öffnen der Truhe');
+      isUnboxingAnimationRunning = false;
+      const chestModel = document.getElementById('vaultChestInteractive');
+      if (chestModel) chestModel.classList.remove('shaking');
       return;
     }
     if (data.user) {
@@ -3961,21 +4117,39 @@ const WizardVault = (() => {
       renderHeader();
       renderChests();
     }
-    showUnboxingStage(data);
+
+    const chestModel = document.getElementById('vaultChestInteractive');
+    const prompt = document.getElementById('vaultChestClickPrompt');
+    if (chestModel) {
+      chestModel.classList.remove('shaking');
+      chestModel.classList.add('opened', 'bursting');
+    }
+    if (prompt) prompt.style.display = 'none';
+
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playChestBurst) {
+      WizardAudio.playChestBurst();
+    }
+
+    setTimeout(() => {
+      showUnboxingStage(data);
+      isUnboxingAnimationRunning = false;
+    }, 700);
   }
 
   function showUnboxingStage(data) {
-    const unbox = document.getElementById('vaultUnboxingArea');
+    const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const dropsCont = document.getElementById('vaultUnboxingDrops');
     const titleEl = document.getElementById('vaultUnboxingTitle');
+    const subTitle = document.getElementById('vaultUnboxingSubtitle');
     const dustNotice = document.getElementById('vaultUnboxingDustNotice');
-    if (!unbox || !dropsCont) return;
+    if (!dropsArea || !dropsCont) return;
 
-    unbox.style.display = 'flex';
+    dropsArea.style.display = 'flex';
     dropsCont.innerHTML = '';
 
     const tNames = { wooden: 'Holztruhe', silver: 'Silberne Magiertruhe', gold: 'Goldene Erzmagier-Kassette' };
     if (titleEl) titleEl.innerText = `${tNames[data.chestType] || 'Truhe'} geöffnet!`;
+    if (subTitle) subTitle.innerText = 'Deine neuen Schätze:';
 
     if (dustNotice) {
       if (data.totalDustGained > 0) {
@@ -3990,22 +4164,14 @@ const WizardVault = (() => {
     rewards.forEach((r, idx) => {
       const card = document.createElement('div');
       card.className = `drop-card-reveal rarity-${r.rarity || 'common'}`;
-      card.style.animationDelay = `${idx * 0.18}s`;
+      card.style.animationDelay = `${idx * 0.16}s`;
 
-      let iconHtml = '';
-      if (r.image) {
-        iconHtml = `<img src="${r.image}" alt="" class="drop-card-icon">`;
-      } else if (r.icon) {
-        iconHtml = `<div class="drop-card-icon" style="display:flex;align-items:center;justify-content:center;font-size:32px;background:rgba(0,0,0,0.4);">${r.icon}</div>`;
-      } else {
-        iconHtml = `<div class="drop-card-icon" style="display:flex;align-items:center;justify-content:center;font-size:32px;background:rgba(0,0,0,0.4);">📜</div>`;
-      }
-
+      const visualHtml = getCosmeticVisualHtml(r, r.type || r.singularType);
       const dupHtml = r.isDuplicate ? `<div class="drop-card-duplicate">🔄 Duplikat (+${r.dustRefund} Staub)</div>` : '';
       const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
 
       card.innerHTML = `
-        ${iconHtml}
+        ${visualHtml}
         <div class="drop-card-name">${escapeHtml(r.name)}</div>
         <div class="drop-card-rarity" style="color: ${r.rarityColor || '#cbd5e1'};">${rarNames[r.rarity] || r.rarity}</div>
         ${dupHtml}
@@ -4018,7 +4184,80 @@ const WizardVault = (() => {
 
   function finishUnboxing() {
     const unbox = document.getElementById('vaultUnboxingArea');
+    const stage = document.getElementById('vaultUnboxingStage');
+    const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+    const chestModel = document.getElementById('vaultChestInteractive');
     if (unbox) unbox.style.display = 'none';
+    if (dropsArea) dropsArea.style.display = 'none';
+    if (stage) stage.style.display = 'flex';
+    if (chestModel) chestModel.className = 'chest-3d-model tier-wooden';
+    activeUnboxingTier = null;
+    isUnboxingAnimationRunning = false;
+  }
+
+  function getCosmeticVisualHtml(item, singularType) {
+    if (!item) return '<div style="font-size:32px;line-height:48px;height:48px;margin-bottom:6px;">📜</div>';
+    let type = singularType || item.singularType || item.type || '';
+    if (type.endsWith('s')) type = type.slice(0, -1);
+
+    if (type === 'avatar_icon') {
+      const isCustom = (item.id || '').startsWith('icon_');
+      const img = item.image || (`/images/avatars/${item.id}.${isCustom ? 'png' : 'svg'}`);
+      const rarCol = (vaultData && vaultData.rarityConfig && vaultData.rarityConfig[item.rarity]) ? vaultData.rarityConfig[item.rarity].color : '#fbbf24';
+      return `<img src="${img}" alt="" style="width:52px;height:52px;border-radius:50%;object-fit:cover;margin-bottom:6px;border:2px solid ${rarCol};box-shadow:0 3px 10px rgba(0,0,0,0.6);">`;
+    }
+
+    if (type === 'card_back') {
+      const themeClass = `cardback-theme-${item.id}`;
+      const icon = item.icon || '🃏';
+      return `
+        <div class="cosmetic-mini-cardback ${themeClass}" title="${escapeHtml(item.name || '')}">
+          <div class="cosmetic-mini-cardback-inner">${icon}</div>
+        </div>
+      `;
+    }
+
+    if (type === 'table_skin') {
+      const themeClass = `table-theme-${item.id}`;
+      const icon = item.icon || '🟢';
+      return `
+        <div class="cosmetic-mini-table ${themeClass}" title="${escapeHtml(item.name || '')}">
+          <span>${icon}</span>
+        </div>
+      `;
+    }
+
+    if (type === 'avatar_frame') {
+      const frameId = item.id || 'none';
+      return `
+        <div class="seat-avatar frame-${frameId}" style="width:48px;height:54px;font-size:22px;margin-bottom:6px;box-shadow:0 3px 8px rgba(0,0,0,0.6);" title="${escapeHtml(item.name || '')}">
+          <img src="/images/avatars/wizard_blue.svg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+        </div>
+      `;
+    }
+
+    if (type === 'lobby_background') {
+      const themeClass = `lobby-theme-${item.id}`;
+      const icon = item.icon || '🏰';
+      return `
+        <div class="cosmetic-mini-lobby ${themeClass}" title="${escapeHtml(item.name || '')}">
+          <span>${icon}</span>
+        </div>
+      `;
+    }
+
+    if (type === 'title') {
+      return `
+        <div class="cosmetic-mini-title" title="${escapeHtml(item.name || '')}">
+          <span>📜</span>
+        </div>
+      `;
+    }
+
+    if (item.image) {
+      return `<img src="${item.image}" alt="" style="width:50px;height:50px;border-radius:6px;object-fit:cover;margin-bottom:6px;">`;
+    }
+    return `<div style="font-size:32px;line-height:48px;height:48px;margin-bottom:6px;">${item.icon || '📜'}</div>`;
   }
 
   function claimMilestone(id) {
@@ -4105,14 +4344,7 @@ const WizardVault = (() => {
       const card = document.createElement('div');
       card.className = `cosmetic-item-card ${isEquipped ? 'equipped' : ''} ${!isOwned ? 'locked' : ''}`;
 
-      let visualHtml = '';
-      if (item.image) {
-        visualHtml = `<img src="${item.image}" alt="" style="width:48px;height:48px;border-radius:6px;object-fit:cover;margin-bottom:6px;">`;
-      } else if (item.icon) {
-        visualHtml = `<div style="font-size:32px;line-height:48px;height:48px;margin-bottom:6px;">${item.icon}</div>`;
-      } else {
-        visualHtml = `<div style="font-size:26px;line-height:48px;height:48px;margin-bottom:6px;">📜</div>`;
-      }
+      const visualHtml = getCosmeticVisualHtml(item, singularType);
 
       let btnHtml = '';
       if (isEquipped) {
@@ -4220,14 +4452,7 @@ const WizardVault = (() => {
       const cost = meta.dustCost || 60;
       const canAfford = (dust >= cost);
 
-      let visualHtml = '';
-      if (item.image) {
-        visualHtml = `<img src="${item.image}" alt="" style="width:52px;height:52px;border-radius:6px;object-fit:cover;margin-bottom:6px;">`;
-      } else if (item.icon) {
-        visualHtml = `<div style="font-size:36px;line-height:52px;height:52px;margin-bottom:6px;">${item.icon}</div>`;
-      } else {
-        visualHtml = `<div style="font-size:28px;line-height:52px;height:52px;margin-bottom:6px;">📜</div>`;
-      }
+      const visualHtml = getCosmeticVisualHtml(item, item.singularType);
 
       card.innerHTML = `
         ${visualHtml}
@@ -4429,22 +4654,27 @@ const WizardVault = (() => {
     const btnFinish = document.getElementById('btnFinishUnboxing');
     if (btnFinish) btnFinish.addEventListener('click', finishUnboxing);
 
-    const wardrobePills = document.querySelectorAll('#vaultPanelWardrobe .cosmetic-cat-pill');
+    const chestInteractive = document.getElementById('vaultChestInteractive');
+    if (chestInteractive) {
+      chestInteractive.addEventListener('click', handleChestClick);
+    }
+
+    const wardrobePills = document.querySelectorAll('#vaultPanelWardrobe .cosmetics-filter-pill, #vaultPanelWardrobe .cosmetic-cat-pill');
     wardrobePills.forEach(pill => {
       pill.addEventListener('click', () => {
         wardrobePills.forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
-        currentWardrobeCategory = pill.dataset.cat || 'avatar_icons';
+        currentWardrobeCategory = pill.dataset.category || pill.dataset.cat || 'avatar_icons';
         renderWardrobeItems();
       });
     });
 
-    const forgePills = document.querySelectorAll('#vaultPanelForge .forge-cat-pill');
+    const forgePills = document.querySelectorAll('#vaultPanelForge .cosmetics-filter-pill, #vaultPanelForge .forge-cat-pill');
     forgePills.forEach(pill => {
       pill.addEventListener('click', () => {
         forgePills.forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
-        currentForgeCategory = pill.dataset.cat || 'all';
+        currentForgeCategory = pill.dataset.forgeCategory || pill.dataset.category || pill.dataset.cat || 'all';
         renderForge();
       });
     });
@@ -4492,8 +4722,13 @@ const WizardVault = (() => {
     fetchVaultState,
     updateBadges,
     equipItem,
+    openChest,
+    handleChestClick,
+    getCosmeticVisualHtml,
     getVaultData: () => vaultData,
     renderWardrobe,
+    renderWardrobeItems,
+    renderForge,
     showMatchProgression: onMatchProgressionSummary
   };
 })();
