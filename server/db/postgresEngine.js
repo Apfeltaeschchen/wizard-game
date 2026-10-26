@@ -1,6 +1,10 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const dns = require('dns');
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
 const {
   COSMETICS_CATALOG,
   RARITY_CONFIG,
@@ -44,6 +48,18 @@ function createPostgresEngine(connectionStringOrConfig, sharedHelpers) {
 
     if (connStr && isCloudHost) {
       poolConfig.ssl = poolConfig.ssl || { rejectUnauthorized: false };
+    }
+
+    // Render Free-Tier Container besitzen kein IPv6-Routing (führt zu connect ENETUNREACH).
+    // Erzwinge immer IPv4 für Cloud-Datenbank-Verbindungen:
+    if (!poolConfig.lookup) {
+      poolConfig.lookup = (hostname, options, callback) => {
+        if (typeof options === 'function') {
+          callback = options;
+          options = {};
+        }
+        return dns.lookup(hostname, { ...options, family: 4 }, callback);
+      };
     }
 
     if (connStr.includes('****')) {

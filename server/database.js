@@ -1,3 +1,8 @@
+const dns = require('dns');
+if (typeof dns.setDefaultResultOrder === 'function') {
+  dns.setDefaultResultOrder('ipv4first');
+}
+
 const sharedHelpers = require('./db/sharedHelpers');
 const { createSqliteEngine } = require('./db/sqliteEngine');
 const { createPostgresEngine } = require('./db/postgresEngine');
