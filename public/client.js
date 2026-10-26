@@ -4072,12 +4072,20 @@ const WizardVault = (() => {
     modal.style.display = 'flex';
     switchTab(typeof targetTab === 'string' ? targetTab : 'chests');
     fetchVaultState();
+    if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.preloadChestVideos) {
+      VaultVideoEngine.preloadChestVideos('wooden');
+      VaultVideoEngine.preloadChestVideos('silver');
+      VaultVideoEngine.preloadChestVideos('gold');
+    }
   }
 
   function closeVault() {
     const modal = document.getElementById('vault-modal');
     if (modal) modal.style.display = 'none';
     if (typeof finishUnboxing === 'function') finishUnboxing();
+    if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.cleanup) {
+      VaultVideoEngine.cleanup();
+    }
   }
 
   function switchTab(tab) {
@@ -4586,7 +4594,9 @@ const WizardVault = (() => {
     const w = canvasRect.width || 450;
     const h = canvasRect.height || 480;
 
-    const chestEl = document.getElementById('vaultChestInteractive');
+    const videoStage = document.getElementById('vaultVideoStage');
+    const isVideo = videoStage && videoStage.style.display !== 'none';
+    const chestEl = isVideo ? videoStage : document.getElementById('vaultChestInteractive');
     let ox = w / 2;
     let oy = h * 0.35;
     if (chestEl) {
@@ -4960,6 +4970,234 @@ const WizardVault = (() => {
     return false;
   }
 
+  // =========================================================================
+  // METHODE A: KINOREIFE VIDEO LOOTBOX ENGINE (RIOT / BLIZZARD PIPELINE)
+  // Hardware-beschleunigtes Video mit CSS mix-blend-mode: screen Transparenz
+  // =========================================================================
+  const VaultVideoEngine = {
+    currentTier: null,
+    pendingData: null,
+    pendingApexCallback: null,
+    hasApexReachedTime: false,
+    hasApexFired: false,
+    apexSafetyTimer: null,
+    timeUpdateHandler: null,
+
+    getElements() {
+      return {
+        stage: document.getElementById('vaultVideoStage'),
+        fallbackStage: document.getElementById('vaultChestInteractive'),
+        videoIdle: document.getElementById('vaultChestVideoIdle'),
+        videoOpen: document.getElementById('vaultChestVideoOpen'),
+        flashOverlay: document.getElementById('vaultChestFlashOverlay')
+      };
+    },
+
+    getVideoExtension(videoEl) {
+      try {
+        const v = videoEl || document.createElement('video');
+        if (v && v.canPlayType) {
+          const canMp4 = v.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"').replace(/no/, '') || v.canPlayType('video/mp4').replace(/no/, '');
+          const canWebm = v.canPlayType('video/webm; codecs="vp9"').replace(/no/, '') || v.canPlayType('video/webm').replace(/no/, '');
+          if (!canMp4 && canWebm) return 'webm';
+        }
+      } catch (e) {}
+      return 'mp4';
+    },
+
+    preloadChestVideos(tier) {
+      if (!tier) return;
+      this.currentTier = tier;
+      const { videoIdle, videoOpen } = this.getElements();
+      if (!videoIdle || !videoOpen) return;
+
+      const ext = this.getVideoExtension(videoIdle);
+      const idleSrc = `video/chests/chest_${tier}_idle.${ext}`;
+      const openSrc = `video/chests/chest_${tier}_open.${ext}`;
+
+      if (!videoIdle.src || !videoIdle.src.includes(`chest_${tier}_idle`)) {
+        videoIdle.src = idleSrc;
+        videoIdle.load();
+      }
+      if (!videoOpen.src || !videoOpen.src.includes(`chest_${tier}_open`)) {
+        videoOpen.src = openSrc;
+        videoOpen.load();
+      }
+    },
+
+    playIdle(tier) {
+      this.currentTier = tier;
+      this.clearTimers();
+      this.hasApexFired = false;
+      this.hasApexReachedTime = false;
+      this.pendingData = null;
+      this.pendingApexCallback = null;
+
+      const { stage, fallbackStage, videoIdle, videoOpen } = this.getElements();
+      if (!stage || !videoIdle || !videoOpen) {
+        this.fallbackToCss();
+        return;
+      }
+
+      this.preloadChestVideos(tier);
+
+      stage.className = `vault-video-stage tier-${tier}`;
+      stage.classList.remove('shaking');
+      stage.style.display = 'flex';
+      if (fallbackStage) fallbackStage.style.display = 'none';
+
+      videoIdle.style.display = 'block';
+      videoOpen.style.display = 'none';
+      videoOpen.pause();
+      try { videoOpen.currentTime = 0; } catch (e) {}
+
+      try { videoIdle.currentTime = 0; } catch (e) {}
+      const playPromise = videoIdle.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          if (err && err.name === 'AbortError') return;
+          console.warn('[VaultVideoEngine] Idle Autoplay blocked, falling back to CSS stage:', err);
+          this.fallbackToCss();
+        });
+      }
+    },
+
+    setChestData(data) {
+      this.pendingData = data;
+      if (this.hasApexReachedTime && !this.hasApexFired) {
+        this.fireApexOnce();
+      }
+    },
+
+    fireApexOnce() {
+      if (this.hasApexFired) return;
+      this.hasApexFired = true;
+      this.clearTimers();
+      if (typeof this.pendingApexCallback === 'function') {
+        this.pendingApexCallback(this.pendingData);
+      }
+    },
+
+    playOpen(data, onApex) {
+      this.clearTimers();
+      this.hasApexFired = false;
+      this.hasApexReachedTime = false;
+
+      // Polymorphe Signatur: playOpen(onApex) ODER playOpen(data, onApex)
+      if (typeof data === 'function' && !onApex) {
+        this.pendingApexCallback = data;
+        this.pendingData = null;
+      } else {
+        this.pendingApexCallback = onApex;
+        this.pendingData = data;
+      }
+
+      const { stage, videoIdle, videoOpen } = this.getElements();
+      if (!stage || !videoOpen || stage.style.display === 'none') {
+        if (typeof this.pendingApexCallback === 'function') {
+          this.pendingApexCallback(this.pendingData);
+        }
+        return;
+      }
+
+      stage.classList.remove('shaking');
+      if (videoIdle) {
+        videoIdle.pause();
+        videoIdle.style.display = 'none';
+      }
+
+      videoOpen.style.display = 'block';
+      try { videoOpen.currentTime = 0; } catch (e) {}
+
+      // Timestamp-Synchronisation (Marker bei Scheitelpunkt ~0.65s)
+      this.timeUpdateHandler = () => {
+        if (videoOpen.currentTime >= 0.62) {
+          this.hasApexReachedTime = true;
+          if (this.pendingData) {
+            this.fireApexOnce();
+          }
+        }
+      };
+      videoOpen.addEventListener('timeupdate', this.timeUpdateHandler);
+
+      // Sicherheitspuffer falls timeupdate blockiert oder verzögert wird
+      this.apexSafetyTimer = setTimeout(() => {
+        this.hasApexReachedTime = true;
+        if (this.pendingData) {
+          this.fireApexOnce();
+        }
+      }, 750);
+
+      const playPromise = videoOpen.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(err => {
+          if (err && err.name === 'AbortError') return;
+          console.warn('[VaultVideoEngine] Open Video blocked, executing apex immediately:', err);
+          this.hasApexReachedTime = true;
+          if (this.pendingData) {
+            this.fireApexOnce();
+          }
+          this.fallbackToCss();
+        });
+      }
+    },
+
+    fallbackToCss() {
+      const { stage, fallbackStage, videoIdle, videoOpen } = this.getElements();
+      if (videoIdle) {
+        videoIdle.pause();
+        videoIdle.style.display = 'none';
+      }
+      if (videoOpen) {
+        videoOpen.pause();
+        videoOpen.style.display = 'none';
+      }
+      if (stage) stage.style.display = 'none';
+      if (fallbackStage) {
+        fallbackStage.style.display = 'flex';
+        fallbackStage.classList.remove('shaking', 'opened', 'bursting');
+      }
+    },
+
+    clearTimers() {
+      if (this.apexSafetyTimer) {
+        clearTimeout(this.apexSafetyTimer);
+        this.apexSafetyTimer = null;
+      }
+      const { videoOpen } = this.getElements();
+      if (videoOpen && this.timeUpdateHandler) {
+        videoOpen.removeEventListener('timeupdate', this.timeUpdateHandler);
+        this.timeUpdateHandler = null;
+      }
+    },
+
+    cleanup() {
+      this.clearTimers();
+      this.hasApexFired = false;
+      this.hasApexReachedTime = false;
+      this.pendingData = null;
+      this.pendingApexCallback = null;
+      const { stage, fallbackStage, videoIdle, videoOpen } = this.getElements();
+      if (videoIdle) {
+        videoIdle.pause();
+        try { videoIdle.currentTime = 0; } catch (e) {}
+      }
+      if (videoOpen) {
+        videoOpen.pause();
+        try { videoOpen.currentTime = 0; } catch (e) {}
+        videoOpen.style.display = 'none';
+      }
+      if (stage) {
+        stage.classList.remove('shaking');
+        stage.style.display = 'flex';
+      }
+      if (fallbackStage) {
+        fallbackStage.classList.remove('shaking', 'opened', 'bursting', 'has-open-sprite');
+        fallbackStage.style.display = 'none';
+      }
+    }
+  };
+
   function openChest(tier) {
     if (unboxingApexTimer) { clearTimeout(unboxingApexTimer); unboxingApexTimer = null; }
     if (unboxingStageTimer) { clearTimeout(unboxingStageTimer); unboxingStageTimer = null; }
@@ -4992,6 +5230,9 @@ const WizardVault = (() => {
     };
     if (titleEl) titleEl.innerText = tNames[tier] || 'Arkane Schatztruhe';
     if (subTitle) subTitle.innerText = 'Ein uraltes Relikt der Zitadelle erwacht...';
+
+    // Methode A: Video-Bühne aktivieren & vorladen
+    VaultVideoEngine.playIdle(tier);
 
     if (chestModel) {
       chestModel.className = `stylized-chest-wrapper chest-artwork-container chest-3d-model tier-${tier}`;
@@ -5038,14 +5279,26 @@ const WizardVault = (() => {
     isUnboxingAnimationRunning = true;
     chestClickStartTime = Date.now();
 
+    const videoStage = document.getElementById('vaultVideoStage');
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
 
-    if (chestModel) {
-      chestModel.classList.remove('opened', 'bursting', 'has-open-sprite');
-      chestModel.classList.add('shaking');
+    const isVideoMode = videoStage && videoStage.style.display !== 'none';
+
+    if (isVideoMode) {
+      // Umschalten von Idle auf Öffnungsvideo beim Klick mit sofortigem play()
+      VaultVideoEngine.playOpen(null, (d) => {
+        executeChestApex(d);
+      });
+    } else {
+      if (videoStage) videoStage.classList.add('shaking');
+      if (chestModel) {
+        chestModel.classList.remove('opened', 'bursting', 'has-open-sprite');
+        chestModel.classList.add('shaking');
+      }
     }
+
     if (prompt) prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
     if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
 
@@ -5057,6 +5310,21 @@ const WizardVault = (() => {
     const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
     if (socket && socket.connected) {
       socket.emit('vault:openChest', { chestType: activeUnboxingTier, token });
+    } else {
+      // Offline / Demo Fallback
+      setTimeout(() => {
+        onChestOpened({
+          success: true,
+          chestType: activeUnboxingTier,
+          rewards: [
+            { itemType: 'avatar_frame', itemId: 'frame_arcane_gold', name: 'Arkaner Goldrahmen', rarity: 'legendary' },
+            { itemType: 'card_back', itemId: 'deck_runic_amber', name: 'Runen-Deck', rarity: 'rare' },
+            { itemType: 'title', itemId: 'title_archmage', name: 'Erzmagier der Zitadelle', rarity: 'epic' }
+          ],
+          astralDustGained: 0,
+          currentDust: 150
+        });
+      }, 350);
     }
   }
 
@@ -5068,8 +5336,13 @@ const WizardVault = (() => {
     if (!data || !data.success) {
       showToast(data ? data.error : 'Fehler beim Öffnen der Truhe');
       isUnboxingAnimationRunning = false;
+      const videoStage = document.getElementById('vaultVideoStage');
       const chestModel = document.getElementById('vaultChestInteractive');
+      if (videoStage) videoStage.classList.remove('shaking');
       if (chestModel) chestModel.classList.remove('shaking');
+      if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.playIdle) {
+        VaultVideoEngine.playIdle(activeUnboxingTier);
+      }
       return;
     }
     if (data.user) {
@@ -5078,19 +5351,27 @@ const WizardVault = (() => {
       renderChests();
     }
 
-    const elapsed = Date.now() - chestClickStartTime;
-    const remainingRumble = Math.max(0, 750 - elapsed);
+    const videoStage = document.getElementById('vaultVideoStage');
+    const isVideoMode = videoStage && videoStage.style.display !== 'none';
 
-    if (unboxingApexTimer) clearTimeout(unboxingApexTimer);
-    unboxingApexTimer = setTimeout(() => {
-      unboxingApexTimer = null;
-      if (!activeUnboxingTier) return;
-      executeChestApex(data);
-    }, remainingRumble);
+    if (isVideoMode) {
+      VaultVideoEngine.setChestData(data);
+    } else {
+      const elapsed = Date.now() - chestClickStartTime;
+      const remainingRumble = Math.max(0, 750 - elapsed);
+
+      if (unboxingApexTimer) clearTimeout(unboxingApexTimer);
+      unboxingApexTimer = setTimeout(() => {
+        unboxingApexTimer = null;
+        if (!activeUnboxingTier) return;
+        executeChestApex(data);
+      }, remainingRumble);
+    }
   }
 
   function executeChestApex(data) {
     if (!activeUnboxingTier) return;
+    const safeData = data || { chestType: activeUnboxingTier, rewards: [] };
 
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
@@ -5117,7 +5398,7 @@ const WizardVault = (() => {
     }
 
     // Sprite-Swap bei Apex falls Bild-Element vorhanden
-    if (data.chestType === 'gold' && imgOpen && imgClosed) {
+    if (safeData.chestType === 'gold' && imgOpen && imgClosed) {
       if (chestModel) chestModel.classList.add('has-open-sprite');
       imgOpen.style.display = 'block';
     }
@@ -5133,7 +5414,7 @@ const WizardVault = (() => {
 
     let highestRarity = 'common';
     let highestRank = 1;
-    (data.rewards || []).forEach(r => {
+    (safeData.rewards || []).forEach(r => {
       const rKey = (r.rarity || 'common').toLowerCase();
       const rank = rarityRank[rKey] || 1;
       if (rank > highestRank) {
@@ -5150,17 +5431,17 @@ const WizardVault = (() => {
     }
 
     // Schockwellen, Lichtsäulen & Partikelfontäne
-    triggerChestBurstFx(burstColor, data.chestType);
+    triggerChestBurstFx(burstColor, safeData.chestType);
 
     // Overwatch-Kometen & Sternschnuppenschauer starten
-    launchComets(data.rewards || [], data);
+    launchComets(safeData.rewards || [], safeData);
 
     // Gestaffelter Loot-Aufstieg als Rückfallebene
     if (unboxingStageTimer) clearTimeout(unboxingStageTimer);
     unboxingStageTimer = setTimeout(() => {
       unboxingStageTimer = null;
       if (!activeUnboxingTier) return;
-      showUnboxingStage(data, false);
+      showUnboxingStage(safeData, false);
       isUnboxingAnimationRunning = false;
     }, 1800);
   }
@@ -5268,6 +5549,10 @@ const WizardVault = (() => {
     if (unboxingFlashTimer) {
       clearTimeout(unboxingFlashTimer);
       unboxingFlashTimer = null;
+    }
+
+    if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.cleanup) {
+      VaultVideoEngine.cleanup();
     }
 
     const unbox = document.getElementById('vaultUnboxingArea');
@@ -5954,6 +6239,22 @@ const WizardVault = (() => {
     const chestInteractive = document.getElementById('vaultChestInteractive');
     if (chestInteractive) {
       chestInteractive.addEventListener('click', handleChestClick);
+      chestInteractive.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleChestClick();
+        }
+      });
+    }
+    const videoStage = document.getElementById('vaultVideoStage');
+    if (videoStage) {
+      videoStage.addEventListener('click', handleChestClick);
+      videoStage.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleChestClick();
+        }
+      });
     }
 
     const wardrobePills = document.querySelectorAll('#vaultPanelWardrobe .cosmetics-filter-pill, #vaultPanelWardrobe .cosmetic-cat-pill');
@@ -6026,7 +6327,8 @@ const WizardVault = (() => {
     renderWardrobe,
     renderWardrobeItems,
     renderForge,
-    showMatchProgression: onMatchProgressionSummary
+    showMatchProgression: onMatchProgressionSummary,
+    VaultVideoEngine
   };
 })();
 if (typeof window !== 'undefined') window.WizardVault = WizardVault;
@@ -6394,8 +6696,11 @@ function switchScreen(screenName) {
   gameScreen.style.display = (screenName === 'game') ? 'flex' : 'none';
 
   if (screenName === 'game') {
-    if (typeof WizardVault !== 'undefined' && WizardVault.closeVault) {
-      WizardVault.closeVault();
+    if (typeof WizardVault !== 'undefined') {
+      if (WizardVault.closeVault) WizardVault.closeVault();
+      if (WizardVault.VaultVideoEngine && WizardVault.VaultVideoEngine.cleanup) {
+        WizardVault.VaultVideoEngine.cleanup();
+      }
     } else if (typeof closeVault === 'function') {
       closeVault();
     }

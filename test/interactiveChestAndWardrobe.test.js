@@ -55,6 +55,15 @@ assert.ok(indexHtml.includes('@keyframes chestRumble'), '@keyframes chestRumble 
 assert.ok(indexHtml.includes('@keyframes floatChest'), '@keyframes floatChest vorhanden');
 assert.ok(indexHtml.includes('.btn-drop-equip'), 'CSS für .btn-drop-equip vorhanden');
 
+// Methode A: Video-Bühne & Screen-Blend CSS prüfen
+assert.ok(indexHtml.includes('id="vaultVideoStage"'), '#vaultVideoStage vorhanden');
+assert.ok(indexHtml.includes('id="vaultChestVideoIdle"'), '#vaultChestVideoIdle vorhanden');
+assert.ok(indexHtml.includes('id="vaultChestVideoOpen"'), '#vaultChestVideoOpen vorhanden');
+assert.ok(indexHtml.includes('mix-blend-mode: screen'), 'CSS für mix-blend-mode: screen vorhanden');
+assert.ok(indexHtml.includes('transform: translateZ(0)'), 'CSS für transform: translateZ(0) Hardware-Beschleunigung vorhanden');
+assert.ok(indexHtml.includes('.video-ambient-glow'), 'CSS für .video-ambient-glow vorhanden');
+assert.ok(indexHtml.includes('transform: translate(-50%, -50%) scale('), 'peakFlash Keyframes behalten Zentrierung translate(-50%, -50%) bei');
+
 // Echte Truhen-Artworks in public/images/chests prüfen
 const chestsDir = path.join(__dirname, '../public/images/chests');
 assert.ok(fs.existsSync(path.join(chestsDir, 'chest_wooden_closed.png')), 'chest_wooden_closed.png existiert');
@@ -62,7 +71,24 @@ assert.ok(fs.existsSync(path.join(chestsDir, 'chest_silver_closed.png')), 'chest
 assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold_closed.png')), 'chest_gold_closed.png existiert');
 assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold_open.png')), 'chest_gold_open.png existiert');
 
-console.log('✓ 2. Unboxing-Bühne, Canvas-FX Layer & Artwork-Assets verifiziert.');
+// Methode A: Echte Truhen-Videos in public/video/chests prüfen (alle 12 Assets: MP4 & WebM)
+const videoChestsDir = path.join(__dirname, '../public/video/chests');
+const requiredVideos = [
+  'chest_wooden_idle.mp4', 'chest_wooden_idle.webm',
+  'chest_wooden_open.mp4', 'chest_wooden_open.webm',
+  'chest_silver_idle.mp4', 'chest_silver_idle.webm',
+  'chest_silver_open.mp4', 'chest_silver_open.webm',
+  'chest_gold_idle.mp4', 'chest_gold_idle.webm',
+  'chest_gold_open.mp4', 'chest_gold_open.webm'
+];
+for (const vidName of requiredVideos) {
+  const p = path.join(videoChestsDir, vidName);
+  assert.ok(fs.existsSync(p), `Video existiert: ${vidName}`);
+  const stat = fs.statSync(p);
+  assert.ok(stat.size > 50000, `Videogröße von ${vidName} ist valide (>50KB): ${stat.size} Bytes`);
+}
+
+console.log('✓ 2. Unboxing-Bühne, Methode A Video-Assets (12/12 MP4 & WebM), Canvas-FX Layer & Artwork-Assets verifiziert.');
 
 // [3/5] Überprüfe Garderoben-Visuals, Zero-Crude-Icons & Raumwelten-Artworks
 console.log('[3/5] Überprüfe Bildvorschauen, Zero-Crude-Icons & Raumwelten-Artworks...');
@@ -118,9 +144,18 @@ assert.ok(clientJs.includes('wardrobe:equip'), 'wardrobe:equip Socket-Event auf 
 // Sicherstellen, dass kein redundanter doppelter Event-Emit auf Beutekarten existiert
 assert.ok(!clientJs.includes("socket.emit('wardrobe:equip', { itemType: targetType, itemId: targetId, token });\n            socket.emit('vault:equip'"), 'Kein redundanter Doppel-Emit von wardrobe:equip und vault:equip auf Beutekarte');
 assert.ok(clientJs.includes('chestInteractive.addEventListener(\'click\', handleChestClick)'), 'Klick-Handler auf 3D-Truhe registriert');
+assert.ok(clientJs.includes('videoStage.addEventListener(\'click\', handleChestClick)'), 'Klick-Handler auf Video-Bühne registriert');
+assert.ok(clientJs.includes("e.key === 'Enter' || e.key === ' '"), 'Tastatur-Entriegelung (Enter/Space) für Video-Bühne registriert');
+assert.ok(clientJs.includes('VaultVideoEngine'), 'VaultVideoEngine in client.js implementiert');
+assert.ok(clientJs.includes('preloadChestVideos'), 'preloadChestVideos Methode implementiert');
+assert.ok(clientJs.includes('playOpen'), 'playOpen mit Scheitelpunkt-Synchronisation implementiert');
+assert.ok(clientJs.includes('setChestData'), 'setChestData für Scheitelpunkt-Synchronisation implementiert');
+assert.ok(clientJs.includes('getVideoExtension') || clientJs.includes('canPlayType'), 'Codec-Erkennung für MP4/WebM vorhanden');
+assert.ok(clientJs.includes('timeupdate'), 'timeupdate Apex-Synchronisation implementiert');
+assert.ok(clientJs.includes('VaultVideoEngine.cleanup()'), 'VaultVideoEngine.cleanup() aufgerufen');
 assert.ok(clientJs.includes("if (screenName === 'game')"), 'Concurrency-Schutz bei Spielstart vorhanden');
 assert.ok(clientJs.includes('WizardVault.closeVault()') || clientJs.includes('closeVault()'), 'closeVault() bei Spielstart aufgerufen');
-console.log('✓ 4. Klick-Entriegelung, Canvas-FX, Direktausrüstung & Spielstart-Schutz verifiziert.');
+console.log('✓ 4. Klick-Entriegelung, Methode A VaultVideoEngine, Canvas-FX & Spielstart-Schutz verifiziert.');
 
 // [5/5] Überprüfe Persistentes Account- & Kosmetik-Backup (Zero Data Loss)
 console.log('[5/5] Überprüfe Persistentes Account- & Kosmetik-Backup...');
