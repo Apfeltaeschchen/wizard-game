@@ -25,7 +25,11 @@ function createPostgresEngine(connectionStringOrConfig, sharedHelpers) {
       : (connectionStringOrConfig || {});
 
     // SSL-Handhabung für Cloud-Hosts (Render, Supabase, Neon, AWS RDS etc.)
-    const connStr = poolConfig.connectionString || process.env.DATABASE_URL || '';
+    let connStr = poolConfig.connectionString || process.env.DATABASE_URL || '';
+    if (typeof connStr === 'string') {
+      connStr = connStr.trim().replace(/^['"]|['"]$/g, '');
+      poolConfig.connectionString = connStr;
+    }
     const isCloudHost = connStr.includes('render.com') ||
       connStr.includes('supabase') ||
       connStr.includes('neon.tech') ||
@@ -34,8 +38,8 @@ function createPostgresEngine(connectionStringOrConfig, sharedHelpers) {
       process.env.PGSSLMODE === 'require' ||
       process.env.NODE_ENV === 'production';
 
-    if (connStr && !poolConfig.ssl && isCloudHost) {
-      poolConfig.ssl = { rejectUnauthorized: false };
+    if (connStr && isCloudHost) {
+      poolConfig.ssl = poolConfig.ssl || { rejectUnauthorized: false };
     }
 
     pool = new Pool(poolConfig);
