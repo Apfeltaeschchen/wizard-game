@@ -3,6 +3,23 @@ if (typeof dns.setDefaultResultOrder === 'function') {
   dns.setDefaultResultOrder('ipv4first');
 }
 
+// Globaler IPv4-Enforcer für Cloud-Container (Render / Docker ohne IPv6-Gateway)
+const originalDnsLookup = dns.lookup;
+dns.lookup = function(hostname, options, callback) {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  if (typeof options === 'object' && options !== null) {
+    if (!options.family || options.family === 0) {
+      options = { ...options, family: 4 };
+    }
+  } else if (typeof options === 'number' && options === 0) {
+    options = 4;
+  }
+  return originalDnsLookup.call(dns, hostname, options, callback);
+};
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');

@@ -3,6 +3,26 @@ if (typeof dns.setDefaultResultOrder === 'function') {
   dns.setDefaultResultOrder('ipv4first');
 }
 
+// Globaler IPv4-Enforcer für Cloud-Container (Render / Docker ohne IPv6-Gateway)
+if (!dns.__ipv4Enforced) {
+  dns.__ipv4Enforced = true;
+  const originalDnsLookup = dns.lookup;
+  dns.lookup = function(hostname, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    if (typeof options === 'object' && options !== null) {
+      if (!options.family || options.family === 0) {
+        options = { ...options, family: 4 };
+      }
+    } else if (typeof options === 'number' && options === 0) {
+      options = 4;
+    }
+    return originalDnsLookup.call(dns, hostname, options, callback);
+  };
+}
+
 const sharedHelpers = require('./db/sharedHelpers');
 const { createSqliteEngine } = require('./db/sqliteEngine');
 const { createPostgresEngine } = require('./db/postgresEngine');
