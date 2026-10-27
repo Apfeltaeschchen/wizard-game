@@ -57,6 +57,9 @@ assert.ok(indexHtml.includes('.btn-drop-equip'), 'CSS für .btn-drop-equip vorha
 
 // Weg 2: Lottie-Bühne & Vektor-Badges prüfen
 assert.ok(indexHtml.includes('id="vaultLottieContainer"'), '#vaultLottieContainer vorhanden');
+assert.ok(indexHtml.includes('id="vaultArcaneChest"'), '#vaultArcaneChest vorhanden');
+assert.ok(indexHtml.includes('.mystery-card-wrap'), 'CSS für .mystery-card-wrap (3D Card Flip) vorhanden');
+assert.ok(indexHtml.includes('id="btnFlipAllCards"'), '#btnFlipAllCards vorhanden');
 assert.ok(indexHtml.includes('class="vault-lottie-container'), '.vault-lottie-container CSS-Klasse vorhanden');
 assert.ok(indexHtml.includes('.chest-vector-badge'), 'CSS für .chest-vector-badge vorhanden');
 assert.ok(indexHtml.includes('badge-tier-wooden'), 'Vektor-Badge für Holztruhe vorhanden');
@@ -66,7 +69,7 @@ assert.ok(!indexHtml.includes('images/chests/chest_wooden_closed.png'), 'Altes B
 assert.ok(!indexHtml.includes('images/chests/chest_silver_closed.png'), 'Altes Bitmap-Artwork für Silbertruhe sauber entfernt');
 assert.ok(!indexHtml.includes('images/chests/chest_gold_closed.png'), 'Altes Bitmap-Artwork für Goldkassette sauber entfernt');
 assert.ok(indexHtml.includes('src="js/lottie.min.js"'), 'lottie.min.js Script-Tag eingebunden');
-assert.ok(indexHtml.includes('client.js?v=20261027_lottie_chests'), 'Cache-Busting auf v=20261027_lottie_chests aktualisiert');
+assert.ok(indexHtml.includes('client.js?v=20261027_arcane_cards_truhe'), 'Cache-Busting auf v=20261027_arcane_cards_truhe aktualisiert');
 
 // Lottie-Web Bibliothek lokal prüfen
 const lottieJsPath = path.join(__dirname, '../public/js/lottie.min.js');

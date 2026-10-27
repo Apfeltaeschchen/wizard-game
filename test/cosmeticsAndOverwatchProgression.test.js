@@ -78,7 +78,7 @@ assert.strictEqual(prog5.newLevel, 5);
 assert.strictEqual(prog5.chestsAwarded.silver, 1);
 assert.strictEqual(prog5.chestsAwarded.wooden, 0);
 
-// Levelaufstieg: Erreichen von Stufe 10 -> Goldene Kassette
+// Levelaufstieg: Erreichen von Stufe 10 -> Goldene Truhe
 const prog10 = calculateLevelProgress(9, 950, 100); // Level 10
 assert.strictEqual(prog10.newLevel, 10);
 assert.strictEqual(prog10.chestsAwarded.gold, 1);
@@ -95,8 +95,8 @@ const silverRoll = rollChestRewards('silver', []);
 assert.strictEqual(silverRoll.rewards.length, 3, 'Silbertruhe muss 3 Gegenstände droppen');
 
 const goldRoll = rollChestRewards('gold', []);
-assert.strictEqual(goldRoll.rewards.length, 4, 'Goldkassette muss 4 Gegenstände droppen');
-// Garantiertes Episch/Legendär im letzten Slot der Goldkassette
+assert.strictEqual(goldRoll.rewards.length, 4, 'Goldtruhe muss 4 Gegenstände droppen');
+// Garantiertes Episch/Legendär im letzten Slot der Goldtruhe
 const lastItemRarity = goldRoll.rewards[3].rarity;
 assert(['epic', 'legendary'].includes(lastItemRarity), `Letzter Slot muss epic oder legendary sein, war: ${lastItemRarity}`);
 

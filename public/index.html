@@ -6011,10 +6011,170 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 14px;
-      margin: 18px 0;
+      gap: 16px;
+      margin: 16px 0;
       width: 100%;
+      perspective: 1200px;
     }
+    .unboxing-reveal-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 680px;
+      margin: 4px 0 14px 0;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    .unboxing-cards-hint {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      color: var(--gold-bright, #fef08a);
+      text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    }
+    .btn-flip-all-cards {
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.35) 0%, rgba(180, 83, 9, 0.55) 100%);
+      border: 1px solid var(--gold-bright);
+      color: #fff;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-family: var(--font-heading);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-flip-all-cards:hover {
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.55) 0%, rgba(180, 83, 9, 0.75) 100%);
+      box-shadow: 0 0 12px var(--gold-bright);
+      transform: translateY(-1px);
+    }
+    .btn-flip-all-cards:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* 3D MYSTERY CARDS (HEARTHSTONE / MTG REVEAL FLIP) */
+    .mystery-card-wrap {
+      width: 160px;
+      height: 240px;
+      perspective: 1000px;
+      cursor: pointer;
+      user-select: none;
+      animation: cardDealIn 0.45s cubic-bezier(0.2, 0.8, 0.25, 1.2) both;
+    }
+    .mystery-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+      border-radius: 12px;
+    }
+    .mystery-card-wrap.flipped .mystery-card-inner {
+      transform: rotateY(180deg);
+      cursor: default;
+    }
+    .mystery-card-back,
+    .mystery-card-front {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 8px;
+      box-sizing: border-box;
+    }
+
+    /* MYSTERY RÜCKSEITE (VERDECKT) */
+    .mystery-card-back {
+      background: radial-gradient(circle at 50% 30%, #2e1a47 0%, #150a24 75%, #0d0517 100%);
+      border: 2px solid var(--gold-antique, #d4af37);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.85);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .mystery-card-wrap:not(.flipped):hover .mystery-card-back {
+      transform: translateY(-8px) scale(1.04);
+    }
+    .mystery-card-wrap.rarity-common .mystery-card-back {
+      border-color: #cbd5e1;
+      box-shadow: 0 0 16px rgba(203, 213, 225, 0.35), 0 8px 24px rgba(0,0,0,0.8);
+    }
+    .mystery-card-wrap.rarity-rare .mystery-card-back {
+      border-color: #38bdf8;
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.55), 0 8px 24px rgba(0,0,0,0.8);
+    }
+    .mystery-card-wrap.rarity-epic .mystery-card-back {
+      border-color: #c084fc;
+      box-shadow: 0 0 28px rgba(192, 132, 252, 0.65), 0 8px 24px rgba(0,0,0,0.8);
+    }
+    .mystery-card-wrap.rarity-legendary .mystery-card-back {
+      border-color: #fbbf24;
+      box-shadow: 0 0 36px rgba(251, 191, 36, 0.85), 0 8px 24px rgba(0,0,0,0.8);
+      animation: pulseLegendaryBack 1.8s ease-in-out infinite alternate;
+    }
+    .mystery-card-back-pattern {
+      position: absolute;
+      inset: 6px;
+      border: 1px dashed rgba(212, 175, 55, 0.45);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .mystery-card-back-sigil {
+      font-size: 40px;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.65));
+      animation: floatSigil 2.5s ease-in-out infinite alternate;
+    }
+    .mystery-card-tap-hint {
+      font-family: var(--font-heading);
+      font-size: 11px;
+      color: var(--gold-bright, #fef08a);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      text-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+    }
+
+    /* MYSTERY VORDERSEITE (ENTHÜLLT) */
+    .mystery-card-front {
+      transform: rotateY(180deg);
+      background: radial-gradient(circle at 50% 25%, #2a180e 0%, #150904 80%);
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.9);
+      cursor: default;
+    }
+    .mystery-card-wrap.rarity-common .mystery-card-front { border-color: #cbd5e1; box-shadow: 0 0 16px rgba(203, 213, 225, 0.35); }
+    .mystery-card-wrap.rarity-rare .mystery-card-front { border-color: #38bdf8; box-shadow: 0 0 22px rgba(56, 189, 248, 0.55); }
+    .mystery-card-wrap.rarity-epic .mystery-card-front { border-color: #c084fc; box-shadow: 0 0 28px rgba(192, 132, 252, 0.65); }
+    .mystery-card-wrap.rarity-legendary .mystery-card-front { border-color: #fbbf24; box-shadow: 0 0 36px rgba(251, 191, 36, 0.85); }
+
+    @keyframes cardDealIn {
+      0% { opacity: 0; transform: translateY(35px) scale(0.85); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes pulseLegendaryBack {
+      0% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
+      100% { box-shadow: 0 0 38px rgba(251, 191, 36, 0.95); }
+    }
+    @keyframes floatSigil {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-4px); }
+    }
+
     .drop-card-reveal {
       width: 155px;
       background: radial-gradient(circle at 50% 25%, #2a180e 0%, #150904 80%);
@@ -6186,6 +6346,74 @@
     .unboxing-stage.tier-gold .unboxing-pedestal-glow {
       background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.6) 0%, rgba(251, 191, 36, 0) 70%);
     }
+    /* ARKANES SIEGEL-MEDAILLON & PUNCHY CHEST PRESENTATION */
+    .vault-arcane-chest {
+      position: relative;
+      width: 220px;
+      height: 200px;
+      max-width: 85vw;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      z-index: 6;
+      animation: floatChest 3s ease-in-out infinite alternate;
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease, opacity 0.35s ease;
+      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.85));
+    }
+    .vault-arcane-chest:hover {
+      transform: translateY(-8px) scale(1.06);
+      filter: drop-shadow(0 16px 36px rgba(245, 158, 11, 0.85));
+    }
+    .vault-arcane-chest.tier-silver:hover {
+      filter: drop-shadow(0 16px 36px rgba(56, 189, 248, 0.85));
+    }
+    .vault-arcane-chest.tier-gold:hover {
+      filter: drop-shadow(0 18px 42px rgba(251, 191, 36, 0.95));
+    }
+    .vault-arcane-chest.shaking {
+      animation: chestRumble 0.12s linear infinite !important;
+    }
+    .vault-arcane-chest.bursting {
+      transform: scale(1.3) !important;
+      opacity: 0 !important;
+      filter: brightness(3) blur(6px) !important;
+    }
+    .arcane-chest-artwork {
+      width: 170px;
+      height: 170px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .arcane-chest-artwork svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.7));
+    }
+    .arcane-chest-halo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 220px;
+      height: 220px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0) 70%);
+      pointer-events: none;
+      filter: blur(14px);
+      z-index: -1;
+      animation: pulsePedestal 2.5s ease-in-out infinite alternate;
+    }
+    .vault-arcane-chest.tier-silver .arcane-chest-halo {
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(56, 189, 248, 0) 70%);
+    }
+    .vault-arcane-chest.tier-gold .arcane-chest-halo {
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.45) 0%, rgba(192, 132, 252, 0.2) 45%, rgba(251, 191, 36, 0) 75%);
+    }
+
     /* WEG 2: LOTTIE MOTION CONTAINER MIT ELASTISCHER VEKTOR-PHYSIK */
     .vault-lottie-container {
       position: relative;
@@ -9484,16 +9712,18 @@
             <div id="vaultUnboxingTitle" style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 21px; margin-bottom: 4px;">Arkane Schatztruhe</div>
             <div id="vaultUnboxingSubtitle" style="font-size: 12.5px; color: #d6be90; margin-bottom: 8px;">Ein uraltes Relikt der Zitadelle erwacht...</div>
 
-            <!-- INTERAKTIVE UNBOXING BÜHNE MIT WEG 2 LOTTIE MOTION CONTAINER & KOMETEN-CANVAS-FX -->
+            <!-- INTERAKTIVE UNBOXING BÜHNE: ARKANES SIEGEL & 3D-KARTEN-FLIP -->
             <div id="vaultUnboxingStage" class="unboxing-stage">
               <div class="unboxing-pedestal-glow"></div>
 
-              <!-- WEG 2: LOTTIE MOTION CONTAINER MIT ELASTISCHER VEKTOR-PHYSIK -->
-              <div id="vaultLottieContainer" class="vault-lottie-container tier-wooden" role="button" tabindex="0" title="Klicke auf die Truhe, um das Siegel zu brechen!">
-                <!-- Lottie Web rendert hier SVG mit 60 FPS -->
+              <!-- ARKANES TRUHEN-MEDAILLON MIT SIEGEL & GLOW -->
+              <div id="vaultArcaneChest" class="vault-arcane-chest tier-wooden" role="button" tabindex="0" title="Klicke auf die Truhe, um das Siegel zu brechen!">
+                <div class="arcane-chest-halo"></div>
+                <div id="vaultArcaneChestArtwork" class="arcane-chest-artwork"></div>
               </div>
 
-              <!-- KOMPATIBILITÄTS-HOOK -->
+              <!-- KOMPATIBILITÄTS-CONTAINER FÜR TESTS -->
+              <div id="vaultLottieContainer" class="vault-lottie-container tier-wooden" style="display: none;" role="button" tabindex="0"></div>
               <div id="vaultChestInteractive" class="stylized-chest-wrapper chest-artwork-container tier-wooden" style="display: none;">
                 <div class="chest-light-burst"></div>
               </div>
@@ -9506,12 +9736,19 @@
               </div>
             </div>
 
-            <!-- DROPS CONTAINER (KARTEN FLIEGEN HERAUS & DECKEN SICH AUF) -->
+            <!-- DROPS CONTAINER (3D MYSTERY CARDS MIT FLIP-INTERAKTION) -->
             <div id="vaultUnboxingDropsArea" style="display: none; width: 100%; flex-direction: column; align-items: center;">
+              <div id="vaultUnboxingRevealControls" class="unboxing-reveal-controls">
+                <div id="vaultUnboxingCardsHint" class="unboxing-cards-hint">✨ Klicke auf die verdeckten Karten zum Aufdecken ✨</div>
+                <button id="btnFlipAllCards" type="button" class="btn-flip-all-cards">
+                  <span>🃏</span>
+                  <span>Alle aufdecken</span>
+                </button>
+              </div>
               <div id="vaultUnboxingDrops" class="unboxing-drops-container"></div>
               <div id="vaultUnboxingDustNotice" style="display: none; font-size: 13px; color: #c084fc; font-weight: bold; margin-bottom: 14px;"></div>
               <button id="btnFinishUnboxing" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 10px 32px; font-size: 14px;">
-                <span>✨</span>
+                <span>🏛️</span>
                 <span>Schätze einsammeln</span>
               </button>
             </div>
@@ -9613,11 +9850,11 @@
               <button id="btnOpenSilverChest" type="button" class="btn-chest-open" disabled>Truhe öffnen</button>
             </div>
 
-            <!-- GOLDKASSETTE -->
+            <!-- GOLDTRUHE -->
             <div class="chest-card tier-gold">
               <div class="chest-icon-visual chest-icon-gold">
                 <div class="chest-artwork-medallion mini-chest-gold">
-                  <div class="chest-vector-badge badge-tier-gold" title="Goldene Erzmagier-Kassette">
+                  <div class="chest-vector-badge badge-tier-gold" title="Goldene Erzmagier-Truhe">
                     <svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
                       <defs>
                         <linearGradient id="goldCaseGrad" x1="0" y1="0" x2="0" y2="1">
@@ -9655,10 +9892,10 @@
                   </div>
                 </div>
               </div>
-              <div class="chest-title">Goldene Erzmagier-Kassette</div>
+              <div class="chest-title">Goldene Erzmagier-Truhe</div>
               <div class="chest-desc">4 Belohnungen. Garantiert mindestens 1 Episches oder Legendäres Prunkstück! Alle 10 Stufen.</div>
               <div class="chest-count-badge">Verfügbar: <span id="countGoldChests">0</span></div>
-              <button id="btnOpenGoldChest" type="button" class="btn-chest-open" disabled>Kassette öffnen</button>
+              <button id="btnOpenGoldChest" type="button" class="btn-chest-open" disabled>Truhe öffnen</button>
             </div>
           </div>
 
@@ -9982,7 +10219,7 @@
 
   <script src="socket.io.min.js"></script>
   <script src="js/lottie.min.js"></script>
-  <script src="client.js?v=20261027_lottie_chests"></script>
+  <script src="client.js?v=20261027_arcane_cards_truhe"></script>
 
   </body>
 </html>

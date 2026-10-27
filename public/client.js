@@ -4260,7 +4260,7 @@ const WizardVault = (() => {
 
       let rewardText = '';
       if (m.reward.type === 'chest') {
-        const tNames = { wooden: '🪵 Holztruhe', silver: '🥈 Silbertruhe', gold: '👑 Goldkassette' };
+        const tNames = { wooden: '🪵 Holztruhe', silver: '🥈 Silbertruhe', gold: '👑 Goldtruhe' };
         rewardText = `${m.reward.amount}x ${tNames[m.reward.chestType] || 'Truhe'}`;
       } else if (m.reward.type === 'dust') {
         rewardText = `✨ ${m.reward.amount} Astralstaub`;
@@ -4314,6 +4314,8 @@ const WizardVault = (() => {
   let unboxingApexTimer = null;
   let unboxingStageTimer = null;
   let unboxingFlashTimer = null;
+  let pendingChestOpenData = null;
+  let hasApexReached = false;
 
   // --- 60-FPS CANVAS FX ENGINE & OVERWATCH-KOMETEN-PHYSIK ---
   let chestFxCanvas = null;
@@ -5193,6 +5195,63 @@ const WizardVault = (() => {
   // Rückwärtskompatibles Alias für etwaige Alt-Referenzen
   const VaultVideoEngine = VaultLottieEngine;
 
+  function getChestVectorSvg(tier) {
+    if (tier === 'gold') {
+      return `<svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="vGoldCaseGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fffbeb" /><stop offset="25%" stop-color="#fde68a" /><stop offset="60%" stop-color="#fbbf24" /><stop offset="85%" stop-color="#d97706" /><stop offset="100%" stop-color="#78350f" /></linearGradient>
+          <linearGradient id="vRoyalVelvetGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#581c87" /><stop offset="100%" stop-color="#2e1065" /></linearGradient>
+          <radialGradient id="vDragonRubyGrad" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffe4e6" /><stop offset="35%" stop-color="#f43f5e" /><stop offset="70%" stop-color="#e11d48" /><stop offset="100%" stop-color="#881337" /></radialGradient>
+        </defs>
+        <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#vGoldCaseGrad)" stroke="#fde68a" stroke-width="1.5" />
+        <rect x="13" y="30" width="38" height="18" rx="2" fill="url(#vRoyalVelvetGrad)" stroke="#fbbf24" stroke-width="0.8" />
+        <path d="M6,26 C6,14 16,10 32,10 C48,10 58,14 58,26 Z" fill="url(#vGoldCaseGrad)" stroke="#fffbeb" stroke-width="1.5" />
+        <rect x="17" y="11" width="7" height="41" rx="1.5" fill="url(#vGoldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
+        <rect x="40" y="11" width="7" height="41" rx="1.5" fill="url(#vGoldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
+        <circle cx="20.5" cy="17" r="1.3" fill="#ffffff" /><circle cx="20.5" cy="31" r="1.3" fill="#ffffff" /><circle cx="20.5" cy="46" r="1.3" fill="#ffffff" />
+        <circle cx="43.5" cy="17" r="1.3" fill="#ffffff" /><circle cx="43.5" cy="31" r="1.3" fill="#ffffff" /><circle cx="43.5" cy="46" r="1.3" fill="#ffffff" />
+        <path d="M25,26 C28,23 36,23 39,26 L36,33 L28,33 Z" fill="url(#vGoldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
+        <circle cx="32" cy="28.5" r="3.6" fill="url(#vDragonRubyGrad)" stroke="#ffe4e6" stroke-width="0.8" />
+      </svg>`;
+    }
+    if (tier === 'silver') {
+      return `<svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="vSilverPlateGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f8fafc" /><stop offset="30%" stop-color="#cbd5e1" /><stop offset="70%" stop-color="#64748b" /><stop offset="100%" stop-color="#334155" /></linearGradient>
+          <linearGradient id="vMithrilCyanGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7dd3fc" /><stop offset="50%" stop-color="#0284c7" /><stop offset="100%" stop-color="#0369a1" /></linearGradient>
+          <radialGradient id="vFrostSapphireGrad" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#e0f2fe" /><stop offset="45%" stop-color="#38bdf8" /><stop offset="100%" stop-color="#0369a1" /></radialGradient>
+        </defs>
+        <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#vSilverPlateGrad)" stroke="#e2e8f0" stroke-width="1.5" />
+        <path d="M14,32 L26,46 M50,32 L38,46" stroke="#94a3b8" stroke-width="1" opacity="0.4" />
+        <path d="M6,26 C6,15 16,11 32,11 C48,11 58,15 58,26 Z" fill="url(#vSilverPlateGrad)" stroke="#e2e8f0" stroke-width="1.5" />
+        <rect x="17" y="12" width="7" height="40" rx="1.5" fill="url(#vMithrilCyanGrad)" stroke="#bae6fd" stroke-width="0.8" />
+        <rect x="40" y="12" width="7" height="40" rx="1.5" fill="url(#vMithrilCyanGrad)" stroke="#bae6fd" stroke-width="0.8" />
+        <circle cx="20.5" cy="18" r="1.3" fill="#ffffff" /><circle cx="20.5" cy="31" r="1.3" fill="#ffffff" /><circle cx="20.5" cy="46" r="1.3" fill="#ffffff" />
+        <circle cx="43.5" cy="18" r="1.3" fill="#ffffff" /><circle cx="43.5" cy="31" r="1.3" fill="#ffffff" /><circle cx="43.5" cy="46" r="1.3" fill="#ffffff" />
+        <polygon points="32,22 38,28 32,34 26,28" fill="url(#vMithrilCyanGrad)" stroke="#38bdf8" stroke-width="1" />
+        <circle cx="32" cy="28" r="3.4" fill="url(#vFrostSapphireGrad)" stroke="#e0f2fe" stroke-width="1" />
+      </svg>`;
+    }
+    // Default wooden
+    return `<svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="vWoodPlankGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#854d0e" /><stop offset="50%" stop-color="#5c3317" /><stop offset="100%" stop-color="#3b1d08" /></linearGradient>
+        <linearGradient id="vIronBandGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#64748b" /><stop offset="50%" stop-color="#334155" /><stop offset="100%" stop-color="#1e293b" /></linearGradient>
+        <radialGradient id="vAmberGemGrad" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#fef08a" /><stop offset="45%" stop-color="#f59e0b" /><stop offset="100%" stop-color="#92400e" /></radialGradient>
+      </defs>
+      <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#vWoodPlankGrad)" stroke="#a16207" stroke-width="1.5" />
+      <line x1="8" y1="34" x2="56" y2="34" stroke="#2a1406" stroke-width="1" opacity="0.6" />
+      <line x1="8" y1="43" x2="56" y2="43" stroke="#2a1406" stroke-width="1" opacity="0.6" />
+      <path d="M6,26 C6,16 16,12 32,12 C48,12 58,16 58,26 Z" fill="url(#vWoodPlankGrad)" stroke="#a16207" stroke-width="1.5" />
+      <rect x="18" y="13" width="6" height="39" rx="1" fill="url(#vIronBandGrad)" stroke="#64748b" stroke-width="0.8" />
+      <rect x="40" y="13" width="6" height="39" rx="1" fill="url(#vIronBandGrad)" stroke="#64748b" stroke-width="0.8" />
+      <circle cx="21" cy="18" r="1.2" fill="#94a3b8" /><circle cx="21" cy="30" r="1.2" fill="#94a3b8" /><circle cx="21" cy="46" r="1.2" fill="#94a3b8" />
+      <circle cx="43" cy="18" r="1.2" fill="#94a3b8" /><circle cx="43" cy="30" r="1.2" fill="#94a3b8" /><circle cx="43" cy="46" r="1.2" fill="#94a3b8" />
+      <rect x="27" y="24" width="10" height="11" rx="2" fill="url(#vIronBandGrad)" stroke="#d97706" stroke-width="1" />
+      <circle cx="32" cy="29" r="3.2" fill="url(#vAmberGemGrad)" stroke="#fef3c7" stroke-width="0.8" />
+    </svg>`;
+  }
+
   function openChest(tier) {
     if (unboxingApexTimer) { clearTimeout(unboxingApexTimer); unboxingApexTimer = null; }
     if (unboxingStageTimer) { clearTimeout(unboxingStageTimer); unboxingStageTimer = null; }
@@ -5200,15 +5259,20 @@ const WizardVault = (() => {
 
     activeUnboxingTier = tier;
     isUnboxingAnimationRunning = false;
+    pendingChestOpenData = null;
+    hasApexReached = false;
 
     const unbox = document.getElementById('vaultUnboxingArea');
     const stage = document.getElementById('vaultUnboxingStage');
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+    const arcaneChest = document.getElementById('vaultArcaneChest');
+    const arcaneChestArtwork = document.getElementById('vaultArcaneChestArtwork');
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const titleEl = document.getElementById('vaultUnboxingTitle');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
+    const btnFlipAll = document.getElementById('btnFlipAllCards');
 
     if (!unbox) return;
 
@@ -5218,18 +5282,31 @@ const WizardVault = (() => {
       stage.className = `unboxing-stage tier-${tier}`;
     }
     if (dropsArea) dropsArea.style.display = 'none';
+    if (btnFlipAll) {
+      btnFlipAll.disabled = false;
+      btnFlipAll.style.display = 'flex';
+    }
 
     const tNames = {
       wooden: 'Holztruhe des Lehrlings',
       silver: 'Silberne Magiertruhe',
-      gold: 'Goldene Erzmagier-Kassette'
+      gold: 'Goldene Erzmagier-Truhe'
     };
     if (titleEl) titleEl.innerText = tNames[tier] || 'Arkane Schatztruhe';
     if (subTitle) subTitle.innerText = 'Ein uraltes Relikt der Zitadelle erwacht...';
 
-    // Weg 2: Lottie Vektor-Bühne initialisieren & Idle-Atmen starten
-    VaultLottieEngine.init(tier);
+    if (arcaneChest) {
+      arcaneChest.className = `vault-arcane-chest tier-${tier}`;
+      arcaneChest.classList.remove('shaking', 'bursting');
+    }
+    if (arcaneChestArtwork) {
+      arcaneChestArtwork.innerHTML = getChestVectorSvg(tier);
+    }
 
+    // Abwärtskompatibilität für Tests & Lottie
+    if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.init) {
+      VaultLottieEngine.init(tier);
+    }
     if (chestModel) {
       chestModel.className = `stylized-chest-wrapper chest-artwork-container tier-${tier}`;
       chestModel.classList.remove('shaking', 'opened', 'bursting');
@@ -5256,22 +5333,18 @@ const WizardVault = (() => {
     isUnboxingAnimationRunning = true;
     chestClickStartTime = Date.now();
 
+    const arcaneChest = document.getElementById('vaultArcaneChest');
     const lottieStage = document.getElementById('vaultLottieContainer');
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
 
-    if (lottieStage) {
-      lottieStage.classList.add('shaking');
-    }
+    if (arcaneChest) arcaneChest.classList.add('shaking');
+    if (lottieStage) lottieStage.classList.add('shaking');
     if (chestModel) {
       chestModel.classList.remove('opened', 'bursting');
       chestModel.classList.add('shaking');
     }
-
-    VaultLottieEngine.playOpen(null, (d) => {
-      executeChestApex(d);
-    });
 
     if (prompt) prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
     if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
@@ -5280,6 +5353,15 @@ const WizardVault = (() => {
       if (WizardAudio.playChestUnlock) WizardAudio.playChestUnlock();
       if (WizardAudio.playChestRumble) WizardAudio.playChestRumble();
     }
+
+    // Präziser Scheitelpunkt-Trigger nach kurzem, sattem Rumble (360ms)
+    unboxingApexTimer = setTimeout(() => {
+      unboxingApexTimer = null;
+      hasApexReached = true;
+      if (pendingChestOpenData) {
+        executeChestApex(pendingChestOpenData);
+      }
+    }, 360);
 
     const token = (typeof WizardAuth !== 'undefined') ? WizardAuth.getToken() : null;
     if (socket && socket.connected) {
@@ -5310,13 +5392,12 @@ const WizardVault = (() => {
     if (!data || !data.success) {
       showToast(data ? data.error : 'Fehler beim Öffnen der Truhe');
       isUnboxingAnimationRunning = false;
+      const arcaneChest = document.getElementById('vaultArcaneChest');
       const lottieStage = document.getElementById('vaultLottieContainer');
       const chestModel = document.getElementById('vaultChestInteractive');
+      if (arcaneChest) arcaneChest.classList.remove('shaking');
       if (lottieStage) lottieStage.classList.remove('shaking');
       if (chestModel) chestModel.classList.remove('shaking');
-      if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.init) {
-        VaultLottieEngine.init(activeUnboxingTier);
-      }
       return;
     }
     if (data.user) {
@@ -5325,21 +5406,27 @@ const WizardVault = (() => {
       renderChests();
     }
 
-    VaultLottieEngine.setChestData(data);
+    pendingChestOpenData = data;
+    if (hasApexReached || !isUnboxingAnimationRunning) {
+      executeChestApex(data);
+    }
   }
 
   function executeChestApex(data) {
     if (!activeUnboxingTier) return;
     const safeData = data || { chestType: activeUnboxingTier, rewards: [] };
 
+    const arcaneChest = document.getElementById('vaultArcaneChest');
     const lottieStage = document.getElementById('vaultLottieContainer');
     const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
-    if (lottieStage) {
-      lottieStage.classList.remove('shaking');
+    if (arcaneChest) {
+      arcaneChest.classList.remove('shaking');
+      arcaneChest.classList.add('bursting');
     }
+    if (lottieStage) lottieStage.classList.remove('shaking');
     if (chestModel) {
       chestModel.classList.remove('shaking');
       chestModel.classList.add('opened', 'bursting');
@@ -5355,12 +5442,10 @@ const WizardVault = (() => {
       unboxingFlashTimer = setTimeout(() => {
         unboxingFlashTimer = null;
         if (flashOverlay) flashOverlay.classList.remove('active');
-      }, 700);
+      }, 600);
     }
 
-
-
-    // Dynamische Partikelfarbe nach höchster Seltenheit
+    // Höchste Seltenheit ermitteln
     const rarityRank = { common: 1, rare: 2, epic: 3, legendary: 4 };
     const rarityColors = {
       legendary: '#fbbf24',
@@ -5383,52 +5468,48 @@ const WizardVault = (() => {
     const burstColor = rarityColors[highestRarity] || '#fbbf24';
 
     if (typeof WizardAudio !== 'undefined') {
-      if (WizardAudio.playLidPop) WizardAudio.playLidPop();
       if (WizardAudio.playChestBurst) WizardAudio.playChestBurst();
+      else if (WizardAudio.playLidPop) WizardAudio.playLidPop();
     }
 
-    // Schockwellen, Lichtsäulen & Partikelfontäne
+    // Schockwelle & Partikel
     triggerChestBurstFx(burstColor, safeData.chestType);
 
-    // Overwatch-Kometen & Sternschnuppenschauer starten
-    launchComets(safeData.rewards || [], safeData);
-
-    // Gestaffelter Loot-Aufstieg als Rückfallebene
+    // Nach 380ms (im Zentrum des Blitzes): Wechsle zur 3D-Kartenbühne
     if (unboxingStageTimer) clearTimeout(unboxingStageTimer);
     unboxingStageTimer = setTimeout(() => {
       unboxingStageTimer = null;
       if (!activeUnboxingTier) return;
-      showUnboxingStage(safeData, false);
+      showUnboxingStage(safeData);
       isUnboxingAnimationRunning = false;
-    }, 1800);
+    }, 380);
   }
 
-  function showUnboxingStage(data, pendingCometMode) {
+  function showUnboxingStage(data) {
+    const stage = document.getElementById('vaultUnboxingStage');
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const dropsCont = document.getElementById('vaultUnboxingDrops');
     const titleEl = document.getElementById('vaultUnboxingTitle');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
     const dustNotice = document.getElementById('vaultUnboxingDustNotice');
+    const cardsHint = document.getElementById('vaultUnboxingCardsHint');
+    const btnFlipAll = document.getElementById('btnFlipAllCards');
+
     if (!dropsArea || !dropsCont) return;
 
+    if (stage) stage.style.display = 'none';
     dropsArea.style.display = 'flex';
-
-    if (!pendingCometMode && dropsCont.children.length > 0) {
-      const pendingCards = dropsCont.querySelectorAll('.drop-card-reveal.pending-comet');
-      if (pendingCards.length > 0) {
-        pendingCards.forEach((c) => {
-          c.classList.remove('pending-comet');
-          c.classList.add('revealed');
-        });
-      }
-      return;
-    }
-
     dropsCont.innerHTML = '';
 
-    const tNames = { wooden: 'Holztruhe', silver: 'Silberne Magiertruhe', gold: 'Goldene Erzmagier-Kassette' };
+    const tNames = { wooden: 'Holztruhe', silver: 'Silberne Magiertruhe', gold: 'Goldene Erzmagier-Truhe' };
     if (titleEl) titleEl.innerText = `${tNames[data.chestType] || 'Truhe'} geöffnet!`;
-    if (subTitle) subTitle.innerText = 'Deine neuen Schätze:';
+    if (subTitle) subTitle.innerText = 'Die Schicksalskarten haben sich manifestiert:';
+
+    if (cardsHint) cardsHint.innerHTML = '✨ Klicke auf die verdeckten Karten zum Aufdecken ✨';
+    if (btnFlipAll) {
+      btnFlipAll.disabled = false;
+      btnFlipAll.style.display = 'flex';
+    }
 
     if (dustNotice) {
       if (data.totalDustGained > 0) {
@@ -5441,10 +5522,11 @@ const WizardVault = (() => {
 
     const rewards = data.rewards || [];
     rewards.forEach((r, idx) => {
-      const card = document.createElement('div');
-      const baseClass = `drop-card-reveal rarity-${r.rarity || 'common'}`;
-      card.className = pendingCometMode ? `${baseClass} pending-comet` : `${baseClass} revealed`;
-      card.style.animationDelay = `${idx * 0.18}s`;
+      const cardWrap = document.createElement('div');
+      const rarity = r.rarity || 'common';
+      cardWrap.className = `mystery-card-wrap drop-card-reveal rarity-${rarity}`;
+      cardWrap.dataset.index = idx;
+      cardWrap.style.animationDelay = `${idx * 0.1}s`;
 
       const itemType = r.type || r.singularType || '';
       const visualHtml = getCosmeticVisualHtml(r, itemType);
@@ -5456,16 +5538,31 @@ const WizardVault = (() => {
         ? `<button type="button" class="btn-drop-equip equipped" disabled><span>✓</span> Ausgerüstet</button>`
         : `<button type="button" class="btn-drop-equip" data-item-type="${itemType}" data-item-id="${r.id}"><span>⚡</span> Ausrüsten</button>`;
 
-      card.innerHTML = `
-        ${visualHtml}
-        <div class="drop-card-name">${escapeHtml(r.name)}</div>
-        <div class="drop-card-rarity" style="color: ${r.rarityColor || '#cbd5e1'};">${rarNames[r.rarity] || r.rarity}</div>
-        ${dupHtml}
-        ${equipBtnHtml}
+      cardWrap.innerHTML = `
+        <div class="mystery-card-inner">
+          <div class="mystery-card-back">
+            <div class="mystery-card-back-pattern"></div>
+            <div class="mystery-card-back-sigil">📜</div>
+            <div class="mystery-card-tap-hint">✨ Aufdecken</div>
+          </div>
+          <div class="mystery-card-front">
+            ${visualHtml}
+            <div class="drop-card-name">${escapeHtml(r.name)}</div>
+            <div class="drop-card-rarity" style="color: ${r.rarityColor || '#cbd5e1'};">${rarNames[rarity] || rarity}</div>
+            ${dupHtml}
+            ${equipBtnHtml}
+          </div>
+        </div>
       `;
 
-      // Direkte Ausrüstung auf der Beutekarte via socket.emit('wardrobe:equip')
-      const equipBtn = card.querySelector('.btn-drop-equip');
+      // Klick zum Aufdecken der einzelnen Karte
+      cardWrap.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-drop-equip')) return;
+        flipSingleCard(cardWrap, r);
+      });
+
+      // Direkte Ausrüstung auf der Beutekarte
+      const equipBtn = cardWrap.querySelector('.btn-drop-equip');
       if (equipBtn && !isEquipped) {
         equipBtn.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -5488,10 +5585,56 @@ const WizardVault = (() => {
         });
       }
 
-      dropsCont.appendChild(card);
+      dropsCont.appendChild(cardWrap);
     });
 
     fetchVaultState();
+  }
+
+  function flipSingleCard(cardWrap, itemData) {
+    if (!cardWrap || cardWrap.classList.contains('flipped')) return;
+    cardWrap.classList.add('flipped', 'revealed');
+
+    if (typeof WizardAudio !== 'undefined') {
+      if (itemData && (itemData.rarity === 'legendary' || itemData.rarity === 'epic')) {
+        if (WizardAudio.playLevelUp) WizardAudio.playLevelUp();
+        else if (WizardAudio.playCardSnap) WizardAudio.playCardSnap();
+      } else if (WizardAudio.playCardSnap) {
+        WizardAudio.playCardSnap();
+      }
+    }
+
+    checkAllCardsFlipped();
+  }
+
+  function handleFlipAllCards() {
+    const dropsCont = document.getElementById('vaultUnboxingDrops');
+    if (!dropsCont) return;
+    const cards = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
+    cards.forEach((card, i) => {
+      setTimeout(() => {
+        card.classList.add('flipped', 'revealed');
+        if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+          WizardAudio.playCardSnap();
+        }
+        if (i === cards.length - 1) {
+          checkAllCardsFlipped();
+        }
+      }, i * 140);
+    });
+  }
+
+  function checkAllCardsFlipped() {
+    const dropsCont = document.getElementById('vaultUnboxingDrops');
+    const cardsHint = document.getElementById('vaultUnboxingCardsHint');
+    const btnFlipAll = document.getElementById('btnFlipAllCards');
+    if (!dropsCont) return;
+
+    const remaining = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
+    if (remaining.length === 0) {
+      if (cardsHint) cardsHint.innerHTML = '🎉 <strong>Alle Schätze wurden enthüllt!</strong>';
+      if (btnFlipAll) btnFlipAll.disabled = true;
+    }
   }
 
   function finishUnboxing() {
@@ -5518,6 +5661,7 @@ const WizardVault = (() => {
     const stage = document.getElementById('vaultUnboxingStage');
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const chestModel = document.getElementById('vaultChestInteractive');
+    const arcaneChest = document.getElementById('vaultArcaneChest');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
     if (unbox) unbox.style.display = 'none';
@@ -5525,6 +5669,10 @@ const WizardVault = (() => {
     if (stage) {
       stage.style.display = 'flex';
       stage.className = 'unboxing-stage tier-wooden';
+    }
+    if (arcaneChest) {
+      arcaneChest.className = 'vault-arcane-chest tier-wooden';
+      arcaneChest.classList.remove('shaking', 'bursting');
     }
     if (chestModel) {
       chestModel.className = 'stylized-chest-wrapper chest-artwork-container tier-wooden';
@@ -5535,6 +5683,8 @@ const WizardVault = (() => {
     stopChestFx();
     activeUnboxingTier = null;
     isUnboxingAnimationRunning = false;
+    pendingChestOpenData = null;
+    hasApexReached = false;
   }
 
   function getCosmeticVisualHtml(item, singularType) {
@@ -6050,7 +6200,7 @@ const WizardVault = (() => {
             let awardedTier = 'wooden';
             const ca = data.chestsAwarded || {};
             if (ca.gold > 0) {
-              rewardTxt += `${ca.gold}x Goldene Erzmagier-Kassette 👑`;
+              rewardTxt += `${ca.gold}x Goldene Erzmagier-Truhe 👑`;
               awardedTier = 'gold';
             } else if (ca.silver > 0) {
               rewardTxt += `${ca.silver}x Silberne Magiertruhe 🥈`;
@@ -6193,6 +6343,22 @@ const WizardVault = (() => {
         }
       }
     });
+
+    const arcaneChest = document.getElementById('vaultArcaneChest');
+    if (arcaneChest) {
+      arcaneChest.addEventListener('click', handleChestClick);
+      arcaneChest.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleChestClick();
+        }
+      });
+    }
+
+    const btnFlipAll = document.getElementById('btnFlipAllCards');
+    if (btnFlipAll) {
+      btnFlipAll.addEventListener('click', handleFlipAllCards);
+    }
 
     const lottieContainer = document.getElementById('vaultLottieContainer');
     if (lottieContainer) {

@@ -139,7 +139,7 @@ flowchart TD
 ### 2. ✅ ETAPPE 6: Magische Schatztruhen (Lootboxen) & Kosmetik-Progression [ABGESCHLOSSEN]
 * **Overwatch 2-Style Progressionsmodell (100% FOSS & Zero-Pay-to-Win)**:
   - **Match-XP & Level-Ups**: Match-XP errechnet sich dynamisch aus Teilnahme (150 XP), gespielten Runden (15 XP/Runde), Vorhersage-Genauigkeit (30 XP/Treffer), Platzierung (1. Platz +200 XP, 2. Platz +100 XP, 3. Platz +50 XP) und Ranglisten-Bonus (+10%). Feste Schwelle: 1.000 XP pro Stufe.
-  - **Schatztruhen-Belohnungen**: Jedes reguläre Level gewährt eine Holztruhe (`🪵`), jede 5. Stufe eine Silberne Magiertruhe (`🥈`), jede 10. Stufe eine Goldene Erzmagier-Kassette (`👑`) plus exklusiven Meilenstein-Titel.
+  - **Schatztruhen-Belohnungen**: Jedes reguläre Level gewährt eine Holztruhe (`🪵`), jede 5. Stufe eine Silberne Magiertruhe (`🥈`), jede 10. Stufe eine Goldene Erzmagier-Truhe (`👑`) plus exklusiven Meilenstein-Titel.
   - **Wöchentliche Zitadellen-Herausforderungen**: 3 rotierende Wochen-Meilensteine mit garantierter Silber- und Goldtruhe.
 * **Fünf Kosmetik-Kategorien & Großes Portfolio**:
   - **Avatar-Porträts (Medaillons)**: 8 kunstvolle, handgefertigte Dark-Fantasy-Medaillons (Pyromant, Mondhexe, Hofnarr, Lindwurm, Waldnymphe, Nekromant, Vampir-Aristokrat, Sternen-Seherin) als 512×512 PNGs.

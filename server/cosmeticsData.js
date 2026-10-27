@@ -24,7 +24,7 @@ const CHEST_TIERS = {
     rarityChances: { common: 0.50, rare: 0.40, epic: 0.09, legendary: 0.01 }
   },
   gold: {
-    name: 'Goldene Erzmagier-Kassette',
+    name: 'Goldene Erzmagier-Truhe',
     icon: '👑',
     itemCount: 4,
     rarityChances: { common: 0.20, rare: 0.45, epic: 0.25, legendary: 0.10 }
