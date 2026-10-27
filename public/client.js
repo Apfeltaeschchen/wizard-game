@@ -4003,6 +4003,8 @@ const WizardVault = (() => {
     }
     const modal = document.getElementById('vault-modal');
     if (!modal) return;
+    const topBar = document.getElementById('vaultTopBar');
+    if (topBar) topBar.classList.remove('vault-top-bar-hidden');
     modal.style.display = 'flex';
     switchTab(typeof targetTab === 'string' ? targetTab : 'chests');
     fetchVaultState();
@@ -4011,11 +4013,18 @@ const WizardVault = (() => {
   function closeVault() {
     const modal = document.getElementById('vault-modal');
     if (modal) modal.style.display = 'none';
+    const topBar = document.getElementById('vaultTopBar');
+    if (topBar) topBar.classList.remove('vault-top-bar-hidden');
     if (typeof finishUnboxing === 'function') finishUnboxing();
   }
 
   function switchTab(tab) {
     currentTab = tab;
+    const topBar = document.getElementById('vaultTopBar');
+    if (topBar) topBar.classList.remove('vault-top-bar-hidden');
+    const vaultBody = document.querySelector('.vault-body');
+    if (vaultBody) vaultBody.scrollTop = 0;
+
     const tabChests = document.getElementById('tabVaultChests');
     const tabWardrobe = document.getElementById('tabVaultWardrobe');
     const tabForge = document.getElementById('tabVaultForge');
@@ -4734,7 +4743,10 @@ const WizardVault = (() => {
     const stage = document.getElementById('vaultUnboxingStage');
     const arcaneChest = document.getElementById('vaultArcaneChest');
     const arcaneChestArtwork = document.getElementById('vaultArcaneChestArtwork');
+    const modalChestArtwork = document.getElementById('vaultArcaneChestModalArtwork');
     const prompt = document.getElementById('vaultChestClickPrompt');
+    const podiumTitle = document.getElementById('vaultPodiumTitle');
+    const podiumSubTitle = document.getElementById('vaultPodiumSubtitle');
     const titleEl = document.getElementById('vaultUnboxingTitle');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
     const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
@@ -4745,14 +4757,19 @@ const WizardVault = (() => {
     if (btnUnboxClose) btnUnboxClose.style.display = 'none';
 
     if (!vaultData || !vaultData.user) {
-      if (titleEl) titleEl.innerText = 'Das Podest der Zitadelle';
-      if (subTitle) subTitle.innerText = 'Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!';
+      const emptyTitle = 'Das Podest der Zitadelle';
+      const emptySub = 'Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!';
+      if (podiumTitle) podiumTitle.innerText = emptyTitle;
+      if (podiumSubTitle) podiumSubTitle.innerText = emptySub;
+      if (titleEl) titleEl.innerText = emptyTitle;
+      if (subTitle) subTitle.innerText = emptySub;
       if (stage) stage.className = 'unboxing-stage';
       if (arcaneChest) {
         arcaneChest.className = 'vault-arcane-chest empty-podium';
         arcaneChest.classList.remove('shaking', 'bursting');
       }
       if (arcaneChestArtwork) arcaneChestArtwork.innerHTML = '';
+      if (modalChestArtwork) modalChestArtwork.innerHTML = '';
       if (prompt) {
         prompt.style.display = 'flex';
         prompt.classList.add('empty-state');
@@ -4787,29 +4804,42 @@ const WizardVault = (() => {
     };
 
     if (!activeTier) {
-      if (titleEl) titleEl.innerText = 'Das Podest der Zitadelle';
-      if (subTitle) subTitle.innerText = 'Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!';
+      const emptyTitle = 'Das Podest der Zitadelle';
+      const emptySub = 'Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!';
+      if (podiumTitle) podiumTitle.innerText = emptyTitle;
+      if (podiumSubTitle) podiumSubTitle.innerText = emptySub;
+      if (titleEl) titleEl.innerText = emptyTitle;
+      if (subTitle) subTitle.innerText = emptySub;
       if (stage) stage.className = 'unboxing-stage';
       if (arcaneChest) {
         arcaneChest.className = 'vault-arcane-chest empty-podium';
         arcaneChest.classList.remove('shaking', 'bursting');
       }
       if (arcaneChestArtwork) arcaneChestArtwork.innerHTML = '';
+      if (modalChestArtwork) modalChestArtwork.innerHTML = '';
       if (prompt) {
         prompt.style.display = 'flex';
         prompt.classList.add('empty-state');
         prompt.innerHTML = `<span>🔒</span><span>Keine Schatztruhen im Vorrat</span>`;
       }
     } else {
-      if (titleEl) titleEl.innerText = tNames[activeTier] || 'Arkane Schatztruhe';
-      if (subTitle) subTitle.innerText = 'Klicke auf die Truhe, um das Siegel zu brechen!';
+      const fullTitle = tNames[activeTier] || 'Arkane Schatztruhe';
+      const fullSub = 'Klicke auf die Truhe, um das Siegel zu brechen!';
+      if (podiumTitle) podiumTitle.innerText = fullTitle;
+      if (podiumSubTitle) podiumSubTitle.innerText = fullSub;
+      if (titleEl) titleEl.innerText = fullTitle;
+      if (subTitle) subTitle.innerText = fullSub;
       if (stage) stage.className = `unboxing-stage tier-${activeTier}`;
       if (arcaneChest) {
         arcaneChest.className = `vault-arcane-chest tier-${activeTier}`;
         arcaneChest.classList.remove('empty-podium', 'shaking', 'bursting');
       }
+      const artworkHtml = getChestArtworkHtml(activeTier);
       if (arcaneChestArtwork) {
-        arcaneChestArtwork.innerHTML = getChestArtworkHtml(activeTier);
+        arcaneChestArtwork.innerHTML = artworkHtml;
+      }
+      if (modalChestArtwork) {
+        modalChestArtwork.innerHTML = artworkHtml;
       }
       if (prompt) {
         prompt.style.display = 'flex';
@@ -4918,7 +4948,12 @@ const WizardVault = (() => {
   }
 
   function handleChestClick() {
-    if (isUnboxingAnimationRunning || !activeUnboxingTier) return;
+    if (isUnboxingAnimationRunning) return;
+    if (!activeUnboxingTier) {
+      activeUnboxingTier = selectedPodiumTier || getPrioritizedAvailableTier();
+    }
+    if (!activeUnboxingTier) return;
+
     const u = (vaultData && vaultData.user) || {};
     if ((u[`chests_${activeUnboxingTier}`] || 0) <= 0) {
       showToast('Keine Schatztruhe dieses Typs im Vorrat!');
@@ -4927,26 +4962,68 @@ const WizardVault = (() => {
     isUnboxingAnimationRunning = true;
     chestClickStartTime = Date.now();
 
-    const arcaneChest = document.getElementById('vaultArcaneChest');
-    const prompt = document.getElementById('vaultChestClickPrompt');
-    const subTitle = document.getElementById('vaultUnboxingSubtitle');
-    const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
+    // 1. Dediziertes Unboxing-Modal öffnen (100% sichtbare Ränder)
+    const modal = document.getElementById('vaultUnboxingModalOverlay');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
 
-    if (btnUnboxClose) btnUnboxClose.style.display = 'flex';
+    // 2. Bühne & Elemente im Modal konfigurieren
+    const stage = document.getElementById('vaultUnboxingStage');
+    const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+    const modalChest = document.getElementById('vaultArcaneChestModal');
+    const modalArtwork = document.getElementById('vaultArcaneChestModalArtwork');
+    const flashOverlay = document.getElementById('vaultChestFlashOverlay');
+    const promptModal = document.getElementById('vaultChestClickPromptModal');
+    const titleEl = document.getElementById('vaultUnboxingTitle');
+    const subTitle = document.getElementById('vaultUnboxingSubtitle');
+    const btnFlipAll = document.getElementById('btnFlipAllCards');
+
+    const tNames = {
+      wooden: 'Holztruhe des Lehrlings',
+      silver: 'Silberne Magiertruhe',
+      gold: 'Goldene Erzmagier-Truhe'
+    };
+
+    if (dropsArea) dropsArea.style.display = 'none';
+    if (stage) {
+      stage.style.display = 'flex';
+      stage.className = `unboxing-stage tier-${activeUnboxingTier}`;
+    }
+    if (modalChest) {
+      modalChest.className = `vault-arcane-chest tier-${activeUnboxingTier} shaking`;
+      modalChest.classList.remove('empty-podium', 'bursting');
+    }
+    if (modalArtwork) {
+      modalArtwork.innerHTML = getChestArtworkHtml(activeUnboxingTier);
+    }
+    if (flashOverlay) {
+      flashOverlay.classList.remove('active');
+    }
+    if (promptModal) {
+      promptModal.style.display = 'flex';
+      promptModal.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
+    }
+    if (titleEl) titleEl.innerText = tNames[activeUnboxingTier] || 'Arkane Schatztruhe';
+    if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
+
+    if (btnFlipAll) {
+      btnFlipAll.disabled = false;
+      btnFlipAll.style.display = 'flex';
+    }
+
+    // Auch die Vorschau auf dem Podest synchron schütteln
+    const arcaneChest = document.getElementById('vaultArcaneChest');
     if (arcaneChest) arcaneChest.classList.add('shaking');
 
-    if (prompt) {
-      prompt.classList.remove('empty-state');
-      prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
-    }
-    if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
+    initChestFxCanvas();
 
     if (typeof WizardAudio !== 'undefined') {
       if (WizardAudio.playChestUnlock) WizardAudio.playChestUnlock();
       if (WizardAudio.playChestRumble) WizardAudio.playChestRumble();
     }
 
-    // Präziser Scheitelpunkt-Trigger nach kurzem, sattem Rumble (360ms)
+    // Scheitelpunkt-Trigger nach kurzem Rumble (360ms)
     unboxingApexTimer = setTimeout(() => {
       unboxingApexTimer = null;
       hasApexReached = true;
@@ -4986,6 +5063,8 @@ const WizardVault = (() => {
       isUnboxingAnimationRunning = false;
       const arcaneChest = document.getElementById('vaultArcaneChest');
       if (arcaneChest) arcaneChest.classList.remove('shaking');
+      const modalChest = document.getElementById('vaultArcaneChestModal');
+      if (modalChest) modalChest.classList.remove('shaking');
       return;
     }
     if (data.user) {
@@ -5005,14 +5084,21 @@ const WizardVault = (() => {
     const safeData = data || { chestType: activeUnboxingTier, rewards: [] };
 
     const arcaneChest = document.getElementById('vaultArcaneChest');
+    const modalChest = document.getElementById('vaultArcaneChestModal');
     const prompt = document.getElementById('vaultChestClickPrompt');
+    const promptModal = document.getElementById('vaultChestClickPromptModal');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
     if (arcaneChest) {
       arcaneChest.classList.remove('shaking');
       arcaneChest.classList.add('bursting');
     }
+    if (modalChest) {
+      modalChest.classList.remove('shaking');
+      modalChest.classList.add('bursting');
+    }
     if (prompt) prompt.style.display = 'none';
+    if (promptModal) promptModal.style.display = 'none';
 
     // Scheitelpunkt-Blitz
     if (flashOverlay) {
@@ -5075,6 +5161,9 @@ const WizardVault = (() => {
     const dustNotice = document.getElementById('vaultUnboxingDustNotice');
     const cardsHint = document.getElementById('vaultUnboxingCardsHint');
     const btnFlipAll = document.getElementById('btnFlipAllCards');
+    const btnNextChest = document.getElementById('btnNextChest');
+    const btnNextChestText = document.getElementById('btnNextChestText');
+    const btnFinish = document.getElementById('btnFinishUnboxing');
 
     if (!dropsArea || !dropsCont) return;
 
@@ -5093,6 +5182,29 @@ const WizardVault = (() => {
     if (btnFlipAll) {
       btnFlipAll.disabled = false;
       btnFlipAll.style.display = 'flex';
+    }
+
+    // Ketten-Öffnen Button konfigurieren
+    const u = (vaultData && vaultData.user) || {};
+    const remainingCount = (u[`chests_${data.chestType}`] || 0);
+
+    if (btnNextChest) {
+      if (remainingCount > 0) {
+        btnNextChest.style.display = 'inline-flex';
+        if (btnNextChestText) {
+          btnNextChestText.innerText = `Nächste Truhe öffnen (${remainingCount} übrig)`;
+        }
+      } else {
+        btnNextChest.style.display = 'none';
+      }
+    }
+
+    if (btnFinish) {
+      if (remainingCount > 0) {
+        btnFinish.innerHTML = '<span>🏛️</span><span>Fertig</span>';
+      } else {
+        btnFinish.innerHTML = '<span>🏛️</span><span>Zurück zur Schatzkammer</span>';
+      }
     }
 
     if (dustNotice) {
@@ -5185,50 +5297,35 @@ const WizardVault = (() => {
     fetchVaultState();
   }
 
-  function flipSingleCard(cardWrap, itemData) {
-    if (!cardWrap || cardWrap.classList.contains('flipped')) return;
-    cardWrap.classList.add('flipped', 'revealed');
+  function startDirectNextChestOpening(tier) {
+    if (isUnboxingAnimationRunning) return;
+    const targetTier = tier || activeUnboxingTier || selectedPodiumTier;
+    if (!targetTier) return;
 
-    if (typeof WizardAudio !== 'undefined') {
-      if (itemData && (itemData.rarity === 'legendary' || itemData.rarity === 'epic')) {
-        if (WizardAudio.playLevelUp) WizardAudio.playLevelUp();
-        else if (WizardAudio.playCardSnap) WizardAudio.playCardSnap();
-      } else if (WizardAudio.playCardSnap) {
-        WizardAudio.playCardSnap();
-      }
+    const u = (vaultData && vaultData.user) || {};
+    const remaining = u[`chests_${targetTier}`] || 0;
+    if (remaining <= 0) {
+      showToast('Keine weiteren Truhen dieses Typs vorhanden!');
+      return;
     }
 
-    checkAllCardsFlipped();
-  }
+    if (unboxingApexTimer) { clearTimeout(unboxingApexTimer); unboxingApexTimer = null; }
+    if (unboxingStageTimer) { clearTimeout(unboxingStageTimer); unboxingStageTimer = null; }
+    if (unboxingFlashTimer) { clearTimeout(unboxingFlashTimer); unboxingFlashTimer = null; }
 
-  function handleFlipAllCards() {
-    const dropsCont = document.getElementById('vaultUnboxingDrops');
-    if (!dropsCont) return;
-    const cards = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
-    cards.forEach((card, i) => {
-      setTimeout(() => {
-        card.classList.add('flipped', 'revealed');
-        if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
-          WizardAudio.playCardSnap();
-        }
-        if (i === cards.length - 1) {
-          checkAllCardsFlipped();
-        }
-      }, i * 140);
-    });
-  }
+    selectedPodiumTier = targetTier;
+    activeUnboxingTier = targetTier;
+    pendingChestOpenData = null;
+    hasApexReached = false;
 
-  function checkAllCardsFlipped() {
-    const dropsCont = document.getElementById('vaultUnboxingDrops');
-    const cardsHint = document.getElementById('vaultUnboxingCardsHint');
-    const btnFlipAll = document.getElementById('btnFlipAllCards');
-    if (!dropsCont) return;
+    const stage = document.getElementById('vaultUnboxingStage');
+    const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+    const flashOverlay = document.getElementById('vaultChestFlashOverlay');
+    if (dropsArea) dropsArea.style.display = 'none';
+    if (stage) stage.style.display = 'flex';
+    if (flashOverlay) flashOverlay.classList.remove('active');
 
-    const remaining = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
-    if (remaining.length === 0) {
-      if (cardsHint) cardsHint.innerHTML = '🎉 <strong>Alle Schätze wurden enthüllt!</strong>';
-      if (btnFlipAll) btnFlipAll.disabled = true;
-    }
+    handleChestClick();
   }
 
   function finishUnboxing() {
@@ -5245,10 +5342,14 @@ const WizardVault = (() => {
       unboxingFlashTimer = null;
     }
 
+    const modal = document.getElementById('vaultUnboxingModalOverlay');
+    if (modal) modal.style.display = 'none';
+
     const unbox = document.getElementById('vaultUnboxingArea');
     const stage = document.getElementById('vaultUnboxingStage');
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const arcaneChest = document.getElementById('vaultArcaneChest');
+    const modalChest = document.getElementById('vaultArcaneChestModal');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
     const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
 
@@ -5259,6 +5360,9 @@ const WizardVault = (() => {
     }
     if (arcaneChest) {
       arcaneChest.classList.remove('shaking', 'bursting');
+    }
+    if (modalChest) {
+      modalChest.classList.remove('shaking', 'bursting');
     }
     if (flashOverlay) flashOverlay.classList.remove('active');
     if (btnUnboxClose) btnUnboxClose.style.display = 'none';
@@ -5934,8 +6038,20 @@ const WizardVault = (() => {
     const btnFinish = document.getElementById('btnFinishUnboxing');
     if (btnFinish) btnFinish.addEventListener('click', finishUnboxing);
 
+    const btnNextChest = document.getElementById('btnNextChest');
+    if (btnNextChest) {
+      btnNextChest.addEventListener('click', () => {
+        startDirectNextChestOpening(activeUnboxingTier || selectedPodiumTier);
+      });
+    }
+
     const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
     if (btnUnboxClose) btnUnboxClose.addEventListener('click', finishUnboxing);
+
+    const btnVaultUnboxModalClose = document.getElementById('btnVaultUnboxingModalClose');
+    if (btnVaultUnboxModalClose) {
+      btnVaultUnboxModalClose.addEventListener('click', finishUnboxing);
+    }
 
     const unboxOverlay = document.getElementById('vaultUnboxingArea');
     if (unboxOverlay) {
@@ -5947,8 +6063,43 @@ const WizardVault = (() => {
       });
     }
 
+    const unboxModalOverlay = document.getElementById('vaultUnboxingModalOverlay');
+    if (unboxModalOverlay) {
+      unboxModalOverlay.addEventListener('click', (e) => {
+        if (e.target === unboxModalOverlay && !isUnboxingAnimationRunning) {
+          finishUnboxing();
+        }
+      });
+    }
+
+    // Auto-Hide beim Runterscrollen & Sofort-Einblenden beim Hochschollen
+    const vaultBody = document.querySelector('.vault-body');
+    const vaultTopBar = document.getElementById('vaultTopBar');
+    let lastVaultScrollTop = 0;
+    if (vaultBody && vaultTopBar) {
+      vaultBody.addEventListener('scroll', () => {
+        const st = vaultBody.scrollTop;
+        if (st > lastVaultScrollTop && st > 35) {
+          // Nach unten scrollen -> Header sanft verbergen
+          vaultTopBar.classList.add('vault-top-bar-hidden');
+        } else if (st < lastVaultScrollTop) {
+          // Auch bei 1px Hochschollen sofort wieder einblenden
+          vaultTopBar.classList.remove('vault-top-bar-hidden');
+        }
+        if (st <= 10) {
+          vaultTopBar.classList.remove('vault-top-bar-hidden');
+        }
+        lastVaultScrollTop = st;
+      }, { passive: true });
+    }
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
+        const unboxModal = document.getElementById('vaultUnboxingModalOverlay');
+        if (unboxModal && unboxModal.style.display !== 'none' && !isUnboxingAnimationRunning) {
+          finishUnboxing();
+          return;
+        }
         const dropsArea = document.getElementById('vaultUnboxingDropsArea');
         if (dropsArea && dropsArea.style.display !== 'none' && !isUnboxingAnimationRunning) {
           finishUnboxing();
@@ -6090,6 +6241,8 @@ const WizardVault = (() => {
     openChest,
     openChestModal,
     handleChestClick,
+    startDirectNextChestOpening,
+    finishUnboxing,
     getCosmeticVisualHtml,
     getVaultData: () => vaultData,
     renderWardrobe,

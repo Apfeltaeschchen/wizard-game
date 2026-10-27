@@ -67,7 +67,7 @@ assert.ok(!indexHtml.includes('.vault-video-stage'), 'Klasse .vault-video-stage 
 assert.ok(!fs.existsSync(path.join(__dirname, '../public/js/lottie.min.js')), 'public/js/lottie.min.js Datei sauber gelöscht');
 assert.ok(!fs.existsSync(path.join(__dirname, '../scripts/generate_lottie_chests.js')), 'scripts/generate_lottie_chests.js sauber gelöscht');
 assert.ok(!fs.existsSync(path.join(__dirname, '../public/animations/chests')), 'public/animations/chests sauber gelöscht');
-assert.ok(indexHtml.includes('client.js?v=20261027_isolated_chests') || indexHtml.includes('client.js?v=20261027_hearthstone_chests') || indexHtml.includes('client.js?v=20261027_clean_unboxing') || indexHtml.includes('client.js?v=20261027_permanent_podium') || indexHtml.includes('client.js?v=20261027_fancier_unboxing'), 'Cache-Busting aktualisiert');
+assert.ok(indexHtml.includes('client.js?v=20261027_isolated_chests') || indexHtml.includes('client.js?v=20261027_hearthstone_chests') || indexHtml.includes('client.js?v=20261027_clean_unboxing') || indexHtml.includes('client.js?v=20261027_permanent_podium') || indexHtml.includes('client.js?v=20261027_fancier_unboxing') || indexHtml.includes('client.js?v=20261027_unboxing_modal'), 'Cache-Busting aktualisiert');
 
 // Handgemalte Dark-Fantasy Artworks & Bereinigung
 const chestsDir = path.join(__dirname, '../public/images/chests');

@@ -5932,6 +5932,22 @@
       overflow: hidden;
       position: relative;
     }
+    .vault-top-bar {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), max-height 0.28s ease, opacity 0.2s ease;
+      transform: translateY(0);
+      opacity: 1;
+      max-height: 160px;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 5;
+    }
+    .vault-top-bar.vault-top-bar-hidden {
+      transform: translateY(-100%);
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
     .vault-header {
       padding: 14px 18px;
       border-bottom: 1.5px solid rgba(217, 119, 6, 0.35);
@@ -6097,22 +6113,94 @@
       filter: grayscale(0.8);
     }
 
-    /* UNBOXING STAGE */
+    /* UNBOXING PODEST (VORSCHAU IN DER SCHATZKAMMER) */
     .unboxing-overlay {
       position: relative;
-      background: rgba(0, 0, 0, 0.94);
-      border: 1.5px solid var(--gold-antique);
+      background: rgba(0, 0, 0, 0.5);
+      border: 1.5px solid rgba(217, 119, 6, 0.35);
       border-radius: 12px;
-      padding: 22px 16px;
+      padding: 16px 14px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       animation: fadeIn 0.3s ease;
       margin-bottom: 16px;
-      min-height: 520px;
+      min-height: 290px;
       overflow: hidden;
       isolation: isolate;
+    }
+    /* DEDIZIERTES UNBOXING-ZEREMONIE-MODAL (100% SICHTBARE RÄNDER) */
+    .vault-unboxing-modal-overlay {
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+      z-index: 2500;
+    }
+    .vault-unboxing-modal-card {
+      background: radial-gradient(circle at 50% 20%, #29180c 0%, #170d06 65%, #0d0603 100%);
+      border: 2px solid var(--gold-antique, #d4af37);
+      border-radius: 16px;
+      width: 92vw;
+      max-width: 860px;
+      max-height: min(88vh, 720px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      padding: 24px 20px;
+      box-sizing: border-box;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95), 0 0 45px rgba(245, 158, 11, 0.3);
+      color: #ebd7af;
+      overflow-y: auto;
+      margin: auto;
+      animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .unboxing-modal-header {
+      text-align: center;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+    .unboxing-modal-title {
+      font-family: var(--font-heading);
+      color: var(--gold-bright);
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+    .unboxing-modal-subtitle {
+      font-size: 13px;
+      color: #d6be90;
+      font-style: italic;
+    }
+    .btn-next-chest {
+      background: linear-gradient(180deg, #f59e0b, #b45309) !important;
+      border: 1.5px solid var(--gold-bright) !important;
+      color: #fff !important;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.5) !important;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-next-chest:hover {
+      background: linear-gradient(180deg, #fbbf24, #d97706) !important;
+      box-shadow: 0 0 24px rgba(251, 191, 36, 0.8) !important;
+      transform: translateY(-1px);
+    }
+    .btn-unboxing-close {
+      background: rgba(30, 20, 15, 0.8) !important;
+      border: 1px solid #785a3c !important;
+      color: #d6be90 !important;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-unboxing-close:hover {
+      background: rgba(50, 35, 25, 0.9) !important;
+      color: #fff !important;
+      border-color: var(--gold-antique) !important;
     }
     .unboxing-drops-container {
       display: flex;
@@ -9394,64 +9482,66 @@
     <div class="vault-modal-card">
       <button id="vaultCloseBtn" type="button" class="drawer-close-btn btn-vault-close-action" style="position: absolute; top: 14px; right: 16px; font-size: 26px; z-index: 10;" title="Schatzkammer verlassen" aria-label="Schatzkammer verlassen">&times;</button>
 
-      <!-- KOPFZEILE MIT LEVEL, XP-BALKEN & ASTRALSTAUB -->
-      <div class="vault-header">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 28px;">🎁</span>
-          <div>
-            <h2 style="margin: 0; font-family: var(--font-heading); color: var(--gold-bright); font-size: 20px;">Die Schatzkammer des Erzmagiers</h2>
-            <div style="font-size: 11.5px; color: #d6be90; font-style: italic;">Kosmetik-Fortschritt &amp; Belohnungen (Overwatch-Progression)</div>
-          </div>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 12px; margin-right: 36px;">
-          <!-- LEVEL & XP PROGRESSION -->
-          <div class="vault-level-bar-wrap">
-            <span style="font-weight: 800; color: #fde047; font-size: 13px;">Stufe <span id="vaultLevelDisplay">1</span></span>
-            <div class="vault-xp-bar-bg" title="EP bis zum nächsten Levelaufstieg">
-              <div id="vaultXpBarFill" class="vault-xp-bar-fill" style="width: 0%;"></div>
+      <!-- STICKY TOP-BAR MIT AUTO-HIDE/SHOW BEIM SCROLLEN -->
+      <div id="vaultTopBar" class="vault-top-bar">
+        <!-- KOPFZEILE MIT LEVEL, XP-BALKEN & ASTRALSTAUB -->
+        <div class="vault-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 28px;">🎁</span>
+            <div>
+              <h2 style="margin: 0; font-family: var(--font-heading); color: var(--gold-bright); font-size: 20px;">Die Schatzkammer des Erzmagiers</h2>
+              <div style="font-size: 11.5px; color: #d6be90; font-style: italic;">Kosmetik-Fortschritt &amp; Belohnungen (Overwatch-Progression)</div>
             </div>
-            <span id="vaultXpText" style="font-size: 11px; color: #cbd5e1;">0 / 1000 XP</span>
           </div>
 
-          <!-- ASTRALSTAUB GUTHABEN -->
-          <div class="vault-dust-badge" title="Astralstaub: Wird aus Truhen-Duplikaten gewonnen">
-            <span>✨</span>
-            <span id="vaultDustDisplay">0</span>
-            <span style="font-size: 11px; color: #e9d5ff;">Staub</span>
+          <div style="display: flex; align-items: center; gap: 12px; margin-right: 36px;">
+            <!-- LEVEL & XP PROGRESSION -->
+            <div class="vault-level-bar-wrap">
+              <span style="font-weight: 800; color: #fde047; font-size: 13px;">Stufe <span id="vaultLevelDisplay">1</span></span>
+              <div class="vault-xp-bar-bg" title="EP bis zum nächsten Levelaufstieg">
+                <div id="vaultXpBarFill" class="vault-xp-bar-fill" style="width: 0%;"></div>
+              </div>
+              <span id="vaultXpText" style="font-size: 11px; color: #cbd5e1;">0 / 1000 XP</span>
+            </div>
+
+            <!-- ASTRALSTAUB GUTHABEN -->
+            <div class="vault-dust-badge" title="Astralstaub: Wird aus Truhen-Duplikaten gewonnen">
+              <span>✨</span>
+              <span id="vaultDustDisplay">0</span>
+              <span style="font-size: 11px; color: #e9d5ff;">Staub</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- TABS: TRUHEN / GARDEROBE / ZAUBERSCHMIEDE -->
-      <div class="vault-tabs">
-        <button type="button" id="tabVaultChests" class="vault-tab-btn active">
-          <span>🪵</span>
-          <span>Truhen öffnen (<span id="vaultChestsCountBadge">0</span>)</span>
-        </button>
-        <button type="button" id="tabVaultWardrobe" class="vault-tab-btn">
-          <span>👘</span>
-          <span>Garderobe &amp; Ausrüstung</span>
-        </button>
-        <button type="button" id="tabVaultForge" class="vault-tab-btn">
-          <span>⚒️</span>
-          <span>Zauberschmiede</span>
-        </button>
+        <!-- TABS: TRUHEN / GARDEROBE / ZAUBERSCHMIEDE -->
+        <div class="vault-tabs">
+          <button type="button" id="tabVaultChests" class="vault-tab-btn active">
+            <span>🪵</span>
+            <span>Truhen öffnen (<span id="vaultChestsCountBadge">0</span>)</span>
+          </button>
+          <button type="button" id="tabVaultWardrobe" class="vault-tab-btn">
+            <span>👘</span>
+            <span>Garderobe &amp; Ausrüstung</span>
+          </button>
+          <button type="button" id="tabVaultForge" class="vault-tab-btn">
+            <span>⚒️</span>
+            <span>Zauberschmiede</span>
+          </button>
+        </div>
       </div>
 
       <!-- TAB INHALTE -->
       <div class="vault-body">
         <!-- 1. TAB: TRUHEN ÖFFNEN -->
         <div id="vaultPanelChests" class="vault-tab-panel">
-          <!-- BEREICH FÜR INTERAKTIVE UNBOXING ZEREMONIE (DAUERHAFTES PODEST) -->
+          <!-- BEREICH FÜR PODEST-VORSCHAU IN DER SCHATZKAMMER -->
           <div id="vaultUnboxingArea" class="unboxing-overlay">
-            <canvas id="vaultFxCanvas" class="vault-fx-canvas"></canvas>
             <button id="btnVaultUnboxingClose" type="button" class="drawer-close-btn unboxing-close-btn" style="display: none;" title="Truhenöffnung schließen">&times;</button>
-            <div id="vaultUnboxingTitle" style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 21px; margin-bottom: 4px;">Das Podest der Zitadelle</div>
-            <div id="vaultUnboxingSubtitle" style="font-size: 12.5px; color: #d6be90; margin-bottom: 8px;">Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!</div>
+            <div id="vaultPodiumTitle" style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 21px; margin-bottom: 4px;">Das Podest der Zitadelle</div>
+            <div id="vaultPodiumSubtitle" style="font-size: 12.5px; color: #d6be90; margin-bottom: 8px;">Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!</div>
 
-            <!-- INTERAKTIVE UNBOXING BÜHNE: ARKANES SIEGEL & 3D-KARTEN-FLIP -->
-            <div id="vaultUnboxingStage" class="unboxing-stage">
+            <!-- INTERAKTIVE VORSCHAU: ARKANES SIEGEL & PODEST -->
+            <div class="unboxing-stage">
               <div class="unboxing-pedestal-glow"></div>
 
               <!-- ARKANES TRUHEN-MEDAILLON MIT SIEGEL & GLOW -->
@@ -9460,30 +9550,9 @@
                 <div id="vaultArcaneChestArtwork" class="arcane-chest-artwork"></div>
               </div>
 
-
-              <div id="vaultChestFlashOverlay" class="chest-flash-overlay"></div>
               <div id="vaultChestClickPrompt" class="chest-click-prompt empty-state">
                 <span>🔒</span>
                 <span>Keine Schatztruhen im Vorrat</span>
-              </div>
-            </div>
-
-            <!-- DROPS CONTAINER (3D MYSTERY CARDS MIT FLIP-INTERAKTION) -->
-            <div id="vaultUnboxingDropsArea" style="display: none; width: 100%; flex-direction: column; align-items: center;">
-              <div id="vaultUnboxingRevealControls" class="unboxing-reveal-controls">
-                <div id="vaultUnboxingCardsHint" class="unboxing-cards-hint">✨ Klicke auf die verdeckten Karten zum Aufdecken ✨</div>
-              </div>
-              <div id="vaultUnboxingDrops" class="unboxing-drops-container"></div>
-              <div id="vaultUnboxingDustNotice" style="display: none; font-size: 13px; color: #c084fc; font-weight: bold; margin-bottom: 12px;"></div>
-              <div class="unboxing-actions-row">
-                <button id="btnFlipAllCards" type="button" class="btn-flip-all-cards">
-                  <span>🃏</span>
-                  <span>Alle aufdecken</span>
-                </button>
-                <button id="btnFinishUnboxing" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 9px 24px; font-size: 13.5px; margin: 0;">
-                  <span>🏛️</span>
-                  <span>Schätze einsammeln</span>
-                </button>
               </div>
             </div>
           </div>
@@ -9651,6 +9720,55 @@
           <div id="forgeItemsGrid" class="forge-grid">
             <!-- Dynamisch generiert -->
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================== -->
+  <!-- DEDIZIERTES UNBOXING-ZEREMONIE-MODAL (100% SICHTBARE RÄNDER, KEIN ABSCHNEIDEN) -->
+  <!-- ========================================================================== -->
+  <div id="vaultUnboxingModalOverlay" class="modal-overlay vault-unboxing-modal-overlay" style="display: none; z-index: 2500;">
+    <div class="vault-unboxing-modal-card">
+      <button id="btnVaultUnboxingModalClose" type="button" class="drawer-close-btn unboxing-close-btn" style="position: absolute; top: 16px; right: 16px;" title="Truhenöffnung schließen" aria-label="Schließen">&times;</button>
+      
+      <div class="unboxing-modal-header">
+        <div id="vaultUnboxingTitle" class="unboxing-modal-title">Holztruhe des Lehrlings</div>
+        <div id="vaultUnboxingSubtitle" class="unboxing-modal-subtitle">Das arkane Siegel erwacht...</div>
+      </div>
+
+      <!-- INTERAKTIVE BÜHNE: SIEGEL, APEX-FLASH & FX-CANVAS -->
+      <div id="vaultUnboxingStage" class="unboxing-stage">
+        <canvas id="vaultFxCanvas" class="vault-fx-canvas"></canvas>
+        <div class="unboxing-pedestal-glow"></div>
+        <div id="vaultArcaneChestModal" class="vault-arcane-chest" role="button" tabindex="0">
+          <div class="arcane-chest-halo"></div>
+          <div id="vaultArcaneChestModalArtwork" class="arcane-chest-artwork"></div>
+        </div>
+        <div id="vaultChestFlashOverlay" class="chest-flash-overlay"></div>
+        <div id="vaultChestClickPromptModal" class="chest-click-prompt">
+          <span>✨</span><span>Das uralte Siegel bricht...</span><span>✨</span>
+        </div>
+      </div>
+
+      <!-- BEUTEKARTEN & AKTIONEN -->
+      <div id="vaultUnboxingDropsArea" style="display: none; width: 100%; flex-direction: column; align-items: center;">
+        <div id="vaultUnboxingRevealControls" class="unboxing-reveal-controls">
+          <div id="vaultUnboxingCardsHint" class="unboxing-cards-hint">✨ Klicke auf die verdeckten Karten zum Aufdecken ✨</div>
+        </div>
+        <div id="vaultUnboxingDrops" class="unboxing-drops-container"></div>
+        <div id="vaultUnboxingDustNotice" style="display: none; font-size: 13px; color: #c084fc; font-weight: bold; margin-bottom: 12px;"></div>
+        
+        <div class="unboxing-actions-row">
+          <button id="btnFlipAllCards" type="button" class="btn-flip-all-cards">
+            <span>🃏</span><span>Alle aufdecken</span>
+          </button>
+          <button id="btnNextChest" type="button" class="btn-auth-bar btn-auth-gold btn-next-chest" style="padding: 9px 24px; font-size: 13.5px; margin: 0;">
+            <span>⚡</span><span id="btnNextChestText">Nächste Truhe öffnen</span>
+          </button>
+          <button id="btnFinishUnboxing" type="button" class="btn-auth-bar btn-unboxing-close" style="padding: 9px 20px; font-size: 13.5px; margin: 0; background: rgba(30, 20, 15, 0.8); border: 1px solid #785a3c; color: #d6be90;">
+            <span>🏛️</span><span>Fertig</span>
+          </button>
         </div>
       </div>
     </div>
@@ -9841,7 +9959,7 @@
   </div>
 
   <script src="socket.io.min.js"></script>
-  <script src="client.js?v=20261027_fancier_unboxing"></script>
+  <script src="client.js?v=20261027_unboxing_modal"></script>
 
   </body>
 </html>
