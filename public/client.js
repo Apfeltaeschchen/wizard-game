@@ -2811,7 +2811,12 @@ const WizardAuth = (() => {
     const memberSinceEl = document.getElementById('profileMemberSince');
 
     if (usernameEl) usernameEl.innerText = u.username;
-    if (titleBadgeEl) titleBadgeEl.innerText = u.title || 'Zauberlehrling';
+    if (titleBadgeEl) {
+      const curTitle = u.title || 'Zauberlehrling';
+      const rarity = getTitleRarity(curTitle);
+      titleBadgeEl.innerText = curTitle;
+      titleBadgeEl.className = `profile-title-badge title-frame-${rarity}`;
+    }
     if (avatarShieldEl) {
       const a = u.avatar_id || 'default';
       const f = u.equipped_avatar_frame || 'none';
@@ -3983,6 +3988,97 @@ function updateVaultBadgeCount(count) {
   if (badge3) {
     badge3.innerText = c;
   }
+}
+
+// Seltenheiten für Titel-Plaketten (Katalog-Fallback)
+const TITLE_RARITIES = {
+  // Legendary
+  'Oberster Erzmagier': 'legendary',
+  'Unantastbar': 'legendary',
+  'Herrscher des Chaos': 'legendary',
+  'Legende der Zitadelle': 'legendary',
+  'Beherrscher der Zeit': 'legendary',
+  'Der Ewig-Wachende': 'legendary',
+  'Sonnengott von Solaria': 'legendary',
+  'Avatar des Schicksals': 'legendary',
+  'Der Kopflose Reiter': 'legendary',
+  'MVP der Zitadelle': 'legendary',
+  // Epic
+  'Drachenbändiger': 'epic',
+  'Vampir-Bannmeister': 'epic',
+  'Schicksalsweber': 'epic',
+  'Das Orakel von Avalon': 'epic',
+  'Meister der Renonce': 'epic',
+  'Der Dreifach-Gekrönte': 'epic',
+  'Phönixgeborener': 'epic',
+  'Schattenfürst': 'epic',
+  'Großinquisitor': 'epic',
+  'Herrscher der Gezeiten': 'epic',
+  'Die Weiße Hexe': 'epic',
+  'Vollstrecker der Prophezeiung': 'epic',
+  'Kürbiskönig von Halloween': 'epic',
+  'Graf der Finsternis': 'epic',
+  // Rare
+  'Seher der Sterne': 'rare',
+  'Schattenmeister': 'rare',
+  'Hüter der Flamme': 'rare',
+  'Gezeitenrufer': 'rare',
+  'Frostgeborener': 'rare',
+  'Meister der Vorhersage': 'rare',
+  'Der Scharfsinnige': 'rare',
+  'König der Bettler': 'rare',
+  'Wolfsseele': 'rare',
+  'Freund der Feen': 'rare',
+  'Sturmbringer': 'rare',
+  'Der Unberechenbare': 'rare',
+  'Archivar des Rates': 'rare',
+  'Hofmagier': 'rare',
+  'Nachtmahr der Zitadelle': 'rare',
+  'Geisterbeschwörer': 'rare',
+  // Common
+  'Zauberlehrling': 'common',
+  'Kartenflüsterer': 'common',
+  'Novize der Akademie': 'common',
+  'Wanderer der Nebel': 'common',
+  'Der Suchende': 'common',
+  'Geselle der Zitadelle': 'common',
+  'Schüler der Runen': 'common',
+  'Kartenleger': 'common',
+  'Der Geduldige': 'common',
+  'Tavernengast': 'common'
+};
+
+function getTitleRarity(titleName) {
+  if (!titleName) return 'common';
+  if (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) {
+    const vd = WizardVault.getVaultData();
+    if (vd && vd.catalog && Array.isArray(vd.catalog.titles)) {
+      const match = vd.catalog.titles.find(t => (t.id === titleName || t.name === titleName));
+      if (match && match.rarity) return match.rarity;
+    }
+  }
+  return TITLE_RARITIES[titleName] || 'common';
+}
+
+function renderTitlePlaqueHtml(titleName, forcedRarity = null) {
+  const name = String(titleName || 'Zauberlehrling');
+  const rarity = forcedRarity || getTitleRarity(name);
+  const sheenHtml = rarity === 'legendary' ? '<div class="title-frame-legendary-sheen" aria-hidden="true"></div>' : '';
+  return `
+    <div class="title-plaque title-frame-${rarity}" title="${escapeHtml(name)}">
+      ${sheenHtml}
+      <span class="title-plaque-text">${escapeHtml(name)}</span>
+    </div>
+  `;
+}
+
+function updateTitleElement(element, titleName) {
+  if (!element) return;
+  const name = String(titleName || 'Zauberlehrling');
+  const rarity = getTitleRarity(name);
+  element.innerText = name;
+  ['common', 'rare', 'epic', 'legendary'].forEach(r => element.classList.remove(`title-frame-${r}`));
+  element.classList.add(`title-frame-${rarity}`);
 }
 
 const WizardVault = (() => {
@@ -5245,6 +5341,23 @@ const WizardVault = (() => {
         ? `<button type="button" class="btn-drop-equip equipped" disabled><span>✓</span> Ausgerüstet</button>`
         : `<button type="button" class="btn-drop-equip" data-item-type="${itemType}" data-item-id="${r.id}"><span>⚡</span> Ausrüsten</button>`;
 
+      const isTitleItem = (itemType === 'title' || itemType === 'titles');
+      const frontContentHtml = isTitleItem
+        ? `
+            <div class="drop-title-plaque-container">
+              ${visualHtml}
+            </div>
+            ${dupHtml}
+            ${equipBtnHtml}
+          `
+        : `
+            ${visualHtml}
+            <div class="drop-card-name">${escapeHtml(r.name)}</div>
+            <div class="drop-card-rarity" style="color: ${r.rarityColor || '#cbd5e1'};">${rarNames[rarity] || rarity}</div>
+            ${dupHtml}
+            ${equipBtnHtml}
+          `;
+
       cardWrap.innerHTML = `
         <div class="mystery-card-inner">
           <div class="mystery-card-back rarity-back-${rarity}">
@@ -5256,11 +5369,7 @@ const WizardVault = (() => {
             <div class="mystery-card-tap-hint">✨ ${rCfg.hint} ✨</div>
           </div>
           <div class="mystery-card-front">
-            ${visualHtml}
-            <div class="drop-card-name">${escapeHtml(r.name)}</div>
-            <div class="drop-card-rarity" style="color: ${r.rarityColor || '#cbd5e1'};">${rarNames[rarity] || rarity}</div>
-            ${dupHtml}
-            ${equipBtnHtml}
+            ${frontContentHtml}
           </div>
         </div>
       `;
@@ -5522,11 +5631,7 @@ const WizardVault = (() => {
     }
 
     if (type === 'title') {
-      return `
-        <div class="cosmetic-mini-title" title="${escapeHtml(item.name || '')}">
-          <span style="font-size:11px;font-weight:bold;color:#78350f;letter-spacing:0.5px;">TITEL</span>
-        </div>
-      `;
+      return renderTitlePlaqueHtml(item.name || item.id, item.rarity);
     }
 
     if (item.image) {
@@ -5566,7 +5671,9 @@ const WizardVault = (() => {
 
     const initial = u.username ? u.username.charAt(0).toUpperCase() : 'M';
     if (previewName) previewName.innerText = u.username || 'Magier';
-    if (previewTitle) previewTitle.innerText = u.title || 'Zauberlehrling';
+    if (previewTitle) {
+      updateTitleElement(previewTitle, u.title || 'Zauberlehrling');
+    }
 
     if (previewWrap) {
       const f = u.equipped_avatar_frame || 'none';
@@ -5694,7 +5801,9 @@ const WizardVault = (() => {
       if (previewTable) previewTable.innerText = curTable ? curTable.name : 'Klassischer Filz';
       if (previewFrame) previewFrame.innerText = curFrame ? curFrame.name : 'Schlichter Goldring';
       if (previewLobby) previewLobby.innerText = curLobby ? curLobby.name : 'Hallen der Zitadelle';
-      if (previewTitle) previewTitle.innerText = u.title || 'Zauberlehrling';
+      if (previewTitle) {
+        updateTitleElement(previewTitle, u.title || 'Zauberlehrling');
+      }
 
       if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${u.equipped_card_back || 'default'}`;
       if (previewTableBox) previewTableBox.className = `cosmetic-mini-table table-theme-${u.equipped_table_skin || 'emerald_felt'}`;
@@ -5718,7 +5827,8 @@ const WizardVault = (() => {
       const isEquipped = (item.id === equippedId);
 
       const card = document.createElement('div');
-      card.className = `cosmetic-item-card ${isEquipped ? 'equipped' : ''} ${!isOwned ? 'locked' : ''}`;
+      const isTitleCategory = (singularType === 'title');
+      card.className = `cosmetic-item-card ${isTitleCategory ? 'is-title-card' : ''} ${isEquipped ? 'equipped' : ''} ${!isOwned ? 'locked' : ''}`;
 
       const visualHtml = getCosmeticVisualHtml(item, singularType);
 
@@ -5734,12 +5844,20 @@ const WizardVault = (() => {
       const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
       const rarCol = (vaultData.rarityConfig && vaultData.rarityConfig[item.rarity]) ? vaultData.rarityConfig[item.rarity].color : '#cbd5e1';
 
-      card.innerHTML = `
-        ${visualHtml}
-        <div style="font-size:12px;font-weight:bold;color:#fef3c7;margin-bottom:2px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
-        <div style="font-size:10px;font-weight:700;color:${rarCol};">${rarNames[item.rarity] || item.rarity}</div>
-        ${btnHtml}
-      `;
+      if (isTitleCategory) {
+        // Reine Titel-Präsentation im jeweiligen Seltenheits-Rahmen, kein oberes Icon/Text
+        card.innerHTML = `
+          ${visualHtml}
+          ${btnHtml}
+        `;
+      } else {
+        card.innerHTML = `
+          ${visualHtml}
+          <div style="font-size:12px;font-weight:bold;color:#fef3c7;margin-bottom:2px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+          <div style="font-size:10px;font-weight:700;color:${rarCol};">${rarNames[item.rarity] || item.rarity}</div>
+          ${btnHtml}
+        `;
+      }
 
       // Interaktive Live-Vorschau im Magier-Spiegel bei Hover & Klick
       const triggerPreview = () => {
@@ -5768,7 +5886,7 @@ const WizardVault = (() => {
           if (previewLobbyBox) previewLobbyBox.className = `cosmetic-mini-lobby lobby-theme-${item.id}`;
           if (previewStage) previewStage.className = `wardrobe-preview-stage lobby-theme-${item.id}`;
         } else if (singularType === 'title') {
-          if (previewTitle) previewTitle.innerText = item.name;
+          if (previewTitle) updateTitleElement(previewTitle, item.name || item.id);
         }
       };
 
@@ -5860,7 +5978,8 @@ const WizardVault = (() => {
 
     itemsToForge.forEach(item => {
       const card = document.createElement('div');
-      card.className = 'forge-item-card';
+      const isTitleCategory = (item.singularType === 'title');
+      card.className = `forge-item-card ${isTitleCategory ? 'is-title-card' : ''}`;
 
       const rarity = item.rarity || 'common';
       const meta = rarConfig[rarity] || { color: '#cbd5e1', dustCost: 60 };
@@ -5869,15 +5988,25 @@ const WizardVault = (() => {
 
       const visualHtml = getCosmeticVisualHtml(item, item.singularType);
 
-      card.innerHTML = `
-        ${visualHtml}
-        <div style="font-size:12.5px;font-weight:bold;color:#fef3c7;margin-bottom:2px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
-        <div style="font-size:10.5px;font-weight:700;color:${meta.color};">${rarity.toUpperCase()}</div>
-        <div style="font-size:11.5px;color:#e9d5ff;margin:4px 0 2px;">Kosten: ✨ ${cost}</div>
-        <button type="button" class="btn-forge btn-do-craft" data-type="${item.singularType}" data-id="${item.id}" ${canAfford ? '' : 'disabled'}>
-          ${canAfford ? 'Schmieden' : 'Zu wenig Staub'}
-        </button>
-      `;
+      if (isTitleCategory) {
+        card.innerHTML = `
+          ${visualHtml}
+          <div style="font-size:11.5px;color:#e9d5ff;margin:4px 0 2px;">Kosten: ✨ ${cost}</div>
+          <button type="button" class="btn-forge btn-do-craft" data-type="${item.singularType}" data-id="${item.id}" ${canAfford ? '' : 'disabled'}>
+            ${canAfford ? 'Schmieden' : 'Zu wenig Staub'}
+          </button>
+        `;
+      } else {
+        card.innerHTML = `
+          ${visualHtml}
+          <div style="font-size:12.5px;font-weight:bold;color:#fef3c7;margin-bottom:2px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+          <div style="font-size:10.5px;font-weight:700;color:${meta.color};">${rarity.toUpperCase()}</div>
+          <div style="font-size:11.5px;color:#e9d5ff;margin:4px 0 2px;">Kosten: ✨ ${cost}</div>
+          <button type="button" class="btn-forge btn-do-craft" data-type="${item.singularType}" data-id="${item.id}" ${canAfford ? '' : 'disabled'}>
+            ${canAfford ? 'Schmieden' : 'Zu wenig Staub'}
+          </button>
+        `;
+      }
 
       const craftBtn = card.querySelector('.btn-do-craft');
       if (craftBtn && canAfford) {
@@ -7433,60 +7562,10 @@ socket.on('matchFormatChanged', ({ matchFormat, teams }) => {
   updateWaitingRoomView(amIHost);
 });
 
-// Seltenheiten für Titel-Plaketten
-const TITLE_RARITIES = {
-  // Legendary
-  'Oberster Erzmagier': 'legendary',
-  'Unantastbar': 'legendary',
-  'Herrscher des Chaos': 'legendary',
-  'Legende der Zitadelle': 'legendary',
-  'Beherrscher der Zeit': 'legendary',
-  'Der Ewig-Wachende': 'legendary',
-  'Sonnengott von Solaria': 'legendary',
-  'Avatar des Schicksals': 'legendary',
-  'Der Kopflose Reiter': 'legendary',
-  // Epic
-  'Drachenbändiger': 'epic',
-  'Vampir-Bannmeister': 'epic',
-  'Schicksalsweber': 'epic',
-  'Das Orakel von Avalon': 'epic',
-  'Meister der Renonce': 'epic',
-  'Der Dreifach-Gekrönte': 'epic',
-  'Phönixgeborener': 'epic',
-  'Schattenfürst': 'epic',
-  'Großinquisitor': 'epic',
-  'Herrscher der Gezeiten': 'epic',
-  'Die Weiße Hexe': 'epic',
-  'Vollstrecker der Prophezeiung': 'epic',
-  'Kürbiskönig von Halloween': 'epic',
-  'Graf der Finsternis': 'epic',
-  // Rare
-  'Seher der Sterne': 'rare',
-  'Schattenmeister': 'rare',
-  'Hüter der Flamme': 'rare',
-  'Gezeitenrufer': 'rare',
-  'Frostgeborener': 'rare',
-  'Meister der Vorhersage': 'rare',
-  'Der Scharfsinnige': 'rare',
-  'König der Bettler': 'rare',
-  'Wolfsseele': 'rare',
-  'Freund der Feen': 'rare',
-  'Sturmbringer': 'rare',
-  'Der Unberechenbare': 'rare',
-  'Archivar des Rates': 'rare',
-  'Hofmagier': 'rare',
-  'Nachtmahr der Zitadelle': 'rare',
-  'Geisterbeschwörer': 'rare'
-};
-
 function getTitleBadgeHtml(titleName) {
   if (!titleName) return '';
-  const rarity = TITLE_RARITIES[titleName] || 'common';
-  let icon = '';
-  if (rarity === 'legendary') icon = '✦ ';
-  else if (rarity === 'epic') icon = '❖ ';
-  else if (rarity === 'rare') icon = '◆ ';
-  return `<div class="player-title-badge title-rarity-${rarity}" title="Titel: ${escapeHtml(titleName)}">${icon}${escapeHtml(titleName)}${icon ? ' ' + icon.trim() : ''}</div>`;
+  const rarity = getTitleRarity(titleName);
+  return `<div class="player-title-badge title-frame-${rarity}" title="Titel: ${escapeHtml(titleName)}">${escapeHtml(titleName)}</div>`;
 }
 
 // Hilfsfunktion: Erstellt ein Spieler-Element für den Warteraum
@@ -10813,7 +10892,10 @@ function playHighlightSequence(highlightData, onDone) {
   if (headlineEl) headlineEl.innerText = highlightData.headline || 'Highlight des Spiels';
   if (descEl) descEl.innerText = highlightData.description || 'Ein spektakulärer Stich!';
   if (nameEl) nameEl.innerText = highlightData.winnerName || 'Magier';
-  if (titleEl) titleEl.innerText = highlightData.winnerTitle || 'Magier der Zitadelle';
+  if (titleEl) {
+    const wt = highlightData.winnerTitle || 'Magier der Zitadelle';
+    updateTitleElement(titleEl, wt);
+  }
 
   if (avatarWrap) {
     avatarWrap.className = `seat-avatar frame-${highlightData.winnerFrame || 'none'}`;
