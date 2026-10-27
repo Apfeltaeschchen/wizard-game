@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Düsteres Herbstholz, knorrige Wurzeln & Kürbisfeuer -->
+    <radialGradient id="briarWood" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="35%" stop-color="#451a03"/>
+      <stop offset="70%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#0a0502"/>
+    </radialGradient>
+    <linearGradient id="pumpkinGleam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="30%" stop-color="#f97316"/>
+      <stop offset="75%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </linearGradient>
+    <filter id="pumpkinGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#f97316" flood-opacity="0.85"/>
+    </filter>
+  </defs>
+
+  <!-- Knorriger Wurzelkranz mit Außenranken -->
+  <g filter="url(#pumpkinGlow)">
+    <circle cx="50" cy="50" r="39" stroke="url(#briarWood)" stroke-width="4.5"/>
+    <circle cx="50" cy="50" r="35" stroke="#ea580c" stroke-width="1.2"/>
+    <!-- Wurzelnoppen außen -->
+    <path d="M12,48 Q8,50 12,52 Q15,50 12,48 Z" fill="#451a03"/>
+    <path d="M88,48 Q92,50 88,52 Q85,50 88,48 Z" fill="#451a03"/>
+    <path d="M50,88 Q50,93 48,90 Q48,87 50,88 Z" fill="#451a03"/>
+  </g>
+
+  <!-- HINEINRAGENDE ELEMENTE (INWARD OVERLAP):
+       1. Oben: Grinsender Kürbis-Fratzenkopf ragt tief von y=8 bis y=26 ins Bild
+       2. Unten: Knorrige Dornenwurzeln und Ranken greifen von y=86 nach y=75 ins Bild -->
+  
+  <!-- OBEN (12 Uhr): Grinsender Kürbis-Kamm ragt nach unten -->
+  <g filter="url(#pumpkinGlow)">
+    <!-- Kürbiskopf-Silhouette -->
+    <path d="M36,14 C36,5 44,4 50,6 C56,4 64,5 64,14 C64,22 58,26.5 50,26.5 C42,26.5 36,22 36,14 Z" fill="url(#pumpkinGleam)" stroke="#451a03" stroke-width="0.7"/>
+    <!-- Kürbis-Strunk (grün) -->
+    <path d="M49,5 Q48,0 52,1 L51,6 Z" fill="#65a30d" stroke="#365314" stroke-width="0.5"/>
+    <!-- Schnitzfratze: Glut-Augen (Dreiecke) -->
+    <polygon points="44,12 47,15 42,15" fill="#fef08a"/>
+    <polygon points="56,12 58,15 53,15" fill="#fef08a"/>
+    <!-- Schnitzfratze: Gezackter Mund mit fiesem Grinsen ragt bis y=23 -->
+    <path d="M42,18 L44,22 L46,19 L48,22 L50,19 L52,22 L54,19 L56,22 L58,18 Q50,24 42,18 Z" fill="#451a03"/>
+    <path d="M43,19 L45,21 L47,19.5 L49,21.5 L51,19.5 L53,21.5 L55,19.5 L57,19" stroke="#fef08a" stroke-width="0.7"/>
+  </g>
+
+  <!-- UNTEN (6 Uhr): Knorrige Dornenwurzeln und Efeuranken ragen hinein -->
+  <g filter="url(#pumpkinGlow)">
+    <!-- Große mittlere Dornenwurzel (greift bis y=74.5) -->
+    <path d="M44,87 C44,80 48,74 50,74.5 C52,74 56,80 56,87 C52,85 48,85 44,87 Z" fill="#451a03" stroke="#ea580c" stroke-width="0.5"/>
+    <path d="M48,80 L50,75 L52,80" stroke="#f97316" stroke-width="0.6"/>
+
+    <!-- Linke Kletterranke mit Dorn (greift bis x=26) -->
+    <path d="M22,65 Q28,62 30,57 Q26,60 21,68 Z" fill="#451a03" stroke="#ea580c" stroke-width="0.5"/>
+    <polygon points="27,62 33,59 29,64" fill="#ea580c"/>
+
+    <!-- Rechte Kletterranke mit Dorn (greift bis x=74) -->
+    <path d="M78,65 Q72,62 70,57 Q74,60 79,68 Z" fill="#451a03" stroke="#ea580c" stroke-width="0.5"/>
+    <polygon points="73,62 67,59 71,64" fill="#ea580c"/>
+  </g>
+</svg>

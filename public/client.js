@@ -2965,13 +2965,16 @@ const WizardAuth = (() => {
 
     // 2. AVATAR-RAHMEN
     const frameItems = (catalog && catalog.avatar_frames) ? catalog.avatar_frames : [
-      { id: 'none', name: 'Kein Rahmen (Schlicht)', isDefault: true },
-      { id: 'frame_wood', name: 'Holzkante', isDefault: false, rarity: 'common' },
-      { id: 'frame_copper', name: 'Runen-Kupfer', isDefault: false, rarity: 'common' },
-      { id: 'frame_silver', name: 'Silber-Filigran', isDefault: false, rarity: 'rare' },
-      { id: 'frame_gold', name: 'Goldener Sonnenkranz', isDefault: false, rarity: 'rare' },
-      { id: 'frame_amethyst', name: 'Amethyst-Glanz', isDefault: false, rarity: 'epic' },
-      { id: 'frame_cosmic', name: 'Kosmischer Äther', isDefault: false, rarity: 'legendary' }
+      { id: 'none', name: 'Schlichter Goldring', isDefault: true, rarity: 'common' },
+      { id: 'iron_thorn', name: 'Eiserne Dornenleiste', isDefault: false, rarity: 'common' },
+      { id: 'silver_leaf', name: 'Silberne Lorbeerblätter', isDefault: false, rarity: 'rare' },
+      { id: 'golden_runes', name: 'Leuchtende Runen-Aura', isDefault: false, rarity: 'rare' },
+      { id: 'dragon_fire', name: 'Pulsierende Drachenflammen', isDefault: false, rarity: 'epic' },
+      { id: 'void_crystal', name: 'Schwebende Astralkristalle', isDefault: false, rarity: 'legendary' },
+      { id: 'pumpkin_lantern', name: 'Kürbis-Laternen-Kranz', isDefault: false, rarity: 'epic' },
+      { id: 'bat_swarm', name: 'Fledermaus-Schwarm', isDefault: false, rarity: 'rare' },
+      { id: 'ghost_specter', name: 'Geisterhafte Erscheinung', isDefault: false, rarity: 'epic' },
+      { id: 'mvp_glow', name: 'Krone des Meistermagiers', isDefault: false, rarity: 'legendary' }
     ];
     populateSelect(frameSelect, frameItems, u.equipped_avatar_frame || 'none', 'avatar_frame');
 

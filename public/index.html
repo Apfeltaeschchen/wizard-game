@@ -6091,44 +6091,100 @@
       box-shadow: inset 0 0 50px rgba(10, 15, 40, 0.9), 0 0 25px rgba(56, 189, 248, 0.65), 0 0 50px rgba(99, 102, 241, 0.5) !important;
     }
 
-    /* AVATAR RAHMEN */
+    /* AVATAR RAHMEN - AAA Dark-Fantasy Vektor-Overlays mit Tiefen-Überlappung */
+    .seat-avatar {
+      position: relative;
+      border-radius: 50%;
+      border: 1px solid rgba(212, 163, 89, 0.4);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+      box-sizing: border-box;
+    }
+
+    /* Universelle Frame-Overlay Schicht (z-index: 3 über Avatar, unter Dealer-Pin z-index: 5) */
+    .seat-avatar::after {
+      content: '';
+      position: absolute;
+      inset: -21.5%;
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      z-index: 3;
+      transition: filter 0.25s ease, transform 0.25s ease;
+    }
+
+    /* 1. Schlichter Goldring (Common) */
     .seat-avatar.frame-none {
-      border: 2px solid var(--gold-antique);
+      border-color: rgba(245, 158, 11, 0.3);
     }
+    .seat-avatar.frame-none::after {
+      background-image: url('/images/frames/frame_none.svg');
+      filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.4));
+    }
+
+    /* 2. Eiserne Dornenleiste (Common) */
     .seat-avatar.frame-iron_thorn {
-      border: 2.5px dashed #64748b;
-      box-shadow: 0 0 8px rgba(100, 116, 139, 0.7), inset 0 0 6px rgba(0,0,0,0.8);
+      border-color: rgba(71, 85, 105, 0.5);
     }
+    .seat-avatar.frame-iron_thorn::after {
+      background-image: url('/images/frames/frame_iron_thorn.svg');
+      filter: drop-shadow(0 0 6px rgba(71, 85, 105, 0.75));
+    }
+
+    /* 3. Silberne Lorbeerblätter (Rare) */
     .seat-avatar.frame-silver_leaf {
-      border: 2.5px solid #cbd5e1;
-      box-shadow: 0 0 12px rgba(203, 213, 225, 0.8), 0 0 4px #94a3b8;
+      border-color: rgba(203, 213, 225, 0.4);
     }
+    .seat-avatar.frame-silver_leaf::after {
+      background-image: url('/images/frames/frame_silver_leaf.svg');
+      filter: drop-shadow(0 0 8px rgba(203, 213, 225, 0.85));
+      animation: silverLeafShimmer 3s infinite ease-in-out;
+    }
+    @keyframes silverLeafShimmer {
+      0%, 100% { filter: drop-shadow(0 0 5px rgba(203, 213, 225, 0.7)); }
+      50% { filter: drop-shadow(0 0 12px rgba(248, 250, 252, 0.95)) drop-shadow(0 0 4px #94a3b8); }
+    }
+
+    /* 4. Leuchtende Runen-Aura (Rare) */
     .seat-avatar.frame-golden_runes {
-      border: 2.5px solid #fbbf24;
-      box-shadow: 0 0 16px rgba(251, 191, 36, 0.75), inset 0 0 8px rgba(245, 158, 11, 0.5);
+      border-color: rgba(251, 191, 36, 0.5);
+    }
+    .seat-avatar.frame-golden_runes::after {
+      background-image: url('/images/frames/frame_golden_runes.svg');
+      filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.8));
       animation: runeFramePulse 2.8s infinite ease-in-out;
     }
     @keyframes runeFramePulse {
-      0%, 100% { box-shadow: 0 0 12px rgba(251, 191, 36, 0.6); }
-      50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.9), inset 0 0 10px rgba(245, 158, 11, 0.7); }
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.65)); }
+      50% { filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.95)) drop-shadow(0 0 6px #f59e0b); }
     }
+
+    /* 5. Pulsierende Drachenflammen (Epic) */
     .seat-avatar.frame-dragon_fire {
-      border: 2.5px solid #ef4444;
-      box-shadow: 0 0 18px rgba(239, 68, 68, 0.85), 0 0 6px #f97316;
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+    .seat-avatar.frame-dragon_fire::after {
+      background-image: url('/images/frames/frame_dragon_fire.svg');
+      filter: drop-shadow(0 0 12px rgba(234, 88, 12, 0.85));
       animation: dragonFirePulse 1.8s infinite alternate ease-in-out;
     }
     @keyframes dragonFirePulse {
-      0% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.7), 0 0 4px #f97316; border-color: #dc2626; }
-      100% { box-shadow: 0 0 24px rgba(249, 115, 22, 0.95), 0 0 10px #ef4444; border-color: #f59e0b; }
+      0% { filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.75)) drop-shadow(0 0 3px #ea580c); }
+      100% { filter: drop-shadow(0 0 20px rgba(249, 115, 22, 1)) drop-shadow(0 0 8px #ef4444); }
     }
+
+    /* 6. Schwebende Astralkristalle (Legendary) */
     .seat-avatar.frame-void_crystal {
-      border: 2.5px solid #c084fc;
-      box-shadow: 0 0 22px rgba(192, 132, 252, 0.9), inset 0 0 10px rgba(168, 85, 247, 0.6);
+      border-color: rgba(192, 132, 252, 0.5);
+    }
+    .seat-avatar.frame-void_crystal::after {
+      background-image: url('/images/frames/frame_void_crystal.svg');
+      filter: drop-shadow(0 0 12px rgba(192, 132, 252, 0.85));
       animation: voidCrystalFloat 2.4s infinite ease-in-out;
     }
     @keyframes voidCrystalFloat {
-      0%, 100% { filter: drop-shadow(0 0 6px #c084fc); }
-      50% { filter: drop-shadow(0 0 16px #a855f7); }
+      0%, 100% { filter: drop-shadow(0 0 7px rgba(192, 132, 252, 0.7)); }
+      50% { filter: drop-shadow(0 0 18px rgba(168, 85, 247, 0.95)) drop-shadow(0 0 6px #c084fc); }
     }
 
     /* SCHATZKAMMER MODAL */
@@ -7848,16 +7904,21 @@
       align-items: center;
       justify-content: center;
     }
-    .wardrobe-avatar-frame-overlay,
+    .wardrobe-avatar-frame-overlay {
+      display: none !important;
+    }
     .wardrobe-mirror-avatar-wrap::after {
       content: '';
       position: absolute !important;
-      inset: 0 !important;
+      inset: -21.5% !important;
       border-radius: 50% !important;
       pointer-events: none !important;
       z-index: 2 !important;
       border: inherit !important;
       box-shadow: inherit !important;
+      background-size: contain !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
     }
     .wardrobe-preview-name {
       font-weight: bold;
@@ -8124,42 +8185,60 @@
       box-shadow: inset 0 0 50px rgba(5, 20, 20, 0.9), 0 0 25px rgba(45, 212, 191, 0.65), 0 0 50px rgba(20, 184, 166, 0.5) !important;
     }
 
-    /* HALLOWEEN & MVP AVATAR RAHMEN */
+    /* 7. Kürbis-Laternen-Kranz (Epic) */
     .seat-avatar.frame-pumpkin_lantern {
-      border: 2.5px solid #f97316;
-      box-shadow: 0 0 16px rgba(249, 115, 22, 0.85), 0 0 6px #ea580c;
+      border-color: rgba(249, 115, 22, 0.5);
+    }
+    .seat-avatar.frame-pumpkin_lantern::after {
+      background-image: url('/images/frames/frame_pumpkin_lantern.svg');
+      filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.85));
       animation: pumpkinFlicker 2s infinite alternate ease-in-out;
     }
     @keyframes pumpkinFlicker {
-      0% { box-shadow: 0 0 12px rgba(249, 115, 22, 0.7); border-color: #ea580c; }
-      100% { box-shadow: 0 0 24px rgba(251, 146, 60, 0.95), 0 0 8px #f97316; border-color: #f59e0b; }
+      0% { filter: drop-shadow(0 0 8px rgba(234, 88, 12, 0.75)) drop-shadow(0 0 3px #f97316); }
+      100% { filter: drop-shadow(0 0 18px rgba(251, 146, 60, 0.95)) drop-shadow(0 0 7px #ea580c); }
     }
+
+    /* 8. Fledermaus-Schwarm (Rare) */
     .seat-avatar.frame-bat_swarm {
-      border: 2.5px solid #a855f7;
-      box-shadow: 0 0 18px rgba(168, 85, 247, 0.8), inset 0 0 8px rgba(88, 28, 135, 0.7);
+      border-color: rgba(168, 85, 247, 0.5);
+    }
+    .seat-avatar.frame-bat_swarm::after {
+      background-image: url('/images/frames/frame_bat_swarm.svg');
+      filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.8));
       animation: batSwarmPulse 2.2s infinite ease-in-out;
     }
     @keyframes batSwarmPulse {
-      0%, 100% { box-shadow: 0 0 14px rgba(168, 85, 247, 0.6); }
-      50% { box-shadow: 0 0 24px rgba(192, 132, 252, 0.95), inset 0 0 12px rgba(126, 34, 206, 0.8); }
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.65)); }
+      50% { filter: drop-shadow(0 0 18px rgba(192, 132, 252, 0.95)) drop-shadow(0 0 6px #7e22ce); }
     }
+
+    /* 9. Geisterhafte Erscheinung (Epic) */
     .seat-avatar.frame-ghost_specter {
-      border: 2.5px solid #2dd4bf;
-      box-shadow: 0 0 20px rgba(45, 212, 191, 0.85), inset 0 0 10px rgba(20, 184, 166, 0.6);
+      border-color: rgba(45, 212, 191, 0.5);
+    }
+    .seat-avatar.frame-ghost_specter::after {
+      background-image: url('/images/frames/frame_ghost_specter.svg');
+      filter: drop-shadow(0 0 12px rgba(45, 212, 191, 0.85));
       animation: ghostSpecterFloat 2.6s infinite ease-in-out;
     }
     @keyframes ghostSpecterFloat {
       0%, 100% { filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.7)); }
-      50% { filter: drop-shadow(0 0 20px rgba(94, 234, 212, 0.95)); }
+      50% { filter: drop-shadow(0 0 20px rgba(94, 234, 212, 0.95)) drop-shadow(0 0 6px #14b8a6); }
     }
+
+    /* 10. Krone des Meistermagiers (Legendary) */
     .seat-avatar.frame-mvp_glow {
-      border: 3px solid #fbbf24;
-      box-shadow: 0 0 25px rgba(251, 191, 36, 0.95), 0 0 12px #f59e0b, inset 0 0 10px rgba(251, 191, 36, 0.8);
+      border-color: rgba(251, 191, 36, 0.6);
+    }
+    .seat-avatar.frame-mvp_glow::after {
+      background-image: url('/images/frames/frame_mvp_glow.svg');
+      filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.95)) drop-shadow(0 0 6px #f59e0b);
       animation: mvpPulseGlow 1.6s infinite alternate ease-in-out;
     }
     @keyframes mvpPulseGlow {
-      0% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.8), 0 0 5px #f59e0b; }
-      100% { box-shadow: 0 0 35px rgba(251, 191, 36, 1), 0 0 18px #d97706, inset 0 0 15px rgba(251, 191, 36, 0.9); }
+      0% { filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.8)) drop-shadow(0 0 4px #f59e0b); }
+      100% { filter: drop-shadow(0 0 24px rgba(251, 191, 36, 1)) drop-shadow(0 0 12px #d97706); }
     }
 
     /* CINEMATIC HIGHLIGHT DES SPIELS */

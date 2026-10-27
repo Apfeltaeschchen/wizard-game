@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Strahlendes Sonnengold mit arkamem Glyphen-Licht -->
+    <radialGradient id="solarGold" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="30%" stop-color="#fbbf24"/>
+      <stop offset="65%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </radialGradient>
+    <linearGradient id="runeGlowGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="runeAura" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#fbbf24" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+
+  <!-- Äußerer gravierter Runenreif -->
+  <g filter="url(#runeAura)">
+    <!-- Äußerer Sonnenstrahl-Ring -->
+    <circle cx="50" cy="50" r="41.5" stroke="#78350f" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="38.5" stroke="url(#solarGold)" stroke-width="5"/>
+    <circle cx="50" cy="50" r="35.5" stroke="#fef08a" stroke-width="1.2"/>
+
+    <!-- Arkane Runen-Symbole auf dem Reif graviert -->
+    <!-- Algiz (Schutz) bei 1:30 Uhr -->
+    <path d="M72,27 L70,23 M70,23 L68,27 M70,23 L70,29" stroke="#fffbeb" stroke-width="0.9" stroke-linecap="round"/>
+    <!-- Sowilo (Sonne) bei 4:30 Uhr -->
+    <path d="M72,71 L70,73 L72,75 L70,77" stroke="#fffbeb" stroke-width="0.9" stroke-linecap="round"/>
+    <!-- Tiwaz (Sieg) bei 7:30 Uhr -->
+    <path d="M30,75 L28,71 L26,75 M28,71 L28,77" stroke="#fffbeb" stroke-width="0.9" stroke-linecap="round"/>
+    <!-- Ansuz (Weisheit) bei 10:30 Uhr -->
+    <path d="M28,23 L28,29 M28,24 L31,26 M28,26 L31,28" stroke="#fffbeb" stroke-width="0.9" stroke-linecap="round"/>
+  </g>
+
+  <!-- HINEINRAGENDE RUNEN-SPITZEN & ARKAN-KÄMME (INWARD OVERLAP: r=35 bis tief r=25..27) -->
+  <!-- 4 Kardinal-Sonnenpfeile mit leuchtendem Glyphen-Inlay -->
+  <g filter="url(#runeAura)">
+    <!-- OBEN (12 Uhr): Sonnen-Spitze ragt von y=14 tief bis y=24.5 in den Avatar -->
+    <path d="M43,12 Q47,20 46,24 L50,28 L54,24 Q53,20 57,12 Q50,15 43,12 Z" fill="url(#solarGold)" stroke="#78350f" stroke-width="0.6"/>
+    <!-- Innere leuchtende Dreiecks-Rune -->
+    <polygon points="50,17 47,23 53,23" fill="url(#runeGlowGrad)"/>
+    <circle cx="50" cy="25" r="1.3" fill="#ffffff"/>
+
+    <!-- UNTEN (6 Uhr): ragt tief bis y=75.5 -->
+    <path d="M43,88 Q47,80 46,76 L50,72 L54,76 Q53,80 57,88 Q50,85 43,88 Z" fill="url(#solarGold)" stroke="#78350f" stroke-width="0.6"/>
+    <polygon points="50,83 47,77 53,77" fill="url(#runeGlowGrad)"/>
+    <circle cx="50" cy="75" r="1.3" fill="#ffffff"/>
+
+    <!-- LINKS (9 Uhr): ragt tief bis x=24.5 -->
+    <path d="M12,43 Q20,47 24,46 L28,50 L24,54 Q20,53 12,57 Q15,50 12,43 Z" fill="url(#solarGold)" stroke="#78350f" stroke-width="0.6"/>
+    <polygon points="17,50 23,47 23,53" fill="url(#runeGlowGrad)"/>
+    <circle cx="25" cy="50" r="1.3" fill="#ffffff"/>
+
+    <!-- RECHTS (3 Uhr): ragt tief bis x=75.5 -->
+    <path d="M88,43 Q80,47 76,46 L72,50 L76,54 Q80,53 88,57 Q85,50 88,43 Z" fill="url(#solarGold)" stroke="#78350f" stroke-width="0.6"/>
+    <polygon points="83,50 77,47 77,53" fill="url(#runeGlowGrad)"/>
+    <circle cx="75" cy="50" r="1.3" fill="#ffffff"/>
+  </g>
+</svg>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Imperiales Großmeister-Gold & Juwelen (Rubin, Saphir, Diamant) -->
+    <radialGradient id="royalGold" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#fef08a"/>
+      <stop offset="55%" stop-color="#f59e0b"/>
+      <stop offset="85%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </radialGradient>
+    <linearGradient id="rubyGem" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fca5a5"/>
+      <stop offset="40%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+    <linearGradient id="sapphireGem" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#93c5fd"/>
+      <stop offset="40%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <filter id="royalGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#fbbf24" flood-opacity="0.9"/>
+    </filter>
+  </defs>
+
+  <!-- Außenkranz & Basis -->
+  <g filter="url(#royalGlow)">
+    <circle cx="50" cy="50" r="41" stroke="#451a03" stroke-width="2"/>
+    <circle cx="50" cy="50" r="38.5" stroke="url(#royalGold)" stroke-width="4.5"/>
+    <circle cx="50" cy="50" r="35.5" stroke="#fffbeb" stroke-width="1.2"/>
+  </g>
+
+  <!-- HINEINRAGENDE ELEMENTE (INWARD OVERLAP):
+       1. Oben: Großmeister-Krone ragt von y=3 oben bis tief y=25.5 ins Porträt mit Diamant-Spitze
+       2. Flanken: Goldene Flügelfedern und Lorbeeren greifen von links & rechts tief bis r=25
+       3. Unten: Reich verzierter Wappensockel mit Saphir ragt bis y=74.5 -->
+
+  <!-- OBEN (12 Uhr): 5-ZACKIGE MEISTERMAGIER-KRONE -->
+  <g filter="url(#royalGlow)">
+    <!-- Kronen-Körper (Reicht von y=3 ganz oben bis y=26 ins Avatarbild hinein!) -->
+    <!-- 5 Kronenzacken: Mitte hoch (y=4), Zwischenzacken (y=9), Außenzacken (y=8) -->
+    <path d="M32,15 L32,8 L39,14 L50,4 L61,14 L68,8 L68,15 Q68,26 50,26 Q32,26 32,15 Z" fill="url(#royalGold)" stroke="#78350f" stroke-width="0.7"/>
+
+    <!-- Kronen-Perlen auf den 5 Spitzen -->
+    <circle cx="50" cy="4" r="1.8" fill="#ffffff" stroke="#b45309" stroke-width="0.5"/>
+    <circle cx="39" cy="14" r="1.3" fill="#ffffff" stroke="#b45309" stroke-width="0.5"/>
+    <circle cx="61" cy="14" r="1.3" fill="#ffffff" stroke="#b45309" stroke-width="0.5"/>
+    <circle cx="32" cy="8" r="1.3" fill="#ffffff" stroke="#b45309" stroke-width="0.5"/>
+    <circle cx="68" cy="8" r="1.3" fill="#ffffff" stroke="#b45309" stroke-width="0.5"/>
+
+    <!-- Zentraler imperialer Rubin im Kronen-Zentrum -->
+    <ellipse cx="50" cy="16" rx="2.8" ry="3.5" fill="url(#rubyGem)" stroke="#fef08a" stroke-width="0.6"/>
+    <circle cx="49" cy="14.5" r="0.8" fill="#ffffff" opacity="0.8"/>
+
+    <!-- Saphire auf den Seiten der Krone -->
+    <circle cx="40" cy="19" r="1.6" fill="url(#sapphireGem)" stroke="#fef08a" stroke-width="0.5"/>
+    <circle cx="60" cy="19" r="1.6" fill="url(#sapphireGem)" stroke="#fef08a" stroke-width="0.5"/>
+
+    <!-- Kronen-Kante ragt bis y=26 nach unten ins Porträt -->
+    <path d="M42,24 Q50,27 58,24" stroke="#ffffff" stroke-width="0.8"/>
+  </g>
+
+  <!-- FLANKEN: GOLDENE PHÖNIX-SCHWINGEN / LORBEEREN GREIFEN NACH INNEN -->
+  <g filter="url(#royalGlow)">
+    <!-- Linke Schwingenfeder (greift bis x=24.5 ins Porträt) -->
+    <path d="M12,42 C16,40 22,43 25,48 C20,50 22,56 24,60 C18,57 14,50 12,42 Z" fill="url(#royalGold)" stroke="#78350f" stroke-width="0.5"/>
+    <path d="M14,44 Q21,46 25,48" stroke="#ffffff" stroke-width="0.6"/>
+
+    <!-- Rechte Schwingenfeder (greift bis x=75.5 ins Porträt) -->
+    <path d="M88,42 C84,40 78,43 75,48 C80,50 78,56 76,60 C82,57 86,50 88,42 Z" fill="url(#royalGold)" stroke="#78350f" stroke-width="0.5"/>
+    <path d="M86,44 Q79,46 75,48" stroke="#ffffff" stroke-width="0.6"/>
+  </g>
+
+  <!-- UNTEN (6 Uhr): WAPPENSOCKEL MIT SAPHIR (RAGT BIS y=74 NACH OBEN) -->
+  <g filter="url(#royalGlow)">
+    <path d="M41,86 Q50,81 59,86 L55,75 Q50,73.5 45,75 Z" fill="url(#royalGold)" stroke="#78350f" stroke-width="0.6"/>
+    <ellipse cx="50" cy="78" rx="2.5" ry="2" fill="url(#sapphireGem)" stroke="#fef08a" stroke-width="0.6"/>
+    <circle cx="49.3" cy="77.3" r="0.6" fill="#ffffff" opacity="0.8"/>
+  </g>
+</svg>

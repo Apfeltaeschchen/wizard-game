@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Kosmisches Astral-Obsidian & leuchtender Amethyst -->
+    <radialGradient id="voidObsidian" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#581c87"/>
+      <stop offset="35%" stop-color="#2e1065"/>
+      <stop offset="70%" stop-color="#0f0728"/>
+      <stop offset="100%" stop-color="#030014"/>
+    </radialGradient>
+    <linearGradient id="crystalGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5d0fe"/>
+      <stop offset="30%" stop-color="#d8b4fe"/>
+      <stop offset="70%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#3b0764"/>
+    </linearGradient>
+    <filter id="voidGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#c084fc" flood-opacity="0.85"/>
+    </filter>
+  </defs>
+
+  <!-- Dunkler Astral-Ring mit schwebenden Außen-Splittern -->
+  <g filter="url(#voidGlow)">
+    <!-- Schwebende Astralsplitter außen -->
+    <polygon points="50,4 52,10 50,12 48,10" fill="#e9d5ff"/>
+    <polygon points="86,16 90,19 87,22 84,18" fill="#e9d5ff"/>
+    <polygon points="96,50 90,52 88,50 90,48" fill="#e9d5ff"/>
+    <polygon points="86,84 84,88 87,89 90,85" fill="#e9d5ff"/>
+    <polygon points="50,96 48,90 50,88 52,90" fill="#e9d5ff"/>
+    <polygon points="14,84 10,85 13,89 16,88" fill="#e9d5ff"/>
+    <polygon points="4,50 10,48 12,50 10,52" fill="#e9d5ff"/>
+    <polygon points="14,16 16,18 13,22 10,19" fill="#e9d5ff"/>
+
+    <!-- Haupt-Astralreif -->
+    <circle cx="50" cy="50" r="39" stroke="url(#voidObsidian)" stroke-width="4.5"/>
+    <circle cx="50" cy="50" r="35" stroke="#c084fc" stroke-width="1.2"/>
+  </g>
+
+  <!-- HINEINRAGENDE KRISTALL-PRISMEN (INWARD OVERLAP: 6 scharfe Amethyst-Kristalle stechen tief bis r=25..27!) -->
+  <g filter="url(#voidGlow)">
+    <!-- 1. Kristall Oben (12 Uhr): sticht nach unten bis y=25 -->
+    <polygon points="50,13 46,20 50,26 54,20" fill="url(#crystalGrad)" stroke="#3b0764" stroke-width="0.5"/>
+    <line x1="50" y1="13" x2="50" y2="26" stroke="#ffffff" stroke-width="0.6"/>
+    <!-- Nebenkristall links -->
+    <polygon points="44,14 41,19 45,22 47,18" fill="#9333ea" stroke="#2e1065" stroke-width="0.4"/>
+    <!-- Nebenkristall rechts -->
+    <polygon points="56,14 59,19 55,22 53,18" fill="#9333ea" stroke="#2e1065" stroke-width="0.4"/>
+
+    <!-- 2. Kristall Oben-Rechts (2 Uhr): sticht nach innen -->
+    <polygon points="78,28 71,32 68,39 74,36" fill="url(#crystalGrad)" stroke="#3b0764" stroke-width="0.5"/>
+    <line x1="78" y1="28" x2="68" y2="39" stroke="#ffffff" stroke-width="0.6"/>
+
+    <!-- 3. Kristall Unten-Rechts (4 Uhr): sticht nach innen -->
+    <polygon points="78,72 74,64 68,61 71,68" fill="url(#crystalGrad)" stroke="#3b0764" stroke-width="0.5"/>
+    <line x1="78" y1="72" x2="68" y2="61" stroke="#ffffff" stroke-width="0.6"/>
+
+    <!-- 4. Kristall Unten (6 Uhr): sticht nach oben bis y=75 -->
+    <polygon points="50,87 46,80 50,74 54,80" fill="url(#crystalGrad)" stroke="#3b0764" stroke-width="0.5"/>
+    <line x1="50" y1="87" x2="50" y2="74" stroke="#ffffff" stroke-width="0.6"/>
+    <polygon points="44,86 41,81 45,78 47,82" fill="#9333ea" stroke="#2e1065" stroke-width="0.4"/>
+    <polygon points="56,86 59,81 55,78 53,82" fill="#9333ea" stroke="#2e1065" stroke-width="0.4"/>
+
+    <!-- 5. Kristall Unten-Links (8 Uhr): sticht nach innen -->
+    <polygon points="22,72 26,64 32,61 29,68" fill="url(#crystalGrad)" stroke="#3b0764" stroke-width="0.5"/>
+    <line x1="22" y1="72" x2="32" y2="61" stroke="#ffffff" stroke-width="0.6"/>
+
+    <!-- 6. Kristall Oben-Links (10 Uhr): sticht nach innen -->
+    <polygon points="22,28 29,32 32,39 26,36" fill="url(#crystalGrad)" stroke="#3b0764" stroke-width="0.5"/>
+    <line x1="22" y1="28" x2="32" y2="39" stroke="#ffffff" stroke-width="0.6"/>
+  </g>
+</svg>
