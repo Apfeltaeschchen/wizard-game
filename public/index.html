@@ -2399,6 +2399,102 @@
       cursor: default;
       flex-shrink: 0;
       overflow: hidden;
+      perspective: 1000px;
+    }
+
+    /* 3D DUAL-FACE KARTENSTRUKTUR (UNO-STYLE REVEAL) */
+    .card.card-dual-face {
+      background: transparent !important;
+      border-color: transparent !important;
+      border-width: 0 !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+    }
+    .card.card-dual-face::before,
+    .card.card-dual-face::after {
+      display: none !important;
+    }
+    .card-flipper {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+      border-radius: inherit;
+    }
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .card-face-front {
+      transform: rotateY(0deg);
+      background: var(--parchment-base);
+      border: 1.5px solid #2e1d11;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 2px 5px rgba(0,0,0,0.5);
+      color: var(--ink-primary);
+      font-family: var(--font-medieval);
+    }
+    .card.card-has-artwork .card-face-front {
+      background: #0d0a14 !important;
+      border-color: rgba(212, 168, 67, 0.45) !important;
+    }
+    .card-face-front::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at center, transparent 38%, rgba(92, 64, 40, 0.28) 80%, rgba(46, 29, 17, 0.65) 100%),
+        linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .card-face-front::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border: 1px solid rgba(118, 86, 21, 0.45);
+      outline: 1px solid rgba(240, 195, 85, 0.3);
+      outline-offset: -2px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .card.card-has-artwork .card-face-front::before,
+    .card.card-has-artwork .card-face-front::after {
+      display: none !important;
+    }
+    .card-face-back {
+      transform: rotateY(180deg);
+      border-radius: inherit;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .card.card-dual-face.card-glow-red .card-face-front {
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.85), 0 0 6px rgba(239, 68, 68, 0.9) !important;
+      border-color: #ef4444 !important;
+    }
+    .card.card-dual-face.card-glow-blue .card-face-front {
+      box-shadow: 0 0 18px rgba(59, 130, 246, 0.85), 0 0 6px rgba(59, 130, 246, 0.9) !important;
+      border-color: #3b82f6 !important;
+    }
+    .card.card-dual-face.card-glow-green .card-face-front {
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.85), 0 0 6px rgba(16, 185, 129, 0.9) !important;
+      border-color: #10b981 !important;
+    }
+    .card.card-dual-face.card-glow-yellow .card-face-front {
+      box-shadow: 0 0 18px rgba(234, 179, 8, 0.85), 0 0 6px rgba(234, 179, 8, 0.9) !important;
+      border-color: #eab308 !important;
+    }
+    .forehead-floating-card .card.card-dual-face .card-face-front {
+      border: 1.5px solid var(--gold-antique) !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 12px rgba(240, 195, 85, 0.7) !important;
     }
 
     /* FORMATFÜLLENDES KARTEN-ARTWORK (1050 × 1498 PX) OHNE DOPPELTEN RAHMEN */
@@ -3358,7 +3454,7 @@
       }
     }
 
-    /* AUSTEIL-ANIMATION (STAFFEL-AUFSTIEG DER HANDKARTEN VON LINKS NACH RECHTS: 0.26s) */
+    /* AUSTEIL-ANIMATION (STAFFEL-AUFSTIEG DER HANDKARTEN VON LINKS NACH RECHTS MIT 3D-UNO-REVEAL) */
     @keyframes cardFlyUpEntrance {
       0% {
         opacity: 0;
@@ -3374,8 +3470,128 @@
       }
     }
 
+    @keyframes cardUnoFaceReveal {
+      0% {
+        transform: rotateY(180deg);
+      }
+      35% {
+        transform: rotateY(180deg);
+      }
+      100% {
+        transform: rotateY(0deg);
+      }
+    }
+
     .card-fly-up {
-      animation: cardFlyUpEntrance 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: cardFlyUpEntrance 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .card-fly-up .card-flipper {
+      animation: cardUnoFaceReveal 0.38s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+      animation-delay: inherit;
+    }
+
+    #hand-container.hand-dealing {
+      overflow-y: visible !important;
+    }
+
+    /* TISCH-AUSTEILANIMATION (FLIEGENDE MITTSPIELER-KARTEN) */
+    .table-dealing-card {
+      position: absolute;
+      width: 44px;
+      height: 64px;
+      border-radius: 6px;
+      border: 1.5px solid rgba(240, 195, 85, 0.6);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 10px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 100;
+      transform-origin: center center;
+      transition: transform 0.36s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.36s ease;
+      overflow: hidden;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .table-dealing-card .card-back-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+      border: 1px solid rgba(240, 195, 85, 0.5);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .table-dealing-card .card-back-inner::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border: 1px dashed rgba(240, 195, 85, 0.35);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+    .table-dealing-card .card-back-ornament {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes seatCardPulseAnim {
+      0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0));
+      }
+      50% {
+        transform: scale(1.06);
+        filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.9));
+      }
+      100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0));
+      }
+    }
+    .player-seat.seat-card-pulse {
+      animation: seatCardPulseAnim 0.35s ease-out;
+    }
+
+    /* MITTSPIELER MINI-KARTENDECK-BADGE */
+    .opponent-deck-badge {
+      position: absolute;
+      bottom: -3px;
+      right: -3px;
+      width: 15px;
+      height: 21px;
+      border-radius: 3px;
+      border: 1px solid rgba(240, 195, 85, 0.8);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+      z-index: 4;
+      overflow: hidden;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .opponent-deck-badge:hover {
+      transform: scale(1.25);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.95), 0 0 8px var(--gold-bright);
+      z-index: 10;
+    }
+    .opponent-deck-badge .opponent-deck-badge-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 2px;
+      position: relative;
+      box-sizing: border-box;
+      border: 0.5px solid rgba(240, 195, 85, 0.4);
     }
 
     .card-playable:active {
@@ -7142,8 +7358,8 @@
       z-index: 1;
     }
 
-    /* ORNAMENTE & SIEGEL DER 10 KARTENDECKS AUF ECHTEN SPIELKARTEN */
-    .card.card-back.cardback-theme-default .card-back-ornament::after {
+    /* ORNAMENTE & SIEGEL DER 10 KARTENDECKS AUF ECHTEN SPIELKARTEN & TISCH-KARTEN */
+    .cardback-theme-default .card-back-ornament::after {
       content: '✦';
       font-size: 34px;
       font-weight: 900;
@@ -7151,70 +7367,74 @@
       text-shadow: 0 1px 3px rgba(254, 240, 138, 0.9);
       font-family: var(--font-heading);
     }
-    .card.card-back.cardback-theme-citadel_ancient .card-back-inner {
+    .cardback-theme-citadel_ancient .card-back-inner {
       border: 1.5px solid #fef08a !important;
     }
-    .card.card-back.cardback-theme-citadel_ancient .card-back-ornament::after {
+    .cardback-theme-citadel_ancient .card-back-ornament::after {
       content: '❂';
       font-size: 38px;
       color: #fef08a;
       text-shadow: 0 0 14px #f59e0b, 0 2px 5px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
-    .card.card-back.cardback-theme-parchment .card-back-ornament::after {
+    .cardback-theme-parchment .card-back-ornament::after {
       content: '⚜';
       font-size: 34px;
       color: #fbbf24;
       text-shadow: 0 0 8px #78350f, 0 1px 3px rgba(0,0,0,0.8);
       font-family: var(--font-heading);
     }
-    .card.card-back.cardback-theme-forest .card-back-ornament::after {
+    .cardback-theme-forest .card-back-ornament::after {
       content: '❧';
       font-size: 38px;
       color: #a7f3d0;
       text-shadow: 0 0 14px #10b981, 0 1px 4px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
-    .card.card-back.cardback-theme-spider_queen .card-back-ornament::after {
+    .cardback-theme-spider_queen .card-back-ornament::after {
       content: '🕸';
       font-size: 34px;
       color: #e9d5ff;
       filter: drop-shadow(0 0 8px #a855f7);
     }
-    .card.card-back.cardback-theme-shadow .card-back-ornament::after {
+    .cardback-theme-shadow .card-back-ornament::after {
       content: '☬';
       font-size: 34px;
       color: #e9d5ff;
       text-shadow: 0 0 12px #9333ea, 0 1px 3px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
-    .card.card-back.cardback-theme-pumpkin_king .card-back-ornament::after {
+    .cardback-theme-pumpkin_king .card-back-ornament::after {
       content: '❖';
       font-size: 38px;
       color: #fed7aa;
       text-shadow: 0 0 14px #ea580c, 0 2px 5px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
-    .card.card-back.cardback-theme-gravestone_runes .card-back-ornament::after {
+    .cardback-theme-gravestone_runes .card-back-ornament::after {
       content: '☩';
       font-size: 38px;
       color: #cbd5e1;
       text-shadow: 0 0 10px #38bdf8, 0 2px 4px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
-    .card.card-back.cardback-theme-astral .card-back-ornament::after {
+    .cardback-theme-astral .card-back-ornament::after {
       content: '✵';
       font-size: 38px;
       color: #c7d2fe;
       text-shadow: 0 0 12px #6366f1, 0 1px 4px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
-    .card.card-back.cardback-theme-dragon .card-back-ornament::after {
+    .cardback-theme-dragon .card-back-ornament::after {
       content: '◈';
       font-size: 40px;
       color: #fef08a;
       text-shadow: 0 0 14px #dc2626, 0 2px 5px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
+    }
+
+    .table-dealing-card .card-back-ornament::after {
+      font-size: 20px !important;
     }
 
     /* STIRNKARTE IM SPIEL AUF KARTENRÜCKSEITE (.card.card-blind.card-back) */

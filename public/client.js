@@ -1034,7 +1034,10 @@ let cachedTrumpCard = null;
 let inspectedCardIndex = null; // Für Touch "Tap to Inspect"
 let isDealingAnimationPending = false;
 let hasDealtThisRound = false;
+let pendingTurnState = null;
 let lastPlayedCardOrigin = null;
+let dealDelayTimer = null;
+let dealFinishTimer = null;
 
 // --- ERKENNUNG STARKER KARTEN FÜR AUFPRALL & STAUBWOLKE ---
 function isStrongCard(card) {
@@ -5297,6 +5300,52 @@ const WizardVault = (() => {
     fetchVaultState();
   }
 
+  function flipSingleCard(cardWrap, itemData) {
+    if (!cardWrap || cardWrap.classList.contains('flipped')) return;
+    cardWrap.classList.add('flipped', 'revealed');
+
+    if (typeof WizardAudio !== 'undefined') {
+      if (itemData && (itemData.rarity === 'legendary' || itemData.rarity === 'epic')) {
+        if (WizardAudio.playLevelUp) WizardAudio.playLevelUp();
+        else if (WizardAudio.playCardSnap) WizardAudio.playCardSnap();
+      } else if (WizardAudio.playCardSnap) {
+        WizardAudio.playCardSnap();
+      }
+    }
+
+    checkAllCardsFlipped();
+  }
+
+  function handleFlipAllCards() {
+    const dropsCont = document.getElementById('vaultUnboxingDrops');
+    if (!dropsCont) return;
+    const cards = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
+    cards.forEach((card, i) => {
+      setTimeout(() => {
+        card.classList.add('flipped', 'revealed');
+        if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+          WizardAudio.playCardSnap();
+        }
+        if (i === cards.length - 1) {
+          checkAllCardsFlipped();
+        }
+      }, i * 140);
+    });
+  }
+
+  function checkAllCardsFlipped() {
+    const dropsCont = document.getElementById('vaultUnboxingDrops');
+    const cardsHint = document.getElementById('vaultUnboxingCardsHint');
+    const btnFlipAll = document.getElementById('btnFlipAllCards');
+    if (!dropsCont) return;
+
+    const remaining = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
+    if (remaining.length === 0) {
+      if (cardsHint) cardsHint.innerHTML = '🎉 <strong>Alle Schätze wurden enthüllt!</strong>';
+      if (btnFlipAll) btnFlipAll.disabled = true;
+    }
+  }
+
   function startDirectNextChestOpening(tier) {
     if (isUnboxingAnimationRunning) return;
     const targetTier = tier || activeUnboxingTier || selectedPodiumTier;
@@ -6294,7 +6343,7 @@ function openPlayerDetailModal(data, source = 'table') {
       }
     }
     if (nameEl) nameEl.innerText = name || 'Magier';
-    if (titleEl) titleEl.innerHTML = getTitleBadgeHtml(title);
+    if (titleEl) titleEl.innerHTML = (typeof getTitleBadgeHtml === 'function') ? getTitleBadgeHtml(title) : escapeHtml(title || '');
 
     // Status
     if (statusEl) {
@@ -8005,6 +8054,13 @@ socket.on('turnChanged', ({ activePlayerSessionId, gameState, forbiddenBid }) =>
 });
 
 function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
+  if (isDealingAnimationPending && (gameState === 'bidding' || gameState === 'choose_trump')) {
+    pendingTurnState = { activePlayerSessionId, gameState, forbiddenBid };
+    if (bidOverlay) bidOverlay.style.display = 'none';
+    if (trumpSelectionArea) trumpSelectionArea.style.display = 'none';
+    return;
+  }
+
   const previouslyMyTurn = isMyTurn;
   currentActiveSessionId = activePlayerSessionId;
   isMyTurn = (mySessionId === activePlayerSessionId);
@@ -8173,6 +8229,15 @@ socket.on('handDealt', (hand) => {
     return;
   }
 
+  if (dealDelayTimer) {
+    clearTimeout(dealDelayTimer);
+    dealDelayTimer = null;
+  }
+  if (dealFinishTimer) {
+    clearTimeout(dealFinishTimer);
+    dealFinishTimer = null;
+  }
+
   // Erstes Austeilen dieser Runde (nur 1x pro Runde)
   hasDealtThisRound = true;
   isDealingAnimationPending = true;
@@ -8183,9 +8248,48 @@ socket.on('handDealt', (hand) => {
 
   // Wenn das Sidepanel verschwindet: 320ms Ausblendung + 500ms Pause (halbe Sekunde nichts) = 820ms; sonst knackige 150ms
   const dealDelay = isDrawerOpen ? 820 : 150;
-  setTimeout(() => {
-    isDealingAnimationPending = false;
+  dealDelayTimer = setTimeout(() => {
+    dealDelayTimer = null;
+    if (typeof gameScreen !== 'undefined' && gameScreen && gameScreen.style.display === 'none') {
+      isDealingAnimationPending = false;
+      pendingTurnState = null;
+      return;
+    }
+
+    // 1. Tischweite Austeilanimation (Uno-Style) an alle Mitspieler starten
+    animateTableDealing(myCurrentHand.length);
+
+    // 2. Eigene Handkarten austeilen und flippen
     renderHand(true);
+
+    // 3. Dauer berechnen und isDealingAnimationPending halten bis alle Karten aufgedeckt sind
+    const count = myCurrentHand.length;
+    let staggerMs = 75;
+    if (count <= 1) staggerMs = 80;
+    else if (count <= 6) staggerMs = 70;
+    else if (count <= 12) staggerMs = 50;
+    else staggerMs = 38;
+
+    const maxOpponentOffset = Math.max(0, (cachedPlayers.length - 2) * 25);
+    const totalDealDuration = Math.max(0, count - 1) * staggerMs + 400 + maxOpponentOffset;
+
+    dealFinishTimer = setTimeout(() => {
+      dealFinishTimer = null;
+      isDealingAnimationPending = false;
+      if (handContainer) handContainer.classList.remove('hand-dealing');
+
+      if (typeof gameScreen !== 'undefined' && gameScreen && gameScreen.style.display === 'none') {
+        pendingTurnState = null;
+        return;
+      }
+
+      // Falls während des Austeilens ein Biet-Overlay gepuffert wurde:
+      if (pendingTurnState) {
+        const stateToHandle = pendingTurnState;
+        pendingTurnState = null;
+        handleTurnState(stateToHandle.activePlayerSessionId, stateToHandle.gameState, stateToHandle.forbiddenBid);
+      }
+    }, totalDealDuration);
   }, dealDelay);
 });
 
@@ -8845,6 +8949,11 @@ socket.on('roundFinished', ({ isGameOver, scoreHistory, round, isRanked, rankedR
   currentTrick = [];
   trickContainer.innerHTML = '';
   handContainer.innerHTML = '';
+  if (dealDelayTimer) { clearTimeout(dealDelayTimer); dealDelayTimer = null; }
+  if (dealFinishTimer) { clearTimeout(dealFinishTimer); dealFinishTimer = null; }
+  pendingTurnState = null;
+  const fxLayerRoundEnd = document.getElementById('table-fx-layer');
+  if (fxLayerRoundEnd) fxLayerRoundEnd.innerHTML = '';
   isDealingAnimationPending = true;
   hasDealtThisRound = false;
   if (shapeshifterModal) shapeshifterModal.style.display = 'none';
@@ -8936,6 +9045,12 @@ socket.on('roundReDealt', ({ message, round, maxRounds: mr, trumpCard, gameState
   if (cloudBidAdjustmentModal) cloudBidAdjustmentModal.style.display = 'none';
   pendingCardPlayIndex = null;
 
+  if (dealDelayTimer) { clearTimeout(dealDelayTimer); dealDelayTimer = null; }
+  if (dealFinishTimer) { clearTimeout(dealFinishTimer); dealFinishTimer = null; }
+  pendingTurnState = null;
+  const fxLayerReDeal = document.getElementById('table-fx-layer');
+  if (fxLayerReDeal) fxLayerReDeal.innerHTML = '';
+
   displayRound.innerText = currentRound;
   displayMaxRounds.innerText = maxRounds;
   statusMessage.innerText = message || 'Runde neu ausgeteilt!';
@@ -8948,6 +9063,12 @@ socket.on('roundReDealt', ({ message, round, maxRounds: mr, trumpCard, gameState
 });
 
 socket.on('gameResetToLobby', async ({ message, players, roomCode }) => {
+  if (dealDelayTimer) { clearTimeout(dealDelayTimer); dealDelayTimer = null; }
+  if (dealFinishTimer) { clearTimeout(dealFinishTimer); dealFinishTimer = null; }
+  pendingTurnState = null;
+  const fxLayerReset = document.getElementById('table-fx-layer');
+  if (fxLayerReset) fxLayerReset.innerHTML = '';
+
   if (gameOverModal) gameOverModal.style.display = 'none';
   if (btnReopenGameOver) btnReopenGameOver.style.display = 'none';
   if (pauseOverlay) pauseOverlay.style.display = 'none';
@@ -8979,6 +9100,118 @@ socket.on('gameResetToLobby', async ({ message, players, roomCode }) => {
     });
   }
 });
+
+// --- TISCHWEITE AUSTEILANIMATION (UNO-STYLE MIT SPIELERSPEZIFISCHEN KOSMETIKA) ---
+function animateTableDealing(roundCardCount) {
+  try {
+    const fxLayer = document.getElementById('table-fx-layer');
+    if (!fxLayer || typeof window === 'undefined') return;
+
+    // Nur an Mitspieler austeilen (eigene Hand wird in renderHand(true) separat animiert)
+    const opponents = cachedPlayers.filter(p => p.sessionId !== mySessionId);
+    if (!opponents || opponents.length === 0) return;
+
+    const count = typeof roundCardCount === 'number' && roundCardCount > 0 ? roundCardCount : 1;
+    const fxRect = fxLayer.getBoundingClientRect ? fxLayer.getBoundingClientRect() : null;
+    if (!fxRect || fxRect.width === 0) return;
+
+    // Start-Position: Tischmitte (#trick-container oder #table-area Zentrum)
+    let startX = fxRect.width / 2;
+    let startY = fxRect.height / 2;
+    const trickContainer = document.getElementById('trick-container');
+    if (trickContainer && trickContainer.getBoundingClientRect) {
+      const tRect = trickContainer.getBoundingClientRect();
+      if (tRect && tRect.width > 0 && tRect.height > 0) {
+        startX = (tRect.left + tRect.width / 2) - fxRect.left;
+        startY = (tRect.top + tRect.height / 2) - fxRect.top;
+      }
+    }
+
+    // Pacing Heuristik laut Uno-Austeilplan
+    let staggerMs = 75;
+    if (count <= 1) {
+      staggerMs = 80;
+    } else if (count <= 6) {
+      staggerMs = 70;
+    } else if (count <= 12) {
+      staggerMs = 50;
+    } else {
+      staggerMs = 38;
+    }
+
+    const flightDuration = 360;
+
+    for (let c = 0; c < count; c++) {
+      opponents.forEach((p, pIdx) => {
+        const cardDelay = c * staggerMs + (pIdx * 25);
+
+        setTimeout(() => {
+          const seatEl = document.getElementById(`seat-${p.sessionId}`);
+          if (!seatEl || !seatEl.getBoundingClientRect) return;
+
+          const sRect = seatEl.getBoundingClientRect();
+          const targetX = (sRect.left + sRect.width / 2) - fxRect.left;
+          const targetY = (sRect.top + sRect.height / 2) - fxRect.top;
+
+          const flyCard = document.createElement('div');
+          const themeClass = `cardback-theme-${p.cardBack || 'default'}`;
+          flyCard.className = `table-dealing-card card-back ${themeClass}`;
+          flyCard.innerHTML = `
+            <div class="card-back-inner">
+              <div class="card-back-ornament"></div>
+            </div>
+          `;
+          flyCard.style.left = `${startX - 22}px`;
+          flyCard.style.top = `${startY - 32}px`;
+          flyCard.style.transform = `scale(0.5) rotate(0deg)`;
+          flyCard.style.opacity = '0';
+          fxLayer.appendChild(flyCard);
+
+          // Starte Flug
+          const startFlight = () => {
+            const deltaX = targetX - startX;
+            const deltaY = targetY - startY;
+            const rot = (Math.random() * 26 - 13);
+            flyCard.style.opacity = '1';
+            flyCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.72) rotate(${rot}deg)`;
+          };
+
+          void flyCard.offsetWidth;
+
+          if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(startFlight);
+          } else {
+            setTimeout(startFlight, 16);
+          }
+
+          // Einschlag & Sitz-Puls bei Ankunft
+          setTimeout(() => {
+            flyCard.style.opacity = '0';
+            setTimeout(() => {
+              if (flyCard.parentNode) flyCard.remove();
+            }, 180);
+
+            // Rhythmisches Ankunfts-Audiosignal
+            if ((c % 2 === 0 || count <= 3) && typeof WizardAudio !== 'undefined' && WizardAudio.playCardDeal) {
+              WizardAudio.playCardDeal();
+            }
+
+            if (seatEl && seatEl.classList) {
+              seatEl.classList.remove('seat-card-pulse');
+              void seatEl.offsetWidth;
+              seatEl.classList.add('seat-card-pulse');
+              setTimeout(() => {
+                if (seatEl && seatEl.classList) seatEl.classList.remove('seat-card-pulse');
+              }, 350);
+            }
+          }, flightDuration);
+        }, cardDelay);
+      });
+    }
+  } catch (err) {
+    console.error('Fehler in animateTableDealing:', err);
+  }
+}
 
 // --- VIRTUELLE MITSPIELER-SITZE RENDERN (RELATIVE UHRZEIGER-REIHENFOLGE) ---
 function renderOpponents() {
@@ -9152,6 +9385,20 @@ function renderOpponents() {
       ? `<span class="user-pill-level-badge" title="Stufe ${p.accountLevel}">Lvl ${p.accountLevel}</span>`
       : '';
 
+    const cardBackNames = {
+      default: 'Novizen-Pergament',
+      parchment: 'Alchemisten-Leder',
+      forest: 'Hain der Waldnymphen',
+      spider_queen: 'Spinnenkönigin',
+      shadow: 'Schattenflamme',
+      astral: 'Astral-Kosmos',
+      pumpkin_king: 'Kürbiskönig',
+      gravestone_runes: 'Grabstein-Runen',
+      dragon: 'Drachenschuppe',
+      citadel_ancient: 'Arkane Zitadelle'
+    };
+    const cardBackLabel = cardBackNames[p.cardBack] || p.cardBack || 'Novizen-Pergament';
+
     seatEl.innerHTML = `
       ${foreheadCardHtml}
       <div class="seat-avatar-container" style="position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -9159,6 +9406,9 @@ function renderOpponents() {
           ${avatarVisualHtml}
         </div>
         ${dealerPinHtml}
+        <div class="opponent-deck-badge cardback-theme-${p.cardBack || 'default'}" title="Kartenrücken: ${escapeHtml(cardBackLabel)}">
+          <div class="opponent-deck-badge-inner"></div>
+        </div>
       </div>
       <div class="seat-details">
         <div class="seat-name-row" style="cursor: pointer;" title="${nameTitle}">
@@ -9186,6 +9436,17 @@ function renderOpponents() {
     if (avatarEl) {
       if (avatarEl.style) avatarEl.style.cursor = 'pointer';
       avatarEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (typeof openPlayerDetailModal === 'function') {
+          openPlayerDetailModal(p, 'table');
+        }
+      });
+    }
+
+    // Klick auf Mini-Kartendeck öffnet ebenfalls Magier-Profil
+    const deckBadge = seatEl.querySelector('.opponent-deck-badge');
+    if (deckBadge) {
+      deckBadge.addEventListener('click', (e) => {
         e.stopPropagation();
         if (typeof openPlayerDetailModal === 'function') {
           openPlayerDetailModal(p, 'table');
@@ -9367,8 +9628,9 @@ function renderTrickCards(trickCards, animateLast = true) {
     cardWrapper.appendChild(frontFace);
 
     const backFace = document.createElement('div');
-    const myCardBack = (currentUser && currentUser.equipped_card_back) || 'default';
-    backFace.className = `card card-back cardback-theme-${myCardBack} card-3d-face card-3d-back`;
+    const cardPlayer = cachedPlayers.find(p => p.sessionId === item.playerSessionId);
+    const playerCardBack = (cardPlayer && cardPlayer.cardBack) || (currentUser && currentUser.equipped_card_back) || 'default';
+    backFace.className = `card card-back cardback-theme-${playerCardBack} card-3d-face card-3d-back`;
     backFace.innerHTML = `<div class="card-back-inner"><div class="card-back-ornament"></div></div>`;
     cardWrapper.appendChild(backFace);
 
@@ -9628,6 +9890,7 @@ function getCardKey(card) {
 
 function onHandCardClick(e) {
   e.stopPropagation();
+  if (isDealingAnimationPending) return;
   const cardElement = e.currentTarget;
   const index = parseInt(cardElement.getAttribute('data-index'), 10);
   if (isNaN(index) || index < 0 || index >= myCurrentHand.length) return;
@@ -9806,18 +10069,30 @@ function renderHand(isNewDeal = false) {
     cardElement.style.setProperty('--target-rot', `${angle}deg`);
 
     if (isNewDeal) {
+      if (handContainer) handContainer.classList.add('hand-dealing');
       cardElement.classList.add('card-fly-up');
-      const staggerMs = Math.min(35, Math.max(16, Math.floor(260 / Math.max(total, 1))));
+      let staggerMs = 75;
+      if (total <= 1) staggerMs = 80;
+      else if (total <= 6) staggerMs = 70;
+      else if (total <= 12) staggerMs = 50;
+      else staggerMs = 38;
+
       cardElement.style.animationDelay = `${index * staggerMs}ms`;
+      const flipperEl = cardElement.querySelector('.card-flipper');
+      if (flipperEl) {
+        flipperEl.style.animationDelay = `${index * staggerMs}ms`;
+      }
       setTimeout(() => {
         cardElement.classList.remove('card-fly-up');
         if (inspectedCardIndex !== index) {
           cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
         }
-      }, index * staggerMs + 280);
+      }, index * staggerMs + 380);
       setTimeout(() => {
-        if (staggerMs >= 24 || index % 2 === 0) {
-          WizardAudio.playCardDeal();
+        if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardDeal) {
+          if (staggerMs >= 50 || index % 2 === 0) {
+            WizardAudio.playCardDeal();
+          }
         }
       }, index * staggerMs);
     } else if (inspectedCardIndex !== index) {
@@ -9972,9 +10247,29 @@ function renderCard(card) {
     return div;
   }
 
+  div.classList.add('card-dual-face');
+  const flipper = document.createElement('div');
+  flipper.className = 'card-flipper';
+
+  const frontFace = document.createElement('div');
+  frontFace.className = 'card-face card-face-front';
+  if (div.classList.contains('card-has-artwork')) {
+    frontFace.classList.add('card-has-artwork');
+  }
+
+  const myCardBackSkin = (currentUser && currentUser.equipped_card_back) || (vaultData && vaultData.user && vaultData.user.equipped_card_back) || 'default';
+  const backFace = document.createElement('div');
+  backFace.className = `card-face card-face-back card-back cardback-theme-${myCardBackSkin}`;
+  backFace.innerHTML = `
+    <div class="card-back-inner">
+      <div class="card-back-ornament"></div>
+    </div>
+  `;
+
   if (card.type === 'wizard') {
     div.classList.add('card-wizard');
-    div.innerHTML += `
+    frontFace.classList.add('card-wizard');
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">Z</span>
       </div>
@@ -9989,7 +10284,8 @@ function renderCard(card) {
     `;
   } else if (card.type === 'jester') {
     div.classList.add('card-jester');
-    div.innerHTML += `
+    frontFace.classList.add('card-jester');
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">N</span>
       </div>
@@ -10004,7 +10300,8 @@ function renderCard(card) {
     `;
   } else if (card.type === 'dragon') {
     div.classList.add('card-dragon');
-    div.innerHTML += `
+    frontFace.classList.add('card-dragon');
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">L</span>
       </div>
@@ -10019,7 +10316,8 @@ function renderCard(card) {
     `;
   } else if (card.type === 'fairy') {
     div.classList.add('card-fairy');
-    div.innerHTML += `
+    frontFace.classList.add('card-fairy');
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">F</span>
       </div>
@@ -10034,7 +10332,8 @@ function renderCard(card) {
     `;
   } else if (card.type === 'bomb') {
     div.classList.add('card-bomb');
-    div.innerHTML += `
+    frontFace.classList.add('card-bomb');
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">K</span>
       </div>
@@ -10049,7 +10348,8 @@ function renderCard(card) {
     `;
   } else if (card.type === 'unicorn') {
     div.classList.add('card-unicorn');
-    div.innerHTML += `
+    frontFace.classList.add('card-unicorn');
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">H</span>
       </div>
@@ -10064,8 +10364,9 @@ function renderCard(card) {
     `;
   } else if (card.type === 'shapeshifter') {
     div.classList.add('card-shapeshifter');
+    frontFace.classList.add('card-shapeshifter');
     const roleSub = card.chosenRole === 'wizard' ? ' (Z)' : (card.chosenRole === 'jester' ? ' (N)' : '');
-    div.innerHTML += `
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">D</span>
       </div>
@@ -10080,6 +10381,7 @@ function renderCard(card) {
     `;
   } else if (card.type === 'vampire') {
     div.classList.add('card-vampire');
+    frontFace.classList.add('card-vampire');
     let copyLabel = '';
     if (card.copiedCard) {
       if (card.copiedCard.type === 'wizard') copyLabel = '<div style="font-size: 8.5px; color: #fef08a; margin-top: 1px;">Kopie: Erzmagier</div>';
@@ -10101,7 +10403,7 @@ function renderCard(card) {
         copyLabel = `<div style="font-size: 8.5px; color: #fca5a5; margin-top: 1px;">Kopie: ${sName}${valStr}</div>`;
       }
     }
-    div.innerHTML += `
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">B</span>
       </div>
@@ -10117,9 +10419,10 @@ function renderCard(card) {
     `;
   } else if (card.type === 'cloud') {
     div.classList.add('card-cloud');
+    frontFace.classList.add('card-cloud');
     const suitNames = { red: 'Rubin', blue: 'Saphir', green: 'Smaragd', yellow: 'Topas' };
     const suitSub = card.chosenSuit ? `<div style="font-size: 8.5px; color: #93c5fd; margin-top: 1px;">${suitNames[card.chosenSuit] || card.chosenSuit}</div>` : '';
-    div.innerHTML += `
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val" style="font-size: 13px;">9¾</span>
       </div>
@@ -10135,7 +10438,8 @@ function renderCard(card) {
     `;
   } else if (card.type === 'werewolf' || card.type === 'werewolf_trump_pending') {
     div.classList.add('card-werewolf');
-    div.innerHTML += `
+    frontFace.classList.add('card-werewolf');
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">M</span>
       </div>
@@ -10150,12 +10454,14 @@ function renderCard(card) {
     `;
   } else if (card.type === 'werewolf_trump') {
     div.classList.add('card-werewolf', 'card-werewolf-trump');
+    frontFace.classList.add('card-werewolf', 'card-werewolf-trump');
     const chosenSuit = card.chosenSuit || card.suit || 'red';
     div.classList.add(`card-werewolf-trump-${chosenSuit}`);
+    frontFace.classList.add(`card-werewolf-trump-${chosenSuit}`);
     const suitNames = { red: 'Rubin', blue: 'Saphir', green: 'Smaragd', yellow: 'Topas' };
     const suitName = suitNames[chosenSuit] || chosenSuit;
     const suitIcon = MEDIEVAL_ICONS[chosenSuit] || '';
-    div.innerHTML += `
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">M</span>
       </div>
@@ -10173,7 +10479,8 @@ function renderCard(card) {
     `;
   } else if (card.type === 'witch') {
     div.classList.add('card-witch');
-    div.innerHTML += `
+    frontFace.classList.add('card-witch');
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">X</span>
       </div>
@@ -10188,9 +10495,10 @@ function renderCard(card) {
     `;
   } else if (card.type === 'juggler') {
     div.classList.add('card-juggler');
+    frontFace.classList.add('card-juggler');
     const suitNames = { red: 'Rubin', blue: 'Saphir', green: 'Smaragd', yellow: 'Topas' };
     const suitSub = card.chosenSuit ? `<div style="font-size: 8.5px; color: #67e8f9; margin-top: 1px;">${suitNames[card.chosenSuit] || card.chosenSuit}</div>` : '';
-    div.innerHTML += `
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val" style="font-size: 13px;">7½</span>
       </div>
@@ -10206,8 +10514,9 @@ function renderCard(card) {
     `;
   } else {
     div.classList.add(`card-${card.suit}`);
+    frontFace.classList.add(`card-${card.suit}`);
     const iconSvg = MEDIEVAL_ICONS[card.suit] || '';
-    div.innerHTML += `
+    frontFace.innerHTML += `
       <div class="card-corner top-left">
         <span class="card-val">${card.value}</span>
       </div>
@@ -10224,6 +10533,7 @@ function renderCard(card) {
   // Farbschatten (Glow) für Wolke und Jongleur bei gewählter Bedienfarbe
   if ((card.type === 'cloud' || card.type === 'juggler') && card.chosenSuit) {
     div.classList.add(`card-glow-${card.chosenSuit}`);
+    frontFace.classList.add(`card-glow-${card.chosenSuit}`);
   }
 
   // Namens-Banner unter allen arkanen Nicht-Zahlen-Karten (auch bei vollflächigem Artwork sichtbar!)
@@ -10270,12 +10580,17 @@ function renderCard(card) {
     const bLabel = document.createElement('div');
     bLabel.className = 'card-bottom-label';
     bLabel.innerText = bottomLabelText;
-    div.appendChild(bLabel);
+    frontFace.appendChild(bLabel);
   }
 
   if (artImg) {
-    div.prepend(artImg);
+    frontFace.prepend(artImg);
+    // DOM-sichere Montage: div.prepend(artImg)
   }
+
+  flipper.appendChild(frontFace);
+  flipper.appendChild(backFace);
+  div.appendChild(flipper);
 
   return div;
 }
