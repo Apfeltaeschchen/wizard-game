@@ -128,7 +128,7 @@ const resNone = getPrioTierFunc({ user: { chests_wooden: 0, chests_silver: 0, ch
 assert.strictEqual(resNone, null, 'Gibt null zurück für leeres Podest bei 0 Truhen');
 
 // Cache-Busting Check
-assert.ok(indexHtml.includes('client.js?v=20261027_permanent_podium'), 'client.js Cache-Busting auf v=20261027_permanent_podium gesetzt');
+assert.ok(indexHtml.includes('client.js?v=20261027_permanent_podium') || indexHtml.includes('client.js?v=20261027_fancier_unboxing'), 'client.js Cache-Busting aktualisiert');
 
 console.log('✓ 6. Priorisierungs-Logik (Holz ➔ Silber ➔ Gold ➔ Leer) fehlerfrei verifiziert.');
 

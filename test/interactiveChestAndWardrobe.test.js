@@ -67,13 +67,13 @@ assert.ok(!indexHtml.includes('.vault-video-stage'), 'Klasse .vault-video-stage 
 assert.ok(!fs.existsSync(path.join(__dirname, '../public/js/lottie.min.js')), 'public/js/lottie.min.js Datei sauber gelöscht');
 assert.ok(!fs.existsSync(path.join(__dirname, '../scripts/generate_lottie_chests.js')), 'scripts/generate_lottie_chests.js sauber gelöscht');
 assert.ok(!fs.existsSync(path.join(__dirname, '../public/animations/chests')), 'public/animations/chests sauber gelöscht');
-assert.ok(indexHtml.includes('client.js?v=20261027_isolated_chests') || indexHtml.includes('client.js?v=20261027_hearthstone_chests') || indexHtml.includes('client.js?v=20261027_clean_unboxing') || indexHtml.includes('client.js?v=20261027_permanent_podium'), 'Cache-Busting auf v=20261027_permanent_podium aktualisiert');
+assert.ok(indexHtml.includes('client.js?v=20261027_isolated_chests') || indexHtml.includes('client.js?v=20261027_hearthstone_chests') || indexHtml.includes('client.js?v=20261027_clean_unboxing') || indexHtml.includes('client.js?v=20261027_permanent_podium') || indexHtml.includes('client.js?v=20261027_fancier_unboxing'), 'Cache-Busting aktualisiert');
 
 // Handgemalte Dark-Fantasy Artworks & Bereinigung
 const chestsDir = path.join(__dirname, '../public/images/chests');
-assert.ok(fs.existsSync(path.join(chestsDir, 'chest_wooden.jpg')), 'Handgemalte Holztruhe existiert');
-assert.ok(fs.existsSync(path.join(chestsDir, 'chest_silver.jpg')), 'Handgemalte Silbertruhe existiert');
-assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold.jpg')), 'Handgemalte Goldtruhe existiert');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_wooden.png')), 'Transparente Holztruhe existiert');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_silver.png')), 'Transparente Silbertruhe existiert');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold.png')), 'Transparente Goldtruhe existiert');
 assert.ok(clientJs.includes('getChestArtworkHtml'), 'getChestArtworkHtml in client.js vorhanden');
 assert.ok(indexHtml.includes('.arcane-chest-hero-img'), 'CSS für .arcane-chest-hero-img vorhanden');
 assert.ok(indexHtml.includes('display: none !important'), 'vault-fx-canvas für saubere Kartenansicht ausgeblendet');
@@ -82,8 +82,8 @@ assert.ok(indexHtml.includes('display: none !important'), 'vault-fx-canvas für 
 assert.ok(!indexHtml.includes('.mini-chest-wood::after'), 'Veralteter Punkt auf Holztruhen-Medaillon entfernt');
 assert.ok(!indexHtml.includes('.mini-chest-silver::after'), 'Veralteter Punkt auf Silbertruhen-Medaillon entfernt');
 assert.ok(!indexHtml.includes('.mini-chest-gold::after'), 'Veralteter Punkt auf Goldtruhen-Medaillon entfernt');
-assert.ok(indexHtml.includes('mix-blend-mode: screen'), 'mix-blend-mode: screen für freigestellte Truhe vorhanden');
-assert.ok(indexHtml.includes('mask-image: radial-gradient'), 'mask-image: radial-gradient für weichen Randübergang vorhanden');
+assert.ok(indexHtml.includes('chest_wooden.png'), 'Transparente 32-Bit PNG Truhe für Holztruhe eingebunden');
+assert.ok(clientJs.includes('chest_${t}.png'), 'getChestArtworkHtml nutzt echte Alpha-Transparenz PNGs');
 assert.ok(clientJs.includes('openChestModal'), 'openChestModal in client.js vorhanden');
 assert.ok(clientJs.includes('unbox.scrollIntoView'), 'Automatisches Scrollen via scrollIntoView vorhanden');
 assert.ok(clientJs.includes('vaultBody.scrollTop = 0'), 'Scroll-Reset auf vaultBody vorhanden');

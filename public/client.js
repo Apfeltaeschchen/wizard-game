@@ -4300,7 +4300,7 @@ const WizardVault = (() => {
       silver: 'Silberne Magiertruhe',
       gold: 'Goldene Erzmagier-Truhe'
     };
-    return `<img src="images/chests/chest_${t}.jpg" alt="${names[t]}" class="arcane-chest-hero-img" />`;
+    return `<img src="images/chests/chest_${t}.png" alt="${names[t]}" class="arcane-chest-hero-img" />`;
   }
 
   function checkIfEquipped(itemType, itemId) {
@@ -5113,6 +5113,13 @@ const WizardVault = (() => {
       const visualHtml = getCosmeticVisualHtml(r, itemType);
       const dupHtml = r.isDuplicate ? `<div class="drop-card-duplicate">🔄 Duplikat (+${r.dustRefund} Staub)</div>` : '';
       const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
+      const rarityConfigs = {
+        common: { icon: '◈', label: 'Gewöhnlich', hint: 'Antippen zum Aufdecken' },
+        rare: { icon: '💠', label: 'Selten', hint: 'Mana-Siegel brechen' },
+        epic: { icon: '🔮', label: 'Episch', hint: 'Episches Arkanum enthüllen' },
+        legendary: { icon: '👑', label: 'Legendär', hint: 'Legendäre Macht entfesseln' }
+      };
+      const rCfg = rarityConfigs[rarity] || rarityConfigs.common;
 
       const isEquipped = checkIfEquipped(itemType, r.id);
       const equipBtnHtml = isEquipped
@@ -5121,10 +5128,13 @@ const WizardVault = (() => {
 
       cardWrap.innerHTML = `
         <div class="mystery-card-inner">
-          <div class="mystery-card-back">
+          <div class="mystery-card-back rarity-back-${rarity}">
             <div class="mystery-card-back-pattern"></div>
-            <div class="mystery-card-back-sigil">📜</div>
-            <div class="mystery-card-tap-hint">✨ Aufdecken</div>
+            <div class="mystery-card-back-sigil rarity-sigil-${rarity}">
+              <span class="sigil-icon">${rCfg.icon}</span>
+            </div>
+            <div class="mystery-card-rarity-badge rarity-badge-${rarity}">${rCfg.label}</div>
+            <div class="mystery-card-tap-hint">✨ ${rCfg.hint} ✨</div>
           </div>
           <div class="mystery-card-front">
             ${visualHtml}
@@ -5251,13 +5261,21 @@ const WizardVault = (() => {
     if (btnUnboxClose) btnUnboxClose.style.display = 'none';
 
     stopChestFx();
+    const finishedTier = activeUnboxingTier;
     activeUnboxingTier = null;
     isUnboxingAnimationRunning = false;
     pendingChestOpenData = null;
     hasApexReached = false;
 
-    // Automatisch die nächste verfügbare Truhe nachrücken lassen (schlechteste zuerst) oder leeres Podest
-    selectedPodiumTier = null;
+    // Ketten-Öffnen: Falls von der gerade geöffneten Truhensorte noch Exemplare vorhanden sind,
+    // bleibt dieser Truhentyp auf dem Podest ausgewählt. Erst wenn keine mehr da ist,
+    // greift die Standard-Priorisierung (Holz -> Silber -> Gold -> Leeres Podest).
+    const u = (vaultData && vaultData.user) || {};
+    if (finishedTier && (u['chests_' + finishedTier] || 0) > 0) {
+      selectedPodiumTier = finishedTier;
+    } else {
+      selectedPodiumTier = null;
+    }
     renderChests();
   }
 
@@ -5881,13 +5899,13 @@ const WizardVault = (() => {
     if (tabForge) tabForge.addEventListener('click', () => switchTab('forge'));
 
     const bw = document.getElementById('btnOpenWoodenChest');
-    if (bw) bw.addEventListener('click', () => openChest('wooden'));
+    if (bw) bw.addEventListener('click', (e) => { e.stopPropagation(); selectTierOnPodium('wooden'); });
 
     const bs = document.getElementById('btnOpenSilverChest');
-    if (bs) bs.addEventListener('click', () => openChest('silver'));
+    if (bs) bs.addEventListener('click', (e) => { e.stopPropagation(); selectTierOnPodium('silver'); });
 
     const bg = document.getElementById('btnOpenGoldChest');
-    if (bg) bg.addEventListener('click', () => openChest('gold'));
+    if (bg) bg.addEventListener('click', (e) => { e.stopPropagation(); selectTierOnPodium('gold'); });
 
     const btnFinish = document.getElementById('btnFinishUnboxing');
     if (btnFinish) btnFinish.addEventListener('click', finishUnboxing);
@@ -5936,7 +5954,7 @@ const WizardVault = (() => {
       updatePodiumDisplay();
       const unbox = document.getElementById('vaultUnboxingArea');
       if (unbox) {
-        try { unbox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+        try { unbox.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
       }
     }
 
@@ -5945,20 +5963,17 @@ const WizardVault = (() => {
     const cardGold = document.querySelector('.chests-grid .chest-card.tier-gold');
 
     if (cardWood) {
-      cardWood.addEventListener('click', (e) => {
-        if (e.target.closest('.btn-chest-open')) return;
+      cardWood.addEventListener('click', () => {
         selectTierOnPodium('wooden');
       });
     }
     if (cardSilver) {
-      cardSilver.addEventListener('click', (e) => {
-        if (e.target.closest('.btn-chest-open')) return;
+      cardSilver.addEventListener('click', () => {
         selectTierOnPodium('silver');
       });
     }
     if (cardGold) {
-      cardGold.addEventListener('click', (e) => {
-        if (e.target.closest('.btn-chest-open')) return;
+      cardGold.addEventListener('click', () => {
         selectTierOnPodium('gold');
       });
     }

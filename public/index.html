@@ -6086,7 +6086,7 @@
     }
     .unboxing-reveal-controls {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       width: 100%;
       max-width: 680px;
@@ -6096,6 +6096,17 @@
       border: 1px solid rgba(212, 175, 55, 0.3);
       border-radius: 8px;
       box-sizing: border-box;
+      text-align: center;
+    }
+    .unboxing-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 14px;
+      margin-bottom: 8px;
+      width: 100%;
+      max-width: 680px;
     }
     .unboxing-cards-hint {
       font-family: var(--font-heading);
@@ -6108,8 +6119,8 @@
       border: 1px solid var(--gold-bright);
       color: #fff;
       border-radius: 6px;
-      padding: 6px 14px;
-      font-size: 12px;
+      padding: 9px 20px;
+      font-size: 13.5px;
       font-family: var(--font-heading);
       cursor: pointer;
       display: flex;
@@ -6168,49 +6179,148 @@
       box-sizing: border-box;
     }
 
-    /* MYSTERY RÜCKSEITE (VERDECKT) */
+    /* MYSTERY RÜCKSEITE (VERDECKT - HEARTHSTONE / DARK-FANTASY STYLE) */
     .mystery-card-back {
       background: radial-gradient(circle at 50% 30%, #2e1a47 0%, #150a24 75%, #0d0517 100%);
       border: 2px solid var(--gold-antique, #d4af37);
       box-shadow: 0 10px 25px rgba(0,0,0,0.85);
       transition: transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
     }
     .mystery-card-wrap:not(.flipped):hover .mystery-card-back {
       transform: translateY(-8px) scale(1.04);
     }
+
+    /* 1. GEWÖHNLICH (COMMON): RUNENSTAHL & OBSIDIAN */
     .mystery-card-wrap.rarity-common .mystery-card-back {
-      border-color: #cbd5e1;
-      box-shadow: 0 0 16px rgba(203, 213, 225, 0.35), 0 8px 24px rgba(0,0,0,0.8);
+      background: radial-gradient(circle at 50% 25%, #1e293b 0%, #0f172a 65%, #020617 100%);
+      border: 2px solid #94a3b8;
+      box-shadow: 0 0 16px rgba(148, 163, 184, 0.35), 0 8px 24px rgba(0, 0, 0, 0.85);
     }
+    .mystery-card-wrap.rarity-common .mystery-card-back-pattern {
+      border: 1.5px solid rgba(148, 163, 184, 0.35);
+      background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(148, 163, 184, 0.04) 10px, rgba(148, 163, 184, 0.04) 20px);
+    }
+    .rarity-sigil-common {
+      color: #cbd5e1;
+      filter: drop-shadow(0 0 8px rgba(203, 213, 225, 0.75));
+    }
+    .rarity-badge-common {
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    /* 2. SELTEN (RARE): TIEFSEE-AZUR & FROST-SAPHIR */
     .mystery-card-wrap.rarity-rare .mystery-card-back {
-      border-color: #38bdf8;
-      box-shadow: 0 0 22px rgba(56, 189, 248, 0.55), 0 8px 24px rgba(0,0,0,0.8);
+      background: radial-gradient(circle at 50% 25%, #0c4a6e 0%, #082f49 65%, #021220 100%);
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.55), 0 8px 26px rgba(0, 0, 0, 0.9);
     }
+    .mystery-card-wrap.rarity-rare .mystery-card-back-pattern {
+      border: 1.5px solid rgba(56, 189, 248, 0.45);
+      background: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(56, 189, 248, 0.06) 10px, rgba(56, 189, 248, 0.06) 20px);
+    }
+    .rarity-sigil-rare {
+      color: #38bdf8;
+      filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.95));
+    }
+    .rarity-badge-rare {
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      background: rgba(8, 47, 73, 0.7);
+    }
+
+    /* 3. EPISCH (EPIC): ELDRITCH AMETHYST & TWILIGHT-VIOLETT */
     .mystery-card-wrap.rarity-epic .mystery-card-back {
-      border-color: #c084fc;
-      box-shadow: 0 0 28px rgba(192, 132, 252, 0.65), 0 8px 24px rgba(0,0,0,0.8);
+      background: radial-gradient(circle at 50% 25%, #4c1d95 0%, #2e1065 65%, #0d021c 100%);
+      border: 2px solid #c084fc;
+      box-shadow: 0 0 30px rgba(192, 132, 252, 0.65), 0 8px 28px rgba(0, 0, 0, 0.9);
+      animation: pulseEpicBack 2.2s ease-in-out infinite alternate;
     }
+    .mystery-card-wrap.rarity-epic .mystery-card-back-pattern {
+      border: 1.5px solid rgba(192, 132, 252, 0.5);
+      background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(192, 132, 252, 0.07) 10px, rgba(192, 132, 252, 0.07) 20px);
+    }
+    .rarity-sigil-epic {
+      color: #c084fc;
+      filter: drop-shadow(0 0 16px rgba(192, 132, 252, 0.95));
+    }
+    .rarity-badge-epic {
+      color: #c084fc;
+      border: 1px solid rgba(192, 132, 252, 0.5);
+      background: rgba(46, 16, 101, 0.7);
+    }
+
+    /* 4. LEGENDÄR (LEGENDARY): CELESTIAL GOLD & DRACHEN-OBSIDIAN MIT LICHTSCHEIN */
     .mystery-card-wrap.rarity-legendary .mystery-card-back {
-      border-color: #fbbf24;
-      box-shadow: 0 0 36px rgba(251, 191, 36, 0.85), 0 8px 24px rgba(0,0,0,0.8);
+      background: radial-gradient(circle at 50% 20%, #78350f 0%, #451a03 50%, #1c0a00 100%);
+      border: 2.5px solid #fbbf24;
+      box-shadow: 0 0 38px rgba(251, 191, 36, 0.85), 0 8px 30px rgba(0, 0, 0, 0.95);
       animation: pulseLegendaryBack 1.8s ease-in-out infinite alternate;
     }
+    .mystery-card-wrap.rarity-legendary .mystery-card-back::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(135deg, transparent 40%, rgba(251, 191, 36, 0.28) 50%, transparent 60%);
+      transform: rotate(30deg);
+      animation: goldSheenSweep 3.6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .mystery-card-wrap.rarity-legendary .mystery-card-back-pattern {
+      border: 1.5px solid rgba(251, 191, 36, 0.6);
+      background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(251, 191, 36, 0.09) 10px, rgba(251, 191, 36, 0.09) 20px);
+    }
+    .rarity-sigil-legendary {
+      color: #fbbf24;
+      filter: drop-shadow(0 0 20px rgba(251, 191, 36, 1)) drop-shadow(0 0 32px rgba(245, 158, 11, 0.85));
+    }
+    .rarity-badge-legendary {
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.65);
+      background: rgba(69, 26, 3, 0.8);
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+    }
+
+    @keyframes goldSheenSweep {
+      0% { transform: translateY(-100%) rotate(30deg); }
+      30%, 100% { transform: translateY(100%) rotate(30deg); }
+    }
+    @keyframes pulseEpicBack {
+      0% { box-shadow: 0 0 18px rgba(192, 132, 252, 0.4), 0 8px 24px rgba(0, 0, 0, 0.85); }
+      100% { box-shadow: 0 0 32px rgba(192, 132, 252, 0.8), 0 8px 28px rgba(0, 0, 0, 0.95); }
+    }
+
     .mystery-card-back-pattern {
       position: absolute;
       inset: 6px;
-      border: 1px dashed rgba(212, 175, 55, 0.45);
       border-radius: 8px;
       pointer-events: none;
     }
     .mystery-card-back-sigil {
-      font-size: 40px;
-      margin-bottom: 8px;
-      filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.65));
+      font-size: 38px;
+      line-height: 1;
+      margin-bottom: 6px;
       animation: floatSigil 2.5s ease-in-out infinite alternate;
+    }
+    .mystery-card-rarity-badge {
+      font-family: var(--font-heading);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 8px;
     }
     .mystery-card-tap-hint {
       font-family: var(--font-heading);
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--gold-bright, #fef08a);
       letter-spacing: 0.5px;
       text-transform: uppercase;
@@ -6433,7 +6543,6 @@
       filter: none;
     }
     .vault-arcane-chest:hover {
-      transform: translateY(-6px);
       filter: none;
     }
     .vault-arcane-chest.tier-silver:hover {
@@ -6483,9 +6592,10 @@
       border: none !important;
       border-radius: 0;
       box-shadow: none !important;
-      mix-blend-mode: screen;
-      mask-image: radial-gradient(ellipse at 50% 50%, black 65%, transparent 95%);
-      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 65%, transparent 95%);
+      mix-blend-mode: normal !important;
+      mask-image: none !important;
+      -webkit-mask-image: none !important;
+      filter: none;
       transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease;
     }
     .vault-arcane-chest.tier-silver .arcane-chest-hero-img {
@@ -6497,7 +6607,7 @@
       box-shadow: none !important;
     }
     .vault-arcane-chest:hover .arcane-chest-hero-img {
-      transform: scale(1.05);
+      transform: scale(1.04);
       filter: brightness(1.08);
     }
     .vault-arcane-chest.tier-silver:hover .arcane-chest-hero-img {
@@ -6589,7 +6699,9 @@
     .chest-medallion-img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      padding: 4px;
+      box-sizing: border-box;
       transition: transform 0.35s ease;
     }
     .chest-card:hover .chest-medallion-img {
@@ -9178,17 +9290,19 @@
             <div id="vaultUnboxingDropsArea" style="display: none; width: 100%; flex-direction: column; align-items: center;">
               <div id="vaultUnboxingRevealControls" class="unboxing-reveal-controls">
                 <div id="vaultUnboxingCardsHint" class="unboxing-cards-hint">✨ Klicke auf die verdeckten Karten zum Aufdecken ✨</div>
+              </div>
+              <div id="vaultUnboxingDrops" class="unboxing-drops-container"></div>
+              <div id="vaultUnboxingDustNotice" style="display: none; font-size: 13px; color: #c084fc; font-weight: bold; margin-bottom: 12px;"></div>
+              <div class="unboxing-actions-row">
                 <button id="btnFlipAllCards" type="button" class="btn-flip-all-cards">
                   <span>🃏</span>
                   <span>Alle aufdecken</span>
                 </button>
+                <button id="btnFinishUnboxing" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 9px 24px; font-size: 13.5px; margin: 0;">
+                  <span>🏛️</span>
+                  <span>Schätze einsammeln</span>
+                </button>
               </div>
-              <div id="vaultUnboxingDrops" class="unboxing-drops-container"></div>
-              <div id="vaultUnboxingDustNotice" style="display: none; font-size: 13px; color: #c084fc; font-weight: bold; margin-bottom: 14px;"></div>
-              <button id="btnFinishUnboxing" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 10px 32px; font-size: 14px;">
-                <span>🏛️</span>
-                <span>Schätze einsammeln</span>
-              </button>
             </div>
           </div>
 
@@ -9199,14 +9313,14 @@
               <div class="chest-icon-visual chest-icon-wooden">
                 <div class="chest-artwork-medallion medallion-wooden badge-tier-wooden" title="Holztruhe des Lehrlings">
                   <div class="chest-vector-badge">
-                    <img src="images/chests/chest_wooden.jpg" alt="Holztruhe des Lehrlings" class="chest-medallion-img" />
+                    <img src="images/chests/chest_wooden.png" alt="Holztruhe des Lehrlings" class="chest-medallion-img" />
                   </div>
                 </div>
               </div>
               <div class="chest-title">Holztruhe des Lehrlings</div>
               <div class="chest-desc">2 Belohnungen. Erhältst du bei jedem regulären Stufenaufstieg.</div>
               <div class="chest-count-badge">Verfügbar: <span id="countWoodenChests">0</span></div>
-              <button id="btnOpenWoodenChest" type="button" class="btn-chest-open" disabled>Truhe öffnen</button>
+              <button id="btnOpenWoodenChest" type="button" class="btn-chest-open" disabled>Auswählen</button>
             </div>
 
             <!-- SILBERTRUHE -->
@@ -9214,14 +9328,14 @@
               <div class="chest-icon-visual chest-icon-silver">
                 <div class="chest-artwork-medallion medallion-silver badge-tier-silver" title="Silberne Magiertruhe">
                   <div class="chest-vector-badge">
-                    <img src="images/chests/chest_silver.jpg" alt="Silberne Magiertruhe" class="chest-medallion-img" />
+                    <img src="images/chests/chest_silver.png" alt="Silberne Magiertruhe" class="chest-medallion-img" />
                   </div>
                 </div>
               </div>
               <div class="chest-title">Silberne Magiertruhe</div>
               <div class="chest-desc">3 Belohnungen mit hoher Chance auf Seltene &amp; Epische Schätze. Belohnung alle 5 Stufen!</div>
               <div class="chest-count-badge">Verfügbar: <span id="countSilverChests">0</span></div>
-              <button id="btnOpenSilverChest" type="button" class="btn-chest-open" disabled>Truhe öffnen</button>
+              <button id="btnOpenSilverChest" type="button" class="btn-chest-open" disabled>Auswählen</button>
             </div>
 
             <!-- GOLDTRUHE -->
@@ -9229,14 +9343,14 @@
               <div class="chest-icon-visual chest-icon-gold">
                 <div class="chest-artwork-medallion medallion-gold badge-tier-gold" title="Goldene Erzmagier-Truhe">
                   <div class="chest-vector-badge">
-                    <img src="images/chests/chest_gold.jpg" alt="Goldene Erzmagier-Truhe" class="chest-medallion-img" />
+                    <img src="images/chests/chest_gold.png" alt="Goldene Erzmagier-Truhe" class="chest-medallion-img" />
                   </div>
                 </div>
               </div>
               <div class="chest-title">Goldene Erzmagier-Truhe</div>
               <div class="chest-desc">4 Belohnungen. Garantiert mindestens 1 Episches oder Legendäres Prunkstück! Alle 10 Stufen.</div>
               <div class="chest-count-badge">Verfügbar: <span id="countGoldChests">0</span></div>
-              <button id="btnOpenGoldChest" type="button" class="btn-chest-open" disabled>Truhe öffnen</button>
+              <button id="btnOpenGoldChest" type="button" class="btn-chest-open" disabled>Auswählen</button>
             </div>
           </div>
 
@@ -9545,7 +9659,7 @@
   </div>
 
   <script src="socket.io.min.js"></script>
-  <script src="client.js?v=20261027_permanent_podium"></script>
+  <script src="client.js?v=20261027_fancier_unboxing"></script>
 
   </body>
 </html>
