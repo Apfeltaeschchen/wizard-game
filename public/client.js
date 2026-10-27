@@ -4269,267 +4269,8 @@ const WizardVault = (() => {
   }
 
   function triggerChestBurstFx(rarityHex, chestTier) {
-    if (!chestFxCanvas) initChestFxCanvas();
-    if (!chestFxCtx || !chestFxCanvas) return;
-
-    resizeChestFxCanvas();
+    // Sternschnuppen- und Schockwellen-Partikel vollständig bereinigt für ein ruhiges, edles Hearthstone-Kartenenthüllen
     stopChestFx();
-
-    const canvasRect = chestFxCanvas.getBoundingClientRect();
-    const w = canvasRect.width || 450;
-    const h = canvasRect.height || 480;
-
-    const chestEl = document.getElementById('vaultArcaneChest');
-    let ox = w / 2;
-    let oy = h * 0.4;
-    if (chestEl) {
-      const chestRect = chestEl.getBoundingClientRect();
-      if (chestRect.width > 0 && chestRect.height > 0) {
-        ox = (chestRect.left + chestRect.width / 2) - canvasRect.left;
-        oy = (chestRect.top + chestRect.height * 0.45) - canvasRect.top;
-      }
-    }
-
-    const baseColor = rarityHex || '#fbbf24';
-    const accentColor = '#ffffff';
-
-    // Tier-spezifische Farbpalette für Volumetrik & God-Rays
-    let tierRayColor = 'rgba(251, 191, 36, 0.45)';
-    if (chestTier === 'silver') {
-      tierRayColor = 'rgba(56, 189, 248, 0.55)';
-    } else if (chestTier === 'wooden') {
-      tierRayColor = 'rgba(245, 158, 11, 0.5)';
-    } else if (chestTier === 'gold') {
-      tierRayColor = 'rgba(251, 191, 36, 0.65)';
-    }
-
-    // 1. Volumetrische God-Rays / Lichtsäulen nach oben
-    const rayCount = 7;
-    for (let r = 0; r < rayCount; r++) {
-      const spread = (r - (rayCount - 1) / 2) * 0.18 + (Math.random() - 0.5) * 0.08;
-      chestLightRays.push({
-        ox: ox + (r - (rayCount - 1) / 2) * 12,
-        oy: oy - 5,
-        angle: -Math.PI / 2 + spread,
-        length: Math.max(w, h) * (0.85 + Math.random() * 0.35),
-        baseWidth: Math.random() * 18 + 14,
-        color: tierRayColor,
-        alpha: 0.9,
-        decay: Math.random() * 0.012 + 0.015,
-        swing: (Math.random() - 0.5) * 0.003
-      });
-    }
-
-    // 2. Gestaffelte Schockwellen-Ringe
-    chestShockwaves.push({
-      x: ox,
-      y: oy,
-      radius: 14,
-      maxRadius: Math.max(w, h) * 0.65,
-      speed: 7.5,
-      lineWidth: 9,
-      color: baseColor,
-      alpha: 1.0,
-      decay: 0.024
-    });
-
-    setTimeout(() => {
-      if (chestFxAnimId) {
-        chestShockwaves.push({
-          x: ox,
-          y: oy,
-          radius: 10,
-          maxRadius: Math.max(w, h) * 0.55,
-          speed: 6.2,
-          lineWidth: 6,
-          color: accentColor,
-          alpha: 0.92,
-          decay: 0.028
-        });
-      }
-    }, 85);
-
-    // 3. 80 physikalische Partikel (Fontäne & Sternfunken)
-    const particleCount = 80;
-    for (let i = 0; i < particleCount; i++) {
-      const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.5;
-      const speed = Math.random() * 8.5 + 3.5;
-      const isStar = Math.random() < 0.38;
-      const colChoice = Math.random();
-      const color = colChoice < 0.6 ? baseColor : (colChoice < 0.85 ? '#fde68a' : accentColor);
-
-      chestParticles.push({
-        x: ox + (Math.random() - 0.5) * 22,
-        y: oy + (Math.random() - 0.5) * 16,
-        vx: Math.cos(angle) * speed * (0.85 + Math.random() * 0.55),
-        vy: (Math.sin(angle) * speed * 0.8) - (Math.random() * 4.5 + 2.5),
-        gravity: 0.17,
-        drag: 0.976,
-        size: Math.random() * 4.2 + 2.5,
-        isStar,
-        color,
-        rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.22,
-        life: 1.0,
-        decay: Math.random() * 0.016 + 0.013
-      });
-    }
-
-    // 4. Sanft schwebende Runen-Funken nach oben
-    const runeMoteCount = 18;
-    for (let m = 0; m < runeMoteCount; m++) {
-      chestRuneMotes.push({
-        x: ox + (Math.random() - 0.5) * 90,
-        y: oy + (Math.random() - 0.5) * 20,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: -(Math.random() * 2.2 + 1.2),
-        oscFreq: Math.random() * 0.08 + 0.04,
-        oscAmp: Math.random() * 1.5 + 0.8,
-        size: Math.random() * 3 + 1.8,
-        color: baseColor,
-        alpha: 0.95,
-        decay: Math.random() * 0.012 + 0.01,
-        time: Math.random() * 10
-      });
-    }
-
-    updateChestFx();
-  }
-
-  function updateChestFx() {
-    if (!chestFxCtx || !chestFxCanvas) return;
-    const rect = chestFxCanvas.getBoundingClientRect();
-    const w = rect.width || 450;
-    const h = rect.height || 260;
-
-    chestFxCtx.clearRect(0, 0, w, h);
-
-    // 1. God-Rays / Lichtsäulen rendern
-    for (let i = chestLightRays.length - 1; i >= 0; i--) {
-      const ray = chestLightRays[i];
-      ray.alpha -= ray.decay;
-      ray.angle += ray.swing;
-      if (ray.alpha <= 0) {
-        chestLightRays.splice(i, 1);
-        continue;
-      }
-      chestFxCtx.save();
-      chestFxCtx.translate(ray.ox, ray.oy);
-      chestFxCtx.rotate(ray.angle);
-
-      const grad = chestFxCtx.createLinearGradient(0, 0, ray.length, 0);
-      grad.addColorStop(0, ray.color);
-      grad.addColorStop(0.35, ray.color);
-      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-      chestFxCtx.fillStyle = grad;
-      chestFxCtx.globalAlpha = Math.max(0, ray.alpha);
-      chestFxCtx.beginPath();
-      chestFxCtx.moveTo(0, -ray.baseWidth * 0.3);
-      chestFxCtx.lineTo(ray.length, -ray.baseWidth * 2.2);
-      chestFxCtx.lineTo(ray.length, ray.baseWidth * 2.2);
-      chestFxCtx.lineTo(0, ray.baseWidth * 0.3);
-      chestFxCtx.closePath();
-      chestFxCtx.fill();
-      chestFxCtx.restore();
-    }
-
-    // 2. Schockwellen rendern
-    for (let i = chestShockwaves.length - 1; i >= 0; i--) {
-      const sw = chestShockwaves[i];
-      sw.radius += sw.speed;
-      sw.alpha -= sw.decay;
-      if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) {
-        chestShockwaves.splice(i, 1);
-        continue;
-      }
-      chestFxCtx.save();
-      chestFxCtx.beginPath();
-      chestFxCtx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-      chestFxCtx.strokeStyle = sw.color;
-      chestFxCtx.globalAlpha = Math.max(0, sw.alpha);
-      chestFxCtx.lineWidth = Math.max(1, sw.lineWidth * sw.alpha);
-      chestFxCtx.shadowBlur = 14;
-      chestFxCtx.shadowColor = sw.color;
-      chestFxCtx.stroke();
-      chestFxCtx.restore();
-    }
-
-    // 3. Physikalische Partikel rendern
-    for (let i = chestParticles.length - 1; i >= 0; i--) {
-      const p = chestParticles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += p.gravity;
-      p.vx *= p.drag;
-      p.vy *= p.drag;
-      p.life -= p.decay;
-      p.rotation += p.rotSpeed;
-
-      if (p.life <= 0) {
-        chestParticles.splice(i, 1);
-        continue;
-      }
-
-      chestFxCtx.save();
-      chestFxCtx.translate(p.x, p.y);
-      chestFxCtx.rotate(p.rotation);
-      chestFxCtx.globalAlpha = Math.max(0, p.life);
-      chestFxCtx.fillStyle = p.color;
-      chestFxCtx.shadowBlur = 8;
-      chestFxCtx.shadowColor = p.color;
-
-      if (p.isStar) {
-        const s = p.size * 1.35;
-        chestFxCtx.beginPath();
-        chestFxCtx.moveTo(0, -s);
-        chestFxCtx.lineTo(s * 0.28, -s * 0.28);
-        chestFxCtx.lineTo(s, 0);
-        chestFxCtx.lineTo(s * 0.28, s * 0.28);
-        chestFxCtx.lineTo(0, s);
-        chestFxCtx.lineTo(-s * 0.28, s * 0.28);
-        chestFxCtx.lineTo(-s, 0);
-        chestFxCtx.lineTo(-s * 0.28, -s * 0.28);
-        chestFxCtx.closePath();
-        chestFxCtx.fill();
-      } else {
-        chestFxCtx.beginPath();
-        chestFxCtx.arc(0, 0, p.size, 0, Math.PI * 2);
-        chestFxCtx.fill();
-      }
-      chestFxCtx.restore();
-    }
-
-    // 4. Runen-Funken rendern
-    for (let i = chestRuneMotes.length - 1; i >= 0; i--) {
-      const m = chestRuneMotes[i];
-      m.time += 1;
-      m.x += m.vx + Math.sin(m.time * m.oscFreq) * m.oscAmp;
-      m.y += m.vy;
-      m.alpha -= m.decay;
-
-      if (m.alpha <= 0) {
-        chestRuneMotes.splice(i, 1);
-        continue;
-      }
-
-      chestFxCtx.save();
-      chestFxCtx.globalAlpha = Math.max(0, m.alpha);
-      chestFxCtx.fillStyle = m.color;
-      chestFxCtx.shadowBlur = 10;
-      chestFxCtx.shadowColor = m.color;
-      chestFxCtx.beginPath();
-      chestFxCtx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
-      chestFxCtx.fill();
-      chestFxCtx.restore();
-    }
-
-    if (chestParticles.length > 0 || chestShockwaves.length > 0 || chestLightRays.length > 0 || chestRuneMotes.length > 0) {
-      chestFxAnimId = requestAnimationFrame(updateChestFx);
-    } else {
-      chestFxAnimId = null;
-      chestFxCtx.clearRect(0, 0, w, h);
-    }
   }
 
   function stopChestFx() {
@@ -4545,6 +4286,16 @@ const WizardVault = (() => {
       const rect = chestFxCanvas.getBoundingClientRect();
       chestFxCtx.clearRect(0, 0, rect.width || 450, rect.height || 260);
     }
+  }
+
+  function getChestArtworkHtml(tier) {
+    const t = (tier === 'gold' || tier === 'silver' || tier === 'wooden') ? tier : 'wooden';
+    const names = {
+      wooden: 'Holztruhe des Lehrlings',
+      silver: 'Silberne Magiertruhe',
+      gold: 'Goldene Erzmagier-Truhe'
+    };
+    return `<img src="images/chests/chest_${t}.jpg" alt="${names[t]}" class="arcane-chest-hero-img" />`;
   }
 
   function checkIfEquipped(itemType, itemId) {
@@ -5003,7 +4754,7 @@ const WizardVault = (() => {
       arcaneChest.classList.remove('shaking', 'bursting');
     }
     if (arcaneChestArtwork) {
-      arcaneChestArtwork.innerHTML = getChestVectorSvg(tier);
+      arcaneChestArtwork.innerHTML = getChestArtworkHtml(tier);
     }
 
     if (flashOverlay) {

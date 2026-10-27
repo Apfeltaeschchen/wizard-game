@@ -6318,6 +6318,7 @@
       height: 100%;
       pointer-events: none;
       z-index: 20;
+      display: none !important;
     }
     .unboxing-pedestal-glow {
       position: absolute;
@@ -6400,6 +6401,27 @@
       height: 100%;
       overflow: visible;
     }
+    .arcane-chest-hero-img {
+      width: 250px;
+      height: 215px;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 2px solid rgba(245, 158, 11, 0.55);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.92), 0 0 24px rgba(245, 158, 11, 0.35);
+      transition: transform 0.28s ease, filter 0.28s ease, box-shadow 0.28s ease;
+    }
+    .vault-arcane-chest.tier-silver .arcane-chest-hero-img {
+      border-color: rgba(56, 189, 248, 0.6);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.92), 0 0 28px rgba(56, 189, 248, 0.45);
+    }
+    .vault-arcane-chest.tier-gold .arcane-chest-hero-img {
+      border-color: rgba(251, 191, 36, 0.75);
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.95), 0 0 32px rgba(251, 191, 36, 0.6);
+    }
+    .vault-arcane-chest:hover .arcane-chest-hero-img {
+      transform: scale(1.04);
+      filter: brightness(1.08);
+    }
     .arcane-chest-halo {
       position: absolute;
       top: 50%;
@@ -6444,21 +6466,41 @@
       100% { opacity: 0; transform: translate(-50%, -50%) scale(1.75); }
     }
     .chest-artwork-medallion {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
+      width: 76px;
+      height: 76px;
+      border-radius: 16px;
       border: 2px solid var(--gold-bright, #fbbf24);
-      background: radial-gradient(circle, #2a180e 0%, #090301 90%);
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4), inset 0 0 8px rgba(0,0,0,0.8);
+      background: radial-gradient(circle, #1a100a 0%, #050201 90%);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.85);
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.25, 1.2), box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    .chest-artwork-medallion.medallion-wooden {
+      border-color: #d97706;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(217, 119, 6, 0.35);
+    }
+    .chest-artwork-medallion.medallion-silver {
+      border-color: #38bdf8;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.85), 0 0 14px rgba(56, 189, 248, 0.4);
+    }
+    .chest-artwork-medallion.medallion-gold {
+      border-color: #fbbf24;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.9), 0 0 18px rgba(251, 191, 36, 0.55);
     }
     .chest-card:hover .chest-artwork-medallion {
-      transform: scale(1.08);
-      box-shadow: 0 0 18px rgba(251, 191, 36, 0.75), inset 0 0 8px rgba(0,0,0,0.8);
+      transform: translateY(-4px) scale(1.08);
+    }
+    .chest-card:hover .chest-artwork-medallion.medallion-wooden {
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.9), 0 0 20px rgba(245, 158, 11, 0.65);
+    }
+    .chest-card:hover .chest-artwork-medallion.medallion-silver {
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.9), 0 0 22px rgba(56, 189, 248, 0.7);
+    }
+    .chest-card:hover .chest-artwork-medallion.medallion-gold {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.95), 0 0 26px rgba(251, 191, 36, 0.85);
     }
     .chest-medallion-img {
       width: 100%;
@@ -9096,41 +9138,9 @@
             <!-- HOLZTRUHE -->
             <div class="chest-card tier-wooden">
               <div class="chest-icon-visual chest-icon-wooden">
-                <div class="chest-artwork-medallion mini-chest-wood">
-                  <div class="chest-vector-badge badge-tier-wooden" title="Holztruhe des Lehrlings">
-                    <svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
-                      <defs>
-                        <linearGradient id="woodPlankGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="#854d0e" />
-                          <stop offset="50%" stop-color="#5c3317" />
-                          <stop offset="100%" stop-color="#3b1d08" />
-                        </linearGradient>
-                        <linearGradient id="ironBandGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="#64748b" />
-                          <stop offset="50%" stop-color="#334155" />
-                          <stop offset="100%" stop-color="#1e293b" />
-                        </linearGradient>
-                        <radialGradient id="amberGemGrad" cx="35%" cy="35%" r="65%">
-                          <stop offset="0%" stop-color="#fef08a" />
-                          <stop offset="45%" stop-color="#f59e0b" />
-                          <stop offset="100%" stop-color="#92400e" />
-                        </radialGradient>
-                      </defs>
-                      <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#woodPlankGrad)" stroke="#a16207" stroke-width="1.5" />
-                      <line x1="8" y1="34" x2="56" y2="34" stroke="#2a1406" stroke-width="1" opacity="0.6" />
-                      <line x1="8" y1="43" x2="56" y2="43" stroke="#2a1406" stroke-width="1" opacity="0.6" />
-                      <path d="M6,26 C6,16 16,12 32,12 C48,12 58,16 58,26 Z" fill="url(#woodPlankGrad)" stroke="#a16207" stroke-width="1.5" />
-                      <rect x="18" y="13" width="6" height="39" rx="1" fill="url(#ironBandGrad)" stroke="#64748b" stroke-width="0.8" />
-                      <rect x="40" y="13" width="6" height="39" rx="1" fill="url(#ironBandGrad)" stroke="#64748b" stroke-width="0.8" />
-                      <circle cx="21" cy="18" r="1.2" fill="#94a3b8" />
-                      <circle cx="21" cy="30" r="1.2" fill="#94a3b8" />
-                      <circle cx="21" cy="46" r="1.2" fill="#94a3b8" />
-                      <circle cx="43" cy="18" r="1.2" fill="#94a3b8" />
-                      <circle cx="43" cy="30" r="1.2" fill="#94a3b8" />
-                      <circle cx="43" cy="46" r="1.2" fill="#94a3b8" />
-                      <rect x="27" y="24" width="10" height="11" rx="2" fill="url(#ironBandGrad)" stroke="#d97706" stroke-width="1" />
-                      <circle cx="32" cy="29" r="3.2" fill="url(#amberGemGrad)" stroke="#fef3c7" stroke-width="0.8" />
-                    </svg>
+                <div class="chest-artwork-medallion medallion-wooden badge-tier-wooden mini-chest-wood" title="Holztruhe des Lehrlings">
+                  <div class="chest-vector-badge">
+                    <img src="images/chests/chest_wooden.jpg" alt="Holztruhe des Lehrlings" class="chest-medallion-img" />
                   </div>
                 </div>
               </div>
@@ -9143,41 +9153,9 @@
             <!-- SILBERTRUHE -->
             <div class="chest-card tier-silver">
               <div class="chest-icon-visual chest-icon-silver">
-                <div class="chest-artwork-medallion mini-chest-silver">
-                  <div class="chest-vector-badge badge-tier-silver" title="Silberne Magiertruhe">
-                    <svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
-                      <defs>
-                        <linearGradient id="silverPlateGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="#f8fafc" />
-                          <stop offset="30%" stop-color="#cbd5e1" />
-                          <stop offset="70%" stop-color="#64748b" />
-                          <stop offset="100%" stop-color="#334155" />
-                        </linearGradient>
-                        <linearGradient id="mithrilCyanGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="#7dd3fc" />
-                          <stop offset="50%" stop-color="#0284c7" />
-                          <stop offset="100%" stop-color="#0369a1" />
-                        </linearGradient>
-                        <radialGradient id="frostSapphireGrad" cx="35%" cy="35%" r="65%">
-                          <stop offset="0%" stop-color="#e0f2fe" />
-                          <stop offset="45%" stop-color="#38bdf8" />
-                          <stop offset="100%" stop-color="#0369a1" />
-                        </radialGradient>
-                      </defs>
-                      <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#silverPlateGrad)" stroke="#e2e8f0" stroke-width="1.5" />
-                      <path d="M14,32 L26,46 M50,32 L38,46" stroke="#94a3b8" stroke-width="1" opacity="0.4" />
-                      <path d="M6,26 C6,15 16,11 32,11 C48,11 58,15 58,26 Z" fill="url(#silverPlateGrad)" stroke="#e2e8f0" stroke-width="1.5" />
-                      <rect x="17" y="12" width="7" height="40" rx="1.5" fill="url(#mithrilCyanGrad)" stroke="#bae6fd" stroke-width="0.8" />
-                      <rect x="40" y="12" width="7" height="40" rx="1.5" fill="url(#mithrilCyanGrad)" stroke="#bae6fd" stroke-width="0.8" />
-                      <circle cx="20.5" cy="18" r="1.3" fill="#ffffff" />
-                      <circle cx="20.5" cy="31" r="1.3" fill="#ffffff" />
-                      <circle cx="20.5" cy="46" r="1.3" fill="#ffffff" />
-                      <circle cx="43.5" cy="18" r="1.3" fill="#ffffff" />
-                      <circle cx="43.5" cy="31" r="1.3" fill="#ffffff" />
-                      <circle cx="43.5" cy="46" r="1.3" fill="#ffffff" />
-                      <polygon points="32,22 38,28 32,34 26,28" fill="url(#mithrilCyanGrad)" stroke="#38bdf8" stroke-width="1" />
-                      <circle cx="32" cy="28" r="3.4" fill="url(#frostSapphireGrad)" stroke="#e0f2fe" stroke-width="1" />
-                    </svg>
+                <div class="chest-artwork-medallion medallion-silver badge-tier-silver mini-chest-silver" title="Silberne Magiertruhe">
+                  <div class="chest-vector-badge">
+                    <img src="images/chests/chest_silver.jpg" alt="Silberne Magiertruhe" class="chest-medallion-img" />
                   </div>
                 </div>
               </div>
@@ -9190,42 +9168,9 @@
             <!-- GOLDTRUHE -->
             <div class="chest-card tier-gold">
               <div class="chest-icon-visual chest-icon-gold">
-                <div class="chest-artwork-medallion mini-chest-gold">
-                  <div class="chest-vector-badge badge-tier-gold" title="Goldene Erzmagier-Truhe">
-                    <svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
-                      <defs>
-                        <linearGradient id="goldCaseGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="#fffbeb" />
-                          <stop offset="25%" stop-color="#fde68a" />
-                          <stop offset="60%" stop-color="#fbbf24" />
-                          <stop offset="85%" stop-color="#d97706" />
-                          <stop offset="100%" stop-color="#78350f" />
-                        </linearGradient>
-                        <linearGradient id="royalVelvetGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="#581c87" />
-                          <stop offset="100%" stop-color="#2e1065" />
-                        </linearGradient>
-                        <radialGradient id="dragonRubyGrad" cx="35%" cy="35%" r="65%">
-                          <stop offset="0%" stop-color="#ffe4e6" />
-                          <stop offset="35%" stop-color="#f43f5e" />
-                          <stop offset="70%" stop-color="#e11d48" />
-                          <stop offset="100%" stop-color="#881337" />
-                        </radialGradient>
-                      </defs>
-                      <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#goldCaseGrad)" stroke="#fde68a" stroke-width="1.5" />
-                      <rect x="13" y="30" width="38" height="18" rx="2" fill="url(#royalVelvetGrad)" stroke="#fbbf24" stroke-width="0.8" />
-                      <path d="M6,26 C6,14 16,10 32,10 C48,10 58,14 58,26 Z" fill="url(#goldCaseGrad)" stroke="#fffbeb" stroke-width="1.5" />
-                      <rect x="17" y="11" width="7" height="41" rx="1.5" fill="url(#goldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
-                      <rect x="40" y="11" width="7" height="41" rx="1.5" fill="url(#goldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
-                      <circle cx="20.5" cy="17" r="1.3" fill="#ffffff" />
-                      <circle cx="20.5" cy="31" r="1.3" fill="#ffffff" />
-                      <circle cx="20.5" cy="46" r="1.3" fill="#ffffff" />
-                      <circle cx="43.5" cy="17" r="1.3" fill="#ffffff" />
-                      <circle cx="43.5" cy="31" r="1.3" fill="#ffffff" />
-                      <circle cx="43.5" cy="46" r="1.3" fill="#ffffff" />
-                      <path d="M25,26 C28,23 36,23 39,26 L36,33 L28,33 Z" fill="url(#goldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
-                      <circle cx="32" cy="28.5" r="3.6" fill="url(#dragonRubyGrad)" stroke="#ffe4e6" stroke-width="0.8" />
-                    </svg>
+                <div class="chest-artwork-medallion medallion-gold badge-tier-gold mini-chest-gold" title="Goldene Erzmagier-Truhe">
+                  <div class="chest-vector-badge">
+                    <img src="images/chests/chest_gold.jpg" alt="Goldene Erzmagier-Truhe" class="chest-medallion-img" />
                   </div>
                 </div>
               </div>
@@ -9555,7 +9500,7 @@
   </div>
 
   <script src="socket.io.min.js"></script>
-  <script src="client.js?v=20261027_clean_unboxing"></script>
+  <script src="client.js?v=20261027_hearthstone_chests"></script>
 
   </body>
 </html>

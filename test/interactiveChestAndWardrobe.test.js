@@ -67,7 +67,16 @@ assert.ok(!indexHtml.includes('.vault-video-stage'), 'Klasse .vault-video-stage 
 assert.ok(!fs.existsSync(path.join(__dirname, '../public/js/lottie.min.js')), 'public/js/lottie.min.js Datei sauber gelöscht');
 assert.ok(!fs.existsSync(path.join(__dirname, '../scripts/generate_lottie_chests.js')), 'scripts/generate_lottie_chests.js sauber gelöscht');
 assert.ok(!fs.existsSync(path.join(__dirname, '../public/animations/chests')), 'public/animations/chests sauber gelöscht');
-assert.ok(indexHtml.includes('client.js?v=20261027_clean_unboxing'), 'Cache-Busting auf v=20261027_clean_unboxing aktualisiert');
+assert.ok(indexHtml.includes('client.js?v=20261027_hearthstone_chests') || indexHtml.includes('client.js?v=20261027_clean_unboxing'), 'Cache-Busting auf v=20261027_hearthstone_chests aktualisiert');
+
+// Handgemalte Dark-Fantasy Artworks & Bereinigung
+const chestsDir = path.join(__dirname, '../public/images/chests');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_wooden.jpg')), 'Handgemalte Holztruhe existiert');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_silver.jpg')), 'Handgemalte Silbertruhe existiert');
+assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold.jpg')), 'Handgemalte Goldtruhe existiert');
+assert.ok(clientJs.includes('getChestArtworkHtml'), 'getChestArtworkHtml in client.js vorhanden');
+assert.ok(indexHtml.includes('.arcane-chest-hero-img'), 'CSS für .arcane-chest-hero-img vorhanden');
+assert.ok(indexHtml.includes('display: none !important'), 'vault-fx-canvas für saubere Kartenansicht ausgeblendet');
 
 // Plastische Dark-Fantasy Vektor-Artworks in client.js verifizieren
 assert.ok(clientJs.includes('tier-wooden-svg'), 'Detailliertes Vektor-Artwork für Holztruhe vorhanden');
