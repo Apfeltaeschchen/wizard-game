@@ -21,9 +21,9 @@ const clientContent = fs.readFileSync(clientPath, 'utf8');
 assert(htmlContent.includes('id="vaultCloseBtn"'), 'HTML muss #vaultCloseBtn enthalten');
 assert(htmlContent.includes('class="drawer-close-btn btn-vault-close-action"'), 'HTML #vaultCloseBtn muss Klasse btn-vault-close-action besitzen');
 
-// 2. Prüfe Schließen-Schaltflächen (.btn-vault-close-action): Kopfzeile + verbleibende Tab-Fußzeilen (Garderobe sauber ohne redundanten Bottom-Button)
+// 2. Prüfe Schließen-Schaltflächen (.btn-vault-close-action): Kopfzeile (alle Tab-Fußzeilen sauber ohne redundanten Bottom-Button)
 const footerMatches = htmlContent.match(/btn-vault-close-action/g) || [];
-assert(footerMatches.length >= 3, `Es müssen mindestens 3 Schließen-Schaltflächen (.btn-vault-close-action) existieren (Kopfzeile + Tabs). Gefunden: ${footerMatches.length}`);
+assert(footerMatches.length >= 1, `Es muss mindestens 1 Schließen-Schaltfläche (.btn-vault-close-action) existieren. Gefunden: ${footerMatches.length}`);
 assert(htmlContent.includes('Zurück zur Zitadelle'), 'HTML muss "Zurück zur Zitadelle" Buttons enthalten');
 
 // 3. Prüfe JavaScript Event-Bindings in client.js

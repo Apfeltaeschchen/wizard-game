@@ -4027,6 +4027,7 @@ const WizardVault = (() => {
     if (tab === 'chests') {
       if (tabChests) tabChests.classList.add('active');
       if (panelChests) panelChests.style.display = 'block';
+      renderChests();
     } else if (tab === 'wardrobe') {
       if (tabWardrobe) tabWardrobe.classList.add('active');
       if (panelWardrobe) panelWardrobe.style.display = 'block';
@@ -4131,6 +4132,7 @@ const WizardVault = (() => {
   }
 
   function renderChests() {
+    updatePodiumDisplay();
     if (!vaultData || !vaultData.user) return;
     const u = vaultData.user;
     const wCount = u.chests_wooden || 0;
@@ -4152,6 +4154,8 @@ const WizardVault = (() => {
     if (bw) bw.disabled = (wCount <= 0);
     if (bs) bs.disabled = (sCount <= 0);
     if (bg) bg.disabled = (gCount <= 0);
+
+    updatePodiumDisplay();
   }
 
   function renderWeeklyMilestones() {
@@ -4230,6 +4234,7 @@ const WizardVault = (() => {
   }
 
   let activeUnboxingTier = null;
+  let selectedPodiumTier = null;
   let isUnboxingAnimationRunning = false;
   let chestClickStartTime = 0;
   let unboxingApexTimer = null;
@@ -4707,11 +4712,116 @@ const WizardVault = (() => {
     </svg>`;
   }
 
+  function getPrioritizedAvailableTier() {
+    if (!vaultData || !vaultData.user) return null;
+    const u = vaultData.user;
+    if ((u.chests_wooden || 0) > 0) return 'wooden';
+    if ((u.chests_silver || 0) > 0) return 'silver';
+    if ((u.chests_gold || 0) > 0) return 'gold';
+    return null;
+  }
+
+  function updatePodiumDisplay() {
+    const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+    if (isUnboxingAnimationRunning || (dropsArea && dropsArea.style.display !== 'none')) {
+      return;
+    }
+
+    const unbox = document.getElementById('vaultUnboxingArea');
+    const stage = document.getElementById('vaultUnboxingStage');
+    const arcaneChest = document.getElementById('vaultArcaneChest');
+    const arcaneChestArtwork = document.getElementById('vaultArcaneChestArtwork');
+    const prompt = document.getElementById('vaultChestClickPrompt');
+    const titleEl = document.getElementById('vaultUnboxingTitle');
+    const subTitle = document.getElementById('vaultUnboxingSubtitle');
+    const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
+
+    if (!unbox) return;
+    unbox.style.display = 'flex';
+    if (stage) stage.style.display = 'flex';
+    if (btnUnboxClose) btnUnboxClose.style.display = 'none';
+
+    if (!vaultData || !vaultData.user) {
+      if (titleEl) titleEl.innerText = 'Das Podest der Zitadelle';
+      if (subTitle) subTitle.innerText = 'Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!';
+      if (stage) stage.className = 'unboxing-stage';
+      if (arcaneChest) {
+        arcaneChest.className = 'vault-arcane-chest empty-podium';
+        arcaneChest.classList.remove('shaking', 'bursting');
+      }
+      if (arcaneChestArtwork) arcaneChestArtwork.innerHTML = '';
+      if (prompt) {
+        prompt.style.display = 'flex';
+        prompt.classList.add('empty-state');
+        prompt.innerHTML = `<span>🔒</span><span>Keine Schatztruhen im Vorrat</span>`;
+      }
+      return;
+    }
+
+    const u = vaultData.user;
+    let activeTier = null;
+    if (selectedPodiumTier && (u[`chests_${selectedPodiumTier}`] || 0) > 0) {
+      activeTier = selectedPodiumTier;
+    } else {
+      activeTier = getPrioritizedAvailableTier();
+      selectedPodiumTier = activeTier;
+    }
+
+    activeUnboxingTier = activeTier;
+
+    // Aktive Karte in der unteren Auswahl hervorheben
+    document.querySelectorAll('.chests-grid .chest-card').forEach(card => {
+      card.classList.remove('active-podium-card');
+      if (activeTier && card.classList.contains(`tier-${activeTier}`)) {
+        card.classList.add('active-podium-card');
+      }
+    });
+
+    const tNames = {
+      wooden: 'Holztruhe des Lehrlings',
+      silver: 'Silberne Magiertruhe',
+      gold: 'Goldene Erzmagier-Truhe'
+    };
+
+    if (!activeTier) {
+      if (titleEl) titleEl.innerText = 'Das Podest der Zitadelle';
+      if (subTitle) subTitle.innerText = 'Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!';
+      if (stage) stage.className = 'unboxing-stage';
+      if (arcaneChest) {
+        arcaneChest.className = 'vault-arcane-chest empty-podium';
+        arcaneChest.classList.remove('shaking', 'bursting');
+      }
+      if (arcaneChestArtwork) arcaneChestArtwork.innerHTML = '';
+      if (prompt) {
+        prompt.style.display = 'flex';
+        prompt.classList.add('empty-state');
+        prompt.innerHTML = `<span>🔒</span><span>Keine Schatztruhen im Vorrat</span>`;
+      }
+    } else {
+      if (titleEl) titleEl.innerText = tNames[activeTier] || 'Arkane Schatztruhe';
+      if (subTitle) subTitle.innerText = 'Klicke auf die Truhe, um das Siegel zu brechen!';
+      if (stage) stage.className = `unboxing-stage tier-${activeTier}`;
+      if (arcaneChest) {
+        arcaneChest.className = `vault-arcane-chest tier-${activeTier}`;
+        arcaneChest.classList.remove('empty-podium', 'shaking', 'bursting');
+      }
+      if (arcaneChestArtwork) {
+        arcaneChestArtwork.innerHTML = getChestArtworkHtml(activeTier);
+      }
+      if (prompt) {
+        prompt.style.display = 'flex';
+        prompt.classList.remove('empty-state');
+        prompt.innerHTML = `<span>✨</span><span>Klicke auf die Truhe, um das Siegel zu brechen!</span><span>✨</span>`;
+      }
+    }
+  }
+
   function openChest(tier) {
     if (unboxingApexTimer) { clearTimeout(unboxingApexTimer); unboxingApexTimer = null; }
     if (unboxingStageTimer) { clearTimeout(unboxingStageTimer); unboxingStageTimer = null; }
     if (unboxingFlashTimer) { clearTimeout(unboxingFlashTimer); unboxingFlashTimer = null; }
 
+    selectedPodiumTier = tier;
     activeUnboxingTier = tier;
     isUnboxingAnimationRunning = false;
     pendingChestOpenData = null;
@@ -4727,6 +4837,7 @@ const WizardVault = (() => {
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
     const btnFlipAll = document.getElementById('btnFlipAllCards');
+    const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
     if (!unbox) return;
 
     unbox.style.display = 'flex';
@@ -4739,6 +4850,7 @@ const WizardVault = (() => {
       btnFlipAll.disabled = false;
       btnFlipAll.style.display = 'flex';
     }
+    if (btnUnboxClose) btnUnboxClose.style.display = 'flex';
 
     // Automatisches Scrollen nach oben zur Unboxing-Bühne (nachdem das Element im DOM sichtbar ist)
     const vaultBody = document.querySelector('.vault-body');
@@ -4763,7 +4875,7 @@ const WizardVault = (() => {
 
     if (arcaneChest) {
       arcaneChest.className = `vault-arcane-chest tier-${tier}`;
-      arcaneChest.classList.remove('shaking', 'bursting');
+      arcaneChest.classList.remove('empty-podium', 'shaking', 'bursting');
     }
     if (arcaneChestArtwork) {
       arcaneChestArtwork.innerHTML = getChestArtworkHtml(tier);
@@ -4775,6 +4887,7 @@ const WizardVault = (() => {
 
     if (prompt) {
       prompt.style.display = 'flex';
+      prompt.classList.remove('empty-state');
       prompt.innerHTML = `<span>✨</span><span>Klicke auf die Truhe, um das Siegel zu brechen!</span><span>✨</span>`;
     }
 
@@ -4783,6 +4896,8 @@ const WizardVault = (() => {
     if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
       WizardAudio.playCardSnap();
     }
+
+    handleChestClick();
   }
 
   function openChestModal(tier) {
@@ -4801,16 +4916,26 @@ const WizardVault = (() => {
 
   function handleChestClick() {
     if (isUnboxingAnimationRunning || !activeUnboxingTier) return;
+    const u = (vaultData && vaultData.user) || {};
+    if ((u[`chests_${activeUnboxingTier}`] || 0) <= 0) {
+      showToast('Keine Schatztruhe dieses Typs im Vorrat!');
+      return;
+    }
     isUnboxingAnimationRunning = true;
     chestClickStartTime = Date.now();
 
     const arcaneChest = document.getElementById('vaultArcaneChest');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
+    const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
 
+    if (btnUnboxClose) btnUnboxClose.style.display = 'flex';
     if (arcaneChest) arcaneChest.classList.add('shaking');
 
-    if (prompt) prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
+    if (prompt) {
+      prompt.classList.remove('empty-state');
+      prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
+    }
     if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
 
     if (typeof WizardAudio !== 'undefined') {
@@ -4957,6 +5082,9 @@ const WizardVault = (() => {
     const tNames = { wooden: 'Holztruhe', silver: 'Silberne Magiertruhe', gold: 'Goldene Erzmagier-Truhe' };
     if (titleEl) titleEl.innerText = `${tNames[data.chestType] || 'Truhe'} geöffnet!`;
     if (subTitle) subTitle.innerText = 'Die Schicksalskarten haben sich manifestiert:';
+
+    const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
+    if (btnUnboxClose) btnUnboxClose.style.display = 'flex';
 
     if (cardsHint) cardsHint.innerHTML = '✨ Klicke auf die verdeckten Karten zum Aufdecken ✨';
     if (btnFlipAll) {
@@ -5109,24 +5237,28 @@ const WizardVault = (() => {
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const arcaneChest = document.getElementById('vaultArcaneChest');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
+    const btnUnboxClose = document.getElementById('btnVaultUnboxingClose');
 
-    if (unbox) unbox.style.display = 'none';
+    if (unbox) unbox.style.display = 'flex';
     if (dropsArea) dropsArea.style.display = 'none';
     if (stage) {
       stage.style.display = 'flex';
-      stage.className = 'unboxing-stage tier-wooden';
     }
     if (arcaneChest) {
-      arcaneChest.className = 'vault-arcane-chest tier-wooden';
       arcaneChest.classList.remove('shaking', 'bursting');
     }
     if (flashOverlay) flashOverlay.classList.remove('active');
+    if (btnUnboxClose) btnUnboxClose.style.display = 'none';
 
     stopChestFx();
     activeUnboxingTier = null;
     isUnboxingAnimationRunning = false;
     pendingChestOpenData = null;
     hasApexReached = false;
+
+    // Automatisch die nächste verfügbare Truhe nachrücken lassen (schlechteste zuerst) oder leeres Podest
+    selectedPodiumTier = null;
+    renderChests();
   }
 
   function getCosmeticVisualHtml(item, singularType) {
@@ -5766,7 +5898,8 @@ const WizardVault = (() => {
     const unboxOverlay = document.getElementById('vaultUnboxingArea');
     if (unboxOverlay) {
       unboxOverlay.addEventListener('click', (e) => {
-        if (e.target === unboxOverlay && !isUnboxingAnimationRunning) {
+        const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+        if (e.target === unboxOverlay && !isUnboxingAnimationRunning && dropsArea && dropsArea.style.display !== 'none') {
           finishUnboxing();
         }
       });
@@ -5774,8 +5907,8 @@ const WizardVault = (() => {
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
-        const unbox = document.getElementById('vaultUnboxingArea');
-        if (unbox && unbox.style.display !== 'none' && !isUnboxingAnimationRunning) {
+        const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+        if (dropsArea && dropsArea.style.display !== 'none' && !isUnboxingAnimationRunning) {
           finishUnboxing();
           return;
         }
@@ -5785,6 +5918,50 @@ const WizardVault = (() => {
         }
       }
     });
+
+    // Manuelle Auswahl: Klick auf eine der Truhenkarten in der unteren Auswahl wechselt die aktive Truhe auf dem Podest
+    function selectTierOnPodium(tier) {
+      if (isUnboxingAnimationRunning) return;
+      const dropsArea = document.getElementById('vaultUnboxingDropsArea');
+      if (dropsArea && dropsArea.style.display !== 'none') return;
+
+      const u = (vaultData && vaultData.user) || {};
+      const count = u[`chests_${tier}`] || 0;
+      if (count <= 0) {
+        const names = { wooden: 'Holztruhe des Lehrlings', silver: 'Silberne Magiertruhe', gold: 'Goldene Erzmagier-Truhe' };
+        showToast(`Keine ${names[tier] || 'Truhe'} im Vorrat!`);
+        return;
+      }
+      selectedPodiumTier = tier;
+      updatePodiumDisplay();
+      const unbox = document.getElementById('vaultUnboxingArea');
+      if (unbox) {
+        try { unbox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+      }
+    }
+
+    const cardWood = document.querySelector('.chests-grid .chest-card.tier-wooden');
+    const cardSilver = document.querySelector('.chests-grid .chest-card.tier-silver');
+    const cardGold = document.querySelector('.chests-grid .chest-card.tier-gold');
+
+    if (cardWood) {
+      cardWood.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-chest-open')) return;
+        selectTierOnPodium('wooden');
+      });
+    }
+    if (cardSilver) {
+      cardSilver.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-chest-open')) return;
+        selectTierOnPodium('silver');
+      });
+    }
+    if (cardGold) {
+      cardGold.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-chest-open')) return;
+        selectTierOnPodium('gold');
+      });
+    }
 
     const arcaneChest = document.getElementById('vaultArcaneChest');
     if (arcaneChest) {

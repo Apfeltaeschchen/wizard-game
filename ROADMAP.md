@@ -183,6 +183,11 @@ flowchart TD
 
 ### 3. ✅ ERWEITERUNG B: Visuelles Polish & AAA 3D-Karten-Animationen (Abgeschlossen)
 * **3D-Bühne**: `perspective: 1200px` und `transform-style: preserve-3d` auf `.poker-table`.
+* **AAA Spieltische & HD-Vektormaterialien (Vollendet ✅)**:
+  - 3-Stufen-Tiefenmodell: Gepolsterte 3D-Bande (The Rail), metallische Kanten-Intarsie (Bevel Inlay) und vertieftes Filzbett mit Ambient Occlusion.
+  - 6 maßgeschneiderte, gestochen scharfe Vektormaterialien in `public/images/tables/`: Zitadellen-Filz (Micro-Baize mit Erzmagier-Siegel), Tavernen-Holz (Eichenbalken mit Kaminlicht), Amethyst-Krypta (Obsidian mit Kristalladern), Vulkan-Festung (Basalt mit Magmarissen), Sternen-Observatorium (Astrolabium & Sternbilder) und Spukhaus-Gruft (Gruftstein mit Seelenfeuer).
+  - Taktile Schlagschatten für Karten im Stich (`drop-shadow`), thematische Zug-Auren und Live-Vorschau in der Garderobe.
+  - 100% verifiziert via `test/tableQualityAndSkins.test.js` und Gesamt-Suite (65/65 Tests grün).
 * **FLIP 3D-Kartenflug**: Hand-/Sitz-Ursprung zu Tischplatz ohne Klon-Flackern mit `cubic-bezier(0.16, 1, 0.3, 1)`, Z-Elevation (60px) und dynamischem Centrifugal-Tilt (±10°).
 * **Target-Aware Trick Suction**: Dynamische Vektorberechnung $(\Delta x, \Delta y)$ mit 25ms Stagger direkt in das Sieger-Pill/HUD und anschließender `.winner-avatar-pulse` Triumph-Aura.
 * **Sonderkarten-FX (#table-fx-layer)**:

@@ -1306,7 +1306,7 @@
     /* HORIZONTALER BOHLEN-EICHENTISCH (DYNAMISCHES VIEWPORT-FITTING) */
     .poker-table {
       background-color: var(--wood-dark);
-      background-image: url('/images/table_felt.svg');
+      background-image: url('/images/tables/table_emerald_felt.svg');
       background-repeat: no-repeat !important;
       background-size: 100% 100% !important;
       background-position: center center !important;
@@ -1317,7 +1317,7 @@
       max-width: 100%;
       margin: 0 auto;
       padding: 8px 10px 6px;
-      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 35px rgba(0, 0, 0, 0.75);
       position: relative;
       perspective: 1200px;
       transform-style: preserve-3d;
@@ -1341,6 +1341,19 @@
       background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.42) 85%, rgba(0, 0, 0, 0.72) 100%);
       box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.7);
       z-index: 5;
+    }
+
+    /* 3D-KANTEN-INTARSIE & VERTIEFTES FILZBETT (ARMREST RAIL & INLAID BEVEL) */
+    .poker-table::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 8px;
+      pointer-events: none;
+      border: 1px solid rgba(212, 163, 89, 0.28);
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
+      z-index: 6;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (2s TIEFER ATEM) */
@@ -3076,6 +3089,8 @@
     #trick-container .card {
       --card-w: clamp(68px, 7vw, 105px) !important;
       --card-h: calc(var(--card-w) * (1498 / 1050)) !important;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.75)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
+      transition: transform 0.25s ease, filter 0.25s ease;
     }
 
     /* BESCHRIFTUNGS-BANNER UNTER ARKANEN KARTEN */
@@ -5745,30 +5760,82 @@
       margin-left: 4px;
     }
 
-    /* TISCH-SKINS */
+    /* TISCH-SKINS (AAA VEKTOR-TEXTILES & PLASTISCHE TIEFE) */
     .poker-table.table-skin-emerald_felt {
-      background-color: #0b2b1a !important;
-      background-image: radial-gradient(circle at 50% 50%, rgba(22, 101, 52, 0.8) 0%, rgba(5, 46, 22, 0.95) 75%), url('/images/table_felt.svg') !important;
+      background-color: #051c0d !important;
+      background-image: url('/images/tables/table_emerald_felt.svg') !important;
+      background-size: 100% 100% !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(5, 46, 22, 0.8) !important;
     }
+    .poker-table.table-skin-emerald_felt::after {
+      border-color: rgba(234, 179, 8, 0.35);
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.8), 0 0 8px rgba(21, 128, 61, 0.3);
+    }
+
     .poker-table.table-skin-tavern_wood {
-      background-color: #261408 !important;
-      background-image: radial-gradient(circle at 50% 50%, rgba(180, 83, 9, 0.25) 0%, rgba(45, 20, 8, 0.95) 80%), repeating-linear-gradient(90deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 2px, transparent 2px, transparent 40px) !important;
-      box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.85) !important;
+      background-color: #1a0c05 !important;
+      background-image: url('/images/tables/table_tavern_wood.svg') !important;
+      background-size: 100% 100% !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 45px rgba(0, 0, 0, 0.9) !important;
     }
+    .poker-table.table-skin-tavern_wood::after {
+      border-color: rgba(180, 83, 9, 0.4);
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.9), 0 0 10px rgba(180, 83, 9, 0.25);
+    }
+
     .poker-table.table-skin-amethyst_crypt {
-      background-color: #170d26 !important;
-      background-image: radial-gradient(circle at 50% 50%, rgba(126, 34, 206, 0.4) 0%, rgba(30, 10, 50, 0.95) 80%), radial-gradient(ellipse at 50% 100%, rgba(168, 85, 247, 0.2) 0%, transparent 60%) !important;
-      box-shadow: inset 0 0 50px rgba(88, 28, 135, 0.5) !important;
+      background-color: #0b0314 !important;
+      background-image: url('/images/tables/table_amethyst_crypt.svg') !important;
+      background-size: 100% 100% !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(88, 28, 135, 0.5) !important;
     }
+    .poker-table.table-skin-amethyst_crypt::after {
+      border-color: rgba(192, 132, 252, 0.4);
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(168, 85, 247, 0.35);
+    }
+
     .poker-table.table-skin-volcano_keep {
-      background-color: #180806 !important;
-      background-image: radial-gradient(circle at 50% 50%, rgba(185, 28, 28, 0.35) 0%, rgba(30, 7, 7, 0.98) 85%), repeating-linear-gradient(45deg, rgba(239, 68, 68, 0.05) 0px, rgba(239, 68, 68, 0.05) 3px, transparent 3px, transparent 60px) !important;
-      box-shadow: inset 0 0 50px rgba(220, 38, 38, 0.4) !important;
+      background-color: #0a0302 !important;
+      background-image: url('/images/tables/table_volcano_keep.svg') !important;
+      background-size: 100% 100% !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(220, 38, 38, 0.45) !important;
     }
+    .poker-table.table-skin-volcano_keep::after {
+      border-color: rgba(248, 113, 113, 0.4);
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(239, 68, 68, 0.35);
+    }
+
     .poker-table.table-skin-astral_observatory {
-      background-color: #050a1a !important;
-      background-image: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.35) 0%, rgba(10, 15, 35, 0.98) 80%), radial-gradient(circle at 75% 25%, rgba(147, 51, 234, 0.25) 0%, transparent 50%) !important;
-      box-shadow: inset 0 0 60px rgba(30, 58, 138, 0.6) !important;
+      background-color: #030511 !important;
+      background-image: url('/images/tables/table_astral_observatory.svg') !important;
+      background-size: 100% 100% !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(30, 58, 138, 0.6) !important;
+    }
+    .poker-table.table-skin-astral_observatory::after {
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(99, 102, 241, 0.35);
+    }
+
+    /* THEMEN-SPEZIFISCHE ZUG-AUREN */
+    .poker-table.table-skin-emerald_felt.my-turn-aura {
+      box-shadow: inset 0 0 35px rgba(5, 46, 22, 0.9), 0 0 25px rgba(34, 197, 94, 0.5), 0 0 45px rgba(234, 179, 8, 0.45) !important;
+    }
+    .poker-table.table-skin-tavern_wood.my-turn-aura {
+      box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.9), 0 0 25px rgba(245, 158, 11, 0.6), 0 0 50px rgba(217, 119, 6, 0.45) !important;
+    }
+    .poker-table.table-skin-amethyst_crypt.my-turn-aura {
+      box-shadow: inset 0 0 45px rgba(30, 10, 50, 0.9), 0 0 25px rgba(168, 85, 247, 0.65), 0 0 50px rgba(192, 132, 252, 0.45) !important;
+    }
+    .poker-table.table-skin-volcano_keep.my-turn-aura {
+      box-shadow: inset 0 0 45px rgba(45, 10, 5, 0.9), 0 0 25px rgba(239, 68, 68, 0.7), 0 0 55px rgba(249, 115, 22, 0.5) !important;
+    }
+    .poker-table.table-skin-astral_observatory.my-turn-aura {
+      box-shadow: inset 0 0 50px rgba(10, 15, 40, 0.9), 0 0 25px rgba(56, 189, 248, 0.65), 0 0 50px rgba(99, 102, 241, 0.5) !important;
     }
 
     /* AVATAR RAHMEN */
@@ -5937,11 +6004,11 @@
       font-size: 50px;
       line-height: 1;
       margin-bottom: 8px;
-      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.7));
+      filter: none;
       transition: transform 0.25s ease;
     }
     .chest-card:hover .chest-icon-visual {
-      transform: scale(1.1) rotate(-3deg);
+      transform: none;
     }
     .chest-title {
       font-family: var(--font-heading);
@@ -6274,9 +6341,15 @@
       position: absolute;
       top: 14px;
       right: 16px;
-      width: 38px;
-      height: 38px;
+      padding: 0 !important;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      min-height: 36px;
+      aspect-ratio: 1 / 1;
       border-radius: 50%;
+      box-sizing: border-box;
+      line-height: 1;
       background: rgba(20, 10, 5, 0.92);
       border: 2px solid var(--gold-bright);
       color: var(--gold-bright);
@@ -6413,28 +6486,25 @@
       mix-blend-mode: screen;
       mask-image: radial-gradient(ellipse at 50% 50%, black 65%, transparent 95%);
       -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 65%, transparent 95%);
-      filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 24px rgba(245, 158, 11, 0.4));
       transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease;
     }
     .vault-arcane-chest.tier-silver .arcane-chest-hero-img {
       border: none !important;
       box-shadow: none !important;
-      filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 24px rgba(56, 189, 248, 0.5));
     }
     .vault-arcane-chest.tier-gold .arcane-chest-hero-img {
       border: none !important;
       box-shadow: none !important;
-      filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 28px rgba(251, 191, 36, 0.65));
     }
     .vault-arcane-chest:hover .arcane-chest-hero-img {
       transform: scale(1.05);
-      filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 30px rgba(245, 158, 11, 0.65)) brightness(1.08);
+      filter: brightness(1.08);
     }
     .vault-arcane-chest.tier-silver:hover .arcane-chest-hero-img {
-      filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 30px rgba(56, 189, 248, 0.75)) brightness(1.08);
+      filter: brightness(1.08);
     }
     .vault-arcane-chest.tier-gold:hover .arcane-chest-hero-img {
-      filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 36px rgba(251, 191, 36, 0.85)) brightness(1.08);
+      filter: brightness(1.08);
     }
     .arcane-chest-halo {
       position: absolute;
@@ -6505,7 +6575,7 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.9), 0 0 18px rgba(251, 191, 36, 0.55);
     }
     .chest-card:hover .chest-artwork-medallion {
-      transform: translateY(-4px) scale(1.08);
+      transform: translateY(-4px) scale(1.05);
     }
     .chest-card:hover .chest-artwork-medallion.medallion-wooden {
       box-shadow: 0 8px 22px rgba(0, 0, 0, 0.9), 0 0 20px rgba(245, 158, 11, 0.65);
@@ -6523,7 +6593,7 @@
       transition: transform 0.35s ease;
     }
     .chest-card:hover .chest-medallion-img {
-      transform: scale(1.12);
+      transform: none;
     }
     /* STILISIERTE VEKTOR-BADGES (WEG 2 - ZERO RANDOM BITMAPS) */
     .chest-vector-badge {
@@ -6536,7 +6606,7 @@
       transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.25, 1.2);
     }
     .chest-card:hover .chest-vector-badge {
-      transform: scale(1.12) rotate(-2deg);
+      transform: none;
     }
     .chest-vector-svg {
       width: 100%;
@@ -6593,6 +6663,26 @@
     }
     .mini-chest-wood, .mini-chest-silver, .mini-chest-gold {
       position: relative;
+    }
+    .vault-arcane-chest.empty-podium {
+      visibility: hidden;
+      pointer-events: none;
+      animation: none;
+    }
+    .chest-click-prompt.empty-state {
+      cursor: default;
+      animation: none;
+      color: #a89270;
+      border-color: rgba(212, 175, 55, 0.25);
+      background: rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .chest-card {
+      cursor: pointer;
+    }
+    .chest-card.active-podium-card {
+      border-color: var(--gold-bright);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.45);
     }
 
     /* =====================================================================
@@ -6794,12 +6884,12 @@
       border-radius: 18px;
       border: 1px dashed rgba(255,255,255,0.25);
     }
-    .table-theme-emerald_felt { background: radial-gradient(circle, #059669 0%, #064e3b 85%); border-color: #78350f; }
-    .table-theme-tavern_wood { background: repeating-linear-gradient(90deg, #451a03 0px, #451a03 8px, #271004 9px); border-color: #92400e; }
-    .table-theme-amethyst_crypt { background: radial-gradient(circle, #6b21a8 0%, #1e1035 85%); border-color: #a855f7; }
-    .table-theme-volcano_keep { background: radial-gradient(circle, #991b1b 0%, #18181b 80%); border-color: #ef4444; }
-    .table-theme-astral_observatory { background: radial-gradient(circle, #1d4ed8 0%, #030712 85%); border-color: #38bdf8; }
-    .table-theme-haunted_crypt { background: radial-gradient(circle, #0f766e 0%, #0f172a 85%); border-color: #14b8a6; }
+    .table-theme-emerald_felt { background: url('/images/tables/table_emerald_felt.svg') center/cover no-repeat !important; border-color: #15803d; }
+    .table-theme-tavern_wood { background: url('/images/tables/table_tavern_wood.svg') center/cover no-repeat !important; border-color: #92400e; }
+    .table-theme-amethyst_crypt { background: url('/images/tables/table_amethyst_crypt.svg') center/cover no-repeat !important; border-color: #a855f7; }
+    .table-theme-volcano_keep { background: url('/images/tables/table_volcano_keep.svg') center/cover no-repeat !important; border-color: #ef4444; }
+    .table-theme-astral_observatory { background: url('/images/tables/table_astral_observatory.svg') center/cover no-repeat !important; border-color: #38bdf8; }
+    .table-theme-haunted_crypt { background: url('/images/tables/table_haunted_crypt.svg') center/cover no-repeat !important; border-color: #14b8a6; }
 
     /* =====================================================================
        ZERO CRUDE ICONS: RAUM-WELTEN VORSCHAUEN (ECHTE ARTWORK-THUMBNAILS)
@@ -7184,11 +7274,20 @@
       background: linear-gradient(180deg, rgba(20, 16, 5, 0.3) 0%, rgba(20, 16, 5, 0.75) 100%), url('/images/backgrounds/bg_celestial_sanctum.jpg') center center / cover no-repeat !important;
     }
 
-    /* HALLOWEEN TISCH-SKIN */
+    /* HALLOWEEN TISCH-SKIN (AAA VEKTOR-TEXTILES & PLASTISCHE TIEFE) */
     .poker-table.table-skin-haunted_crypt {
-      background-color: #0b1414 !important;
-      background-image: radial-gradient(circle at 50% 50%, rgba(20, 83, 75, 0.45) 0%, rgba(8, 20, 20, 0.96) 80%), repeating-linear-gradient(45deg, rgba(45, 212, 191, 0.04) 0px, rgba(45, 212, 191, 0.04) 2px, transparent 2px, transparent 50px) !important;
-      box-shadow: inset 0 0 55px rgba(13, 148, 136, 0.5) !important;
+      background-color: #030909 !important;
+      background-image: url('/images/tables/table_haunted_crypt.svg') !important;
+      background-size: 100% 100% !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 55px rgba(13, 148, 136, 0.5) !important;
+    }
+    .poker-table.table-skin-haunted_crypt::after {
+      border-color: rgba(45, 212, 191, 0.4);
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(45, 212, 191, 0.35);
+    }
+    .poker-table.table-skin-haunted_crypt.my-turn-aura {
+      box-shadow: inset 0 0 50px rgba(5, 20, 20, 0.9), 0 0 25px rgba(45, 212, 191, 0.65), 0 0 50px rgba(20, 184, 166, 0.5) !important;
     }
 
     /* HALLOWEEN & MVP AVATAR RAHMEN */
@@ -8988,7 +9087,7 @@
   <!-- KARTEN-ARTWORK LIGHTBOX MODAL (GROSSANSICHT) -->
   <div id="card-art-lightbox-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 3, 1, 0.92); z-index: 3500; justify-content: center; align-items: center; backdrop-filter: blur(8px); cursor: pointer;">
     <div class="card-lightbox-content" style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; cursor: default;" onclick="event.stopPropagation()">
-      <button id="cardLightboxClose" class="drawer-close-btn" style="position: absolute; top: -16px; right: -16px; width: 36px; height: 36px; font-size: 24px; background: rgba(20, 10, 5, 0.95); border: 2px solid var(--gold-bright); border-radius: 50%; color: var(--gold-bright); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
+      <button id="cardLightboxClose" class="drawer-close-btn" style="position: absolute; top: -16px; right: -16px; padding: 0 !important; width: 36px; height: 36px; min-width: 36px; min-height: 36px; aspect-ratio: 1 / 1; border-radius: 50%; box-sizing: border-box; line-height: 1; font-size: 24px; background: rgba(20, 10, 5, 0.95); border: 2px solid var(--gold-bright); color: var(--gold-bright); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
       <img id="cardLightboxImage" src="" alt="Großansicht" style="max-width: min(85vw, 360px); max-height: 72vh; border-radius: 14px; border: 2.5px solid var(--gold-bright); box-shadow: 0 0 35px rgba(212, 163, 89, 0.5), 0 20px 45px rgba(0,0,0,0.95); object-fit: contain;">
       <div id="cardLightboxTitle" style="margin-top: 14px; font-family: var(--font-medieval); font-size: 18px; color: var(--gold-bright); text-shadow: 0 2px 8px rgba(0,0,0,0.9); text-align: center;"></div>
     </div>
@@ -9050,29 +9149,28 @@
       <div class="vault-body">
         <!-- 1. TAB: TRUHEN ÖFFNEN -->
         <div id="vaultPanelChests" class="vault-tab-panel">
-          <!-- BEREICH FÜR INTERAKTIVE UNBOXING ZEREMONIE (ERSCHEINT BEIM ÖFFNEN) -->
-          <div id="vaultUnboxingArea" class="unboxing-overlay" style="display: none;">
+          <!-- BEREICH FÜR INTERAKTIVE UNBOXING ZEREMONIE (DAUERHAFTES PODEST) -->
+          <div id="vaultUnboxingArea" class="unboxing-overlay">
             <canvas id="vaultFxCanvas" class="vault-fx-canvas"></canvas>
-            <button id="btnVaultUnboxingClose" type="button" class="drawer-close-btn unboxing-close-btn" title="Truhenöffnung schließen">&times;</button>
-            <div id="vaultUnboxingTitle" style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 21px; margin-bottom: 4px;">Arkane Schatztruhe</div>
-            <div id="vaultUnboxingSubtitle" style="font-size: 12.5px; color: #d6be90; margin-bottom: 8px;">Ein uraltes Relikt der Zitadelle erwacht...</div>
+            <button id="btnVaultUnboxingClose" type="button" class="drawer-close-btn unboxing-close-btn" style="display: none;" title="Truhenöffnung schließen">&times;</button>
+            <div id="vaultUnboxingTitle" style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 21px; margin-bottom: 4px;">Das Podest der Zitadelle</div>
+            <div id="vaultUnboxingSubtitle" style="font-size: 12.5px; color: #d6be90; margin-bottom: 8px;">Keine Schatztruhen im Vorrat. Erringe neue Truhen durch Stufenaufstiege!</div>
 
             <!-- INTERAKTIVE UNBOXING BÜHNE: ARKANES SIEGEL & 3D-KARTEN-FLIP -->
             <div id="vaultUnboxingStage" class="unboxing-stage">
               <div class="unboxing-pedestal-glow"></div>
 
               <!-- ARKANES TRUHEN-MEDAILLON MIT SIEGEL & GLOW -->
-              <div id="vaultArcaneChest" class="vault-arcane-chest tier-wooden" role="button" tabindex="0" title="Klicke auf die Truhe, um das Siegel zu brechen!">
+              <div id="vaultArcaneChest" class="vault-arcane-chest empty-podium" role="button" tabindex="0" title="Keine Schatztruhen im Vorrat">
                 <div class="arcane-chest-halo"></div>
                 <div id="vaultArcaneChestArtwork" class="arcane-chest-artwork"></div>
               </div>
 
 
               <div id="vaultChestFlashOverlay" class="chest-flash-overlay"></div>
-              <div id="vaultChestClickPrompt" class="chest-click-prompt">
-                <span>✨</span>
-                <span>Klicke auf die Truhe, um das Siegel zu brechen!</span>
-                <span>✨</span>
+              <div id="vaultChestClickPrompt" class="chest-click-prompt empty-state">
+                <span>🔒</span>
+                <span>Keine Schatztruhen im Vorrat</span>
               </div>
             </div>
 
@@ -9153,13 +9251,6 @@
             <div id="vaultWeeklyMilestonesList" style="display: flex; flex-direction: column; gap: 8px;">
               <!-- Dynamisch via JavaScript befüllt -->
             </div>
-          </div>
-
-          <div class="vault-panel-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(212,175,55,0.2); text-align: center;">
-            <button type="button" class="btn-auth-bar btn-vault-close-action" style="padding: 9px 24px; font-size: 13px; margin: 0 auto;">
-              <span class="btn-icon">🏛️</span>
-              <span class="btn-text">Zurück zur Zitadelle</span>
-            </button>
           </div>
         </div>
 
@@ -9263,13 +9354,6 @@
 
           <div id="forgeItemsGrid" class="forge-grid">
             <!-- Dynamisch generiert -->
-          </div>
-
-          <div class="vault-panel-footer" style="margin-top: 20px; padding-top: 14px; border-top: 1px solid rgba(212,175,55,0.2); text-align: center;">
-            <button type="button" class="btn-auth-bar btn-vault-close-action" style="padding: 9px 24px; font-size: 13px; margin: 0 auto;">
-              <span class="btn-icon">🏛️</span>
-              <span class="btn-text">Zurück zur Zitadelle</span>
-            </button>
           </div>
         </div>
       </div>
@@ -9461,7 +9545,7 @@
   </div>
 
   <script src="socket.io.min.js"></script>
-  <script src="client.js?v=20261027_isolated_chests"></script>
+  <script src="client.js?v=20261027_permanent_podium"></script>
 
   </body>
 </html>
