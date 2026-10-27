@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1498" width="1050" height="1498">
+  <defs>
+    <!-- Drachenschuppen & Karmesinrote Glut -->
+    <radialGradient id="dragonBase" cx="50%" cy="50%" r="72%">
+      <stop offset="0%" stop-color="#991b1b"/>
+      <stop offset="45%" stop-color="#580d0d"/>
+      <stop offset="80%" stop-color="#2d0505"/>
+      <stop offset="100%" stop-color="#0a0101"/>
+    </radialGradient>
+    <linearGradient id="dragonGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="25%" stop-color="#f59e0b"/>
+      <stop offset="60%" stop-color="#b45309"/>
+      <stop offset="85%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+    <radialGradient id="eyeFire" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#fef08a"/>
+      <stop offset="55%" stop-color="#f97316"/>
+      <stop offset="85%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#450a0a"/>
+    </radialGradient>
+    <filter id="dragonFireGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Karmesinroter Drachenschuppen-Körper -->
+  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#dragonBase)" stroke="#1a0202" stroke-width="8"/>
+
+  <!-- Plastisches Drachenschuppen-Muster (Fischschuppen / Rautenverbund) -->
+  <g stroke="#3a0505" stroke-width="2.5" fill="#7f1d1d" opacity="0.35">
+    <!-- Schuppenreihe oben nach unten -->
+    <path d="M 525 150 C 490 200 450 220 400 220 C 450 270 490 290 525 340 C 560 290 600 270 650 220 C 600 220 560 200 525 150 Z"/>
+    <path d="M 525 300 C 490 350 450 370 400 370 C 450 420 490 440 525 490 C 560 440 600 420 650 370 C 600 370 560 350 525 300 Z"/>
+    <path d="M 525 1010 C 490 1060 450 1080 400 1080 C 450 1130 490 1150 525 1200 C 560 1150 600 1130 650 1080 C 600 1080 560 1060 525 1010 Z"/>
+    <path d="M 525 1160 C 490 1210 450 1230 400 1230 C 450 1280 490 1300 525 1350 C 560 1300 600 1280 650 1230 C 600 1230 560 1210 525 1160 Z"/>
+    <!-- Seitliche Schuppen -->
+    <path d="M 260 400 C 230 440 190 460 150 460 C 190 500 230 520 260 560 C 290 520 330 500 370 460 C 330 460 290 440 260 400 Z"/>
+    <path d="M 790 400 C 760 440 720 460 680 460 C 720 500 760 520 790 560 C 820 520 860 500 900 460 C 860 460 820 440 790 400 Z"/>
+    <path d="M 260 940 C 230 980 190 1000 150 1000 C 190 1040 230 1060 260 1100 C 290 1060 330 1040 370 1000 C 330 1000 290 980 260 940 Z"/>
+    <path d="M 790 940 C 760 980 720 1000 680 1000 C 720 1040 760 1060 790 1100 C 820 1060 860 1040 900 1000 C 860 1000 820 980 790 940 Z"/>
+  </g>
+
+  <!-- Äußerer Panzerrahmen aus massivem Drachengold -->
+  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#dragonGold)" stroke-width="18"/>
+  <rect x="64" y="64" width="922" height="1370" rx="20" fill="none" stroke="#dc2626" stroke-width="3" opacity="0.8"/>
+
+  <!-- 4 Gewaltige Drachenklauen an den Ecken -->
+  <g fill="url(#dragonGold)" stroke="#3a0505" stroke-width="3" filter="url(#dragonFireGlow)">
+    <!-- Oben Links -->
+    <path d="M 65 65 L 180 65 C 160 90 140 120 170 160 C 130 130 100 150 65 180 Z"/>
+    <polygon points="120,65 145,105 105,85"/>
+    <polygon points="65,120 105,145 85,105"/>
+    <!-- Oben Rechts -->
+    <path d="M 985 65 L 870 65 C 890 90 910 120 880 160 C 920 130 950 150 985 180 Z"/>
+    <!-- Unten Links -->
+    <path d="M 65 1433 L 180 1433 C 160 1408 140 1378 170 1338 C 130 1368 100 1348 65 1318 Z"/>
+    <!-- Unten Rechts -->
+    <path d="M 985 1433 L 870 1433 C 890 1408 910 1378 880 1338 C 920 1368 950 1348 985 1318 Z"/>
+  </g>
+
+  <!-- Glühende Magmakammer im Zentrum -->
+  <circle cx="525" cy="749" r="320" fill="#2d0505" stroke="url(#dragonGold)" stroke-width="12" filter="url(#dragonFireGlow)"/>
+  <circle cx="525" cy="749" r="290" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="14 8"/>
+
+  <!-- Züngelnde Drachenfeuer-Zähne um die Iris -->
+  <g fill="url(#dragonGold)" stroke="#450a0a" stroke-width="3">
+    <!-- Obere Flammenzähne -->
+    <polygon points="525,470 510,540 540,540"/>
+    <polygon points="430,500 425,565 455,555"/>
+    <polygon points="620,500 595,555 625,565"/>
+    <!-- Untere Flammenzähne -->
+    <polygon points="525,1028 510,958 540,958"/>
+    <polygon points="430,998 425,933 455,943"/>
+    <polygon points="620,998 595,943 625,933"/>
+  </g>
+
+  <!-- Das brennende Auge des Lindwurms (Vertikales Schlitzauge) -->
+  <!-- Äußere Mandelform des Drachenauges -->
+  <g transform="translate(525, 749)" filter="url(#dragonFireGlow)">
+    <!-- Glühender Augapfel -->
+    <path d="M -210 0 Q 0 -160 210 0 Q 0 160 -210 0 Z" fill="url(#eyeFire)" stroke="url(#dragonGold)" stroke-width="8"/>
+    
+    <!-- Goldene Iris-Ringe -->
+    <circle cx="0" cy="0" r="95" fill="none" stroke="#fef08a" stroke-width="3" opacity="0.6"/>
+    <circle cx="0" cy="0" r="130" fill="none" stroke="#f97316" stroke-width="2.5" opacity="0.5" stroke-dasharray="8 6"/>
+
+    <!-- Vertikale Drachen-Schlitzpupille (Tiefschwarz mit feuriger Schnittkante) -->
+    <path d="M 0 -130 C 25 -70 35 70 0 130 C -35 70 -25 -70 0 -130 Z" fill="#000000" stroke="#fef08a" stroke-width="4"/>
+    
+    <!-- Reißender Reflex-Lichtfunke im Drachenauge -->
+    <ellipse cx="-20" cy="-35" rx="14" ry="24" transform="rotate(-15 -20 -35)" fill="#ffffff" opacity="0.9"/>
+  </g>
+</svg>

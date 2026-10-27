@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1498" width="1050" height="1498">
+  <defs>
+    <!-- Violetter Samt -->
+    <radialGradient id="velvetBase" cx="50%" cy="50%" r="72%">
+      <stop offset="0%" stop-color="#3b135e"/>
+      <stop offset="50%" stop-color="#23083b"/>
+      <stop offset="85%" stop-color="#120320"/>
+      <stop offset="100%" stop-color="#07000d"/>
+    </radialGradient>
+    <linearGradient id="gothicSilver" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#e2e8f0"/>
+      <stop offset="50%" stop-color="#94a3b8"/>
+      <stop offset="75%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#64748b"/>
+    </linearGradient>
+    <radialGradient id="amethystGlow" cx="38%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#f5d0fe"/>
+      <stop offset="35%" stop-color="#d946ef"/>
+      <stop offset="75%" stop-color="#86198f"/>
+      <stop offset="100%" stop-color="#3b0764"/>
+    </radialGradient>
+    <filter id="spiderGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Dunkelvioletter Samtboden -->
+  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#velvetBase)" stroke="#0e0217" stroke-width="8"/>
+
+  <!-- Äußerer gotischer Silberrahmen mit Spitzbogenelementen -->
+  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#gothicSilver)" stroke-width="14"/>
+  <rect x="65" y="65" width="920" height="1368" rx="20" fill="none" stroke="#a855f7" stroke-width="2.5" opacity="0.6"/>
+
+  <!-- Filigranes Spinnennetz-Hintergrundgewebe (Präzise Vektorlinien) -->
+  <g stroke="url(#gothicSilver)" stroke-width="1.8" opacity="0.32" fill="none">
+    <!-- Radiale Fäden aus dem Zentrum -->
+    <line x1="525" y1="749" x2="65" y2="65"/>
+    <line x1="525" y1="749" x2="985" y2="65"/>
+    <line x1="525" y1="749" x2="65" y2="1433"/>
+    <line x1="525" y1="749" x2="985" y2="1433"/>
+    <line x1="525" y1="749" x2="525" y2="65"/>
+    <line x1="525" y1="749" x2="525" y2="1433"/>
+    <line x1="525" y1="749" x2="65" y2="749"/>
+    <line x1="525" y1="749" x2="985" y2="749"/>
+    <line x1="525" y1="749" x2="295" y2="65"/>
+    <line x1="525" y1="749" x2="755" y2="65"/>
+    <line x1="525" y1="749" x2="295" y2="1433"/>
+    <line x1="525" y1="749" x2="755" y2="1433"/>
+    
+    <!-- Konzentrische Netz-Polygonringe (Bögen) -->
+    <!-- Ring 1 -->
+    <path d="M 525 649 Q 625 669 625 749 Q 625 829 525 849 Q 425 829 425 749 Q 425 669 525 649 Z"/>
+    <!-- Ring 2 -->
+    <path d="M 525 569 Q 685 599 685 749 Q 685 899 525 929 Q 365 899 365 749 Q 365 599 525 569 Z"/>
+    <!-- Ring 3 -->
+    <path d="M 525 479 Q 755 519 755 749 Q 755 979 525 1019 Q 295 979 295 749 Q 295 519 525 479 Z"/>
+    <!-- Ring 4 -->
+    <path d="M 525 379 Q 835 429 835 749 Q 835 1069 525 1119 Q 215 1069 215 749 Q 215 429 525 379 Z"/>
+    <!-- Ring 5 -->
+    <path d="M 525 279 Q 915 339 915 749 Q 915 1159 525 1219 Q 135 1159 135 749 Q 135 339 525 279 Z"/>
+  </g>
+
+  <!-- 4 Gotische Silber-Eckkronen -->
+  <g stroke="url(#gothicSilver)" stroke-width="4" fill="none" filter="url(#spiderGlow)">
+    <!-- Oben Links -->
+    <path d="M 75 180 L 130 180 L 180 130 L 180 75" stroke-width="5"/>
+    <circle cx="150" cy="150" r="14" fill="#86198f" stroke="url(#gothicSilver)" stroke-width="3"/>
+    <!-- Oben Rechts -->
+    <path d="M 975 180 L 920 180 L 870 130 L 870 75" stroke-width="5"/>
+    <circle cx="900" cy="150" r="14" fill="#86198f" stroke="url(#gothicSilver)" stroke-width="3"/>
+    <!-- Unten Links -->
+    <path d="M 75 1318 L 130 1318 L 180 1368 L 180 1423" stroke-width="5"/>
+    <circle cx="150" cy="1348" r="14" fill="#86198f" stroke="url(#gothicSilver)" stroke-width="3"/>
+    <!-- Unten Rechts -->
+    <path d="M 975 1318 L 920 1318 L 870 1368 L 870 1423" stroke-width="5"/>
+    <circle cx="900" cy="1348" r="14" fill="#86198f" stroke="url(#gothicSilver)" stroke-width="3"/>
+  </g>
+
+  <!-- Zentrum: Königliches Spinnenmedaillon -->
+  <circle cx="525" cy="749" r="230" fill="#140321" stroke="url(#gothicSilver)" stroke-width="10" filter="url(#spiderGlow)"/>
+  <circle cx="525" cy="749" r="208" fill="none" stroke="#c084fc" stroke-width="3" stroke-dasharray="10 6"/>
+
+  <!-- Die Amethyst-Spinnenkönigin (Großes filigranes Emblem) -->
+  <g transform="translate(525, 749)" stroke="url(#gothicSilver)" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#spiderGlow)">
+    <!-- 8 Beine der Spinnenkönigin -->
+    <!-- Beinpaar 1 Oben -->
+    <path d="M -30 -30 L -90 -110 L -120 -150"/>
+    <path d="M 30 -30 L 90 -110 L 120 -150"/>
+    <!-- Beinpaar 2 Mitte-Oben -->
+    <path d="M -45 -10 L -130 -40 L -170 -60"/>
+    <path d="M 45 -10 L 130 -40 L 170 -60"/>
+    <!-- Beinpaar 3 Mitte-Unten -->
+    <path d="M -45 20 L -140 40 L -165 90"/>
+    <path d="M 45 20 L 140 40 L 165 90"/>
+    <!-- Beinpaar 4 Unten -->
+    <path d="M -30 40 L -100 120 L -115 165"/>
+    <path d="M 30 40 L 100 120 L 115 165"/>
+
+    <!-- Spinnenkopf mit Fühlern & Mandibeln -->
+    <circle cx="0" cy="-60" r="30" fill="#2e1065" stroke="url(#gothicSilver)" stroke-width="4"/>
+    <path d="M -12 -85 L -20 -105 M 12 -85 L 20 -105" stroke-width="4"/>
+    
+    <!-- Facettierter Amethyst-Hinterleib (Großes tropfenförmiges Juwel) -->
+    <path d="M 0 -20 C 65 -20 75 70 0 115 C -75 70 -65 -20 0 -20 Z" fill="url(#amethystGlow)" stroke="url(#gothicSilver)" stroke-width="6"/>
+    <!-- Facettenschliff-Linien im Edelstein -->
+    <line x1="0" y1="-20" x2="0" y2="115" stroke="#f5d0fe" stroke-width="3" opacity="0.7"/>
+    <line x1="-48" y1="25" x2="48" y2="25" stroke="#f5d0fe" stroke-width="2.5" opacity="0.6"/>
+    <line x1="-38" y1="65" x2="38" y2="65" stroke="#f5d0fe" stroke-width="2.5" opacity="0.6"/>
+    <!-- Glanzlicht -->
+    <circle cx="-16" cy="15" r="9" fill="#fff" opacity="0.8"/>
+  </g>
+</svg>

@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1498" width="1050" height="1498">
+  <defs>
+    <!-- Verwitterter Grabstein-Schiefer -->
+    <radialGradient id="slateBase" cx="50%" cy="50%" r="72%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="45%" stop-color="#1e293b"/>
+      <stop offset="80%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </radialGradient>
+    <linearGradient id="mossGranite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="35%" stop-color="#64748b"/>
+      <stop offset="70%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <radialGradient id="soulGlow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="35%" stop-color="#38bdf8"/>
+      <stop offset="75%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#082f49" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soulLight" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Dunkelgrauer massiver Schieferblock -->
+  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#slateBase)" stroke="#090d16" stroke-width="8"/>
+
+  <!-- Meißelrisse & Verwitterungs-Textur -->
+  <g stroke="#0f172a" stroke-width="3" fill="none" opacity="0.6">
+    <path d="M 65 300 L 140 320 L 190 280 L 260 340"/>
+    <path d="M 985 450 L 910 480 L 840 440 L 780 500"/>
+    <path d="M 120 1200 L 190 1170 L 250 1220"/>
+    <path d="M 920 1100 L 830 1140 L 760 1090"/>
+    <path d="M 525 150 L 510 240 L 540 320"/>
+  </g>
+
+  <!-- Äußerer Steinmetz-Rahmen mit Meißelkanten -->
+  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#mossGranite)" stroke-width="16"/>
+  <rect x="65" y="65" width="920" height="1368" rx="20" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="10 8" opacity="0.6"/>
+
+  <!-- Keltische Knoten & Grabkreuze an den 4 Ecken -->
+  <g stroke="#94a3b8" stroke-width="4" fill="none">
+    <!-- Oben Links -->
+    <path d="M 90 90 L 170 90 L 170 170 L 90 170 Z"/>
+    <path d="M 130 70 L 130 190 M 70 130 L 190 130" stroke="#38bdf8" stroke-width="3" filter="url(#soulLight)"/>
+    <!-- Oben Rechts -->
+    <path d="M 960 90 L 880 90 L 880 170 L 960 170 Z"/>
+    <path d="M 920 70 L 920 190 M 860 130 L 980 130" stroke="#38bdf8" stroke-width="3" filter="url(#soulLight)"/>
+    <!-- Unten Links -->
+    <path d="M 90 1408 L 170 1408 L 170 1328 L 90 1328 Z"/>
+    <path d="M 130 1428 L 130 1308 M 70 1368 L 190 1368" stroke="#38bdf8" stroke-width="3" filter="url(#soulLight)"/>
+    <!-- Unten Rechts -->
+    <path d="M 960 1408 L 880 1408 L 880 1328 L 960 1328 Z"/>
+    <path d="M 920 1428 L 920 1308 M 860 1368 L 980 1368" stroke="#38bdf8" stroke-width="3" filter="url(#soulLight)"/>
+  </g>
+
+  <!-- Glimmende spektrale Seelen-Aura -->
+  <circle cx="525" cy="749" r="320" fill="url(#soulGlow)"/>
+
+  <!-- Äußerer keltischer Runen-Ring -->
+  <circle cx="525" cy="749" r="280" fill="#090d16" stroke="url(#mossGranite)" stroke-width="12"/>
+  <circle cx="525" cy="749" r="255" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="12 6" filter="url(#soulLight)"/>
+
+  <!-- Großes Keltisches Hochkreuz (Gotisches Grabkreuz) -->
+  <g stroke="url(#mossGranite)" stroke-width="8" fill="#1e293b" filter="url(#soulLight)">
+    <!-- Vertikaler Balken -->
+    <rect x="495" y="509" width="60" height="480" rx="8"/>
+    <!-- Horizontaler Balken -->
+    <rect x="365" y="629" width="320" height="60" rx="8"/>
+  </g>
+
+  <!-- Keltischer Kreuzungsring -->
+  <circle cx="525" cy="659" r="110" fill="none" stroke="url(#mossGranite)" stroke-width="10"/>
+  <circle cx="525" cy="659" r="95" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="6 4" filter="url(#soulLight)"/>
+
+  <!-- Geisterhaftes Seelen-Auge / Totenschädel-Relief im Zentrum des Kreuzes -->
+  <g transform="translate(525, 659)" filter="url(#soulLight)">
+    <!-- Schädel-Kontur -->
+    <path d="M -35 -40 C -45 -10 -40 25 -25 40 L -20 55 L 20 55 L 25 40 C 40 25 45 -10 35 -40 C 25 -55 -25 -55 -35 -40 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="4"/>
+    <!-- Glühende Seelen-Augenhöhlen -->
+    <circle cx="-16" cy="-10" r="10" fill="#e0f2fe"/>
+    <circle cx="16" cy="-10" r="10" fill="#e0f2fe"/>
+    <!-- Dreiecks-Nasenöffnung -->
+    <polygon points="0,5 -6,16 6,16" fill="#38bdf8"/>
+    <!-- Keltische Zähne / Runenkerben -->
+    <line x1="-12" y1="45" x2="-12" y2="55" stroke="#38bdf8" stroke-width="3"/>
+    <line x1="0" y1="45" x2="0" y2="55" stroke="#38bdf8" stroke-width="3"/>
+    <line x1="12" y1="45" x2="12" y2="55" stroke="#38bdf8" stroke-width="3"/>
+  </g>
+</svg>

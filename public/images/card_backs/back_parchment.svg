@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1498" width="1050" height="1498">
+  <defs>
+    <!-- Lederbasis & Schattierung -->
+    <radialGradient id="leatherBase" cx="50%" cy="50%" r="72%">
+      <stop offset="0%" stop-color="#4e2511"/>
+      <stop offset="50%" stop-color="#341508"/>
+      <stop offset="85%" stop-color="#1e0a03"/>
+      <stop offset="100%" stop-color="#0d0401"/>
+    </radialGradient>
+    <linearGradient id="goldLeaf" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff0aa"/>
+      <stop offset="30%" stop-color="#d4af37"/>
+      <stop offset="60%" stop-color="#8a6f1d"/>
+      <stop offset="85%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#ffe680"/>
+    </linearGradient>
+    <radialGradient id="waxSeal" cx="42%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="50%" stop-color="#b91c1c"/>
+      <stop offset="85%" stop-color="#7f1d1d"/>
+      <stop offset="100%" stop-color="#450a0a"/>
+    </radialGradient>
+    <filter id="leatherShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.8"/>
+    </filter>
+    <filter id="goldRelief" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000" flood-opacity="0.7"/>
+      <feDropShadow dx="-1" dy="-1" stdDeviation="1.5" flood-color="#fff" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Dunkles Rindsleder mit punzierter Kante -->
+  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#leatherBase)" stroke="#110502" stroke-width="8"/>
+  
+  <!-- Doppelnaht / Punzierte Sattelnaht -->
+  <rect x="36" y="36" width="978" height="1426" rx="34" fill="none" stroke="#251007" stroke-width="8"/>
+  <rect x="48" y="48" width="954" height="1402" rx="28" fill="none" stroke="#b45309" stroke-width="2.5" stroke-dasharray="10 7" opacity="0.85"/>
+
+  <!-- Goldgeprägter Buchbinder-Rahmen mit Alchemie-Bordüre -->
+  <rect x="75" y="75" width="900" height="1348" rx="22" fill="none" stroke="url(#goldLeaf)" stroke-width="12" filter="url(#goldRelief)"/>
+  <rect x="94" y="94" width="862" height="1310" rx="16" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.5"/>
+
+  <!-- Alchemistische Eck-Symbole (Merkur, Schwefel, Salz, Terra) -->
+  <!-- Merkur Oben Links -->
+  <g transform="translate(145, 145)" stroke="url(#goldLeaf)" stroke-width="4" fill="none" filter="url(#goldRelief)">
+    <circle cx="0" cy="0" r="26"/>
+    <path d="M 0 26 L 0 54 M -14 40 L 14 40"/>
+    <path d="M -22 -14 A 22 22 0 0 1 22 -14"/>
+  </g>
+  <!-- Schwefel Oben Rechts -->
+  <g transform="translate(905, 145)" stroke="url(#goldLeaf)" stroke-width="4" fill="none" filter="url(#goldRelief)">
+    <polygon points="0,-32 28,16 -28,16"/>
+    <path d="M 0 16 L 0 52 M -16 34 L 16 34"/>
+  </g>
+  <!-- Salz Unten Links -->
+  <g transform="translate(145, 1353)" stroke="url(#goldLeaf)" stroke-width="4" fill="none" filter="url(#goldRelief)">
+    <circle cx="0" cy="0" r="30"/>
+    <line x1="-30" y1="0" x2="30" y2="0"/>
+  </g>
+  <!-- Philosophenstein Unten Rechts -->
+  <g transform="translate(905, 1353)" stroke="url(#goldLeaf)" stroke-width="4" fill="none" filter="url(#goldRelief)">
+    <circle cx="0" cy="0" r="32"/>
+    <polygon points="0,-30 26,22 -26,22"/>
+    <rect x="-14" y="-14" width="28" height="28"/>
+  </g>
+
+  <!-- Mittlerer Geometrischer Hermetik-Kreis mit Inschriftenlinien -->
+  <g stroke="url(#goldLeaf)" fill="none" stroke-width="3" opacity="0.6">
+    <circle cx="525" cy="749" r="420" stroke-dasharray="14 10"/>
+    <circle cx="525" cy="749" r="380"/>
+    <circle cx="525" cy="749" r="330" stroke-dasharray="6 6"/>
+    <polygon points="525,329 889,749 525,1169 161,749" stroke-width="4"/>
+    <polygon points="525,369 849,749 525,1129 201,749" stroke-width="1.5" stroke-dasharray="4 8"/>
+  </g>
+
+  <!-- Dunkles Medaillon-Podest -->
+  <circle cx="525" cy="749" r="240" fill="#1b0802" stroke="url(#goldLeaf)" stroke-width="10" filter="url(#leatherShadow)"/>
+  <circle cx="525" cy="749" r="222" fill="none" stroke="#d4af37" stroke-width="2.5" stroke-dasharray="8 6"/>
+
+  <!-- Alchemistische Lilie / Fleur-de-Lis Gravur -->
+  <g transform="translate(525, 749)" fill="none" stroke="url(#goldLeaf)" stroke-width="5" filter="url(#goldRelief)">
+    <!-- Ouroboros Schlange / Zirkelring -->
+    <circle cx="0" cy="0" r="170" stroke-width="6"/>
+    <circle cx="0" cy="0" r="148" stroke-dasharray="8 8"/>
+  </g>
+
+  <!-- Erhabenes Karminrotes Alchemisten-Wachssiegel mit Tropfen -->
+  <g transform="translate(525, 749)" filter="url(#leatherShadow)">
+    <!-- Organische Wachs-Tropfenränder -->
+    <path d="M -110 -40 C -125 -10 -135 40 -105 85 C -80 120 -20 135 25 130 C 75 125 125 105 130 50 C 135 -10 115 -70 70 -105 C 30 -135 -35 -130 -80 -100 C -105 -80 -115 -60 -110 -40 Z" fill="url(#waxSeal)" stroke="#3a0707" stroke-width="4"/>
+    <circle cx="0" cy="0" r="92" fill="none" stroke="#ff8080" stroke-width="3" opacity="0.4"/>
+    
+    <!-- Tiefgeprägtes Siegel-Wappen: Hermetischer Adler & Alchemisten-Kessel -->
+    <path d="M 0 -55 L 22 -15 L 48 -15 L 28 8 L 38 48 L 0 25 L -38 48 L -28 8 L -48 -15 L -22 -15 Z" fill="#7f1d1d" stroke="#fca5a5" stroke-width="3" filter="url(#goldRelief)"/>
+    <circle cx="0" cy="-6" r="12" fill="#fca5a5"/>
+  </g>
+</svg>

@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1498" width="1050" height="1498">
+  <defs>
+    <!-- Obsidian & Nether-Leere -->
+    <radialGradient id="obsidianBase" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1f032e"/>
+      <stop offset="50%" stop-color="#11011c"/>
+      <stop offset="85%" stop-color="#07000c"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <linearGradient id="purpleFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#581c87"/>
+      <stop offset="35%" stop-color="#9333ea"/>
+      <stop offset="70%" stop-color="#c084fc"/>
+      <stop offset="95%" stop-color="#f5d0fe"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="blackIron" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="30%" stop-color="#1e293b"/>
+      <stop offset="70%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <filter id="flameGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Pechschwarzer Obsidian-Scherbenkörper -->
+  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#obsidianBase)" stroke="#05000a" stroke-width="8"/>
+
+  <!-- Gewaltiger Riss- und Flammen-Hintergrund (Glühende Nether-Spalten) -->
+  <g stroke="url(#purpleFlame)" stroke-width="3" fill="none" opacity="0.45" filter="url(#flameGlow)">
+    <path d="M 525 60 L 510 280 L 450 390 L 530 520 L 480 660 L 525 749 L 570 840 L 510 990 L 560 1140 L 525 1438"/>
+    <path d="M 60 749 L 240 720 L 370 790 L 525 749 L 680 710 L 810 780 L 990 749"/>
+    <path d="M 120 180 L 280 320 L 400 480"/>
+    <path d="M 930 180 L 770 320 L 650 480"/>
+    <path d="M 120 1318 L 280 1178 L 400 1018"/>
+    <path d="M 930 1318 L 770 1178 L 650 1018"/>
+  </g>
+
+  <!-- Äußerer Stachel-Rahmen aus geschmiedetem Schwarzmetall -->
+  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#blackIron)" stroke-width="16"/>
+  <rect x="64" y="64" width="922" height="1370" rx="20" fill="none" stroke="url(#purpleFlame)" stroke-width="3" opacity="0.8"/>
+
+  <!-- Dämonische Zacken und Klingen an den Rändern -->
+  <g fill="url(#blackIron)" stroke="#9333ea" stroke-width="2">
+    <!-- Oben Zacken -->
+    <polygon points="525,45 500,85 550,85"/>
+    <polygon points="350,45 330,75 370,75"/>
+    <polygon points="700,45 680,75 720,75"/>
+    <!-- Unten Zacken -->
+    <polygon points="525,1453 500,1413 550,1413"/>
+    <polygon points="350,1453 330,1423 370,1423"/>
+    <polygon points="700,1453 680,1423 720,1423"/>
+    <!-- Links Zacken -->
+    <polygon points="45,749 85,724 85,774"/>
+    <polygon points="45,500 75,480 75,520"/>
+    <polygon points="45,998 75,978 75,1018"/>
+    <!-- Rechts Zacken -->
+    <polygon points="1005,749 965,724 965,774"/>
+    <polygon points="1005,500 975,480 975,520"/>
+    <polygon points="1005,998 975,978 975,1018"/>
+  </g>
+
+  <!-- Mittlere Dämonen-Risskammer -->
+  <circle cx="525" cy="749" r="280" fill="rgba(88, 28, 135, 0.2)" stroke="url(#purpleFlame)" stroke-width="6" stroke-dasharray="16 8" filter="url(#flameGlow)"/>
+  <circle cx="525" cy="749" r="230" fill="#08000f" stroke="url(#blackIron)" stroke-width="12"/>
+
+  <!-- Dämonen-Runenkreis (Okkulter Pentagramm-Zirkel) -->
+  <g stroke="url(#purpleFlame)" stroke-width="4" fill="none" filter="url(#flameGlow)">
+    <circle cx="525" cy="749" r="190"/>
+    <!-- 8 Flammen-Schwerter / Speere -->
+    <polygon points="525,549 535,749 515,749" fill="url(#purpleFlame)"/>
+    <polygon points="525,949 535,749 515,749" fill="url(#purpleFlame)"/>
+    <polygon points="325,749 525,739 525,759" fill="url(#purpleFlame)"/>
+    <polygon points="725,749 525,739 525,759" fill="url(#purpleFlame)"/>
+  </g>
+
+  <!-- Zentrales Schattenflammen-Sigil (Glühende Hörnerkrone & Höllenfeuer) -->
+  <g transform="translate(525, 749)" filter="url(#flameGlow)">
+    <!-- Aufsteigende Flammenzungen -->
+    <path d="M 0 110 C -40 70 -80 0 -60 -70 C -40 -30 -20 10 0 -30 C 20 10 40 -30 60 -70 C 80 0 40 70 0 110 Z" fill="url(#purpleFlame)"/>
+    <path d="M 0 90 C -25 50 -50 0 -35 -50 C -25 -20 -10 10 0 -15 C 10 10 25 -20 35 -50 C 50 0 25 50 0 90 Z" fill="#ffffff" opacity="0.9"/>
+    
+    <!-- Gezackte Dämonen-Schwingen / Hörner -->
+    <path d="M -20 30 Q -110 -20 -130 -110 Q -80 -80 -40 -30 Z" fill="url(#blackIron)" stroke="#c084fc" stroke-width="3"/>
+    <path d="M 20 30 Q 110 -20 130 -110 Q 80 -80 40 -30 Z" fill="url(#blackIron)" stroke="#c084fc" stroke-width="3"/>
+
+    <!-- Glühendes Zentrum: Dämonischer Seelenkristall -->
+    <polygon points="0,-40 28,10 0,60 -28,10" fill="#f5d0fe" stroke="#9333ea" stroke-width="4"/>
+    <circle cx="0" cy="10" r="8" fill="#ffffff"/>
+  </g>
+</svg>

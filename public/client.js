@@ -5604,9 +5604,7 @@ const WizardVault = (() => {
     if (type === 'card_back') {
       const themeClass = `cardback-theme-${item.id}`;
       return `
-        <div class="cosmetic-mini-cardback ${themeClass}" title="${escapeHtml(item.name || '')}">
-          <div class="cosmetic-mini-cardback-inner"></div>
-        </div>
+        <div class="cosmetic-mini-cardback ${themeClass}" title="${escapeHtml(item.name || '')} (Klicken für 3D-Großansicht)" onclick="if(typeof openCardBackInspectModal === 'function'){ openCardBackInspectModal('${escapeHtml(item.id)}'); }"></div>
       `;
     }
 
@@ -6465,6 +6463,77 @@ const WizardVault = (() => {
   };
 })();
 if (typeof window !== 'undefined') window.WizardVault = WizardVault;
+
+// --- INTERAKTIVER 3D-KARTENRÜCKEN-INSPEKTOR ---
+function openCardBackInspectModal(deckId) {
+  try {
+    const modal = document.getElementById('cardbackInspectModal');
+    const cardEl = document.getElementById('cardbackInspectCard');
+    const titleEl = document.getElementById('cardbackInspectTitle');
+    const rarityEl = document.getElementById('cardbackInspectRarity');
+    const loreEl = document.getElementById('cardbackInspectLore');
+    if (!modal || !cardEl) return;
+
+    // Suche Item-Details aus Catalog
+    let deckItem = null;
+    if (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) {
+      const vData = WizardVault.getVaultData();
+      if (vData && vData.catalog && vData.catalog.card_backs) {
+        deckItem = vData.catalog.card_backs.find(d => d.id === deckId);
+      }
+    }
+
+    const fallbackLore = {
+      default: 'Handbeschöpftes Lederpergament mit arkanen Schutzrunen und Lehrlingszirkel.',
+      parchment: 'Dunkelbraunes Leder mit alchemistischem Kreis und glänzendem Wachssiegel.',
+      forest: 'Lebendiges Elfenholz, umschlungen von leuchtendem Feenstaub und Smaragd-Lilien.',
+      spider_queen: 'Tiefvioletter Samt mit filigranem silbernem Spinnennetz und Amethystspinne.',
+      shadow: 'Dunkler Obsidian, durchzuckt von violetten Höllenflammen und Dämonenrunen.',
+      astral: 'Ein mitternachtsblaues Sternenrad mit glimmenden Konstellationen und Astrolabium.',
+      pumpkin_king: 'Furchterregender Schnitzkürbis mit feurig glühendem Dämonengrinsen und Herbstlaub.',
+      gravestone_runes: 'Verwitterter gotischer Schiefer mit uralten Moos-Totenkopfgravuren und Seelenleuchten.',
+      dragon: 'Echte rote Lindwurmschuppen-Panzerung mit feuerfesten Goldbeschlägen und Schlitzauge.',
+      citadel_ancient: 'Das berühmte kobaltblaue Meisterstück der Hohen Zitadelle mit 30 Jahre Goldfiligran-Bordüren und Arkan-Kompass.'
+    };
+
+    const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
+    const rarColors = { common: '#d97706', rare: '#34d399', epic: '#c084fc', legendary: '#fbbf24' };
+
+    const name = deckItem ? deckItem.name : deckId;
+    const rarity = (deckItem && deckItem.rarity) || 'common';
+    const lore = (deckItem && deckItem.lore) || fallbackLore[deckId] || 'Ein uraltes Kartendeck der Zauberer-Zitadelle.';
+
+    if (titleEl) titleEl.innerText = name;
+    if (rarityEl) {
+      rarityEl.innerText = rarNames[rarity] || rarity;
+      rarityEl.style.color = rarColors[rarity] || '#fbbf24';
+    }
+    if (loreEl) loreEl.innerText = lore;
+
+    cardEl.className = `cardback-inspect-card cardback-theme-${deckId}`;
+    cardEl.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+
+    // 3D Parallax Tilt Effekt bei Mausbewegung
+    cardEl.onmousemove = (e) => {
+      const rect = cardEl.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      const rotX = -(y / (rect.height / 2)) * 14;
+      const rotY = (x / (rect.width / 2)) * 14;
+      cardEl.style.transform = `perspective(1000px) rotateX(${rotX.toFixed(1)}deg) rotateY(${rotY.toFixed(1)}deg) scale(1.03)`;
+    };
+    cardEl.onmouseleave = () => {
+      cardEl.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+    };
+
+    modal.style.display = 'flex';
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) WizardAudio.playCardSnap();
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('medium');
+  } catch (err) {
+    console.error('Fehler in openCardBackInspectModal:', err);
+  }
+}
+if (typeof window !== 'undefined') window.openCardBackInspectModal = openCardBackInspectModal;
 
 // --- MAGIER-PROFIL & SPIELER-DETAILS MODAL (SPIELTISCH & GRIMOIRE DER GEFÄHRTEN) ---
 function openPlayerDetailModal(data, source = 'table') {
@@ -9903,6 +9972,47 @@ function renderTrumpCard(trumpCard) {
 
   wrap.appendChild(subText);
   trumpContainer.appendChild(wrap);
+
+  // Tisch-Deckstapel aktualisieren
+  updateTableDeckPile();
+}
+
+// --- PHYSISCHER 3D-KARTENSTAPEL (TALON) AUF DEM TISCH ---
+function updateTableDeckPile() {
+  const deckPile = document.getElementById('table-deck-pile');
+  const badge = document.getElementById('table-deck-badge');
+  if (!deckPile) return;
+
+  // Ermittle das aktive Kartendeck des Hosts oder Tisches
+  const hostPlayer = (cachedPlayers || []).find(p => p.isDealer || p.isHost);
+  const activeDeckSkin = (hostPlayer && hostPlayer.cardBack) || (currentUser && currentUser.equipped_card_back) || 'default';
+
+  deckPile.className = `table-deck-pile cardback-theme-${activeDeckSkin}`;
+
+  // Verbleibende Karten im Talon berechnen: 60 - ausgeteilte Handkarten - 1 Trumpfkarte
+  const totalPlayers = (cachedPlayers && cachedPlayers.length > 0) ? cachedPlayers.length : 3;
+  const cardsDealt = (currentRound || 1) * totalPlayers;
+  const remainingCards = Math.max(0, 60 - cardsDealt - (cachedTrumpCard ? 1 : 0));
+
+  if (badge) {
+    badge.innerText = remainingCards;
+    badge.title = `${remainingCards} Karten verbleiben im Nachziehdeck`;
+  }
+
+  // Wenn keine Karten mehr übrig sind (z. B. letzte Runden), Stapelhöhe visuell reduzieren
+  if (remainingCards <= 0) {
+    deckPile.style.opacity = '0.35';
+    deckPile.style.boxShadow = '0 2px 4px rgba(0,0,0,0.6)';
+  } else {
+    deckPile.style.opacity = '1';
+    deckPile.style.boxShadow = '';
+  }
+
+  deckPile.onclick = () => {
+    showToast(`🎴 Talon: Noch ${remainingCards} Karten im Deck (${activeDeckSkin}).`);
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) WizardAudio.playCardSnap();
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('medium');
+  };
 }
 
 // --- BIET-BUTTONS RENDERN ---
@@ -10340,22 +10450,19 @@ function renderCard(card) {
   }
 
   if (card.isBlind || card.type === 'blind_card') {
-    const myCardBack = (currentUser && currentUser.equipped_card_back) || 'default';
+    const myCardBack = (currentUser && currentUser.equipped_card_back) || (vaultData && vaultData.user && vaultData.user.equipped_card_back) || 'default';
     div.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBack}`);
     div.innerHTML = `
-      <div class="card-back-inner">
-        <div class="card-back-ornament"></div>
-        <div class="card-corner top-left">
-          <span class="card-val">?</span>
-        </div>
-        <div class="card-center">
-          <div class="card-center-crest" style="font-size: 20px;">✦</div>
-          <div class="card-center-val" style="font-size: 28px; color: var(--gold-bright); margin-top: 1px;">?</div>
-          <div class="card-name-label"><em>Stirn-Karte</em></div>
-        </div>
-        <div class="card-corner bottom-right">
-          <span class="card-val">?</span>
-        </div>
+      <div class="card-corner top-left">
+        <span class="card-val">?</span>
+      </div>
+      <div class="card-center">
+        <div class="card-center-crest" style="font-size: 24px; filter: drop-shadow(0 0 10px var(--gold-bright));">👁️</div>
+        <div class="card-center-val" style="font-size: 32px; color: var(--gold-bright); margin-top: 1px; text-shadow: 0 0 14px rgba(240, 195, 85, 0.8);">?</div>
+        <div class="card-name-label" style="background: rgba(10,5,2,0.85); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--gold-antique);"><em>Stirn-Karte</em></div>
+      </div>
+      <div class="card-corner bottom-right">
+        <span class="card-val">?</span>
       </div>
     `;
     return div;
@@ -10374,11 +10481,7 @@ function renderCard(card) {
   const myCardBackSkin = (currentUser && currentUser.equipped_card_back) || (vaultData && vaultData.user && vaultData.user.equipped_card_back) || 'default';
   const backFace = document.createElement('div');
   backFace.className = `card-face card-face-back card-back cardback-theme-${myCardBackSkin}`;
-  backFace.innerHTML = `
-    <div class="card-back-inner">
-      <div class="card-back-ornament"></div>
-    </div>
-  `;
+  backFace.innerHTML = '';
 
   if (card.type === 'wizard') {
     div.classList.add('card-wizard');

@@ -7252,11 +7252,12 @@
     }
 
     /* =====================================================================
-       ZERO CRUDE ICONS: AUTHENTISCHE FANTASY-KARTENRÜCKEN (HEARTHSTONE / MTG STIL)
+       AUTHENTISCHE HIGH-END FANTASY-KARTENRÜCKEN (1050x1498 SVG VEKTORKUNST)
        ===================================================================== */
     .cosmetic-mini-cardback {
       width: 54px;
-      height: 78px;
+      height: 77px;
+      aspect-ratio: 1050 / 1498;
       border-radius: 6px;
       position: relative;
       display: flex;
@@ -7269,294 +7270,181 @@
       overflow: hidden;
       flex-shrink: 0;
       box-sizing: border-box;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+      cursor: pointer;
+    }
+    .cosmetic-mini-cardback:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.9), 0 0 12px rgba(240, 195, 85, 0.5);
     }
     .cosmetic-mini-cardback-inner {
-      width: calc(100% - 6px);
-      height: calc(100% - 6px);
-      border-radius: 4px;
-      border: 1px solid rgba(240, 195, 85, 0.5);
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .cosmetic-mini-cardback-inner::before {
-      content: '';
-      position: absolute;
-      inset: 2px;
-      border: 1px dashed rgba(240, 195, 85, 0.35);
-      border-radius: 2px;
-      pointer-events: none;
+      display: none !important;
     }
 
-    /* 1. NOVIZEN-PERGAMENT (STANDARD / COMMON) */
+    /* 10 KARTENRÜCKEN HIGH-END SVG MAPPINGS */
     .cardback-theme-default {
-      background: radial-gradient(circle at 50% 35%, #fef3c7 0%, #fde68a 40%, #b45309 90%, #78350f 100%) !important;
+      background-image: url('/images/card_backs/back_default.svg') !important;
       border-color: #d97706 !important;
     }
-    .cardback-theme-default .cosmetic-mini-cardback-inner::after {
-      content: '✦';
-      font-size: 22px;
-      font-weight: 900;
-      color: #78350f;
-      text-shadow: 0 1px 2px rgba(254, 240, 138, 0.9);
-      font-family: var(--font-heading);
-    }
-
-    /* 2. ARKANE ZITADELLE (LEGENDÄRES ALTES DECK / GOLDJUBILÄUM) */
     .cardback-theme-citadel_ancient {
-      background: radial-gradient(circle at 50% 40%, #1e3a8a 0%, #0c1836 75%, #050b1a 100%) !important;
+      background-image: url('/images/card_backs/back_citadel_ancient.svg') !important;
       border-color: #fbbf24 !important;
       box-shadow: 0 0 14px rgba(251, 191, 36, 0.6) !important;
     }
-    .cardback-theme-citadel_ancient .cosmetic-mini-cardback-inner {
-      border: 1.5px solid #fef08a !important;
-    }
-    .cardback-theme-citadel_ancient .cosmetic-mini-cardback-inner::after {
-      content: '❂';
-      font-size: 24px;
-      color: #fef08a;
-      text-shadow: 0 0 10px #f59e0b, 0 2px 4px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-
-    /* 3. URALTES ALCHEMISTEN-LEDER (RARE) */
     .cardback-theme-parchment {
-      background: linear-gradient(145deg, #5c2c10 0%, #381504 55%, #1f0b02 100%) !important;
+      background-image: url('/images/card_backs/back_parchment.svg') !important;
       border-color: #b45309 !important;
     }
-    .cardback-theme-parchment .cosmetic-mini-cardback-inner::after {
-      content: '⚜';
-      font-size: 22px;
-      color: #fbbf24;
-      text-shadow: 0 0 6px #78350f, 0 1px 2px rgba(0,0,0,0.8);
-      font-family: var(--font-heading);
-    }
-
-    /* 4. HAIN DER WALDNYMPHEN (RARE) */
     .cardback-theme-forest {
-      background: radial-gradient(circle at 50% 30%, #065f46 0%, #022c22 80%, #011712 100%) !important;
+      background-image: url('/images/card_backs/back_forest.svg') !important;
       border-color: #34d399 !important;
     }
-    .cardback-theme-forest .cosmetic-mini-cardback-inner::after {
-      content: '❧';
-      font-size: 24px;
-      color: #a7f3d0;
-      text-shadow: 0 0 10px #10b981, 0 1px 3px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-
-    /* 5. SPINNENKÖNIGIN (RARE HALLOWEEN) */
     .cardback-theme-spider_queen {
-      background: radial-gradient(circle at 50% 35%, #4c1d95 0%, #17072b 85%, #0b0217 100%) !important;
+      background-image: url('/images/card_backs/back_spider_queen.svg') !important;
       border-color: #c084fc !important;
     }
-    .cardback-theme-spider_queen .cosmetic-mini-cardback-inner::after {
-      content: '🕸';
-      font-size: 22px;
-      color: #e9d5ff;
-      filter: drop-shadow(0 0 6px #a855f7);
-    }
-
-    /* 6. SCHATTENFLAMME (EPIC) */
     .cardback-theme-shadow {
-      background: radial-gradient(circle at 50% 40%, #2e0854 0%, #0a0112 85%, #000000 100%) !important;
+      background-image: url('/images/card_backs/back_shadow.svg') !important;
       border-color: #c084fc !important;
       box-shadow: 0 0 12px rgba(192, 132, 252, 0.4) !important;
     }
-    .cardback-theme-shadow .cosmetic-mini-cardback-inner::after {
-      content: '☬';
-      font-size: 22px;
-      color: #e9d5ff;
-      text-shadow: 0 0 10px #9333ea, 0 1px 2px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-
-    /* 7. KÜRBIKÖNIG (EPIC HALLOWEEN) */
     .cardback-theme-pumpkin_king {
-      background: radial-gradient(circle at 50% 35%, #7c2d12 0%, #431407 65%, #1c0602 100%) !important;
+      background-image: url('/images/card_backs/back_pumpkin_king.svg') !important;
       border-color: #fb923c !important;
       box-shadow: 0 0 12px rgba(249, 115, 22, 0.4) !important;
     }
-    .cardback-theme-pumpkin_king .cosmetic-mini-cardback-inner::after {
-      content: '❖';
-      font-size: 24px;
-      color: #fed7aa;
-      text-shadow: 0 0 12px #ea580c, 0 2px 4px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-
-    /* 8. GRABSTEIN-RUNEN (EPIC HALLOWEEN) */
     .cardback-theme-gravestone_runes {
-      background: linear-gradient(145deg, #334155 0%, #1e293b 55%, #090d16 100%) !important;
+      background-image: url('/images/card_backs/back_gravestone_runes.svg') !important;
       border-color: #94a3b8 !important;
     }
-    .cardback-theme-gravestone_runes .cosmetic-mini-cardback-inner::after {
-      content: '☩';
-      font-size: 24px;
-      color: #cbd5e1;
-      text-shadow: 0 0 8px #38bdf8, 0 2px 4px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-
-    /* 9. ASTRAL-KOSMOS (EPIC) */
     .cardback-theme-astral {
-      background: radial-gradient(ellipse at 50% 30%, #312e81 0%, #030712 85%, #000000 100%) !important;
+      background-image: url('/images/card_backs/back_astral.svg') !important;
       border-color: #818cf8 !important;
       box-shadow: 0 0 12px rgba(99, 102, 241, 0.45) !important;
     }
-    .cardback-theme-astral .cosmetic-mini-cardback-inner::after {
-      content: '✵';
-      font-size: 24px;
-      color: #c7d2fe;
-      text-shadow: 0 0 10px #6366f1, 0 1px 3px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-
-    /* 10. DRACHENSCHUPPE (LEGENDÄR) */
     .cardback-theme-dragon {
-      background: repeating-radial-gradient(circle at 50% 0%, #991b1b, #450a0a 12px) !important;
+      background-image: url('/images/card_backs/back_dragon.svg') !important;
       border-color: #fbbf24 !important;
       box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
-    }
-    .cardback-theme-dragon .cosmetic-mini-cardback-inner::after {
-      content: '◈';
-      font-size: 26px;
-      color: #fef08a;
-      text-shadow: 0 0 12px #dc2626, 0 2px 4px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
     }
 
     /* =====================================================================
        VOLLWERTIGE ECHTE SPIELKARTEN-RÜCKSEITEN (.card.card-back)
        ===================================================================== */
     .card.card-back {
-      padding: 4px;
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .card.card-back .card-back-inner {
-      width: 100%;
-      height: 100%;
-      border-radius: 4px;
-      border: 1.5px solid rgba(240, 195, 85, 0.5);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      aspect-ratio: 1050 / 1498;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      padding: 0;
+      border-radius: 6px;
+      border: 1.5px solid var(--gold-antique);
       overflow: hidden;
-      box-sizing: border-box;
+      position: relative;
     }
-    .card.card-back .card-back-inner::before {
-      content: '';
+    .card.card-back .card-back-inner,
+    .card.card-back .card-back-ornament {
+      display: none !important;
+    }
+
+    /* TISCH-DECKSTAPEL (3D PHYSISCHER TALON NEBEN DEM TRUMPF) */
+    .table-deck-pile {
+      position: relative;
+      width: clamp(38px, 9vw, 48px);
+      height: calc(clamp(38px, 9vw, 48px) * (1498 / 1050));
+      aspect-ratio: 1050 / 1498;
+      border-radius: 5px;
+      margin-top: 5px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s ease;
+      background-size: cover !important;
+      background-position: center !important;
+      border: 1px solid var(--gold-antique);
+      /* Plastischer 3D-Kartenstapel mit Schichtkanten */
+      box-shadow:
+        0 1px 0 #1e1005,
+        0 2px 0 #3b1f08,
+        0 3px 0 #1e1005,
+        0 4px 0 #522d0d,
+        0 5px 0 #1e1005,
+        0 6px 12px rgba(0,0,0,0.85);
+    }
+    .table-deck-pile:hover {
+      transform: translateY(-2px) scale(1.04);
+    }
+    .table-deck-count-badge {
       position: absolute;
-      inset: 3px;
-      border: 1px dashed rgba(240, 195, 85, 0.35);
-      border-radius: 3px;
+      bottom: -6px;
+      right: -6px;
+      background: rgba(15, 7, 3, 0.95);
+      border: 1px solid var(--gold-bright);
+      color: var(--gold-bright);
+      font-size: 8.5px;
+      font-weight: 900;
+      font-family: var(--font-heading);
+      padding: 1px 4px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
       pointer-events: none;
     }
-    .card.card-back .card-back-ornament {
-      position: absolute;
+
+    /* 3D-CARD-FLIP BEIM AUSTEILEN */
+    .card-flipper-container {
+      perspective: 1000px;
+      display: inline-block;
+    }
+    .card.card-flipping {
+      animation: cardDealFlip 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transform-style: preserve-3d;
+    }
+    @keyframes cardDealFlip {
+      0% {
+        opacity: 0;
+        transform: translateY(80px) rotateY(180deg) scale(0.85);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(-15px) rotateY(90deg) scale(1.05);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(var(--target-y, 0px)) rotateY(0deg) scale(1);
+      }
+    }
+
+    /* INTERAKTIVER 3D-KARTENRÜCKEN-INSPEKTOR */
+    .cardback-inspect-modal {
+      display: none;
+      position: fixed;
       inset: 0;
-      display: flex;
+      z-index: 9999;
+      background: rgba(8, 4, 2, 0.88);
+      backdrop-filter: blur(8px);
       align-items: center;
       justify-content: center;
-      pointer-events: none;
-      z-index: 1;
+      padding: 20px;
     }
-
-    /* ORNAMENTE & SIEGEL DER 10 KARTENDECKS AUF ECHTEN SPIELKARTEN & TISCH-KARTEN */
-    .card.card-back.cardback-theme-default .card-back-ornament::after,
-    .cardback-theme-default .card-back-ornament::after {
-      content: '✦';
-      font-size: 34px;
-      font-weight: 900;
-      color: #78350f;
-      text-shadow: 0 1px 3px rgba(254, 240, 138, 0.9);
-      font-family: var(--font-heading);
+    .cardback-inspect-card {
+      width: min(340px, 80vw);
+      height: calc(min(340px, 80vw) * (1498 / 1050));
+      aspect-ratio: 1050 / 1498;
+      border-radius: 14px;
+      border: 3px solid var(--gold-bright);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 30px rgba(240, 195, 85, 0.35);
+      background-size: cover !important;
+      background-position: center !important;
+      cursor: pointer;
+      transition: transform 0.15s ease-out;
+      transform-style: preserve-3d;
     }
-    .card.card-back.cardback-theme-citadel_ancient .card-back-,
-    .cardback-theme-citadel_ancient .card-back-inner {
-      border: 1.5px solid #fef08a !important;
-    }
-    .card.card-back.cardback-theme-citadel_ancient .card-back-,
-    .cardback-theme-citadel_ancient .card-back-ornament::after {
-      content: '❂';
-      font-size: 38px;
-      color: #fef08a;
-      text-shadow: 0 0 14px #f59e0b, 0 2px 5px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-    .card.card-back.cardback-theme-parchment .card-back-,
-    .cardback-theme-parchment .card-back-ornament::after {
-      content: '⚜';
-      font-size: 34px;
-      color: #fbbf24;
-      text-shadow: 0 0 8px #78350f, 0 1px 3px rgba(0,0,0,0.8);
-      font-family: var(--font-heading);
-    }
-    .card.card-back.cardback-theme-forest .card-back-,
-    .cardback-theme-forest .card-back-ornament::after {
-      content: '❧';
-      font-size: 38px;
-      color: #a7f3d0;
-      text-shadow: 0 0 14px #10b981, 0 1px 4px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-    .card.card-back.cardback-theme-spider_queen .card-back-,
-    .cardback-theme-spider_queen .card-back-ornament::after {
-      content: '🕸';
-      font-size: 34px;
-      color: #e9d5ff;
-      filter: drop-shadow(0 0 8px #a855f7);
-    }
-    .card.card-back.cardback-theme-shadow .card-back-,
-    .cardback-theme-shadow .card-back-ornament::after {
-      content: '☬';
-      font-size: 34px;
-      color: #e9d5ff;
-      text-shadow: 0 0 12px #9333ea, 0 1px 3px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-    .card.card-back.cardback-theme-pumpkin_king .card-back-,
-    .cardback-theme-pumpkin_king .card-back-ornament::after {
-      content: '❖';
-      font-size: 38px;
-      color: #fed7aa;
-      text-shadow: 0 0 14px #ea580c, 0 2px 5px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-    .card.card-back.cardback-theme-gravestone_runes .card-back-,
-    .cardback-theme-gravestone_runes .card-back-ornament::after {
-      content: '☩';
-      font-size: 38px;
-      color: #cbd5e1;
-      text-shadow: 0 0 10px #38bdf8, 0 2px 4px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-    .card.card-back.cardback-theme-astral .card-back-,
-    .cardback-theme-astral .card-back-ornament::after {
-      content: '✵';
-      font-size: 38px;
-      color: #c7d2fe;
-      text-shadow: 0 0 12px #6366f1, 0 1px 4px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-    .card.card-back.cardback-theme-dragon .card-back-,
-    .cardback-theme-dragon .card-back-ornament::after {
-      content: '◈';
-      font-size: 40px;
-      color: #fef08a;
-      text-shadow: 0 0 14px #dc2626, 0 2px 5px rgba(0,0,0,0.9);
-      font-family: var(--font-heading);
-    }
-
-    .table-dealing-card .card-back-ornament::after {
-      font-size: 20px !important;
+    .cardback-inspect-details {
+      margin-top: 16px;
+      text-align: center;
+      max-width: 380px;
     }
 
     /* STIRNKARTE IM SPIEL AUF KARTENRÜCKSEITE (.card.card-blind.card-back) */
@@ -9026,9 +8914,13 @@
       </div>
       
       <!-- KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS SCHWEBEND) -->
-      <div class="trump-section-fixed" id="trump-wrapper" title="Aufgedeckte Trumpfkarte der Runde">
+      <div class="trump-section-fixed" id="trump-wrapper" title="Aufgedeckte Trumpfkarte & Nachziehdeck">
         <div class="trump-label">Trumpf</div>
         <div id="trump-container"></div>
+        <!-- PHYSISCHER 3D-KARTENSTAPEL (TALON) -->
+        <div id="table-deck-pile" class="table-deck-pile cardback-theme-default" title="Nachziehstapel der Hohen Zitadelle">
+          <span id="table-deck-badge" class="table-deck-count-badge">60</span>
+        </div>
         <div id="bidding-summary-pill" class="bidding-summary-pill" style="display: none;">🎯 Bilanz: -</div>
       </div>
 
@@ -10485,6 +10377,19 @@
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
         <button id="btnCancelHostSettings" type="button" class="btn-auth-bar" style="background: rgba(30, 20, 15, 0.8); border: 1px solid #785a3c; color: #d6be90; padding: 7px 14px; cursor: pointer;">Abbrechen</button>
         <button id="btnSaveHostSettings" type="button" class="btn-auth-bar btn-auth-gold" style="padding: 7px 18px; cursor: pointer;">Speichern &amp; Übernehmen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERAKTIVER 3D-KARTENRÜCKEN-INSPEKTOR MODAL -->
+  <div id="cardbackInspectModal" class="cardback-inspect-modal" onclick="if(event.target === this) this.style.display='none';">
+    <div style="display: flex; flex-direction: column; align-items: center; max-width: 90vw;">
+      <div id="cardbackInspectCard" class="cardback-inspect-card" title="Klicken zum Schließen"></div>
+      <div class="cardback-inspect-details">
+        <h3 id="cardbackInspectTitle" style="margin: 0 0 6px; font-family: var(--font-heading); color: var(--gold-bright); font-size: 18px;">Novizen-Pergament</h3>
+        <div id="cardbackInspectRarity" style="font-size: 12px; font-weight: bold; color: #d97706; margin-bottom: 8px;">Gewöhnlich</div>
+        <p id="cardbackInspectLore" style="margin: 0 0 16px; font-size: 13px; font-style: italic; color: #cbd5e1; line-height: 1.4;">Handbeschöpftes Lederpergament mit arkanen Schutzrunen.</p>
+        <button type="button" class="btn-auth-bar btn-auth-gold" onclick="document.getElementById('cardbackInspectModal').style.display='none';" style="padding: 6px 20px; font-size: 12px; cursor: pointer;">Schließen</button>
       </div>
     </div>
   </div>
