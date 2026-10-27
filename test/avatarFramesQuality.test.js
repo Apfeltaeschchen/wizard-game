@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-console.log('--- TEST: AAA AVATAR-RAHMEN MIT TIEFEN-ÜBERLAPPUNG START ---');
+console.log('--- TEST: SUBTILE AAA AVATAR-RAHMEN (DORNENRANKEN-PRINZIP & AUSSEN-AUSBREITUNG) START ---');
 
 const framesDir = path.join(__dirname, '../public/images/frames');
 const indexHtmlPath = path.join(__dirname, '../public/index.html');
@@ -18,8 +18,6 @@ const clientJs = fs.readFileSync(clientJsPath, 'utf8');
 const cosmeticsDataModule = require(cosmeticsDataPath);
 const cosmeticsData = cosmeticsDataModule.COSMETICS_CATALOG;
 
-// [1/5] Alle 10 Rahmen im cosmeticsData Katalog definiert
-console.log('[1/5] Prüfe Rahmen-Katalog in cosmeticsData.js...');
 const expectedFrames = [
   'none',
   'iron_thorn',
@@ -32,6 +30,9 @@ const expectedFrames = [
   'ghost_specter',
   'mvp_glow'
 ];
+
+// [1/5] Alle 10 Rahmen im cosmeticsData Katalog definiert
+console.log('[1/5] Prüfe Rahmen-Katalog in cosmeticsData.js...');
 assert.strictEqual(cosmeticsData.avatar_frames.length, expectedFrames.length, 'Genau 10 Avatar-Rahmen im Server-Katalog');
 expectedFrames.forEach(id => {
   assert.ok(cosmeticsData.avatar_frames.some(f => f.id === id), `Rahmen ${id} ist in cosmeticsData.js vorhanden`);
@@ -50,21 +51,30 @@ expectedFrames.forEach(id => {
 });
 console.log('✓ 2. Alle 10 SVG Vektorgrafiken existieren und sind valides XML mit 100x100 viewBox.');
 
-// [3/5] Hineinragende Elemente (Inward Overlap: Elemente reichen tiefer als der Avatar-Rand r=35)
-console.log('[3/5] Prüfe Inward-Overlap Geometrie in den SVGs...');
-// Frame None: Fleur-de-lis Gemmenkrallen reichen bis y=28.5 bzw. r=28
-assert.ok(fs.readFileSync(path.join(framesDir, 'frame_none.svg'), 'utf8').includes('28.5'), 'frame_none hat nach innen ragende Gemmenkrallen');
-// Frame Iron Thorn: Eisendornen stechen bis r=25
-assert.ok(fs.readFileSync(path.join(framesDir, 'frame_iron_thorn.svg'), 'utf8').includes('L50,25'), 'frame_iron_thorn hat nach innen ragende Stacheln');
-// Frame Silver Leaf: Elfenblätter ragen bis r=27 (x=24, y=26)
-assert.ok(fs.readFileSync(path.join(framesDir, 'frame_silver_leaf.svg'), 'utf8').includes('26'), 'frame_silver_leaf hat nach innen ragende Elfenblätter');
-// Frame Dragon Fire: Drachenkrallen greifen tief bis r=24 ins Bild (y=26.5 / y=73.5)
-assert.ok(fs.readFileSync(path.join(framesDir, 'frame_dragon_fire.svg'), 'utf8').includes('26.5') && fs.readFileSync(path.join(framesDir, 'frame_dragon_fire.svg'), 'utf8').includes('73.5'), 'frame_dragon_fire hat kräftige Krallen oben und unten');
-// Frame Pumpkin: Kürbisfratze ragt bis y=26.5
-assert.ok(fs.readFileSync(path.join(framesDir, 'frame_pumpkin_lantern.svg'), 'utf8').includes('26.5'), 'frame_pumpkin_lantern Fratzenkamm ragt in den Avatar');
-// Frame MVP: Meistermagier-Krone ragt bis y=26 ins Bild
-assert.ok(fs.readFileSync(path.join(framesDir, 'frame_mvp_glow.svg'), 'utf8').includes('Q68,26 50,26'), 'frame_mvp_glow Krone ragt in den Avatar');
-console.log('✓ 3. Inward-Overlap Geometrie (r < 35, Krallen/Dornen/Kronen im Porträt) verifiziert.');
+// [3/5] Subtiler Innen-Überhang (r >= 31, keine Verdeckung des Avatar-Kerns) & weite Ausbreitung nach AUSSEN (r >= 45 bzw. x,y <= 12 oder >= 88)
+console.log('[3/5] Prüfe Subtilität nach innen & Ausbreitung nach außen in den SVGs...');
+
+// 1. Eiserne Dornenleiste: Stacheln ragen nach außen bis x=12 / x=88 und subtil nach innen nur bis 31.5
+const ironContent = fs.readFileSync(path.join(framesDir, 'frame_iron_thorn.svg'), 'utf8');
+assert.ok(ironContent.includes('12,50') || ironContent.includes('88,50'), 'Eiserne Dornen ragen weit nach außen');
+assert.ok(ironContent.includes('31.5'), 'Eiserne Dornen greifen nur ganz subtil bis r=31.5 nach innen');
+
+// 2. Fledermaus-Schwarm: Schwingen spannen sich weit nach außen auf (x=8 / x=92)
+const batContent = fs.readFileSync(path.join(framesDir, 'frame_bat_swarm.svg'), 'utf8');
+assert.ok(batContent.includes('8,36') && batContent.includes('92,36'), 'Fledermausschwingen spannen sich weit nach außen (x=8, x=92) auf');
+assert.ok(batContent.includes('32'), 'Fledermausflügel greifen nur subtil mit Daumenkralle bis x=32 nach innen');
+
+// 3. Goldener Ring: Zarte Knoten nach außen bis x=14 / x=86
+const noneContent = fs.readFileSync(path.join(framesDir, 'frame_none.svg'), 'utf8');
+assert.ok(noneContent.includes('14,50') || noneContent.includes('86,50'), 'Goldknoten ragen weit nach außen');
+assert.ok(noneContent.includes('33'), 'Goldring greift nur subtil bis r=33 nach innen');
+
+// 4. Drachenflammen: Lodern weit nach außen (y=8, y=92)
+const fireContent = fs.readFileSync(path.join(framesDir, 'frame_dragon_fire.svg'), 'utf8');
+assert.ok(fireContent.includes('50,8') && fireContent.includes('50,92'), 'Drachenflammen lodern weit nach außen');
+assert.ok(fireContent.includes('32.5'), 'Drachenkrallen greifen nur subtil bis y=32.5 nach innen');
+
+console.log('✓ 3. Dornenranken-Prinzip & weite Außen-Ausbreitung erfolgreich verifiziert.');
 
 // [4/5] CSS Integration in index.html mit .seat-avatar::after und korrekter SVG-Einbindung
 console.log('[4/5] Prüfe CSS-Regeln & Layering in index.html...');
@@ -86,5 +96,5 @@ expectedFrames.forEach(id => {
 console.log('✓ 5. client.js Fallback-Array konsistent.');
 
 console.log('\n================================================================');
-console.log('🏆 ALLE 5 TESTS FÜR AAA AVATAR-RAHMEN BESTANDEN!');
+console.log('🏆 ALLE 5 TESTS FÜR SUBTILE AAA AVATAR-RAHMEN BESTANDEN!');
 console.log('================================================================');

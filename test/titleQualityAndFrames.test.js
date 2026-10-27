@@ -119,6 +119,10 @@ console.log('✓ 4. Truhen-Öffnung und Schmiede verifiziert.');
 // [5/5] Prüfe Magier-Spiegel, Profil & Spieler-Detail Modal
 console.log('[5/5] Prüfe Magier-Spiegel, Profil-Drawer & Spieler-Detail Modal...');
 assert.ok(clientJs.includes('updateTitleElement(previewTitle'), 'Magier-Spiegel nutzt updateTitleElement');
+assert.ok(clientJs.includes("element.id === 'wardrobePreviewTitle'"), 'Magier-Spiegel hat schlankeren Look ohne Rahmen-Box');
+assert.ok(indexHtml.includes('.wardrobe-preview-title.rarity-rare'), '.wardrobe-preview-title.rarity-rare vorhanden');
+assert.ok(indexHtml.includes('.wardrobe-preview-title.rarity-epic'), '.wardrobe-preview-title.rarity-epic vorhanden');
+assert.ok(indexHtml.includes('.wardrobe-preview-title.rarity-legendary'), '.wardrobe-preview-title.rarity-legendary vorhanden');
 assert.ok(clientJs.includes('titleBadgeEl.className = `profile-title-badge title-frame-${rarity}`;'), 'Profil-Drawer nutzt Seltenheitsrahmen');
 assert.ok(clientJs.includes('updateTitleElement(titleEl, wt);'), 'Highlight-Winner nutzt updateTitleElement');
 console.log('✓ 5. Magier-Spiegel, Profil und Highlight-Anzeige konsistent integriert.');

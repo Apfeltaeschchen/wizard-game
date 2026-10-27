@@ -1,81 +1,54 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <!-- Vulkanisches Obsidian & Glutflammen -->
-    <radialGradient id="dragonBone" cx="35%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="#78350f"/>
-      <stop offset="30%" stop-color="#451a03"/>
-      <stop offset="70%" stop-color="#1c1917"/>
-      <stop offset="100%" stop-color="#0c0a09"/>
-    </radialGradient>
-    <linearGradient id="fireGrad" x1="0" y1="1" x2="0" y2="0">
+    <!-- Vulkanbasalt & Drachenglut -->
+    <linearGradient id="dragonFireGrad" x1="0" y1="1" x2="0" y2="0">
       <stop offset="0%" stop-color="#7f1d1d"/>
       <stop offset="35%" stop-color="#dc2626"/>
       <stop offset="70%" stop-color="#ea580c"/>
       <stop offset="90%" stop-color="#f59e0b"/>
       <stop offset="100%" stop-color="#fef08a"/>
     </linearGradient>
-    <linearGradient id="clawGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#fed7aa"/>
-      <stop offset="30%" stop-color="#ea580c"/>
-      <stop offset="75%" stop-color="#451a03"/>
-      <stop offset="100%" stop-color="#18181b"/>
-    </linearGradient>
-    <filter id="fireGlow" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.9"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#ea580c" flood-opacity="0.8"/>
+    <filter id="fireAura" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#ea580c" flood-opacity="0.8"/>
     </filter>
   </defs>
 
-  <!-- Äußere lodernde Flammenzungen um den Obsidian-Ring -->
-  <g filter="url(#fireGlow)">
-    <!-- Flammende Spitzen Außenkranz -->
-    <path d="M50,8 Q54,1 55,6 Q60,3 58,11 Q65,6 64,15 Q72,12 70,21 Q79,18 76,28 Q86,28 82,37 Q91,39 86,49 Q94,52 87,61 Q92,67 85,74 Q89,82 80,85 Q82,93 72,92 Q68,99 60,94 Q54,101 49,94 Q43,101 39,94 Q30,98 27,90 Q19,92 20,83 Q11,81 16,73 Q8,66 14,58 Q6,50 14,44 Q7,37 16,30 Q12,21 22,19 Q20,11 29,13 Q31,4 37,10 Q40,1 45,7 Z" fill="url(#fireGrad)" opacity="0.85"/>
+  <g filter="url(#fireAura)">
+    <!-- 1. Schlanker Basaltreif (r=35.5, stroke 1.5px) -->
+    <circle cx="50" cy="50" r="35.5" stroke="#1c1917" stroke-width="1.6"/>
+    <circle cx="50" cy="50" r="36.8" stroke="#ea580c" stroke-width="0.8" stroke-dasharray="4 2"/>
 
-    <!-- Obsidian-Basalt Reif -->
-    <circle cx="50" cy="50" r="38.5" stroke="url(#dragonBone)" stroke-width="4.5"/>
-    <circle cx="50" cy="50" r="35" stroke="#f97316" stroke-width="1.2"/>
-  </g>
+    <!-- 2. WEIT NACH AUSSEN LODERNDE FLAMMENZUNGEN & DRACHENSPORNE (r=37 bis r=49) -->
+    <!-- Große Flamme Oben (12 Uhr) nach außen bis y=8 -->
+    <path d="M47,35 Q44,20 50,8 Q56,20 53,35 Q50,26 47,35 Z" fill="url(#dragonFireGrad)"/>
+    <path d="M42,34 Q36,22 32,16 Q40,24 45,32 Z" fill="url(#dragonFireGrad)"/>
+    <path d="M58,34 Q64,22 68,16 Q60,24 55,32 Z" fill="url(#dragonFireGrad)"/>
 
-  <!-- HINEINRAGENDE DRACHENKRALLEN (INWARD OVERLAP: 3 Klauen oben, 3 Klauen unten, greifen tief bis r=24!) -->
-  
-  <!-- OBEN (12 Uhr): 3 massive, gekrümmte Drachenklauen packen nach unten ins Bild -->
-  <g filter="url(#fireGlow)">
-    <!-- Mittlere Kralle (am längsten: bis y=26!) -->
-    <path d="M47,13 C47,18 47,23 50,26.5 C53,23 53,18 53,13 C51,15 49,15 47,13 Z" fill="url(#clawGrad)" stroke="#451a03" stroke-width="0.6"/>
-    <path d="M49.2,14 Q49.2,21 50,26.5" stroke="#fef08a" stroke-width="0.6"/>
+    <!-- Flammen Flanke Rechts nach außen bis x=90 -->
+    <path d="M65,47 Q78,44 90,50 Q78,56 65,53 Q74,50 65,47 Z" fill="url(#dragonFireGrad)"/>
+    <path d="M68,34 Q78,26 86,20 Q77,32 72,40 Z" fill="url(#dragonFireGrad)"/>
+    <path d="M68,66 Q78,74 86,80 Q77,68 72,60 Z" fill="url(#dragonFireGrad)"/>
 
-    <!-- Linke Kralle (gekrümmt nach innen rechts) -->
-    <path d="M41,15 C40,20 42,24 44.5,25.5 C46,23 46,18 45,15 C43,16 42,16 41,15 Z" fill="url(#clawGrad)" stroke="#451a03" stroke-width="0.6"/>
-    <path d="M42.5,16 Q43,21 44.5,25.5" stroke="#fed7aa" stroke-width="0.5"/>
+    <!-- Flammen Unten (6 Uhr) nach außen bis y=92 -->
+    <path d="M47,65 Q44,80 50,92 Q56,80 53,65 Q50,74 47,65 Z" fill="url(#dragonFireGrad)"/>
+    <path d="M42,66 Q36,78 32,84 Q40,76 45,68 Z" fill="url(#dragonFireGrad)"/>
+    <path d="M58,66 Q64,78 68,84 Q60,76 55,68 Z" fill="url(#dragonFireGrad)"/>
 
-    <!-- Rechte Kralle (gekrümmt nach innen links) -->
-    <path d="M59,15 C60,20 58,24 55.5,25.5 C54,23 54,18 55,15 C57,16 58,16 59,15 Z" fill="url(#clawGrad)" stroke="#451a03" stroke-width="0.6"/>
-    <path d="M57.5,16 Q57,21 55.5,25.5" stroke="#fed7aa" stroke-width="0.5"/>
+    <!-- Flammen Flanke Links nach außen bis x=10 -->
+    <path d="M35,47 Q22,44 10,50 Q22,56 35,53 Q26,50 35,47 Z" fill="url(#dragonFireGrad)"/>
+    <path d="M32,34 Q22,26 14,20 Q23,32 28,40 Z" fill="url(#dragonFireGrad)"/>
+    <path d="M32,66 Q22,74 14,80 Q23,68 28,60 Z" fill="url(#dragonFireGrad)"/>
 
-    <!-- Drachen-Knöchel / Wulst über den Klauen -->
-    <path d="M38,13 Q50,17 62,13 Q50,11 38,13 Z" fill="#1c1917" stroke="#ea580c" stroke-width="0.6"/>
-  </g>
+    <!-- 3. SUBTIL NACH INNEN RAGENDE DRACHENKRALLEN (Schmale, feine Spitzen, greifen nur 2.5px bis r=33) -->
+    <!-- 3 schlanke Krallenspitzen oben greifen bis y=33 -->
+    <polygon points="46,35.5 47,33 48,35.5" fill="#fef08a"/>
+    <polygon points="49.2,35.5 50,32.5 50.8,35.5" fill="#ffffff"/>
+    <polygon points="52,35.5 53,33 54,35.5" fill="#fef08a"/>
 
-  <!-- UNTEN (6 Uhr): 3 Drachenklauen greifen nach oben ins Porträt -->
-  <g filter="url(#fireGlow)">
-    <!-- Mittlere Kralle (bis y=73.5!) -->
-    <path d="M47,87 C47,82 47,77 50,73.5 C53,77 53,82 53,87 C51,85 49,85 47,87 Z" fill="url(#clawGrad)" stroke="#451a03" stroke-width="0.6"/>
-    <path d="M49.2,86 Q49.2,79 50,73.5" stroke="#fef08a" stroke-width="0.6"/>
-
-    <!-- Linke Kralle -->
-    <path d="M41,85 C40,80 42,76 44.5,74.5 C46,77 46,82 45,85 C43,84 42,84 41,85 Z" fill="url(#clawGrad)" stroke="#451a03" stroke-width="0.6"/>
-    <path d="M42.5,84 Q43,79 44.5,74.5" stroke="#fed7aa" stroke-width="0.5"/>
-
-    <!-- Rechte Kralle -->
-    <path d="M59,85 C60,80 58,76 55.5,74.5 C54,77 54,82 55,85 C57,84 58,84 59,85 Z" fill="url(#clawGrad)" stroke="#451a03" stroke-width="0.6"/>
-    <path d="M57.5,84 Q57,79 55.5,74.5" stroke="#fed7aa" stroke-width="0.5"/>
-
-    <path d="M38,87 Q50,83 62,87 Q50,89 38,87 Z" fill="#1c1917" stroke="#ea580c" stroke-width="0.6"/>
-  </g>
-
-  <!-- Seitliche Glut-Reißzähne bei 3 und 9 Uhr -->
-  <g filter="url(#fireGlow)">
-    <polygon points="14,47 24,50 14,53" fill="url(#clawGrad)" stroke="#451a03" stroke-width="0.5"/>
-    <polygon points="86,47 76,50 86,53" fill="url(#clawGrad)" stroke="#451a03" stroke-width="0.5"/>
+    <!-- 3 schlanke Krallenspitzen unten greifen bis y=67 -->
+    <polygon points="46,64.5 47,67 48,64.5" fill="#fef08a"/>
+    <polygon points="49.2,64.5 50,67.5 50.8,64.5" fill="#ffffff"/>
+    <polygon points="52,64.5 53,67 54,64.5" fill="#fef08a"/>
   </g>
 </svg>

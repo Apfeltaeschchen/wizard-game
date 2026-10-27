@@ -1,75 +1,83 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <!-- Düsteres Schmiedeeisen & geschwärzter Stahl -->
-    <radialGradient id="ironBevel" cx="30%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="#94a3b8"/>
-      <stop offset="35%" stop-color="#475569"/>
-      <stop offset="70%" stop-color="#1e293b"/>
-      <stop offset="100%" stop-color="#090d16"/>
-    </radialGradient>
-    <linearGradient id="spikeGrad" x1="0" y1="0" x2="1" y2="1">
+    <!-- Düsteres Schwarzmetall & geschmiedeter Stahl -->
+    <linearGradient id="thornMetal" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#cbd5e1"/>
-      <stop offset="50%" stop-color="#64748b"/>
+      <stop offset="30%" stop-color="#64748b"/>
+      <stop offset="70%" stop-color="#334155"/>
       <stop offset="100%" stop-color="#0f172a"/>
     </linearGradient>
-    <filter id="ironShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#000" flood-opacity="0.9"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#475569" flood-opacity="0.5"/>
+    <filter id="thornShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#475569" flood-opacity="0.6"/>
     </filter>
   </defs>
 
-  <!-- Äußerer genieteter Eisenreif mit Zacken-Außenflanschen -->
-  <g filter="url(#ironShadow)">
-    <!-- Äußerer Stachelkranz -->
-    <circle cx="50" cy="50" r="41.5" stroke="#0f172a" stroke-width="2.5" stroke-dasharray="4 2"/>
-    <circle cx="50" cy="50" r="38.5" stroke="url(#ironBevel)" stroke-width="4.5"/>
-    
-    <!-- Robuste Außennieten (8 Positionen) -->
-    <circle cx="50" cy="11.5" r="1.3" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.5"/>
-    <circle cx="77.2" cy="22.8" r="1.3" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.5"/>
-    <circle cx="88.5" cy="50" r="1.3" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.5"/>
-    <circle cx="77.2" cy="77.2" r="1.3" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.5"/>
-    <circle cx="50" cy="88.5" r="1.3" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.5"/>
-    <circle cx="22.8" cy="77.2" r="1.3" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.5"/>
-    <circle cx="11.5" cy="50" r="1.3" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.5"/>
-    <circle cx="22.8" cy="22.8" r="1.3" fill="#cbd5e1" stroke="#0f172a" stroke-width="0.5"/>
+  <g filter="url(#thornShadow)">
+    <!-- 1. Feiner, geflochtener Reif (Schlank an der Avatarkante r=35, stroke 1.5px) -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#thornMetal)" stroke-width="1.6" stroke-dasharray="8 1.5"/>
+    <circle cx="50" cy="50" r="36.8" stroke="#1e293b" stroke-width="1" stroke-dasharray="5 3"/>
 
-    <!-- Innere Facette bei r=35 -->
-    <circle cx="50" cy="50" r="35" stroke="#64748b" stroke-width="1.2"/>
-  </g>
+    <!-- 2. NACH AUSSEN RAGENDE DORNEN & RANKEN (r=37 bis r=49 weit in den Außenraum) -->
+    <!-- Stachel oben (12 Uhr) nach außen -->
+    <path d="M48,35 Q49,24 50,16 Q51,24 52,35 Q50,30 48,35 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.5"/>
+    <path d="M50,16 L50,32" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Nebendorn oben links nach außen -->
+    <path d="M43,36 Q40,28 36,22 Q41,27 45,34 Z" fill="url(#thornMetal)"/>
+    <!-- Nebendorn oben rechts nach außen -->
+    <path d="M57,36 Q60,28 64,22 Q59,27 55,34 Z" fill="url(#thornMetal)"/>
 
-  <!-- HINEINRAGENDE EISENDORNEN (INWARD OVERLAP: 8 scharfe Haken & Stacheln greifen tief bis r=25..27) -->
-  <g filter="url(#ironShadow)">
-    <!-- 1. Oben (12 Uhr) gekrümmter Doppelstachel -->
-    <path d="M46,14 L50,25 L54,14 Q50,17 46,14 Z" fill="url(#spikeGrad)" stroke="#0f172a" stroke-width="0.6"/>
-    <path d="M50,14 L50,25" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Dornen Oben-Rechts (2 Uhr) nach außen -->
+    <path d="M68,26 Q76,21 82,16 Q77,25 73,31 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.5"/>
+    <path d="M68,26 Q74,21 82,16" stroke="#e2e8f0" stroke-width="0.5"/>
+    <path d="M64,30 Q70,32 75,30 Q68,34 65,34 Z" fill="url(#thornMetal)"/>
 
-    <!-- 2. Oben-Rechts (1:30 Uhr) -->
-    <path d="M72,24 L63,33 L75,29 Q72,26 72,24 Z" fill="url(#spikeGrad)" stroke="#0f172a" stroke-width="0.6"/>
-    <path d="M74,26 L63,33" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Großer Stachel Rechts (3 Uhr) nach außen -->
+    <path d="M72,48 Q79,49 88,50 Q79,51 72,52 Q76,50 72,48 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.5"/>
+    <path d="M88,50 L73,50" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Abzweigender Nebendorn rechts -->
+    <path d="M71,43 Q78,41 84,36 Q77,44 72,46 Z" fill="url(#thornMetal)"/>
+    <path d="M71,57 Q78,59 84,64 Q77,56 72,54 Z" fill="url(#thornMetal)"/>
 
-    <!-- 3. Rechts (3 Uhr) Hakendorn -->
-    <path d="M86,46 L75,50 L86,54 Q83,50 86,46 Z" fill="url(#spikeGrad)" stroke="#0f172a" stroke-width="0.6"/>
-    <path d="M86,50 L75,50" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Dornen Unten-Rechts (4:30 Uhr) nach außen -->
+    <path d="M68,74 Q76,79 82,84 Q77,75 73,69 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.5"/>
+    <path d="M68,74 Q74,79 82,84" stroke="#e2e8f0" stroke-width="0.5"/>
 
-    <!-- 4. Unten-Rechts (4:30 Uhr) -->
-    <path d="M75,71 L63,67 L72,76 Q72,74 75,71 Z" fill="url(#spikeGrad)" stroke="#0f172a" stroke-width="0.6"/>
-    <path d="M74,74 L63,67" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Stachel Unten (6 Uhr) nach außen -->
+    <path d="M48,65 Q49,76 50,84 Q51,76 52,65 Q50,70 48,65 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.5"/>
+    <path d="M50,84 L50,68" stroke="#e2e8f0" stroke-width="0.5"/>
+    <path d="M43,64 Q40,72 36,78 Q41,73 45,66 Z" fill="url(#thornMetal)"/>
+    <path d="M57,64 Q60,72 64,78 Q59,73 55,66 Z" fill="url(#thornMetal)"/>
 
-    <!-- 5. Unten (6 Uhr) gekrümmter Doppelstachel -->
-    <path d="M46,86 L50,75 L54,86 Q50,83 46,86 Z" fill="url(#spikeGrad)" stroke="#0f172a" stroke-width="0.6"/>
-    <path d="M50,86 L50,75" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Dornen Unten-Links (7:30 Uhr) nach außen -->
+    <path d="M32,74 Q24,79 18,84 Q23,75 27,69 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.5"/>
+    <path d="M32,74 Q26,79 18,84" stroke="#e2e8f0" stroke-width="0.5"/>
 
-    <!-- 6. Unten-Links (7:30 Uhr) -->
-    <path d="M25,71 L37,67 L28,76 Q28,74 25,71 Z" fill="url(#spikeGrad)" stroke="#0f172a" stroke-width="0.6"/>
-    <path d="M26,74 L37,67" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Großer Stachel Links (9 Uhr) nach außen -->
+    <path d="M28,48 Q21,49 12,50 Q21,51 28,52 Q24,50 28,48 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.5"/>
+    <path d="M12,50 L27,50" stroke="#e2e8f0" stroke-width="0.5"/>
+    <path d="M29,43 Q22,41 16,36 Q23,44 28,46 Z" fill="url(#thornMetal)"/>
+    <path d="M29,57 Q22,59 16,64 Q23,56 28,54 Z" fill="url(#thornMetal)"/>
 
-    <!-- 7. Links (9 Uhr) Hakendorn -->
-    <path d="M14,46 L25,50 L14,54 Q17,50 14,46 Z" fill="url(#spikeGrad)" stroke="#0f172a" stroke-width="0.6"/>
-    <path d="M14,50 L25,50" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- Dornen Oben-Links (10:30 Uhr) nach außen -->
+    <path d="M32,26 Q24,21 18,16 Q23,25 27,31 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.5"/>
+    <path d="M32,26 Q26,21 18,16" stroke="#e2e8f0" stroke-width="0.5"/>
 
-    <!-- 8. Oben-Links (10:30 Uhr) -->
-    <path d="M28,24 L37,33 L25,29 Q28,26 28,24 Z" fill="url(#spikeGrad)" stroke="#0f172a" stroke-width="0.6"/>
-    <path d="M26,26 L37,33" stroke="#e2e8f0" stroke-width="0.5"/>
+    <!-- 3. SUBTIL NACH INNEN RAGENDE DORNENSPITZEN (Greifen nur ganz fein von r=35 bis r=31.5 ins Porträt) -->
+    <!-- Feiner Dorn Oben greift dezent bis y=31.5 -->
+    <path d="M48.5,35.5 L50,31.5 L51.5,35.5 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.4"/>
+    <line x1="50" y1="35.5" x2="50" y2="31.8" stroke="#ffffff" stroke-width="0.4"/>
+
+    <!-- Feiner Dorn Rechts greift bis x=68.5 -->
+    <path d="M64.5,48.5 L68.5,50 L64.5,51.5 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.4"/>
+    <line x1="64.5" y1="50" x2="68.2" y2="50" stroke="#ffffff" stroke-width="0.4"/>
+
+    <!-- Feiner Dorn Unten greift bis y=68.5 -->
+    <path d="M48.5,64.5 L50,68.5 L51.5,64.5 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.4"/>
+    <line x1="50" y1="64.5" x2="50" y2="68.2" stroke="#ffffff" stroke-width="0.4"/>
+
+    <!-- Feiner Dorn Links greift bis x=31.5 -->
+    <path d="M35.5,48.5 L31.5,50 L35.5,51.5 Z" fill="url(#thornMetal)" stroke="#0f172a" stroke-width="0.4"/>
+    <line x1="35.5" y1="50" x2="31.8" y2="50" stroke="#ffffff" stroke-width="0.4"/>
   </g>
 </svg>

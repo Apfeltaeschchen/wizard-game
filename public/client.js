@@ -4080,8 +4080,16 @@ function updateTitleElement(element, titleName) {
   const name = String(titleName || 'Zauberlehrling');
   const rarity = getTitleRarity(name);
   element.innerText = name;
-  ['common', 'rare', 'epic', 'legendary'].forEach(r => element.classList.remove(`title-frame-${r}`));
-  element.classList.add(`title-frame-${rarity}`);
+  ['common', 'rare', 'epic', 'legendary'].forEach(r => {
+    element.classList.remove(`title-frame-${r}`);
+    element.classList.remove(`rarity-${r}`);
+  });
+  if (element.id === 'wardrobePreviewTitle') {
+    // Unter dem Avatar im Magier-Spiegel: Schlanker, eleganter Kursiv-Text ohne Rahmen-Box
+    element.classList.add(`rarity-${rarity}`);
+  } else {
+    element.classList.add(`title-frame-${rarity}`);
+  }
 }
 
 const WizardVault = (() => {
