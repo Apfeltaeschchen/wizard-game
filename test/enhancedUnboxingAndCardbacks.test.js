@@ -43,8 +43,8 @@ assert.ok(clientJs.includes("selectTierOnPodium('gold')"), 'Gold-Button ruft sel
 
 const selectPodiumMatch = clientJs.match(/function selectTierOnPodium\(tier\)\s*\{([\s\S]*?)\n    \}/);
 assert.ok(selectPodiumMatch, 'selectTierOnPodium Funktion vorhanden');
-assert.ok(selectPodiumMatch[1].includes("scrollIntoView({ behavior: 'smooth', block: 'start' })"), 'Scrollt sanft mit block: start');
-console.log('✓ 2. Auswählen-Buttons und sanftes Hochscrollen zum Podest verifiziert.');
+assert.ok(selectPodiumMatch[1].includes('openChestModal(tier)'), 'Öffnet direkt das dedizierte Unboxing-Modal');
+console.log('✓ 2. Auswählen-Buttons und Öffnen des Modals verifiziert.');
 
 // [3/5] Ketten-Öffnen Persistenz in finishUnboxing
 console.log('[3/5] Überprüfe Ketten-Öffnen Persistenz in finishUnboxing...');

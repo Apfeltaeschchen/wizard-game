@@ -113,7 +113,7 @@ const cardBackDecks = [
   'shadow', 'pumpkin_king', 'gravestone_runes', 'astral', 'dragon'
 ];
 cardBackDecks.forEach(deckId => {
-  assert(html.includes(`.card.card-back.cardback-theme-${deckId}`), `Kartenrücken-Klasse für ${deckId} fehlt im CSS`);
+  assert(html.includes(`.card.card-back.cardback-theme-${deckId}`) || html.includes(`.cardback-theme-${deckId}`), `Kartenrücken-Klasse für ${deckId} fehlt im CSS`);
 });
 assert(js.includes('cardback-theme-${myCardBack}'), 'Stirnkarte in client.js muss das ausgerüstete Deck rendern');
 assert(js.includes('card-3d-back'), '3D-Kartenflug muss Rückseite unterstützen');

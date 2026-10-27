@@ -58,8 +58,8 @@ const topBarHiddenCssMatch = indexHtml.match(/\.vault-top-bar\.vault-top-bar-hid
 assert.ok(topBarHiddenCssMatch, '.vault-top-bar-hidden CSS gefunden');
 assert.ok(topBarHiddenCssMatch[1].includes('transform: translateY(-100%)'), 'Fährt beim Runterscrollen nach oben aus dem Sichtfeld');
 
-assert.ok(clientJs.includes('vault-top-bar-hidden'), 'client.js toggelt vault-top-bar-hidden beim Scrollen');
-console.log('✓ 3. Auto-Hide beim Runterscrollen & Sofort-Einblenden beim Hochschollen verifiziert.');
+assert.ok(!clientJs.includes("vaultTopBar.classList.add('vault-top-bar-hidden')"), 'Header-Autohide beim Runterscrollen wurde auf Wunsch des Nutzers deaktiviert');
+console.log('✓ 3. Statischer Header ohne Auto-Hide verifiziert.');
 
 // [4/4] Permanentes Podest in der Schatzkammer
 console.log('[4/4] Überprüfe Podest-Vorschau in der Schatzkammer...');
