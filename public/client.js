@@ -5194,6 +5194,8 @@ const WizardVault = (() => {
     if (btnNextChest) {
       if (remainingCount > 0) {
         btnNextChest.style.display = 'inline-flex';
+        btnNextChest.disabled = true;
+        btnNextChest.classList.add('btn-unboxing-locked');
         if (btnNextChestText) {
           btnNextChestText.innerText = `Nächste Truhe öffnen (${remainingCount} übrig)`;
         }
@@ -5203,6 +5205,8 @@ const WizardVault = (() => {
     }
 
     if (btnFinish) {
+      btnFinish.disabled = true;
+      btnFinish.classList.add('btn-unboxing-locked');
       if (remainingCount > 0) {
         btnFinish.innerHTML = '<span>🏛️</span><span>Fertig</span>';
       } else {
@@ -5210,20 +5214,17 @@ const WizardVault = (() => {
       }
     }
 
+    // Anti-Spoiler: Staub-Hinweis zunächst verbergen bis alle Karten aufgedeckt sind
     if (dustNotice) {
-      if (data.totalDustGained > 0) {
-        dustNotice.innerText = `🔄 Duplikate erkannt: +${data.totalDustGained} Astralstaub gutgeschrieben!`;
-        dustNotice.style.display = 'block';
-      } else {
-        dustNotice.style.display = 'none';
-      }
+      dustNotice.style.display = 'none';
+      dustNotice.classList.remove('dust-notice-animated');
     }
 
     const rewards = data.rewards || [];
     rewards.forEach((r, idx) => {
       const cardWrap = document.createElement('div');
       const rarity = r.rarity || 'common';
-      cardWrap.className = `mystery-card-wrap drop-card-reveal rarity-${rarity}`;
+      cardWrap.className = `mystery-card-wrap rarity-${rarity}`;
       cardWrap.dataset.index = idx;
       cardWrap.style.animationDelay = `${idx * 0.1}s`;
 
@@ -5337,17 +5338,48 @@ const WizardVault = (() => {
     const dropsCont = document.getElementById('vaultUnboxingDrops');
     const cardsHint = document.getElementById('vaultUnboxingCardsHint');
     const btnFlipAll = document.getElementById('btnFlipAllCards');
+    const btnNext = document.getElementById('btnNextChest');
+    const btnFinish = document.getElementById('btnFinishUnboxing');
+    const dustNotice = document.getElementById('vaultUnboxingDustNotice');
     if (!dropsCont) return;
 
     const remaining = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
     if (remaining.length === 0) {
       if (cardsHint) cardsHint.innerHTML = '🎉 <strong>Alle Schätze wurden enthüllt!</strong>';
       if (btnFlipAll) btnFlipAll.disabled = true;
+
+      // 1. Buttons erst freischalten, wenn alle Karten aufgedeckt sind
+      if (btnNext) {
+        btnNext.disabled = false;
+        btnNext.classList.remove('btn-unboxing-locked');
+      }
+      if (btnFinish) {
+        btnFinish.disabled = false;
+        btnFinish.classList.remove('btn-unboxing-locked');
+      }
+
+      // 2. Anti-Spoiler: Staub-Hinweis erst jetzt sichtbar machen
+      if (dustNotice && pendingChestOpenData && pendingChestOpenData.totalDustGained > 0) {
+        dustNotice.innerText = `🔄 Duplikate erkannt: +${pendingChestOpenData.totalDustGained} Astralstaub gutgeschrieben!`;
+        dustNotice.style.display = 'block';
+        dustNotice.classList.add('dust-notice-animated');
+      }
     }
   }
 
   function startDirectNextChestOpening(tier) {
     if (isUnboxingAnimationRunning) return;
+
+    // Aufdeck-Pflicht: Verhindern, dass geöffnet wird solange Karten verdeckt sind
+    const dropsCont = document.getElementById('vaultUnboxingDrops');
+    if (dropsCont) {
+      const unrevealed = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
+      if (unrevealed.length > 0) {
+        showToast('Bitte decke zuerst alle Schicksalskarten auf!');
+        return;
+      }
+    }
+
     const targetTier = tier || activeUnboxingTier || selectedPodiumTier;
     if (!targetTier) return;
 

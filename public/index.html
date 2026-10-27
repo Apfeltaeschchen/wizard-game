@@ -6364,6 +6364,8 @@
       border-radius: 16px;
       width: 92vw;
       max-width: 860px;
+      height: min(88vh, 670px);
+      min-height: min(88vh, 670px);
       max-height: min(88vh, 720px);
       display: flex;
       flex-direction: column;
@@ -6376,6 +6378,42 @@
       overflow-y: auto;
       margin: auto;
       animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .vault-unboxing-modal-card .unboxing-stage {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
+    .vault-unboxing-modal-card #vaultUnboxingDropsArea {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 0;
+    }
+    .vault-unboxing-modal-card .unboxing-drops-container {
+      margin: auto 0;
+    }
+    .btn-unboxing-locked {
+      opacity: 0.42 !important;
+      cursor: not-allowed !important;
+      filter: grayscale(0.5) !important;
+      pointer-events: none !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    .dust-notice-animated {
+      animation: dustNoticeFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes dustNoticeFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .unboxing-modal-header {
       text-align: center;
@@ -6490,7 +6528,17 @@
       perspective: 1000px;
       cursor: pointer;
       user-select: none;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
       animation: cardDealIn 0.45s cubic-bezier(0.2, 0.8, 0.25, 1.2) both;
+    }
+    .mystery-card-wrap.drop-card-reveal {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
     }
     .mystery-card-inner {
       position: relative;
@@ -6501,9 +6549,18 @@
       transform-style: preserve-3d;
       border-radius: 12px;
     }
+    .mystery-card-wrap:not(.flipped) .mystery-card-inner {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mystery-card-wrap:not(.flipped):hover .mystery-card-inner {
+      transform: translateY(-8px) scale(1.03);
+    }
     .mystery-card-wrap.flipped .mystery-card-inner {
       transform: rotateY(180deg);
       cursor: default;
+    }
+    .mystery-card-wrap.flipped:hover .mystery-card-inner {
+      transform: rotateY(180deg) translateY(-4px);
     }
     .mystery-card-back,
     .mystery-card-front {
@@ -6527,12 +6584,12 @@
       background: radial-gradient(circle at 50% 30%, #2e1a47 0%, #150a24 75%, #0d0517 100%);
       border: 2px solid var(--gold-antique, #d4af37);
       box-shadow: 0 10px 25px rgba(0,0,0,0.85);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      transition: box-shadow 0.25s ease;
       position: relative;
       overflow: hidden;
     }
     .mystery-card-wrap:not(.flipped):hover .mystery-card-back {
-      transform: translateY(-8px) scale(1.04);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.95), 0 0 24px rgba(251, 191, 36, 0.65);
     }
 
     /* 1. GEWÖHNLICH (COMMON): RUNENSTAHL & OBSIDIAN */
@@ -7359,6 +7416,7 @@
     }
 
     /* ORNAMENTE & SIEGEL DER 10 KARTENDECKS AUF ECHTEN SPIELKARTEN & TISCH-KARTEN */
+    .card.card-back.cardback-theme-default .card-back-ornament::after,
     .cardback-theme-default .card-back-ornament::after {
       content: '✦';
       font-size: 34px;
@@ -7367,9 +7425,11 @@
       text-shadow: 0 1px 3px rgba(254, 240, 138, 0.9);
       font-family: var(--font-heading);
     }
+    .card.card-back.cardback-theme-citadel_ancient .card-back-,
     .cardback-theme-citadel_ancient .card-back-inner {
       border: 1.5px solid #fef08a !important;
     }
+    .card.card-back.cardback-theme-citadel_ancient .card-back-,
     .cardback-theme-citadel_ancient .card-back-ornament::after {
       content: '❂';
       font-size: 38px;
@@ -7377,6 +7437,7 @@
       text-shadow: 0 0 14px #f59e0b, 0 2px 5px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
+    .card.card-back.cardback-theme-parchment .card-back-,
     .cardback-theme-parchment .card-back-ornament::after {
       content: '⚜';
       font-size: 34px;
@@ -7384,6 +7445,7 @@
       text-shadow: 0 0 8px #78350f, 0 1px 3px rgba(0,0,0,0.8);
       font-family: var(--font-heading);
     }
+    .card.card-back.cardback-theme-forest .card-back-,
     .cardback-theme-forest .card-back-ornament::after {
       content: '❧';
       font-size: 38px;
@@ -7391,12 +7453,14 @@
       text-shadow: 0 0 14px #10b981, 0 1px 4px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
+    .card.card-back.cardback-theme-spider_queen .card-back-,
     .cardback-theme-spider_queen .card-back-ornament::after {
       content: '🕸';
       font-size: 34px;
       color: #e9d5ff;
       filter: drop-shadow(0 0 8px #a855f7);
     }
+    .card.card-back.cardback-theme-shadow .card-back-,
     .cardback-theme-shadow .card-back-ornament::after {
       content: '☬';
       font-size: 34px;
@@ -7404,6 +7468,7 @@
       text-shadow: 0 0 12px #9333ea, 0 1px 3px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
+    .card.card-back.cardback-theme-pumpkin_king .card-back-,
     .cardback-theme-pumpkin_king .card-back-ornament::after {
       content: '❖';
       font-size: 38px;
@@ -7411,6 +7476,7 @@
       text-shadow: 0 0 14px #ea580c, 0 2px 5px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
+    .card.card-back.cardback-theme-gravestone_runes .card-back-,
     .cardback-theme-gravestone_runes .card-back-ornament::after {
       content: '☩';
       font-size: 38px;
@@ -7418,6 +7484,7 @@
       text-shadow: 0 0 10px #38bdf8, 0 2px 4px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
+    .card.card-back.cardback-theme-astral .card-back-,
     .cardback-theme-astral .card-back-ornament::after {
       content: '✵';
       font-size: 38px;
@@ -7425,6 +7492,7 @@
       text-shadow: 0 0 12px #6366f1, 0 1px 4px rgba(0,0,0,0.9);
       font-family: var(--font-heading);
     }
+    .card.card-back.cardback-theme-dragon .card-back-,
     .cardback-theme-dragon .card-back-ornament::after {
       content: '◈';
       font-size: 40px;
