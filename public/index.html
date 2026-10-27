@@ -6189,12 +6189,6 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.9);
       animation: cardFlipIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
     }
-    .drop-card-reveal.pending-comet {
-      opacity: 0 !important;
-      visibility: hidden !important;
-      transform: perspective(600px) rotateY(90deg) scale(0.6) !important;
-      animation: none !important;
-    }
     .drop-card-reveal.revealed {
       opacity: 1 !important;
       visibility: visible !important;
@@ -6349,9 +6343,9 @@
     /* ARKANES SIEGEL-MEDAILLON & PUNCHY CHEST PRESENTATION */
     .vault-arcane-chest {
       position: relative;
-      width: 220px;
-      height: 200px;
-      max-width: 85vw;
+      width: 250px;
+      height: 220px;
+      max-width: 88vw;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -6359,19 +6353,19 @@
       cursor: pointer;
       user-select: none;
       z-index: 6;
-      animation: floatChest 3s ease-in-out infinite alternate;
+      animation: floatChest 3.2s ease-in-out infinite;
       transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease, opacity 0.35s ease;
-      filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.85));
+      filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.9));
     }
     .vault-arcane-chest:hover {
-      transform: translateY(-8px) scale(1.06);
-      filter: drop-shadow(0 16px 36px rgba(245, 158, 11, 0.85));
+      transform: translateY(-8px) scale(1.05);
+      filter: drop-shadow(0 18px 40px rgba(245, 158, 11, 0.85));
     }
     .vault-arcane-chest.tier-silver:hover {
-      filter: drop-shadow(0 16px 36px rgba(56, 189, 248, 0.85));
+      filter: drop-shadow(0 18px 40px rgba(56, 189, 248, 0.85));
     }
     .vault-arcane-chest.tier-gold:hover {
-      filter: drop-shadow(0 18px 42px rgba(251, 191, 36, 0.95));
+      filter: drop-shadow(0 20px 46px rgba(251, 191, 36, 0.95));
     }
     .vault-arcane-chest.shaking {
       animation: chestRumble 0.12s linear infinite !important;
@@ -6381,9 +6375,22 @@
       opacity: 0 !important;
       filter: brightness(3) blur(6px) !important;
     }
+    @keyframes floatChest {
+      0%, 100% { transform: translateY(0px) rotateY(0deg); }
+      50% { transform: translateY(-7px) rotateY(1.8deg); }
+    }
+    @keyframes chestRumble {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+      15% { transform: translate3d(-3px, -1.5px, 0) rotate(-2deg); }
+      30% { transform: translate3d(3.5px, 1px, 0) rotate(2.5deg); }
+      45% { transform: translate3d(-3.5px, 2px, 0) rotate(-2.5deg); }
+      60% { transform: translate3d(3px, -2px, 0) rotate(2deg); }
+      75% { transform: translate3d(-2.5px, 1.5px, 0) rotate(-1.5deg); }
+      90% { transform: translate3d(2.5px, -1px, 0) rotate(1.5deg); }
+    }
     .arcane-chest-artwork {
-      width: 170px;
-      height: 170px;
+      width: 240px;
+      height: 200px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -6391,246 +6398,29 @@
     .arcane-chest-artwork svg {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.7));
+      overflow: visible;
     }
     .arcane-chest-halo {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 220px;
-      height: 220px;
+      width: 260px;
+      height: 260px;
       transform: translate(-50%, -50%);
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0) 70%);
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(245, 158, 11, 0) 70%);
       pointer-events: none;
-      filter: blur(14px);
+      filter: blur(16px);
       z-index: -1;
       animation: pulsePedestal 2.5s ease-in-out infinite alternate;
     }
     .vault-arcane-chest.tier-silver .arcane-chest-halo {
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(56, 189, 248, 0) 70%);
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.38) 0%, rgba(56, 189, 248, 0) 70%);
     }
     .vault-arcane-chest.tier-gold .arcane-chest-halo {
-      background: radial-gradient(circle, rgba(251, 191, 36, 0.45) 0%, rgba(192, 132, 252, 0.2) 45%, rgba(251, 191, 36, 0) 75%);
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.48) 0%, rgba(192, 132, 252, 0.22) 45%, rgba(251, 191, 36, 0) 75%);
     }
 
-    /* WEG 2: LOTTIE MOTION CONTAINER MIT ELASTISCHER VEKTOR-PHYSIK */
-    .vault-lottie-container {
-      position: relative;
-      width: 280px;
-      height: 250px;
-      max-width: 90vw;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      z-index: 6;
-      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease;
-      filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.75));
-    }
-    .vault-lottie-container:hover {
-      transform: translateY(-6px) scale(1.04);
-      filter: drop-shadow(0 14px 32px rgba(245, 158, 11, 0.75));
-    }
-    .vault-lottie-container.tier-silver:hover {
-      filter: drop-shadow(0 14px 32px rgba(56, 189, 248, 0.75));
-    }
-    .vault-lottie-container.tier-gold:hover {
-      filter: drop-shadow(0 16px 36px rgba(251, 191, 36, 0.85));
-    }
-    .vault-lottie-container.shaking {
-      animation: chestRumble 0.18s linear infinite;
-    }
-    .vault-lottie-container svg {
-      width: 100% !important;
-      height: 100% !important;
-      overflow: visible !important;
-    }
-
-    /* METHODE A: KINOREIFE PRE-RENDERED VIDEO STAGE (SCREEN-BLEND PIPELINE) */
-    .vault-video-stage {
-      position: relative;
-      width: 280px;
-      height: 240px;
-      max-width: 90vw;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      transform: translateZ(0);
-      z-index: 6;
-      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease;
-    }
-    .vault-video-stage:hover {
-      transform: translateY(-8px) scale(1.05) translateZ(0);
-      filter: drop-shadow(0 14px 32px rgba(245, 158, 11, 0.75));
-    }
-    .vault-video-stage.tier-silver:hover {
-      filter: drop-shadow(0 14px 32px rgba(56, 189, 248, 0.75));
-    }
-    .vault-video-stage.tier-gold:hover {
-      filter: drop-shadow(0 16px 36px rgba(251, 191, 36, 0.85));
-    }
-    .vault-video-stage.shaking {
-      animation: chestRumble 0.18s linear infinite;
-    }
-    .chest-video {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      mix-blend-mode: screen; /* 100% transparente Schwarzanteile */
-      filter: drop-shadow(0 0 24px rgba(245, 158, 11, 0.45));
-      pointer-events: none;
-      transform: translateZ(0);
-      backface-visibility: hidden;
-    }
-    .tier-silver .chest-video {
-      filter: drop-shadow(0 0 24px rgba(56, 189, 248, 0.45));
-    }
-    .tier-gold .chest-video {
-      filter: drop-shadow(0 0 28px rgba(251, 191, 36, 0.55));
-    }
-    .chest-video-open {
-      mix-blend-mode: screen;
-      transform: translateZ(0);
-    }
-    .video-ambient-glow {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 78%;
-      height: 78%;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.28) 0%, rgba(245, 158, 11, 0) 70%);
-      border-radius: 50%;
-      pointer-events: none;
-      filter: blur(20px);
-      z-index: 0;
-    }
-    .tier-silver .video-ambient-glow {
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.28) 0%, rgba(56, 189, 248, 0) 70%);
-    }
-    .tier-gold .video-ambient-glow {
-      background: radial-gradient(circle, rgba(251, 191, 36, 0.35) 0%, rgba(192, 132, 252, 0.15) 50%, rgba(251, 191, 36, 0) 75%);
-    }
-
-    #vaultChestInteractive.chest-artwork-container,
-    .chest-artwork-container {
-      position: relative;
-      width: 200px;
-      height: 180px;
-      max-width: 90vw;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      z-index: 5;
-      animation: floatChest 3.2s ease-in-out infinite;
-      transition: transform 0.25s ease, filter 0.25s ease;
-    }
-    .chest-artwork-container:hover {
-      transform: translateY(-8px) scale(1.05);
-      filter: drop-shadow(0 14px 32px rgba(245, 158, 11, 0.75));
-    }
-    .chest-artwork-container.shaking {
-      animation: chestRumble 0.75s cubic-bezier(0.36, 0.07, 0.19, 0.97) both infinite;
-    }
-    .chest-artwork-container.bursting {
-      animation: chestBurstApex 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    @keyframes chestBurstApex {
-      0% { transform: scale(1); filter: brightness(1) drop-shadow(0 10px 24px rgba(0,0,0,0.85)); }
-      35% { transform: scale(1.18) translateY(-12px); filter: brightness(1.7) drop-shadow(0 0 35px var(--gold-bright, #fbbf24)); }
-      100% { transform: scale(1.05) translateY(-5px); filter: brightness(1.15) drop-shadow(0 0 22px var(--gold-bright, #fbbf24)); }
-    }
-    .tier-silver.chest-artwork-container.bursting {
-      animation: silverBurstApex 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    @keyframes silverBurstApex {
-      0% { transform: scale(1); filter: brightness(1); }
-      35% { transform: scale(1.18) translateY(-12px); filter: brightness(1.7) drop-shadow(0 0 35px #38bdf8); }
-      100% { transform: scale(1.05) translateY(-5px); filter: brightness(1.15) drop-shadow(0 0 22px #38bdf8); }
-    }
-    .chest-artwork-container.opened {
-      filter: drop-shadow(0 12px 28px rgba(245, 158, 11, 0.65));
-    }
-    .tier-silver.chest-artwork-container.opened {
-      filter: drop-shadow(0 12px 28px rgba(56, 189, 248, 0.65));
-    }
-
-    /* VOLUMETRISCHE TRUHEN-AURA & SCHWEBENDE RUNEN-ENERGIE */
-    .chest-aura {
-      position: absolute;
-      inset: -25px;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.6;
-      filter: blur(18px);
-      transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
-      animation: auraPulse 3s ease-in-out infinite alternate;
-    }
-    @keyframes auraPulse {
-      0% { transform: scale(0.92); opacity: 0.45; }
-      100% { transform: scale(1.15); opacity: 0.75; }
-    }
-    .tier-wooden .chest-aura {
-      background: radial-gradient(circle, rgba(245, 158, 11, 0.65) 0%, rgba(217, 119, 6, 0.25) 55%, transparent 75%);
-    }
-    .tier-silver .chest-aura {
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.7) 0%, rgba(96, 165, 250, 0.3) 55%, transparent 75%);
-    }
-    .tier-gold .chest-aura {
-      background: radial-gradient(circle, rgba(251, 191, 36, 0.75) 0%, rgba(192, 132, 252, 0.4) 55%, transparent 80%);
-    }
-    .chest-artwork-container.shaking .chest-aura {
-      opacity: 0.95;
-      transform: scale(1.25);
-      filter: blur(22px);
-      animation: auraIntense 0.25s ease-in-out infinite alternate;
-    }
-    @keyframes auraIntense {
-      0% { transform: scale(1.1); opacity: 0.8; }
-      100% { transform: scale(1.35); opacity: 1; }
-    }
-    .chest-artwork-container.bursting .chest-aura {
-      opacity: 1;
-      transform: scale(1.6);
-      filter: blur(28px);
-    }
-
-    .chest-artwork-img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.85));
-      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.2, 0.8, 0.25, 1.2);
-    }
-    .chest-artwork-img.chest-state-closed {
-      position: relative;
-      z-index: 2;
-      opacity: 1;
-    }
-    .chest-artwork-img.chest-state-open {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 3;
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    .chest-artwork-container.opened .chest-artwork-img.chest-state-open {
-      opacity: 1;
-      transform: scale(1);
-    }
-    .chest-artwork-container.opened.has-open-sprite .chest-artwork-img.chest-state-closed {
-      opacity: 0;
-    }
     .chest-flash-overlay {
       position: absolute;
       top: 50%;
@@ -6698,39 +6488,6 @@
       overflow: visible;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.75));
     }
-    /* =====================================================================
-       STILISIERTE 3D-TRUHE (OVERWATCH 2 INSPIRED)
-       Saubere geometrische Silhouette, echte Scharnierachse, Schlossmechanik
-       ===================================================================== */
-    .stylized-chest-wrapper,
-    #vaultChestInteractive.chest-3d-model,
-    .chest-3d-model {
-      position: relative;
-      width: 180px;
-      height: 136px;
-      margin: 0 auto;
-      cursor: pointer;
-      user-select: none;
-      perspective: 900px;
-      transform-style: preserve-3d;
-      animation: floatChest 3.2s ease-in-out infinite;
-      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease;
-      z-index: 5;
-    }
-    .stylized-chest-wrapper:hover,
-    .chest-3d-model:hover {
-      transform: translateY(-8px) scale(1.05);
-      filter: drop-shadow(0 14px 32px rgba(245, 158, 11, 0.75));
-    }
-    .tier-silver.stylized-chest-wrapper:hover,
-    .tier-silver.chest-3d-model:hover {
-      filter: drop-shadow(0 14px 32px rgba(56, 189, 248, 0.75));
-    }
-    .tier-gold.stylized-chest-wrapper:hover,
-    .tier-gold.chest-3d-model:hover {
-      filter: drop-shadow(0 16px 36px rgba(251, 191, 36, 0.85));
-    }
-
     @keyframes floatChest {
       0%, 100% { transform: translateY(0px) rotateY(0deg); }
       50% { transform: translateY(-7px) rotateY(1.8deg); }
@@ -6745,421 +6502,6 @@
       60% { transform: translate3d(3px, -2px, 0) rotate(2deg); }
       75% { transform: translate3d(-2.5px, 1.5px, 0) rotate(-1.5deg); }
       90% { transform: translate3d(2.5px, -1px, 0) rotate(1.5deg); }
-    }
-    .stylized-chest-wrapper.shaking,
-    .chest-3d-model.shaking {
-      animation: chestRumble 0.18s linear infinite;
-    }
-
-    /* SCHLOSS-RIEGEL MECHANIK (SCHNAPPT 6PX NACH OBEN BEIM KLICK) */
-    @keyframes claspUnlock {
-      0% { transform: translateX(-50%) translateY(0) rotateX(0deg); }
-      40% { transform: translateX(-50%) translateY(-6px) rotateX(24deg); }
-      75% { transform: translateX(-50%) translateY(-8px) rotateX(36deg); }
-      100% { transform: translateX(-50%) translateY(-10px) rotateX(48deg); opacity: 0.85; }
-    }
-
-    /* KRÄFTIGES ZURÜCKSCHNELLEN DES DECKELS */
-    @keyframes lidPopOpen {
-      0% { transform: rotateX(0deg); }
-      62% { transform: rotateX(-134deg); }
-      82% { transform: rotateX(-115deg); }
-      100% { transform: rotateX(-120deg); }
-    }
-
-    /* BODENSCHATTEN DES TRUHEN-KÖRPERS */
-    .chest-pedestal-shadow {
-      position: absolute;
-      bottom: -18px;
-      left: 10%;
-      width: 80%;
-      height: 22px;
-      background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 80%);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 1;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-    .stylized-chest-wrapper:hover .chest-pedestal-shadow {
-      transform: scale(0.92);
-      opacity: 0.7;
-    }
-
-    /* 3D-DECKEL MIT SCHARNIERACHSE AN DER HINTEREN OBERKANTE */
-    .stylized-chest-lid,
-    .chest-lid {
-      position: absolute;
-      top: 10px;
-      left: 0;
-      width: 100%;
-      height: 56px;
-      transform-origin: 50% 100% -18px;
-      transform-style: preserve-3d;
-      transition: transform 0.65s cubic-bezier(0.18, 0.89, 0.32, 1.25);
-      z-index: 6;
-    }
-    .stylized-chest-wrapper.opened .stylized-chest-lid,
-    .chest-3d-model.opened .chest-lid {
-      animation: lidPopOpen 0.72s cubic-bezier(0.18, 0.89, 0.32, 1.25) forwards;
-    }
-    .chest-lid-outer {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 20px 20px 4px 4px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: inset 0 3px 6px rgba(255,255,255,0.3), 0 8px 18px rgba(0,0,0,0.7);
-    }
-    .chest-lid-rim {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 6px;
-      background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.8));
-    }
-    .chest-lid-crest {
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 24px;
-      height: 14px;
-      border-radius: 3px;
-      opacity: 0.9;
-    }
-
-    /* ERLEUCHTETES TRUHENINNERES MIT ENERGIEKERN */
-    .stylized-chest-interior,
-    .chest-interior {
-      position: absolute;
-      top: 38px;
-      left: 10px;
-      width: calc(100% - 20px);
-      height: 46px;
-      background: radial-gradient(ellipse at 50% 50%, #150904 0%, #050201 100%);
-      border-radius: 6px;
-      box-shadow: inset 0 10px 24px rgba(0,0,0,0.95);
-      z-index: 2;
-      overflow: hidden;
-    }
-    .chest-energy-core {
-      position: absolute;
-      inset: -10px;
-      border-radius: 50%;
-      opacity: 0;
-      filter: blur(14px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      pointer-events: none;
-    }
-    .stylized-chest-wrapper.opened .chest-energy-core,
-    .chest-3d-model.opened .chest-energy-core {
-      opacity: 1;
-      animation: pulseEnergyCore 1.6s ease-in-out infinite alternate;
-    }
-    @keyframes pulseEnergyCore {
-      0% { transform: scale(1.05); filter: blur(12px) brightness(1.2); }
-      100% { transform: scale(1.35); filter: blur(18px) brightness(1.7); }
-    }
-    .chest-interior-glow {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transition: opacity 0.5s ease;
-      pointer-events: none;
-    }
-    .stylized-chest-wrapper.opened .chest-interior-glow,
-    .chest-3d-model.opened .chest-interior-glow {
-      opacity: 1;
-    }
-    .chest-light-rays {
-      position: absolute;
-      top: -70px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 180px;
-      height: 180px;
-      background: conic-gradient(from 0deg, transparent 0deg, rgba(254, 240, 138, 0.4) 30deg, transparent 60deg, rgba(254, 240, 138, 0.5) 120deg, transparent 150deg, rgba(254, 240, 138, 0.4) 210deg, transparent 240deg, rgba(254, 240, 138, 0.5) 300deg, transparent 330deg);
-      opacity: 0;
-      pointer-events: none;
-      animation: spinRays 8s linear infinite;
-    }
-    @keyframes spinRays {
-      0% { transform: translateX(-50%) rotate(0deg); }
-      100% { transform: translateX(-50%) rotate(360deg); }
-    }
-    .stylized-chest-wrapper.opened .chest-light-rays,
-    .chest-3d-model.opened .chest-light-rays {
-      opacity: 0.85;
-    }
-
-    /* STILISIERTER TRUHEN-KÖRPER (UNTERTEIL) */
-    .stylized-chest-body,
-    .chest-body {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 72px;
-      border-radius: 4px 4px 16px 16px;
-      box-shadow: 0 16px 36px rgba(0,0,0,0.85);
-      z-index: 4;
-    }
-    .chest-body-planks {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-    }
-    .chest-body-rim {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 6px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.45));
-    }
-
-    /* ECKBESCHLÄGE & METALLBÄNDER */
-    .chest-metal-band,
-    .chest-lid-band {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 16px;
-      z-index: 5;
-      box-shadow: 0 0 5px rgba(0,0,0,0.6);
-    }
-    .band-left { left: 26px; }
-    .band-right { right: 26px; }
-
-    .chest-corner-bracket {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      z-index: 7;
-    }
-    .corner-bl { bottom: 0; left: 0; border-bottom-left-radius: 14px; }
-    .corner-br { bottom: 0; right: 0; border-bottom-right-radius: 14px; }
-    .corner-tl { top: 0; left: 0; border-top-left-radius: 18px; }
-    .corner-tr { top: 0; right: 0; border-top-right-radius: 18px; }
-
-    /* SCHLOSSSOCKEL & SCHLIEßRIEGEL */
-    .chest-lock-plate {
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 34px;
-      height: 38px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.75);
-      z-index: 8;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .chest-lock-socket {
-      position: absolute;
-      top: 14px;
-      width: 8px;
-      height: 10px;
-      border-radius: 2px;
-      background: #000000;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.9);
-    }
-    .stylized-chest-clasp,
-    .chest-clasp {
-      position: absolute;
-      top: -4px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 30px;
-      height: 36px;
-      z-index: 10;
-      transform-origin: 50% 0%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .stylized-chest-wrapper.shaking .stylized-chest-clasp,
-    .chest-3d-model.shaking .chest-clasp {
-      animation: claspUnlock 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    .stylized-chest-wrapper.opened .stylized-chest-clasp,
-    .chest-3d-model.opened .chest-clasp {
-      transform: translateX(-50%) translateY(-10px) rotateX(48deg);
-      opacity: 0.85;
-    }
-    .chest-clasp-latch {
-      width: 14px;
-      height: 18px;
-      border-radius: 3px;
-    }
-    .chest-clasp-gem,
-    .chest-lock-gem {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      margin-top: 2px;
-      box-shadow: 0 0 8px currentColor;
-    }
-
-    /* =====================================================================
-       TIER-DESIGNS (3 MATERIAL-STUFEN)
-       ===================================================================== */
-
-    /* 1. 🪵 HOLZTRUHE DES LEHRLINGS: Uriges Eichenholz & geschmiedeter Stahl */
-    .tier-wooden .chest-lid-outer,
-    .tier-wooden .chest-body {
-      background: linear-gradient(180deg, #854d0e 0%, #713f12 25%, #451a03 65%, #270e02 100%);
-      border: 2.5px solid #a16207;
-      box-shadow: inset 0 2px 4px rgba(254, 240, 138, 0.25), 0 12px 28px rgba(0,0,0,0.75);
-    }
-    .tier-wooden .chest-body-planks,
-    .tier-wooden .chest-lid-planks {
-      background: repeating-linear-gradient(90deg, transparent 0px, transparent 34px, rgba(0,0,0,0.5) 34px, rgba(0,0,0,0.5) 36px, rgba(255,255,255,0.08) 36px, transparent 37px);
-    }
-    .tier-wooden .chest-metal-band,
-    .tier-wooden .chest-lid-band,
-    .tier-wooden .chest-corner-bracket {
-      background: linear-gradient(180deg, #475569 0%, #1e293b 50%, #0f172a 100%);
-      border: 1px solid #64748b;
-    }
-    .tier-wooden .chest-lock-plate {
-      background: linear-gradient(135deg, #d97706, #78350f 70%, #451a03);
-      border: 2px solid #fde68a;
-    }
-    .tier-wooden .chest-clasp-latch {
-      background: linear-gradient(180deg, #d97706, #92400e);
-      border: 1.5px solid #fbbf24;
-    }
-    .tier-wooden .chest-clasp-gem,
-    .tier-wooden .chest-lock-gem {
-      background: radial-gradient(circle at 35% 35%, #fef08a 0%, #f59e0b 60%, #b45309 100%);
-      border: 1.5px solid #fef3c7;
-      color: #f59e0b;
-    }
-    .tier-wooden .chest-interior {
-      background: radial-gradient(ellipse at 50% 50%, #291206 0%, #0b0301 100%);
-    }
-    .tier-wooden .chest-energy-core {
-      background: radial-gradient(circle, #f59e0b 0%, #d97706 45%, rgba(217, 119, 6, 0.25) 75%, transparent 90%);
-    }
-    .tier-wooden .chest-interior-glow {
-      background: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.75) 0%, rgba(217, 119, 6, 0.2) 65%, transparent 85%);
-    }
-
-    /* 2. 🥈 SILBERNE MAGIERTRUHE: Mattgebürstetes Mithril-Silber & Frostsaphir */
-    .tier-silver .chest-lid-outer,
-    .tier-silver .chest-body {
-      background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 25%, #64748b 60%, #334155 100%);
-      border: 2.5px solid #e2e8f0;
-      box-shadow: 0 0 18px rgba(56, 189, 248, 0.35);
-    }
-    .tier-silver .chest-metal-band,
-    .tier-silver .chest-lid-band,
-    .tier-silver .chest-corner-bracket {
-      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, #0369a1 100%);
-      border: 1px solid #7dd3fc;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.65);
-    }
-    .tier-silver .chest-lock-plate {
-      background: linear-gradient(135deg, #f1f5f9, #94a3b8 65%, #475569);
-      border: 2px solid #38bdf8;
-      box-shadow: 0 0 14px rgba(56, 189, 248, 0.8);
-    }
-    .tier-silver .chest-clasp-latch {
-      background: linear-gradient(180deg, #e2e8f0, #64748b);
-      border: 1.5px solid #38bdf8;
-    }
-    .tier-silver .chest-clasp-gem,
-    .tier-silver .chest-lock-gem {
-      background: radial-gradient(circle at 35% 35%, #e0f2fe 0%, #38bdf8 55%, #0369a1 100%);
-      border: 1.5px solid #bae6fd;
-      color: #38bdf8;
-      box-shadow: 0 0 12px #38bdf8;
-    }
-    .tier-silver .chest-interior {
-      background: radial-gradient(ellipse at 50% 50%, #0c1c38 0%, #020712 100%);
-    }
-    .tier-silver .chest-energy-core {
-      background: radial-gradient(circle, #7dd3fc 0%, #38bdf8 45%, rgba(2, 132, 199, 0.3) 75%, transparent 90%);
-    }
-    .tier-silver .chest-interior-glow {
-      background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.8) 0%, rgba(3, 105, 161, 0.25) 65%, transparent 85%);
-    }
-
-    /* 3. 👑 GOLDENE ERZMAGIER-KASSETTE: 24k Gold, Purpursamt & Drachenherz-Rubin */
-    .tier-gold .chest-lid-outer,
-    .tier-gold .chest-body {
-      background: linear-gradient(135deg, #fffbeb 0%, #fef08a 22%, #fbbf24 45%, #d97706 75%, #78350f 100%);
-      border: 2.5px solid #fde68a;
-      box-shadow: 0 0 28px rgba(251, 191, 36, 0.65);
-    }
-    .tier-gold .chest-body-planks::after {
-      content: '';
-      position: absolute;
-      inset: 6px 48px;
-      background: radial-gradient(circle, #581c87 0%, #2e1065 85%);
-      border: 1px solid rgba(251, 191, 36, 0.5);
-      border-radius: 4px;
-      box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
-    }
-    .tier-gold .chest-metal-band,
-    .tier-gold .chest-lid-band,
-    .tier-gold .chest-corner-bracket {
-      background: linear-gradient(180deg, #fef08a 0%, #d97706 45%, #92400e 100%);
-      border: 1px solid #fffbeb;
-      box-shadow: 0 0 10px rgba(251, 191, 36, 0.75);
-    }
-    .tier-gold .chest-lock-plate {
-      background: linear-gradient(135deg, #fffbeb, #fbbf24 65%, #92400e);
-      border: 2px solid #fffbeb;
-      box-shadow: 0 0 18px rgba(251, 191, 36, 0.95);
-    }
-    .tier-gold .chest-clasp-latch {
-      background: linear-gradient(180deg, #fef08a, #b45309);
-      border: 1.5px solid #fffbeb;
-    }
-    .tier-gold .chest-clasp-gem,
-    .tier-gold .chest-lock-gem {
-      background: radial-gradient(circle at 35% 35%, #fecdd3 0%, #ef4444 50%, #881337 100%);
-      border: 1.5px solid #ffe4e6;
-      color: #ef4444;
-      box-shadow: 0 0 14px #ef4444, 0 0 24px rgba(192, 132, 252, 0.7);
-    }
-    .tier-gold .chest-interior {
-      background: radial-gradient(ellipse at 50% 50%, #4c1d95 0%, #150324 100%);
-    }
-    .tier-gold .chest-energy-core {
-      background: radial-gradient(circle, #fef08a 0%, #fbbf24 35%, #c084fc 65%, transparent 88%);
-    }
-    .tier-gold .chest-interior-glow {
-      background: radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.85) 0%, rgba(192, 132, 252, 0.4) 55%, transparent 85%);
-    }
-
-    /* APEX-LICHTBURST */
-    .chest-light-burst {
-      position: absolute;
-      top: 25%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      width: 320px;
-      height: 320px;
-      background: radial-gradient(circle, rgba(254, 240, 138, 0.95) 0%, rgba(245, 158, 11, 0.6) 35%, rgba(168, 85, 247, 0) 70%);
-      border-radius: 50%;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 1;
-      transition: all 0.5s ease;
-    }
-    .stylized-chest-wrapper.bursting .chest-light-burst,
-    .chest-3d-model.bursting .chest-light-burst {
-      transform: translate(-50%, -50%) scale(1.6);
-      opacity: 1;
-      filter: blur(4px);
     }
     .chest-click-prompt {
       margin-top: 16px;
@@ -9722,11 +9064,6 @@
                 <div id="vaultArcaneChestArtwork" class="arcane-chest-artwork"></div>
               </div>
 
-              <!-- KOMPATIBILITÄTS-CONTAINER FÜR TESTS -->
-              <div id="vaultLottieContainer" class="vault-lottie-container tier-wooden" style="display: none;" role="button" tabindex="0"></div>
-              <div id="vaultChestInteractive" class="stylized-chest-wrapper chest-artwork-container tier-wooden" style="display: none;">
-                <div class="chest-light-burst"></div>
-              </div>
 
               <div id="vaultChestFlashOverlay" class="chest-flash-overlay"></div>
               <div id="vaultChestClickPrompt" class="chest-click-prompt">
@@ -10218,8 +9555,7 @@
   </div>
 
   <script src="socket.io.min.js"></script>
-  <script src="js/lottie.min.js"></script>
-  <script src="client.js?v=20261027_arcane_cards_truhe"></script>
+  <script src="client.js?v=20261027_clean_unboxing"></script>
 
   </body>
 </html>

@@ -1823,73 +1823,6 @@ const WizardAudio = (() => {
     } catch (e) {}
   }
 
-  function playCometLaunch() {
-    if (isAppInBackground) return;
-    try {
-      const c = getContext();
-      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
-      const now = c.currentTime;
-      const vol = settings.sfx * settings.master;
-
-      const osc = c.createOscillator();
-      const gain = c.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(220, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.45);
-      gain.gain.setValueAtTime(0.22 * vol, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-
-      osc.connect(gain);
-      gain.connect(c.destination);
-      osc.start(now);
-      osc.stop(now + 0.52);
-    } catch (e) {}
-  }
-
-  function playImpact(rarity) {
-    if (isAppInBackground) return;
-    try {
-      const c = getContext();
-      if (!c || settings.sfxMuted || settings.sfx <= 0 || settings.master <= 0) return;
-      const now = c.currentTime;
-      const vol = settings.sfx * settings.master;
-
-      // 1. Satter Bass-Punch (Sub-Bass Sweep 90Hz -> 32Hz)
-      const bassOsc = c.createOscillator();
-      const bassGain = c.createGain();
-      bassOsc.type = 'sine';
-      bassOsc.frequency.setValueAtTime(90, now);
-      bassOsc.frequency.exponentialRampToValueAtTime(32, now + 0.22);
-      bassGain.gain.setValueAtTime(0.42 * vol, now);
-      bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-      bassOsc.connect(bassGain);
-      bassGain.connect(c.destination);
-      bassOsc.start(now);
-      bassOsc.stop(now + 0.26);
-
-      // 2. Kristallklang je nach Seltenheit
-      const chordMap = {
-        common: [523.25],
-        rare: [523.25, 659.25],
-        epic: [523.25, 659.25, 783.99],
-        legendary: [523.25, 659.25, 783.99, 1046.5, 1318.51]
-      };
-      const freqs = chordMap[(rarity || 'common').toLowerCase()] || chordMap.common;
-      freqs.forEach((freq, idx) => {
-        const chimeOsc = c.createOscillator();
-        const chimeGain = c.createGain();
-        chimeOsc.type = 'triangle';
-        const tStart = now + idx * 0.035;
-        chimeOsc.frequency.setValueAtTime(freq, tStart);
-        chimeGain.gain.setValueAtTime(0.24 * vol, tStart);
-        chimeGain.gain.exponentialRampToValueAtTime(0.001, tStart + 0.45);
-        chimeOsc.connect(chimeGain);
-        chimeGain.connect(c.destination);
-        chimeOsc.start(tStart);
-        chimeOsc.stop(tStart + 0.48);
-      });
-    } catch (e) {}
-  }
 
   function playChestRumble() {
     if (isAppInBackground) return;
@@ -1958,8 +1891,6 @@ const WizardAudio = (() => {
     playMvpGong,
     playChestUnlock,
     playLidPop,
-    playCometLaunch,
-    playImpact,
     playChestRumble,
     playChestBurst,
     startMusic,
@@ -4072,22 +4003,12 @@ const WizardVault = (() => {
     modal.style.display = 'flex';
     switchTab(typeof targetTab === 'string' ? targetTab : 'chests');
     fetchVaultState();
-    if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.preloadChestAnimations) {
-      VaultLottieEngine.preloadChestAnimations();
-    } else if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.preloadChestVideos) {
-      VaultVideoEngine.preloadChestVideos('wooden');
-    }
   }
 
   function closeVault() {
     const modal = document.getElementById('vault-modal');
     if (modal) modal.style.display = 'none';
     if (typeof finishUnboxing === 'function') finishUnboxing();
-    if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.destroy) {
-      VaultLottieEngine.destroy();
-    } else if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.cleanup) {
-      VaultVideoEngine.cleanup();
-    }
   }
 
   function switchTab(tab) {
@@ -4317,212 +4238,14 @@ const WizardVault = (() => {
   let pendingChestOpenData = null;
   let hasApexReached = false;
 
-  // --- 60-FPS CANVAS FX ENGINE & OVERWATCH-KOMETEN-PHYSIK ---
+  // --- 60-FPS CANVAS FX ENGINE FÜR TRUHEN-UNBOXING ---
   let chestFxCanvas = null;
   let chestFxCtx = null;
   let chestFxAnimId = null;
   let chestParticles = [];
   let chestShockwaves = [];
   let chestLightRays = [];
-  let chestRuneMotes = [];
-  let activeComets = [];
 
-  class CometTailParticle {
-    constructor(x, y, color, size, glowColor) {
-      this.x = x + (Math.random() - 0.5) * 4;
-      this.y = y + (Math.random() - 0.5) * 4;
-      this.vx = (Math.random() - 0.5) * 1.0;
-      this.vy = (Math.random() - 0.5) * 1.0;
-      this.color = color;
-      this.glowColor = glowColor;
-      this.size = size || (Math.random() * 3.6 + 2.0);
-      this.life = 1.0;
-      this.decay = Math.random() * 0.035 + 0.024;
-      this.isSpark = Math.random() < 0.35;
-    }
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
-      this.size *= 0.94;
-      this.life -= this.decay;
-    }
-    draw(ctx) {
-      if (this.life <= 0 || this.size <= 0.2) return;
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, this.life);
-      ctx.fillStyle = this.color;
-      ctx.shadowBlur = this.isSpark ? 10 : 6;
-      ctx.shadowColor = this.glowColor || this.color;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  class CometProjectile {
-    constructor(index, total, reward, startX, startY, targetX, targetY, onImpact) {
-      this.index = index;
-      this.total = total;
-      this.reward = reward;
-      this.rarity = (reward.rarity || 'common').toLowerCase();
-
-      const rarityMap = {
-        common: { core: '#f8fafc', tail: '#cbd5e1', glow: 'rgba(203, 213, 225, 0.85)' },
-        rare: { core: '#38bdf8', tail: '#7dd3fc', glow: 'rgba(56, 189, 248, 0.9)' },
-        epic: { core: '#c084fc', tail: '#e9d5ff', glow: 'rgba(192, 132, 252, 0.95)' },
-        legendary: { core: '#fbbf24', tail: '#fef08a', glow: 'rgba(251, 191, 36, 1.0)' }
-      };
-      const conf = rarityMap[this.rarity] || rarityMap.common;
-      this.color = conf.core;
-      this.tailColor = conf.tail;
-      this.glowColor = conf.glow;
-
-      this.x = startX;
-      this.y = startY;
-      this.targetX = targetX;
-      this.targetY = targetY;
-      this.onImpact = onImpact;
-
-      // Flugphase nach oben mit bogenförmiger Fächerung
-      const spread = (index - (total - 1) / 2) * 0.28;
-      const launchAngle = -Math.PI / 2 + spread + (Math.random() - 0.5) * 0.05;
-      const launchSpeed = 9.2 + Math.random() * 1.6;
-
-      this.vx = Math.cos(launchAngle) * launchSpeed;
-      this.vy = Math.sin(launchAngle) * launchSpeed;
-      this.gravity = 0.36;
-      this.state = 'rising'; // 'rising' -> 'apex' -> 'homing' -> 'done'
-      this.apexTimer = 0;
-      this.apexDuration = 18 + Math.floor(Math.random() * 8);
-      this.homingSpeed = 3.8;
-      this.tail = [];
-      this.coreRadius = 6.5;
-      this.pulseAngle = 0;
-      this.done = false;
-    }
-
-    update() {
-      // Dichter Sternschnuppenschweif mit weicher Interpolation entlang der Flugbahn
-      const pCount = 5;
-      for (let i = 0; i < pCount; i++) {
-        const interp = i / pCount;
-        const px = this.x - this.vx * interp + (Math.random() - 0.5) * 3;
-        const py = this.y - this.vy * interp + (Math.random() - 0.5) * 3;
-        const pColor = (Math.random() < 0.6) ? this.color : (Math.random() < 0.85 ? this.tailColor : '#ffffff');
-        this.tail.push(new CometTailParticle(px, py, pColor, Math.random() * 3.8 + 2.2, this.glowColor));
-      }
-
-      for (let i = this.tail.length - 1; i >= 0; i--) {
-        this.tail[i].update();
-        if (this.tail[i].life <= 0) {
-          this.tail.splice(i, 1);
-        }
-      }
-
-      this.pulseAngle += 0.22;
-      if (this.done) return;
-
-      if (this.state === 'rising') {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vy += this.gravity;
-        this.vx *= 0.98;
-
-        if (this.vy >= -0.6) {
-          this.state = 'apex';
-          this.apexTimer = 0;
-          this.vx *= 0.25;
-          this.vy = 0;
-        }
-      } else if (this.state === 'apex') {
-        // Verweilen im Scheitelpunkt in Seltenheitsfarbe (Overwatch Suspense)
-        this.apexTimer++;
-        this.x += this.vx;
-        this.y += Math.sin(this.apexTimer * 0.25) * 0.25;
-        this.vx *= 0.9;
-
-        if (this.apexTimer >= this.apexDuration) {
-          this.state = 'homing';
-          this.homingSpeed = 4.0;
-        }
-      } else if (this.state === 'homing') {
-        // Bogen nach unten auf Zielposition
-        const dx = this.targetX - this.x;
-        const dy = this.targetY - this.y;
-        const dist = Math.hypot(dx, dy);
-
-        this.homingSpeed = Math.min(26, this.homingSpeed + 1.2);
-        const angle = Math.atan2(dy, dx);
-        this.vx = Math.cos(angle) * this.homingSpeed;
-        this.vy = Math.sin(angle) * this.homingSpeed;
-
-        this.x += this.vx;
-        this.y += this.vy;
-
-        if (dist <= Math.max(16, this.homingSpeed * 1.1) || (this.vy > 0 && this.y >= this.targetY)) {
-          this.x = this.targetX;
-          this.y = this.targetY;
-          this.state = 'done';
-          this.done = true;
-          if (typeof this.onImpact === 'function') {
-            this.onImpact(this);
-          }
-        }
-      }
-    }
-
-    draw(ctx) {
-      for (let i = 0; i < this.tail.length; i++) {
-        this.tail[i].draw(ctx);
-      }
-
-      if (this.done) return;
-
-      ctx.save();
-      ctx.translate(this.x, this.y);
-
-      const pulseScale = 1.0 + Math.sin(this.pulseAngle) * 0.16;
-      const r = this.coreRadius * pulseScale;
-
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 2.6, 0, Math.PI * 2);
-      ctx.fillStyle = this.glowColor;
-      ctx.shadowBlur = 24;
-      ctx.shadowColor = this.color;
-      ctx.globalAlpha = 0.55;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 1.4, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
-      ctx.shadowBlur = 16;
-      ctx.shadowColor = this.color;
-      ctx.globalAlpha = 0.9;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.75, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#ffffff';
-      ctx.globalAlpha = 1.0;
-      ctx.fill();
-
-      if (this.rarity !== 'common') {
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.8;
-        ctx.globalAlpha = 0.85;
-        const gLen = r * 2.2;
-        ctx.beginPath();
-        ctx.moveTo(-gLen, 0); ctx.lineTo(gLen, 0);
-        ctx.moveTo(0, -gLen); ctx.lineTo(0, gLen);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-    }
-  }
 
   function initChestFxCanvas() {
     chestFxCanvas = document.getElementById('vaultFxCanvas');
@@ -4545,131 +4268,6 @@ const WizardVault = (() => {
     }
   }
 
-  function triggerImpactFx(x, y, rarityColor) {
-    if (!chestFxCanvas) initChestFxCanvas();
-    const col = rarityColor || '#fbbf24';
-
-    // 1. Aufprall-Schockwelle in Seltenheitsfarbe
-    chestShockwaves.push({
-      x,
-      y,
-      radius: 10,
-      maxRadius: 75,
-      speed: 5.5,
-      lineWidth: 7,
-      color: col,
-      alpha: 1.0,
-      decay: 0.04
-    });
-
-    // 2. Partikelsterne & Funken-Explosion
-    const pCount = 28;
-    for (let i = 0; i < pCount; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 6.5 + 2.5;
-      chestParticles.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        gravity: 0.15,
-        drag: 0.95,
-        size: Math.random() * 3.8 + 2.0,
-        isStar: Math.random() < 0.45,
-        color: Math.random() < 0.7 ? col : '#ffffff',
-        rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.25,
-        life: 1.0,
-        decay: Math.random() * 0.028 + 0.02
-      });
-    }
-
-    if (!chestFxAnimId) {
-      updateChestFx();
-    }
-  }
-
-  function launchComets(rewards, data) {
-    if (!chestFxCanvas) initChestFxCanvas();
-    if (!chestFxCtx || !chestFxCanvas) return;
-    resizeChestFxCanvas();
-
-    const canvasRect = chestFxCanvas.getBoundingClientRect();
-    const w = canvasRect.width || 450;
-    const h = canvasRect.height || 480;
-
-    const lottieStage = document.getElementById('vaultLottieContainer');
-    const videoStage = document.getElementById('vaultVideoStage');
-    const chestEl = lottieStage || videoStage || document.getElementById('vaultChestInteractive');
-    let ox = w / 2;
-    let oy = h * 0.35;
-    if (chestEl) {
-      const chestRect = chestEl.getBoundingClientRect();
-      if (chestRect.width > 0 && chestRect.height > 0) {
-        ox = (chestRect.left + chestRect.width / 2) - canvasRect.left;
-        oy = (chestRect.top + chestRect.height * 0.4) - canvasRect.top;
-      }
-    }
-
-    activeComets = [];
-    const total = (rewards || []).length;
-    if (total === 0) {
-      isUnboxingAnimationRunning = false;
-      return;
-    }
-
-    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCometLaunch) {
-      WizardAudio.playCometLaunch();
-    }
-
-    // Zeige Beutekarten-Bereich an mit 'pending-comet'
-    showUnboxingStage(data, true);
-
-    const dropsCont = document.getElementById('vaultUnboxingDrops');
-
-    rewards.forEach((r, idx) => {
-      let tx = w * (0.2 + 0.6 * ((idx + 0.5) / Math.max(1, total)));
-      let ty = h * 0.75;
-
-      if (dropsCont && dropsCont.children[idx]) {
-        const cRect = dropsCont.children[idx].getBoundingClientRect();
-        if (cRect.width > 0 && cRect.height > 0) {
-          tx = (cRect.left + cRect.width / 2) - canvasRect.left;
-          ty = (cRect.top + cRect.height / 2) - canvasRect.top;
-        }
-      }
-
-      const comet = new CometProjectile(idx, total, r, ox, oy, tx, ty, (c) => {
-        // Impact-Slam!
-        if (typeof WizardAudio !== 'undefined' && WizardAudio.playImpact) {
-          WizardAudio.playImpact(c.rarity);
-        }
-        triggerImpactFx(c.targetX, c.targetY, c.color);
-
-        if (dropsCont && dropsCont.children[c.index]) {
-          const cardEl = dropsCont.children[c.index];
-          cardEl.classList.remove('pending-comet');
-          cardEl.classList.add('revealed');
-        }
-
-        const allDone = activeComets.every(item => item.done);
-        if (allDone) {
-          isUnboxingAnimationRunning = false;
-          if (unboxingStageTimer) {
-            clearTimeout(unboxingStageTimer);
-            unboxingStageTimer = null;
-          }
-        }
-      });
-
-      activeComets.push(comet);
-    });
-
-    if (!chestFxAnimId) {
-      updateChestFx();
-    }
-  }
-
   function triggerChestBurstFx(rarityHex, chestTier) {
     if (!chestFxCanvas) initChestFxCanvas();
     if (!chestFxCtx || !chestFxCanvas) return;
@@ -4681,9 +4279,9 @@ const WizardVault = (() => {
     const w = canvasRect.width || 450;
     const h = canvasRect.height || 480;
 
-    const chestEl = document.getElementById('vaultChestInteractive');
+    const chestEl = document.getElementById('vaultArcaneChest');
     let ox = w / 2;
-    let oy = h * 0.35;
+    let oy = h * 0.4;
     if (chestEl) {
       const chestRect = chestEl.getBoundingClientRect();
       if (chestRect.width > 0 && chestRect.height > 0) {
@@ -4926,17 +4524,7 @@ const WizardVault = (() => {
       chestFxCtx.restore();
     }
 
-    // 5. Overwatch-Kometen & Sternschnuppenschauer rendern
-    for (let i = activeComets.length - 1; i >= 0; i--) {
-      const comet = activeComets[i];
-      comet.update();
-      comet.draw(chestFxCtx);
-      if (comet.done && comet.tail.length === 0) {
-        activeComets.splice(i, 1);
-      }
-    }
-
-    if (chestParticles.length > 0 || chestShockwaves.length > 0 || chestLightRays.length > 0 || chestRuneMotes.length > 0 || activeComets.length > 0) {
+    if (chestParticles.length > 0 || chestShockwaves.length > 0 || chestLightRays.length > 0 || chestRuneMotes.length > 0) {
       chestFxAnimId = requestAnimationFrame(updateChestFx);
     } else {
       chestFxAnimId = null;
@@ -4953,7 +4541,6 @@ const WizardVault = (() => {
     chestShockwaves = [];
     chestLightRays = [];
     chestRuneMotes = [];
-    activeComets = [];
     if (chestFxCtx && chestFxCanvas) {
       const rect = chestFxCanvas.getBoundingClientRect();
       chestFxCtx.clearRect(0, 0, rect.width || 450, rect.height || 260);
@@ -4975,280 +4562,397 @@ const WizardVault = (() => {
   }
 
   // =========================================================================
-  // WEG 2: HOCHPERFORMANTE LOTTIE LOOTBOX MOTION ENGINE (SUPERCELL / CLASH PIPELINE)
-  // 60-FPS Vektor-Motion mit elastischer Bézier-Physik & synchronem Kometen-Apex
+  // PLASTISCHE DARK-FANTASY TRUHEN-ARTWORKS FÜR DIE UNBOXING-BÜHNE
   // =========================================================================
-  const VaultLottieEngine = {
-    isOpenStarted: false,
-    currentTier: null,
-    lottieAnim: null,
-    pendingData: null,
-    pendingApexCallback: null,
-    hasApexReachedTime: false,
-    hasApexFired: false,
-    apexSafetyTimer: null,
-    frameUpdateHandler: null,
-    animationCache: {},
-
-    getContainer() {
-      return document.getElementById('vaultLottieContainer');
-    },
-
-    async preloadChestAnimations(tier) {
-      const tiers = tier ? [tier] : ['wooden', 'silver', 'gold'];
-      for (const t of tiers) {
-        if (!this.animationCache[t] && typeof fetch !== 'undefined') {
-          try {
-            const res = await fetch(`animations/chests/chest_${t}_lottie.json`);
-            if (res.ok) {
-              this.animationCache[t] = await res.json();
-            }
-          } catch (e) {
-            // Local fallback
-          }
-        }
-      }
-    },
-
-    preloadChestVideos(tier) {
-      return this.preloadChestAnimations(tier);
-    },
-
-    init(tier, containerEl) {
-      this.currentTier = tier || 'wooden';
-      this.cleanup();
-      this.isOpenStarted = false;
-      this.hasApexFired = false;
-      this.hasApexReachedTime = false;
-      this.pendingData = null;
-      this.pendingApexCallback = null;
-
-      const container = containerEl || this.getContainer();
-      if (!container) return;
-
-      container.className = `vault-lottie-container tier-${this.currentTier}`;
-      container.innerHTML = '';
-      container.style.display = 'flex';
-
-      if (typeof lottie === 'undefined') {
-        console.warn('[VaultLottieEngine] lottie-web not found, check script inclusion');
-        return;
-      }
-
-      try {
-        const cachedData = this.animationCache[this.currentTier];
-        const animConfig = {
-          container: container,
-          renderer: 'svg',
-          loop: true,
-          autoplay: false
-        };
-
-        if (cachedData) {
-          // Bodymovin mutiert animationData in-place; erstelle saubere Kopie
-          animConfig.animationData = (typeof structuredClone === 'function')
-            ? structuredClone(cachedData)
-            : JSON.parse(JSON.stringify(cachedData));
-        } else {
-          animConfig.path = `animations/chests/chest_${this.currentTier}_lottie.json`;
-        }
-
-        this.lottieAnim = lottie.loadAnimation(animConfig);
-
-        this.lottieAnim.addEventListener('DOMLoaded', () => {
-          if (this.lottieAnim && !this.hasApexFired) {
-            if (this.isOpenStarted) {
-              try { this.lottieAnim.playSegments([60, 150], false); } catch (e) {}
-            } else {
-              // Idle-Loop: Sanftes Schweben / Atmen zwischen Frame 0 und 60
-              this.lottieAnim.playSegments([0, 60], true);
-            }
-          }
-        });
-      } catch (err) {
-        console.error('[VaultLottieEngine] Error loading animation:', err);
-      }
-    },
-
-    playIdle(tier) {
-      this.init(tier);
-    },
-
-    setChestData(data) {
-      this.pendingData = data;
-      if (this.hasApexReachedTime && !this.hasApexFired) {
-        this.fireApexOnce();
-      }
-    },
-
-    fireApexOnce() {
-      if (this.hasApexFired) return;
-      this.hasApexFired = true;
-      this.clearTimers();
-      if (typeof this.pendingApexCallback === 'function') {
-        this.pendingApexCallback(this.pendingData);
-      }
-    },
-
-    playOpen(data, onApex) {
-      this.clearTimers();
-      this.isOpenStarted = true;
-      this.hasApexFired = false;
-      this.hasApexReachedTime = false;
-
-      // Polymorphe Signatur: playOpen(onApex) ODER playOpen(data, onApex)
-      if (typeof data === 'function' && !onApex) {
-        this.pendingApexCallback = data;
-        this.pendingData = null;
-      } else {
-        this.pendingApexCallback = onApex;
-        this.pendingData = data;
-      }
-
-      const container = this.getContainer();
-      if (!container || !this.lottieAnim) {
-        this.hasApexReachedTime = true;
-        if (this.pendingData) {
-          this.fireApexOnce();
-        } else {
-          this.apexSafetyTimer = setTimeout(() => {
-            this.hasApexReachedTime = true;
-            if (this.pendingData) {
-              this.fireApexOnce();
-            }
-          }, 450);
-        }
-        return;
-      }
-
-      container.classList.remove('shaking');
-
-      // Frame 60 -> 150: Squash & Stretch Antizipation, Riegel schnappt auf, Deckel federt zurück
-      try {
-        this.lottieAnim.playSegments([60, 150], false);
-      } catch (e) {
-        try { this.lottieAnim.play(); } catch (err) {}
-      }
-
-      // Synchroner Apex-Trigger exakt bei Frame 85 (Deckel öffnet sich maximal und Lichtstrahlen brechen hervor)
-      // Bei lottie.playSegments([60, 150]) läuft e.currentTime von 0 bis 90 (firstFrame = 60). Frame 85 = Segment-Frame 25!
-      this.frameUpdateHandler = (e) => {
-        const curFrame = (e && typeof e.currentTime === 'number') ? e.currentTime : 0;
-        const firstFrame = (this.lottieAnim && typeof this.lottieAnim.firstFrame === 'number') ? this.lottieAnim.firstFrame : 0;
-        const absFrame = curFrame + firstFrame;
-        if (curFrame >= 85 || absFrame >= 85 || curFrame >= 25) {
-          this.hasApexReachedTime = true;
-          if (this.pendingData) {
-            this.fireApexOnce();
-          }
-        }
-      };
-      this.lottieAnim.addEventListener('enterFrame', this.frameUpdateHandler);
-
-      // Sicherheitstimer falls enterFrame blockiert oder gedrosselt wird (25 frames @ 60fps ~ 420ms)
-      this.apexSafetyTimer = setTimeout(() => {
-        this.hasApexReachedTime = true;
-        if (this.pendingData) {
-          this.fireApexOnce();
-        }
-      }, 450);
-    },
-
-    clearTimers() {
-      if (this.apexSafetyTimer) {
-        clearTimeout(this.apexSafetyTimer);
-        this.apexSafetyTimer = null;
-      }
-      if (this.lottieAnim && this.frameUpdateHandler) {
-        try {
-          this.lottieAnim.removeEventListener('enterFrame', this.frameUpdateHandler);
-        } catch (e) {}
-        this.frameUpdateHandler = null;
-      }
-    },
-
-    cleanup() {
-      this.clearTimers();
-      this.isOpenStarted = false;
-      this.hasApexFired = false;
-      this.hasApexReachedTime = false;
-      this.pendingData = null;
-      this.pendingApexCallback = null;
-      if (this.lottieAnim) {
-        try {
-          this.lottieAnim.destroy();
-        } catch (e) {}
-        this.lottieAnim = null;
-      }
-      const container = this.getContainer();
-      if (container) {
-        container.classList.remove('shaking');
-        container.innerHTML = '';
-      }
-    },
-
-    destroy() {
-      this.cleanup();
-    }
-  };
-
-  // Rückwärtskompatibles Alias für etwaige Alt-Referenzen
-  const VaultVideoEngine = VaultLottieEngine;
-
   function getChestVectorSvg(tier) {
     if (tier === 'gold') {
-      return `<svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
+      return `<svg viewBox="0 0 240 200" class="arcane-chest-svg tier-gold-svg" aria-hidden="true">
         <defs>
-          <linearGradient id="vGoldCaseGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fffbeb" /><stop offset="25%" stop-color="#fde68a" /><stop offset="60%" stop-color="#fbbf24" /><stop offset="85%" stop-color="#d97706" /><stop offset="100%" stop-color="#78350f" /></linearGradient>
-          <linearGradient id="vRoyalVelvetGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#581c87" /><stop offset="100%" stop-color="#2e1065" /></linearGradient>
-          <radialGradient id="vDragonRubyGrad" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffe4e6" /><stop offset="35%" stop-color="#f43f5e" /><stop offset="70%" stop-color="#e11d48" /><stop offset="100%" stop-color="#881337" /></radialGradient>
+          <radialGradient id="goldOcclusion" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#000000" stop-opacity="0.85" />
+            <stop offset="60%" stop-color="#3b0764" stop-opacity="0.35" />
+            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+          </radialGradient>
+          <linearGradient id="goldPlinthGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fef08a" />
+            <stop offset="25%" stop-color="#f59e0b" />
+            <stop offset="70%" stop-color="#b45309" />
+            <stop offset="100%" stop-color="#451a03" />
+          </linearGradient>
+          <linearGradient id="goldSpecGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#78350f" />
+            <stop offset="20%" stop-color="#d97706" />
+            <stop offset="45%" stop-color="#fef08a" />
+            <stop offset="50%" stop-color="#ffffff" />
+            <stop offset="55%" stop-color="#fef08a" />
+            <stop offset="80%" stop-color="#b45309" />
+            <stop offset="100%" stop-color="#451a03" />
+          </linearGradient>
+          <linearGradient id="goldLidGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="15%" stop-color="#fef08a" />
+            <stop offset="45%" stop-color="#f59e0b" />
+            <stop offset="75%" stop-color="#b45309" />
+            <stop offset="100%" stop-color="#451a03" />
+          </linearGradient>
+          <linearGradient id="royalVelvetGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#6b21a8" />
+            <stop offset="35%" stop-color="#581c87" />
+            <stop offset="80%" stop-color="#3b0764" />
+            <stop offset="100%" stop-color="#1e0a38" />
+          </linearGradient>
+          <radialGradient id="dragonRubyCore" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="25%" stop-color="#fda4af" />
+            <stop offset="55%" stop-color="#e11d48" />
+            <stop offset="85%" stop-color="#9f1239" />
+            <stop offset="100%" stop-color="#4c0519" />
+          </radialGradient>
+          <filter id="rubyArcaneGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="5" result="glow" />
+            <feComposite in="SourceGraphic" in2="glow" operator="over" />
+          </filter>
         </defs>
-        <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#vGoldCaseGrad)" stroke="#fde68a" stroke-width="1.5" />
-        <rect x="13" y="30" width="38" height="18" rx="2" fill="url(#vRoyalVelvetGrad)" stroke="#fbbf24" stroke-width="0.8" />
-        <path d="M6,26 C6,14 16,10 32,10 C48,10 58,14 58,26 Z" fill="url(#vGoldCaseGrad)" stroke="#fffbeb" stroke-width="1.5" />
-        <rect x="17" y="11" width="7" height="41" rx="1.5" fill="url(#vGoldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
-        <rect x="40" y="11" width="7" height="41" rx="1.5" fill="url(#vGoldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
-        <circle cx="20.5" cy="17" r="1.3" fill="#ffffff" /><circle cx="20.5" cy="31" r="1.3" fill="#ffffff" /><circle cx="20.5" cy="46" r="1.3" fill="#ffffff" />
-        <circle cx="43.5" cy="17" r="1.3" fill="#ffffff" /><circle cx="43.5" cy="31" r="1.3" fill="#ffffff" /><circle cx="43.5" cy="46" r="1.3" fill="#ffffff" />
-        <path d="M25,26 C28,23 36,23 39,26 L36,33 L28,33 Z" fill="url(#vGoldCaseGrad)" stroke="#fffbeb" stroke-width="0.8" />
-        <circle cx="32" cy="28.5" r="3.6" fill="url(#vDragonRubyGrad)" stroke="#ffe4e6" stroke-width="0.8" />
+        <!-- Ground Occlusion -->
+        <ellipse cx="120" cy="186" rx="90" ry="14" fill="url(#goldOcclusion)" />
+        
+        <!-- Chest Feet / Base Pedestal -->
+        <path d="M 32,176 C 32,185 45,188 56,186 L 184,186 C 195,188 208,185 208,176 L 202,166 L 38,166 Z" fill="url(#goldPlinthGrad)" stroke="#fef08a" stroke-width="1.2" />
+        <circle cx="48" cy="178" r="4" fill="#fbbf24" stroke="#78350f" stroke-width="1" />
+        <circle cx="192" cy="178" r="4" fill="#fbbf24" stroke="#78350f" stroke-width="1" />
+
+        <!-- Chest Main Body -->
+        <rect x="36" y="94" width="168" height="74" rx="6" fill="#2e1065" stroke="#78350f" stroke-width="2" />
+        
+        <!-- Royal Purple Velvet Inset Panels -->
+        <rect x="42" y="100" width="46" height="62" rx="4" fill="url(#royalVelvetGrad)" stroke="#f59e0b" stroke-width="1" />
+        <rect x="97" y="100" width="46" height="62" rx="4" fill="url(#royalVelvetGrad)" stroke="#f59e0b" stroke-width="1" />
+        <rect x="152" y="100" width="46" height="62" rx="4" fill="url(#royalVelvetGrad)" stroke="#f59e0b" stroke-width="1" />
+        <!-- Diamond Velvet Tufting & Gold Studs -->
+        <path d="M 42,131 L 65,100 L 88,131 L 65,162 Z" fill="none" stroke="#a855f7" stroke-width="0.8" opacity="0.6" />
+        <path d="M 152,131 L 175,100 L 198,131 L 175,162 Z" fill="none" stroke="#a855f7" stroke-width="0.8" opacity="0.6" />
+        <circle cx="65" cy="131" r="2.2" fill="#fef08a" />
+        <circle cx="175" cy="131" r="2.2" fill="#fef08a" />
+        <!-- Center Panel Filigree beneath Dragon Clasp -->
+        <path d="M 106,144 Q 120,136 134,144 Q 120,160 106,144 Z" fill="none" stroke="#f59e0b" stroke-width="0.8" opacity="0.75" />
+        <circle cx="120" cy="148" r="1.8" fill="#fef08a" />
+
+        <!-- Heavy Gold Vertical Straps & Moldings -->
+        <rect x="34" y="92" width="12" height="78" rx="2" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="1" />
+        <rect x="86" y="92" width="13" height="78" rx="2" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="1" />
+        <rect x="141" y="92" width="13" height="78" rx="2" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="1" />
+        <rect x="194" y="92" width="12" height="78" rx="2" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="1" />
+        
+        <!-- Gold Body Studs -->
+        <circle cx="40" cy="104" r="2.5" fill="#fffbeb" stroke="#78350f" stroke-width="0.6" />
+        <circle cx="40" cy="154" r="2.5" fill="#fffbeb" stroke="#78350f" stroke-width="0.6" />
+        <circle cx="92.5" cy="104" r="2.5" fill="#fffbeb" stroke="#78350f" stroke-width="0.6" />
+        <circle cx="92.5" cy="154" r="2.5" fill="#fffbeb" stroke="#78350f" stroke-width="0.6" />
+        <circle cx="147.5" cy="104" r="2.5" fill="#fffbeb" stroke="#78350f" stroke-width="0.6" />
+        <circle cx="147.5" cy="154" r="2.5" fill="#fffbeb" stroke="#78350f" stroke-width="0.6" />
+        <circle cx="200" cy="104" r="2.5" fill="#fffbeb" stroke="#78350f" stroke-width="0.6" />
+        <circle cx="200" cy="154" r="2.5" fill="#fffbeb" stroke="#78350f" stroke-width="0.6" />
+
+        <!-- Seam Glow between Body and Lid -->
+        <line x1="38" y1="94" x2="202" y2="94" stroke="#fbbf24" stroke-width="3" opacity="0.8" filter="url(#rubyArcaneGlow)" />
+        <line x1="42" y1="94" x2="198" y2="94" stroke="#ffffff" stroke-width="1.2" opacity="0.9" />
+
+        <!-- Imperial Vaulted Dome Lid -->
+        <path d="M 28,94 C 28,52 62,38 120,38 C 178,38 212,52 212,94 Z" fill="url(#goldLidGrad)" stroke="#fef08a" stroke-width="2" />
+        <path d="M 40,88 C 44,58 72,48 120,48 C 168,48 196,58 200,88 Z" fill="url(#royalVelvetGrad)" stroke="#f59e0b" stroke-width="1" />
+        
+        <!-- Lid Gold Filigree & Bands -->
+        <path d="M 86,45 C 88,60 88,78 86,94 L 99,94 C 100,78 100,60 99,45 Z" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="0.8" />
+        <path d="M 141,45 C 139,60 139,78 141,94 L 154,94 C 153,78 153,60 154,45 Z" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="0.8" />
+        
+        <!-- Lid Heavy Rim -->
+        <rect x="25" y="88" width="190" height="9" rx="3" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="1.2" />
+
+        <!-- Imperial Archmage Crown Cresting -->
+        <path d="M 96,38 L 108,24 L 120,32 L 132,24 L 144,38 Z" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="1.2" />
+        <circle cx="120" cy="24" r="3.5" fill="#f43f5e" stroke="#fffbeb" stroke-width="0.8" filter="url(#rubyArcaneGlow)" />
+        <circle cx="108" cy="22" r="2.2" fill="#fbbf24" />
+        <circle cx="132" cy="22" r="2.2" fill="#fbbf24" />
+
+        <!-- Masterwork Dragon Clasp & Heart Ruby -->
+        <g filter="url(#rubyArcaneGlow)">
+          <!-- Golden Winged Mount / Escutcheon -->
+          <path d="M 98,82 L 120,72 L 142,82 L 136,116 L 120,132 L 104,116 Z" fill="url(#goldSpecGrad)" stroke="#fef08a" stroke-width="1.5" />
+          <path d="M 108,86 L 120,79 L 132,86 L 128,112 L 120,122 L 112,112 Z" fill="#2e1065" stroke="#f59e0b" stroke-width="0.8" />
+          
+          <!-- Brilliant-Cut Dragon Ruby -->
+          <polygon points="120,83 133,96 128,114 120,123 112,114 107,96" fill="url(#dragonRubyCore)" stroke="#fff1f2" stroke-width="1.2" />
+          <!-- Ruby Facets -->
+          <polygon points="120,83 125,96 120,103 115,96" fill="#ffffff" opacity="0.6" />
+          <polygon points="120,103 128,114 120,123" fill="#be123c" opacity="0.8" />
+          <polygon points="120,103 112,114 120,123" fill="#881337" opacity="0.8" />
+          <polygon points="107,96 115,96 112,114" fill="#f43f5e" opacity="0.7" />
+          <polygon points="133,96 125,96 128,114" fill="#9f1239" opacity="0.7" />
+          <!-- Specular Glint Star -->
+          <path d="M 115,93 L 117,89 L 119,93 L 123,95 L 119,97 L 117,101 L 115,97 L 111,95 Z" fill="#ffffff" opacity="0.95" />
+        </g>
       </svg>`;
     }
     if (tier === 'silver') {
-      return `<svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
+      return `<svg viewBox="0 0 240 200" class="arcane-chest-svg tier-silver-svg" aria-hidden="true">
         <defs>
-          <linearGradient id="vSilverPlateGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f8fafc" /><stop offset="30%" stop-color="#cbd5e1" /><stop offset="70%" stop-color="#64748b" /><stop offset="100%" stop-color="#334155" /></linearGradient>
-          <linearGradient id="vMithrilCyanGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7dd3fc" /><stop offset="50%" stop-color="#0284c7" /><stop offset="100%" stop-color="#0369a1" /></linearGradient>
-          <radialGradient id="vFrostSapphireGrad" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#e0f2fe" /><stop offset="45%" stop-color="#38bdf8" /><stop offset="100%" stop-color="#0369a1" /></radialGradient>
+          <radialGradient id="silverOcclusion" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#000000" stop-opacity="0.85" />
+            <stop offset="60%" stop-color="#0369a1" stop-opacity="0.3" />
+            <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+          </radialGradient>
+          <linearGradient id="mithrilPlateGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#334155" />
+            <stop offset="15%" stop-color="#64748b" />
+            <stop offset="40%" stop-color="#cbd5e1" />
+            <stop offset="50%" stop-color="#f8fafc" />
+            <stop offset="60%" stop-color="#cbd5e1" />
+            <stop offset="85%" stop-color="#64748b" />
+            <stop offset="100%" stop-color="#1e293b" />
+          </linearGradient>
+          <linearGradient id="mithrilLidGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="20%" stop-color="#e2e8f0" />
+            <stop offset="50%" stop-color="#94a3b8" />
+            <stop offset="80%" stop-color="#475569" />
+            <stop offset="100%" stop-color="#1e293b" />
+          </linearGradient>
+          <linearGradient id="astralBlueGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0f2b48" />
+            <stop offset="50%" stop-color="#071b30" />
+            <stop offset="100%" stop-color="#030e1a" />
+          </linearGradient>
+          <linearGradient id="cyanConduitGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e0f2fe" />
+            <stop offset="35%" stop-color="#38bdf8" />
+            <stop offset="70%" stop-color="#0284c7" />
+            <stop offset="100%" stop-color="#0369a1" />
+          </linearGradient>
+          <radialGradient id="frostSapphireCore" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="30%" stop-color="#bae6fd" />
+            <stop offset="60%" stop-color="#0284c7" />
+            <stop offset="90%" stop-color="#0369a1" />
+            <stop offset="100%" stop-color="#082f49" />
+          </radialGradient>
+          <filter id="sapphireCyanGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4.5" result="glow" />
+            <feComposite in="SourceGraphic" in2="glow" operator="over" />
+          </filter>
         </defs>
-        <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#vSilverPlateGrad)" stroke="#e2e8f0" stroke-width="1.5" />
-        <path d="M14,32 L26,46 M50,32 L38,46" stroke="#94a3b8" stroke-width="1" opacity="0.4" />
-        <path d="M6,26 C6,15 16,11 32,11 C48,11 58,15 58,26 Z" fill="url(#vSilverPlateGrad)" stroke="#e2e8f0" stroke-width="1.5" />
-        <rect x="17" y="12" width="7" height="40" rx="1.5" fill="url(#vMithrilCyanGrad)" stroke="#bae6fd" stroke-width="0.8" />
-        <rect x="40" y="12" width="7" height="40" rx="1.5" fill="url(#vMithrilCyanGrad)" stroke="#bae6fd" stroke-width="0.8" />
-        <circle cx="20.5" cy="18" r="1.3" fill="#ffffff" /><circle cx="20.5" cy="31" r="1.3" fill="#ffffff" /><circle cx="20.5" cy="46" r="1.3" fill="#ffffff" />
-        <circle cx="43.5" cy="18" r="1.3" fill="#ffffff" /><circle cx="43.5" cy="31" r="1.3" fill="#ffffff" /><circle cx="43.5" cy="46" r="1.3" fill="#ffffff" />
-        <polygon points="32,22 38,28 32,34 26,28" fill="url(#vMithrilCyanGrad)" stroke="#38bdf8" stroke-width="1" />
-        <circle cx="32" cy="28" r="3.4" fill="url(#vFrostSapphireGrad)" stroke="#e0f2fe" stroke-width="1" />
+        <!-- Ground Occlusion -->
+        <ellipse cx="120" cy="186" rx="90" ry="14" fill="url(#silverOcclusion)" />
+        
+        <!-- Base Plinth & Mithril Feet -->
+        <path d="M 34,174 C 34,183 46,186 58,185 L 182,185 C 194,186 206,183 206,174 L 200,166 L 40,166 Z" fill="url(#mithrilPlateGrad)" stroke="#e2e8f0" stroke-width="1.2" />
+        <circle cx="50" cy="177" r="2.8" fill="#e2e8f0" stroke="#334155" stroke-width="0.8" />
+        <circle cx="190" cy="177" r="2.8" fill="#e2e8f0" stroke="#334155" stroke-width="0.8" />
+        
+        <!-- Chest Body -->
+        <rect x="36" y="94" width="168" height="74" rx="6" fill="#081829" stroke="#475569" stroke-width="2" />
+        
+        <!-- Deep Astral Blue Enamel Inset Panels -->
+        <rect x="42" y="100" width="46" height="62" rx="4" fill="url(#astralBlueGrad)" stroke="#0284c7" stroke-width="1" />
+        <rect x="97" y="100" width="46" height="62" rx="4" fill="url(#astralBlueGrad)" stroke="#0284c7" stroke-width="1" />
+        <rect x="152" y="100" width="46" height="62" rx="4" fill="url(#astralBlueGrad)" stroke="#0284c7" stroke-width="1" />
+
+        <!-- Carved Luminous Cyan Arcane Runes in Enamel Panels -->
+        <g stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.85" filter="url(#sapphireCyanGlow)">
+          <path d="M 65,112 L 65,148 M 55,124 L 75,136 M 55,136 L 75,124" />
+          <path d="M 120,138 L 120,154 M 114,146 L 126,146" />
+          <path d="M 175,112 L 175,148 M 165,124 L 185,136 M 165,136 L 185,124" />
+        </g>
+
+        <!-- Vertical Mithril Bands with Mana Conduits -->
+        <g>
+          <rect x="34" y="92" width="12" height="76" rx="2" fill="url(#mithrilPlateGrad)" stroke="#f8fafc" stroke-width="0.8" />
+          <rect x="86" y="92" width="13" height="76" rx="2" fill="url(#mithrilPlateGrad)" stroke="#f8fafc" stroke-width="0.8" />
+          <rect x="141" y="92" width="13" height="76" rx="2" fill="url(#mithrilPlateGrad)" stroke="#f8fafc" stroke-width="0.8" />
+          <rect x="194" y="92" width="12" height="76" rx="2" fill="url(#mithrilPlateGrad)" stroke="#f8fafc" stroke-width="0.8" />
+          
+          <!-- Cyan Mana Core Stream inside Bands -->
+          <rect x="91" y="96" width="3" height="68" rx="1.5" fill="url(#cyanConduitGrad)" filter="url(#sapphireCyanGlow)" />
+          <rect x="146" y="96" width="3" height="68" rx="1.5" fill="url(#cyanConduitGrad)" filter="url(#sapphireCyanGlow)" />
+        </g>
+
+        <!-- Mithril Hex Studs -->
+        <circle cx="40" cy="102" r="2.2" fill="#ffffff" stroke="#334155" stroke-width="0.5" />
+        <circle cx="40" cy="158" r="2.2" fill="#ffffff" stroke="#334155" stroke-width="0.5" />
+        <circle cx="200" cy="102" r="2.2" fill="#ffffff" stroke="#334155" stroke-width="0.5" />
+        <circle cx="200" cy="158" r="2.2" fill="#ffffff" stroke="#334155" stroke-width="0.5" />
+
+        <!-- Frost Seam Glow -->
+        <line x1="38" y1="94" x2="202" y2="94" stroke="#38bdf8" stroke-width="3.5" opacity="0.85" filter="url(#sapphireCyanGlow)" />
+        <line x1="42" y1="94" x2="198" y2="94" stroke="#ffffff" stroke-width="1.2" opacity="0.95" />
+
+        <!-- Vaulted Mithril Lid -->
+        <path d="M 28,94 C 28,50 62,38 120,38 C 178,38 212,50 212,94 Z" fill="url(#mithrilLidGrad)" stroke="#f8fafc" stroke-width="1.8" />
+        <path d="M 40,88 C 44,56 72,46 120,46 C 168,46 196,56 200,88 Z" fill="url(#astralBlueGrad)" stroke="#0284c7" stroke-width="1" />
+        
+        <!-- Lid Straps -->
+        <path d="M 86,44 C 88,60 88,76 86,94 L 99,94 C 100,76 100,60 99,44 Z" fill="url(#mithrilPlateGrad)" stroke="#f8fafc" stroke-width="0.8" />
+        <path d="M 141,44 C 139,60 139,76 141,94 L 154,94 C 153,76 153,60 154,44 Z" fill="url(#mithrilPlateGrad)" stroke="#f8fafc" stroke-width="0.8" />
+        
+        <!-- Overhanging Beveled Silver Rim -->
+        <rect x="25" y="88" width="190" height="9" rx="3" fill="url(#mithrilPlateGrad)" stroke="#ffffff" stroke-width="1.2" />
+
+        <!-- Silver Filigree Crest on Lid Peak -->
+        <polygon points="120,26 128,38 112,38" fill="url(#mithrilPlateGrad)" stroke="#e2e8f0" stroke-width="1" />
+        <circle cx="120" cy="34" r="2.5" fill="#38bdf8" filter="url(#sapphireCyanGlow)" />
+
+        <!-- Masterwork Sapphire Lock Clasp -->
+        <g filter="url(#sapphireCyanGlow)">
+          <polygon points="120,74 140,86 136,118 120,132 104,118 100,86" fill="url(#mithrilPlateGrad)" stroke="#ffffff" stroke-width="1.5" />
+          <polygon points="120,80 133,88 130,114 120,124 110,114 107,88" fill="#0c2340" stroke="#38bdf8" stroke-width="0.8" />
+          
+          <!-- Faceted Frost Sapphire Gem -->
+          <polygon points="120,84 132,96 128,114 120,123 112,114 108,96" fill="url(#frostSapphireCore)" stroke="#e0f2fe" stroke-width="1.2" />
+          <polygon points="120,84 125,96 120,103 115,96" fill="#ffffff" opacity="0.65" />
+          <polygon points="120,103 128,114 120,123" fill="#0369a1" opacity="0.8" />
+          <polygon points="120,103 112,114 120,123" fill="#075985" opacity="0.8" />
+          <polygon points="108,96 115,96 112,114" fill="#38bdf8" opacity="0.75" />
+          <polygon points="132,96 125,96 128,114" fill="#0284c7" opacity="0.75" />
+          <!-- Star Glint -->
+          <path d="M 115,93 L 117,89 L 119,93 L 123,95 L 119,97 L 117,101 L 115,97 L 111,95 Z" fill="#ffffff" opacity="0.95" />
+        </g>
       </svg>`;
     }
-    // Default wooden
-    return `<svg viewBox="0 0 64 64" class="chest-vector-svg" aria-hidden="true">
+    // Default wooden (Holztruhe des Lehrlings)
+    return `<svg viewBox="0 0 240 200" class="arcane-chest-svg tier-wooden-svg" aria-hidden="true">
       <defs>
-        <linearGradient id="vWoodPlankGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#854d0e" /><stop offset="50%" stop-color="#5c3317" /><stop offset="100%" stop-color="#3b1d08" /></linearGradient>
-        <linearGradient id="vIronBandGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#64748b" /><stop offset="50%" stop-color="#334155" /><stop offset="100%" stop-color="#1e293b" /></linearGradient>
-        <radialGradient id="vAmberGemGrad" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#fef08a" /><stop offset="45%" stop-color="#f59e0b" /><stop offset="100%" stop-color="#92400e" /></radialGradient>
+        <radialGradient id="woodOcclusion" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#000000" stop-opacity="0.85" />
+          <stop offset="60%" stop-color="#451a03" stop-opacity="0.35" />
+          <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+        </radialGradient>
+        <linearGradient id="darkOakBody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8c481a" />
+          <stop offset="25%" stop-color="#6b3512" />
+          <stop offset="60%" stop-color="#451d08" />
+          <stop offset="100%" stop-color="#240c03" />
+        </linearGradient>
+        <linearGradient id="oakLidDome" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#a85924" />
+          <stop offset="20%" stop-color="#7c3d15" />
+          <stop offset="55%" stop-color="#54240a" />
+          <stop offset="85%" stop-color="#361405" />
+          <stop offset="100%" stop-color="#1f0a02" />
+        </linearGradient>
+        <linearGradient id="forgedIronGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#1e293b" />
+          <stop offset="20%" stop-color="#334155" />
+          <stop offset="45%" stop-color="#64748b" />
+          <stop offset="50%" stop-color="#94a3b8" />
+          <stop offset="55%" stop-color="#64748b" />
+          <stop offset="80%" stop-color="#334155" />
+          <stop offset="100%" stop-color="#0f172a" />
+        </linearGradient>
+        <radialGradient id="amberLockGlow" cx="40%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#fffbeb" />
+          <stop offset="35%" stop-color="#fef08a" />
+          <stop offset="65%" stop-color="#f59e0b" />
+          <stop offset="90%" stop-color="#b45309" />
+          <stop offset="100%" stop-color="#78350f" />
+        </radialGradient>
+        <filter id="amberAuraFilter" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
       </defs>
-      <rect x="8" y="26" width="48" height="26" rx="4" fill="url(#vWoodPlankGrad)" stroke="#a16207" stroke-width="1.5" />
-      <line x1="8" y1="34" x2="56" y2="34" stroke="#2a1406" stroke-width="1" opacity="0.6" />
-      <line x1="8" y1="43" x2="56" y2="43" stroke="#2a1406" stroke-width="1" opacity="0.6" />
-      <path d="M6,26 C6,16 16,12 32,12 C48,12 58,16 58,26 Z" fill="url(#vWoodPlankGrad)" stroke="#a16207" stroke-width="1.5" />
-      <rect x="18" y="13" width="6" height="39" rx="1" fill="url(#vIronBandGrad)" stroke="#64748b" stroke-width="0.8" />
-      <rect x="40" y="13" width="6" height="39" rx="1" fill="url(#vIronBandGrad)" stroke="#64748b" stroke-width="0.8" />
-      <circle cx="21" cy="18" r="1.2" fill="#94a3b8" /><circle cx="21" cy="30" r="1.2" fill="#94a3b8" /><circle cx="21" cy="46" r="1.2" fill="#94a3b8" />
-      <circle cx="43" cy="18" r="1.2" fill="#94a3b8" /><circle cx="43" cy="30" r="1.2" fill="#94a3b8" /><circle cx="43" cy="46" r="1.2" fill="#94a3b8" />
-      <rect x="27" y="24" width="10" height="11" rx="2" fill="url(#vIronBandGrad)" stroke="#d97706" stroke-width="1" />
-      <circle cx="32" cy="29" r="3.2" fill="url(#vAmberGemGrad)" stroke="#fef3c7" stroke-width="0.8" />
+      <!-- Ground Shadow -->
+      <ellipse cx="120" cy="186" rx="90" ry="14" fill="url(#woodOcclusion)" />
+      
+      <!-- Bottom Base Plate & Forged Boots -->
+      <rect x="30" y="168" width="180" height="12" rx="3" fill="#1c0b03" stroke="#52230a" stroke-width="1.2" />
+      <rect x="32" y="167" width="16" height="14" rx="2" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+      <rect x="192" y="167" width="16" height="14" rx="2" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+      <circle cx="40" cy="174" r="2" fill="#94a3b8" />
+      <circle cx="200" cy="174" r="2" fill="#94a3b8" />
+
+      <!-- Chest Body -->
+      <rect x="36" y="94" width="168" height="76" rx="6" fill="url(#darkOakBody)" stroke="#1a0802" stroke-width="2" />
+      
+      <!-- Plank Seam Grooves & Fine Wood Grain Striations -->
+      <g stroke="#180702" stroke-width="2">
+        <line x1="78" y1="94" x2="78" y2="170" />
+        <line x1="120" y1="94" x2="120" y2="170" />
+        <line x1="162" y1="94" x2="162" y2="170" />
+      </g>
+      <!-- Plank Highlight Bevels -->
+      <g stroke="#a85924" stroke-width="0.8" opacity="0.45">
+        <line x1="80" y1="95" x2="80" y2="169" />
+        <line x1="122" y1="95" x2="122" y2="169" />
+        <line x1="164" y1="95" x2="164" y2="169" />
+        <!-- Subtle Wood Grain Streaks -->
+        <path d="M 46,104 Q 56,128 48,158 M 94,106 Q 106,134 98,162 M 138,102 Q 146,130 142,160 M 180,105 Q 190,132 184,158" fill="none" opacity="0.3" stroke-width="0.6" stroke="#fbbf24" />
+      </g>
+
+      <!-- Seam Light Glow between Body and Lid -->
+      <line x1="38" y1="94" x2="202" y2="94" stroke="#f59e0b" stroke-width="2.5" opacity="0.75" filter="url(#amberAuraFilter)" />
+
+      <!-- Vaulted Heavy Oak Lid -->
+      <path d="M 28,94 C 28,52 62,38 120,38 C 178,38 212,52 212,94 Z" fill="url(#oakLidDome)" stroke="#2a0f04" stroke-width="2" />
+      <!-- Lid Planks Curve Lines -->
+      <path d="M 76,46 C 78,64 78,80 76,94" fill="none" stroke="#180702" stroke-width="2" />
+      <path d="M 120,38 C 120,58 120,78 120,94" fill="none" stroke="#180702" stroke-width="2" />
+      <path d="M 164,46 C 162,64 162,80 164,94" fill="none" stroke="#180702" stroke-width="2" />
+      <!-- Lid Top Specular Highlight -->
+      <path d="M 50,56 C 80,44 160,44 190,56" fill="none" stroke="#d97706" stroke-width="1.2" opacity="0.5" />
+
+      <!-- Lid Curved Iron Straps -->
+      <path d="M 84,45 C 86,60 86,76 84,92 L 100,92 C 100,76 100,60 100,45 Z" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+      <path d="M 140,45 C 138,60 138,76 140,92 L 156,92 C 156,76 156,60 156,45 Z" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+
+      <!-- Heavy Overhanging Lid Rim & Hinges -->
+      <rect x="25" y="88" width="190" height="9" rx="3" fill="#361707" stroke="#1a0802" stroke-width="1.2" />
+      <line x1="26" y1="89" x2="214" y2="89" stroke="#b45309" stroke-width="0.8" opacity="0.7" />
+      <rect x="82" y="87" width="20" height="11" rx="2" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+      <rect x="138" y="87" width="20" height="11" rx="2" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+
+      <!-- Forged Iron Bands on Body -->
+      <g>
+        <!-- Corner Brackets -->
+        <path d="M 34,94 L 46,94 L 46,168 L 34,168 Z" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+        <path d="M 194,94 L 206,94 L 206,168 L 194,168 Z" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+        
+        <!-- Center Body Straps -->
+        <rect x="84" y="96" width="16" height="74" rx="2" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+        <rect x="140" y="96" width="16" height="74" rx="2" fill="url(#forgedIronGrad)" stroke="#64748b" stroke-width="0.8" />
+      </g>
+
+      <!-- Iron Rivet Studs with 3D Specular Highlight -->
+      <g fill="#94a3b8" stroke="#0f172a" stroke-width="0.6">
+        <circle cx="40" cy="102" r="2.2" /><circle cx="40" cy="132" r="2.2" /><circle cx="40" cy="160" r="2.2" />
+        <circle cx="200" cy="102" r="2.2" /><circle cx="200" cy="132" r="2.2" /><circle cx="200" cy="160" r="2.2" />
+        
+        <circle cx="92" cy="56" r="2.3" /><circle cx="92" cy="74" r="2.3" /><circle cx="92" cy="92.5" r="2.4" /><circle cx="92" cy="114" r="2.3" /><circle cx="92" cy="136" r="2.3" /><circle cx="92" cy="158" r="2.3" />
+        <circle cx="148" cy="56" r="2.3" /><circle cx="148" cy="74" r="2.3" /><circle cx="148" cy="92.5" r="2.4" /><circle cx="148" cy="114" r="2.3" /><circle cx="148" cy="136" r="2.3" /><circle cx="148" cy="158" r="2.3" />
+      </g>
+      <!-- Rivet Specular White Dots -->
+      <g fill="#ffffff" opacity="0.85">
+        <circle cx="39.3" cy="101.3" r="0.7" /><circle cx="39.3" cy="131.3" r="0.7" /><circle cx="39.3" cy="159.3" r="0.7" />
+        <circle cx="199.3" cy="101.3" r="0.7" /><circle cx="199.3" cy="131.3" r="0.7" /><circle cx="199.3" cy="159.3" r="0.7" />
+        <circle cx="91.2" cy="55.2" r="0.8" /><circle cx="91.2" cy="73.2" r="0.8" /><circle cx="91.2" cy="91.7" r="0.8" /><circle cx="91.2" cy="113.2" r="0.8" /><circle cx="91.2" cy="135.2" r="0.8" /><circle cx="91.2" cy="157.2" r="0.8" />
+        <circle cx="147.2" cy="55.2" r="0.8" /><circle cx="147.2" cy="73.2" r="0.8" /><circle cx="147.2" cy="91.7" r="0.8" /><circle cx="147.2" cy="113.2" r="0.8" /><circle cx="147.2" cy="135.2" r="0.8" /><circle cx="147.2" cy="157.2" r="0.8" />
+      </g>
+
+      <!-- Side Drop Handles -->
+      <path d="M 33,124 C 23,124 23,142 33,142" fill="none" stroke="url(#forgedIronGrad)" stroke-width="3" stroke-linecap="round" />
+      <path d="M 207,124 C 217,124 217,142 207,142" fill="none" stroke="url(#forgedIronGrad)" stroke-width="3" stroke-linecap="round" />
+
+      <!-- Heavy Gothic Iron Lock with Pulsing Amber Rune Core -->
+      <g filter="url(#amberAuraFilter)">
+        <!-- Lock Plate Base -->
+        <path d="M 102,80 L 138,80 L 134,116 L 120,130 L 106,116 Z" fill="url(#forgedIronGrad)" stroke="#d97706" stroke-width="1.5" />
+        <rect x="108" y="84" width="24" height="6" rx="1.5" fill="#1e293b" stroke="#64748b" stroke-width="0.8" />
+        
+        <!-- Glowing Amber Core Medallion -->
+        <circle cx="120" cy="106" r="10.5" fill="url(#amberLockGlow)" stroke="#fef3c7" stroke-width="1.2" />
+        <!-- Arcane Rune Sigil on Lock -->
+        <path d="M 120,99 L 120,113 M 115,103 L 125,109 M 115,109 L 125,103" stroke="#fffbeb" stroke-width="1.2" stroke-linecap="round" />
+        <!-- Specular Dot on Gem -->
+        <circle cx="117" cy="103" r="1.8" fill="#ffffff" opacity="0.9" />
+      </g>
     </svg>`;
   }
 
@@ -5267,7 +4971,6 @@ const WizardVault = (() => {
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
     const arcaneChest = document.getElementById('vaultArcaneChest');
     const arcaneChestArtwork = document.getElementById('vaultArcaneChestArtwork');
-    const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const titleEl = document.getElementById('vaultUnboxingTitle');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
@@ -5303,15 +5006,6 @@ const WizardVault = (() => {
       arcaneChestArtwork.innerHTML = getChestVectorSvg(tier);
     }
 
-    // Abwärtskompatibilität für Tests & Lottie
-    if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.init) {
-      VaultLottieEngine.init(tier);
-    }
-    if (chestModel) {
-      chestModel.className = `stylized-chest-wrapper chest-artwork-container tier-${tier}`;
-      chestModel.classList.remove('shaking', 'opened', 'bursting');
-    }
-
     if (flashOverlay) {
       flashOverlay.classList.remove('active');
     }
@@ -5334,17 +5028,10 @@ const WizardVault = (() => {
     chestClickStartTime = Date.now();
 
     const arcaneChest = document.getElementById('vaultArcaneChest');
-    const lottieStage = document.getElementById('vaultLottieContainer');
-    const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
 
     if (arcaneChest) arcaneChest.classList.add('shaking');
-    if (lottieStage) lottieStage.classList.add('shaking');
-    if (chestModel) {
-      chestModel.classList.remove('opened', 'bursting');
-      chestModel.classList.add('shaking');
-    }
 
     if (prompt) prompt.innerHTML = `<span>⚡</span><span>Das uralte Siegel bricht...</span><span>⚡</span>`;
     if (subTitle) subTitle.innerText = 'Arkane Energie entfesselt sich!';
@@ -5393,11 +5080,7 @@ const WizardVault = (() => {
       showToast(data ? data.error : 'Fehler beim Öffnen der Truhe');
       isUnboxingAnimationRunning = false;
       const arcaneChest = document.getElementById('vaultArcaneChest');
-      const lottieStage = document.getElementById('vaultLottieContainer');
-      const chestModel = document.getElementById('vaultChestInteractive');
       if (arcaneChest) arcaneChest.classList.remove('shaking');
-      if (lottieStage) lottieStage.classList.remove('shaking');
-      if (chestModel) chestModel.classList.remove('shaking');
       return;
     }
     if (data.user) {
@@ -5417,19 +5100,12 @@ const WizardVault = (() => {
     const safeData = data || { chestType: activeUnboxingTier, rewards: [] };
 
     const arcaneChest = document.getElementById('vaultArcaneChest');
-    const lottieStage = document.getElementById('vaultLottieContainer');
-    const chestModel = document.getElementById('vaultChestInteractive');
     const prompt = document.getElementById('vaultChestClickPrompt');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
     if (arcaneChest) {
       arcaneChest.classList.remove('shaking');
       arcaneChest.classList.add('bursting');
-    }
-    if (lottieStage) lottieStage.classList.remove('shaking');
-    if (chestModel) {
-      chestModel.classList.remove('shaking');
-      chestModel.classList.add('opened', 'bursting');
     }
     if (prompt) prompt.style.display = 'none';
 
@@ -5651,16 +5327,9 @@ const WizardVault = (() => {
       unboxingFlashTimer = null;
     }
 
-    if (typeof VaultLottieEngine !== 'undefined' && VaultLottieEngine.destroy) {
-      VaultLottieEngine.destroy();
-    } else if (typeof VaultVideoEngine !== 'undefined' && VaultVideoEngine.cleanup) {
-      VaultVideoEngine.cleanup();
-    }
-
     const unbox = document.getElementById('vaultUnboxingArea');
     const stage = document.getElementById('vaultUnboxingStage');
     const dropsArea = document.getElementById('vaultUnboxingDropsArea');
-    const chestModel = document.getElementById('vaultChestInteractive');
     const arcaneChest = document.getElementById('vaultArcaneChest');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
 
@@ -5673,10 +5342,6 @@ const WizardVault = (() => {
     if (arcaneChest) {
       arcaneChest.className = 'vault-arcane-chest tier-wooden';
       arcaneChest.classList.remove('shaking', 'bursting');
-    }
-    if (chestModel) {
-      chestModel.className = 'stylized-chest-wrapper chest-artwork-container tier-wooden';
-      chestModel.classList.remove('shaking', 'opened', 'bursting');
     }
     if (flashOverlay) flashOverlay.classList.remove('active');
 
@@ -6360,36 +6025,6 @@ const WizardVault = (() => {
       btnFlipAll.addEventListener('click', handleFlipAllCards);
     }
 
-    const lottieContainer = document.getElementById('vaultLottieContainer');
-    if (lottieContainer) {
-      lottieContainer.addEventListener('click', handleChestClick);
-      lottieContainer.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleChestClick();
-        }
-      });
-    }
-    const chestInteractive = document.getElementById('vaultChestInteractive');
-    if (chestInteractive) {
-      chestInteractive.addEventListener('click', handleChestClick);
-      chestInteractive.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleChestClick();
-        }
-      });
-    }
-    const videoStage = document.getElementById('vaultVideoStage');
-    if (videoStage) {
-      videoStage.addEventListener('click', handleChestClick);
-      videoStage.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleChestClick();
-        }
-      });
-    }
 
     const promptEl = document.getElementById('vaultChestClickPrompt');
     if (promptEl) {
@@ -6466,9 +6101,7 @@ const WizardVault = (() => {
     renderWardrobe,
     renderWardrobeItems,
     renderForge,
-    showMatchProgression: onMatchProgressionSummary,
-    VaultLottieEngine,
-    VaultVideoEngine
+    showMatchProgression: onMatchProgressionSummary
   };
 })();
 if (typeof window !== 'undefined') window.WizardVault = WizardVault;
@@ -6838,11 +6471,6 @@ function switchScreen(screenName) {
   if (screenName === 'game') {
     if (typeof WizardVault !== 'undefined') {
       if (WizardVault.closeVault) WizardVault.closeVault();
-      if (WizardVault.VaultLottieEngine && WizardVault.VaultLottieEngine.destroy) {
-        WizardVault.VaultLottieEngine.destroy();
-      } else if (WizardVault.VaultVideoEngine && WizardVault.VaultVideoEngine.cleanup) {
-        WizardVault.VaultVideoEngine.cleanup();
-      }
     } else if (typeof closeVault === 'function') {
       closeVault();
     }
