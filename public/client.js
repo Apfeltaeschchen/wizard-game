@@ -4727,7 +4727,6 @@ const WizardVault = (() => {
     const subTitle = document.getElementById('vaultUnboxingSubtitle');
     const flashOverlay = document.getElementById('vaultChestFlashOverlay');
     const btnFlipAll = document.getElementById('btnFlipAllCards');
-
     if (!unbox) return;
 
     unbox.style.display = 'flex';
@@ -4739,6 +4738,19 @@ const WizardVault = (() => {
     if (btnFlipAll) {
       btnFlipAll.disabled = false;
       btnFlipAll.style.display = 'flex';
+    }
+
+    // Automatisches Scrollen nach oben zur Unboxing-Bühne (nachdem das Element im DOM sichtbar ist)
+    const vaultBody = document.querySelector('.vault-body');
+    if (vaultBody) vaultBody.scrollTop = 0;
+    const panel = document.getElementById('vaultPanelChests');
+    if (panel) panel.scrollTop = 0;
+    if (unbox) {
+      try {
+        unbox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) {
+        if (vaultBody) vaultBody.scrollTop = 0;
+      }
     }
 
     const tNames = {
@@ -4771,6 +4783,20 @@ const WizardVault = (() => {
     if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
       WizardAudio.playCardSnap();
     }
+  }
+
+  function openChestModal(tier) {
+    const vaultBody = document.querySelector('.vault-body');
+    if (vaultBody) vaultBody.scrollTop = 0;
+    const panel = document.getElementById('vaultPanelChests');
+    if (panel) panel.scrollTop = 0;
+    const unbox = document.getElementById('vaultUnboxingArea');
+    if (unbox) {
+      try {
+        unbox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) {}
+    }
+    return openChest(tier);
   }
 
   function handleChestClick() {
@@ -5846,6 +5872,7 @@ const WizardVault = (() => {
     updateBadges,
     equipItem,
     openChest,
+    openChestModal,
     handleChestClick,
     getCosmeticVisualHtml,
     getVaultData: () => vaultData,

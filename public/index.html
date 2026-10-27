@@ -6006,6 +6006,7 @@
       margin-bottom: 16px;
       min-height: 520px;
       overflow: hidden;
+      isolation: isolate;
     }
     .unboxing-drops-container {
       display: flex;
@@ -6344,8 +6345,8 @@
     /* ARKANES SIEGEL-MEDAILLON & PUNCHY CHEST PRESENTATION */
     .vault-arcane-chest {
       position: relative;
-      width: 250px;
-      height: 220px;
+      width: 260px;
+      height: 225px;
       max-width: 88vw;
       margin: 0 auto;
       display: flex;
@@ -6355,18 +6356,18 @@
       user-select: none;
       z-index: 6;
       animation: floatChest 3.2s ease-in-out infinite;
-      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease, opacity 0.35s ease;
-      filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.9));
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), opacity 0.35s ease;
+      filter: none;
     }
     .vault-arcane-chest:hover {
-      transform: translateY(-8px) scale(1.05);
-      filter: drop-shadow(0 18px 40px rgba(245, 158, 11, 0.85));
+      transform: translateY(-6px);
+      filter: none;
     }
     .vault-arcane-chest.tier-silver:hover {
-      filter: drop-shadow(0 18px 40px rgba(56, 189, 248, 0.85));
+      filter: none;
     }
     .vault-arcane-chest.tier-gold:hover {
-      filter: drop-shadow(0 20px 46px rgba(251, 191, 36, 0.95));
+      filter: none;
     }
     .vault-arcane-chest.shaking {
       animation: chestRumble 0.12s linear infinite !important;
@@ -6390,8 +6391,8 @@
       90% { transform: translate3d(2.5px, -1px, 0) rotate(1.5deg); }
     }
     .arcane-chest-artwork {
-      width: 240px;
-      height: 200px;
+      width: 260px;
+      height: 225px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -6402,25 +6403,38 @@
       overflow: visible;
     }
     .arcane-chest-hero-img {
-      width: 250px;
-      height: 215px;
-      object-fit: cover;
-      border-radius: 18px;
-      border: 2px solid rgba(245, 158, 11, 0.55);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.92), 0 0 24px rgba(245, 158, 11, 0.35);
-      transition: transform 0.28s ease, filter 0.28s ease, box-shadow 0.28s ease;
+      width: 260px;
+      height: 225px;
+      object-fit: contain;
+      background: transparent;
+      border: none !important;
+      border-radius: 0;
+      box-shadow: none !important;
+      mix-blend-mode: screen;
+      mask-image: radial-gradient(ellipse at 50% 50%, black 65%, transparent 95%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 65%, transparent 95%);
+      filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 24px rgba(245, 158, 11, 0.4));
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1.2), filter 0.28s ease;
     }
     .vault-arcane-chest.tier-silver .arcane-chest-hero-img {
-      border-color: rgba(56, 189, 248, 0.6);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.92), 0 0 28px rgba(56, 189, 248, 0.45);
+      border: none !important;
+      box-shadow: none !important;
+      filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 24px rgba(56, 189, 248, 0.5));
     }
     .vault-arcane-chest.tier-gold .arcane-chest-hero-img {
-      border-color: rgba(251, 191, 36, 0.75);
-      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.95), 0 0 32px rgba(251, 191, 36, 0.6);
+      border: none !important;
+      box-shadow: none !important;
+      filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 28px rgba(251, 191, 36, 0.65));
     }
     .vault-arcane-chest:hover .arcane-chest-hero-img {
-      transform: scale(1.04);
-      filter: brightness(1.08);
+      transform: scale(1.05);
+      filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 30px rgba(245, 158, 11, 0.65)) brightness(1.08);
+    }
+    .vault-arcane-chest.tier-silver:hover .arcane-chest-hero-img {
+      filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 30px rgba(56, 189, 248, 0.75)) brightness(1.08);
+    }
+    .vault-arcane-chest.tier-gold:hover .arcane-chest-hero-img {
+      filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 36px rgba(251, 191, 36, 0.85)) brightness(1.08);
     }
     .arcane-chest-halo {
       position: absolute;
@@ -6578,60 +6592,7 @@
       position: relative;
     }
     .mini-chest-wood, .mini-chest-silver, .mini-chest-gold {
-      width: 46px;
-      height: 36px;
-      border-radius: 6px 6px 4px 4px;
       position: relative;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
-    }
-    .mini-chest-wood::before, .mini-chest-silver::before, .mini-chest-gold::before {
-      content: '';
-      position: absolute;
-      top: 12px; left: 0; right: 0; height: 3px;
-      background: rgba(0,0,0,0.5);
-    }
-    .mini-chest-wood {
-      background: linear-gradient(180deg, #78350f, #3b1604);
-      border: 1.5px solid #d97706;
-    }
-    .mini-chest-wood::after {
-      content: '';
-      position: absolute;
-      top: 10px; left: 50%; transform: translateX(-50%);
-      width: 8px; height: 8px;
-      background: #f59e0b;
-      border-radius: 2px;
-      border: 1px solid #fef08a;
-    }
-    .mini-chest-silver {
-      background: linear-gradient(135deg, #cbd5e1, #475569);
-      border: 1.5px solid #e2e8f0;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-    }
-    .mini-chest-silver::after {
-      content: '';
-      position: absolute;
-      top: 10px; left: 50%; transform: translateX(-50%);
-      width: 8px; height: 8px;
-      background: #38bdf8;
-      border-radius: 50%;
-      border: 1px solid #bae6fd;
-      box-shadow: 0 0 6px #38bdf8;
-    }
-    .mini-chest-gold {
-      background: linear-gradient(135deg, #fef08a, #d97706);
-      border: 1.5px solid #fde68a;
-      box-shadow: 0 0 14px rgba(251, 191, 36, 0.7);
-    }
-    .mini-chest-gold::after {
-      content: '';
-      position: absolute;
-      top: 9px; left: 50%; transform: translateX(-50%);
-      width: 9px; height: 9px;
-      background: #f43f5e;
-      border-radius: 50%;
-      border: 1px solid #fef08a;
-      box-shadow: 0 0 8px #f43f5e;
     }
 
     /* =====================================================================
@@ -9138,7 +9099,7 @@
             <!-- HOLZTRUHE -->
             <div class="chest-card tier-wooden">
               <div class="chest-icon-visual chest-icon-wooden">
-                <div class="chest-artwork-medallion medallion-wooden badge-tier-wooden mini-chest-wood" title="Holztruhe des Lehrlings">
+                <div class="chest-artwork-medallion medallion-wooden badge-tier-wooden" title="Holztruhe des Lehrlings">
                   <div class="chest-vector-badge">
                     <img src="images/chests/chest_wooden.jpg" alt="Holztruhe des Lehrlings" class="chest-medallion-img" />
                   </div>
@@ -9153,7 +9114,7 @@
             <!-- SILBERTRUHE -->
             <div class="chest-card tier-silver">
               <div class="chest-icon-visual chest-icon-silver">
-                <div class="chest-artwork-medallion medallion-silver badge-tier-silver mini-chest-silver" title="Silberne Magiertruhe">
+                <div class="chest-artwork-medallion medallion-silver badge-tier-silver" title="Silberne Magiertruhe">
                   <div class="chest-vector-badge">
                     <img src="images/chests/chest_silver.jpg" alt="Silberne Magiertruhe" class="chest-medallion-img" />
                   </div>
@@ -9168,7 +9129,7 @@
             <!-- GOLDTRUHE -->
             <div class="chest-card tier-gold">
               <div class="chest-icon-visual chest-icon-gold">
-                <div class="chest-artwork-medallion medallion-gold badge-tier-gold mini-chest-gold" title="Goldene Erzmagier-Truhe">
+                <div class="chest-artwork-medallion medallion-gold badge-tier-gold" title="Goldene Erzmagier-Truhe">
                   <div class="chest-vector-badge">
                     <img src="images/chests/chest_gold.jpg" alt="Goldene Erzmagier-Truhe" class="chest-medallion-img" />
                   </div>
@@ -9500,7 +9461,7 @@
   </div>
 
   <script src="socket.io.min.js"></script>
-  <script src="client.js?v=20261027_hearthstone_chests"></script>
+  <script src="client.js?v=20261027_isolated_chests"></script>
 
   </body>
 </html>

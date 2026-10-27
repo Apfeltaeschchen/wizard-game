@@ -67,7 +67,7 @@ assert.ok(!indexHtml.includes('.vault-video-stage'), 'Klasse .vault-video-stage 
 assert.ok(!fs.existsSync(path.join(__dirname, '../public/js/lottie.min.js')), 'public/js/lottie.min.js Datei sauber gelöscht');
 assert.ok(!fs.existsSync(path.join(__dirname, '../scripts/generate_lottie_chests.js')), 'scripts/generate_lottie_chests.js sauber gelöscht');
 assert.ok(!fs.existsSync(path.join(__dirname, '../public/animations/chests')), 'public/animations/chests sauber gelöscht');
-assert.ok(indexHtml.includes('client.js?v=20261027_hearthstone_chests') || indexHtml.includes('client.js?v=20261027_clean_unboxing'), 'Cache-Busting auf v=20261027_hearthstone_chests aktualisiert');
+assert.ok(indexHtml.includes('client.js?v=20261027_isolated_chests') || indexHtml.includes('client.js?v=20261027_hearthstone_chests') || indexHtml.includes('client.js?v=20261027_clean_unboxing'), 'Cache-Busting auf v=20261027_isolated_chests aktualisiert');
 
 // Handgemalte Dark-Fantasy Artworks & Bereinigung
 const chestsDir = path.join(__dirname, '../public/images/chests');
@@ -77,6 +77,16 @@ assert.ok(fs.existsSync(path.join(chestsDir, 'chest_gold.jpg')), 'Handgemalte Go
 assert.ok(clientJs.includes('getChestArtworkHtml'), 'getChestArtworkHtml in client.js vorhanden');
 assert.ok(indexHtml.includes('.arcane-chest-hero-img'), 'CSS für .arcane-chest-hero-img vorhanden');
 assert.ok(indexHtml.includes('display: none !important'), 'vault-fx-canvas für saubere Kartenansicht ausgeblendet');
+
+// Freigestellte 3D-Truhen, Punkt-Bereinigung & Auto-Scroll Verifikation
+assert.ok(!indexHtml.includes('.mini-chest-wood::after'), 'Veralteter Punkt auf Holztruhen-Medaillon entfernt');
+assert.ok(!indexHtml.includes('.mini-chest-silver::after'), 'Veralteter Punkt auf Silbertruhen-Medaillon entfernt');
+assert.ok(!indexHtml.includes('.mini-chest-gold::after'), 'Veralteter Punkt auf Goldtruhen-Medaillon entfernt');
+assert.ok(indexHtml.includes('mix-blend-mode: screen'), 'mix-blend-mode: screen für freigestellte Truhe vorhanden');
+assert.ok(indexHtml.includes('mask-image: radial-gradient'), 'mask-image: radial-gradient für weichen Randübergang vorhanden');
+assert.ok(clientJs.includes('openChestModal'), 'openChestModal in client.js vorhanden');
+assert.ok(clientJs.includes('unbox.scrollIntoView'), 'Automatisches Scrollen via scrollIntoView vorhanden');
+assert.ok(clientJs.includes('vaultBody.scrollTop = 0'), 'Scroll-Reset auf vaultBody vorhanden');
 
 // Plastische Dark-Fantasy Vektor-Artworks in client.js verifizieren
 assert.ok(clientJs.includes('tier-wooden-svg'), 'Detailliertes Vektor-Artwork für Holztruhe vorhanden');
