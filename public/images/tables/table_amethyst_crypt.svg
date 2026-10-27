@@ -79,6 +79,69 @@
     <circle r="25" stroke-width="1.5" fill="#c084fc" fill-opacity="0.2" />
   </g>
 
-  <!-- 4. EINGEMEISSELTE RUNENKANTE (INNENRAHMEN) -->
-  <rect x="28" y="28" width="1544" height="944" rx="16" fill="none" stroke="url(#crystalVeinGrad)" stroke-width="1.5" stroke-dasharray="25 15 8 15" opacity="0.35" />
+  <!-- 4. DURCHGEHENDES BAND LEUCHTENDER KANTENRUNEN (OBEN & UNTEN) -->
+  <g stroke="url(#crystalVeinGrad)" fill="none" opacity="0.85" filter="url(#amethystGlow)">
+    <!-- Obere und untere Umrahmungslinien -->
+    <rect x="20" y="20" width="1560" height="960" rx="18" stroke-width="2.2" opacity="0.7" />
+    <rect x="28" y="28" width="1544" height="944" rx="14" stroke-width="1.2" stroke-dasharray="16 8 4 8" opacity="0.6" />
+
+    <!-- Obere Runenzeile -->
+    <g transform="translate(140, 24)" stroke-width="1.8" opacity="0.8">
+      <!-- Wiederholte arkane Krypta-Glyphen oben -->
+      <path d="M 0,0 L 0,16 M -8,6 L 8,6 M -6,14 L 6,14" />
+      <path d="M 160,0 L 170,16 L 150,16 Z" />
+      <path d="M 320,0 L 320,16 L 332,8 Z" />
+      <path d="M 480,8 L 492,0 L 504,8 L 492,16 Z" />
+      <path d="M 640,0 L 640,16 M 632,4 L 648,12" />
+      <path d="M 800,8 L 812,0 L 824,8 L 812,16 Z" />
+      <path d="M 960,0 L 960,16 M 952,12 L 968,4" />
+      <path d="M 1120,0 L 1132,8 L 1120,16 M 1132,0 L 1120,8 L 1132,16" />
+      <path d="M 1280,0 L 1290,16 L 1270,16 Z" />
+    </g>
+
+    <!-- Untere Runenzeile -->
+    <g transform="translate(140, 960)" stroke-width="1.8" opacity="0.8">
+      <!-- Wiederholte arkane Krypta-Glyphen unten -->
+      <path d="M 0,16 L 0,0 M -8,10 L 8,10 M -6,2 L 6,2" />
+      <path d="M 160,16 L 170,0 L 150,0 Z" />
+      <path d="M 320,16 L 320,0 L 332,8 Z" />
+      <path d="M 480,8 L 492,16 L 504,8 L 492,0 Z" />
+      <path d="M 640,16 L 640,0 M 632,12 L 648,4" />
+      <path d="M 800,8 L 812,16 L 824,8 L 812,0 Z" />
+      <path d="M 960,16 L 960,0 M 952,4 L 968,12" />
+      <path d="M 1120,16 L 1132,8 L 1120,0 M 1132,16 L 1120,8 L 1132,0" />
+      <path d="M 1280,16 L 1290,0 L 1270,0 Z" />
+    </g>
+  </g>
+
+  <!-- 5. SCHIMMERNDE AMETHYST-KRISTALLCLUSTER IN DEN 4 ECKEN -->
+  <g fill="#c084fc" stroke="#f3e8ff" stroke-width="1" opacity="0.9" filter="url(#amethystGlow)">
+    <!-- Oben-Links Kristallcluster -->
+    <polygon points="22,22 55,30 75,75 30,55" fill="#a855f7" />
+    <polygon points="55,30 110,38 95,70 75,75" fill="#c084fc" />
+    <polygon points="30,55 75,75 70,95 38,110" fill="#7e22ce" />
+    <polygon points="75,75 95,70 115,105 70,95" fill="#e9d5ff" />
+    <polygon points="22,22 75,75 45,45" fill="#f5d0fe" opacity="0.8" />
+
+    <!-- Oben-Rechts Kristallcluster -->
+    <polygon points="1578,22 1545,30 1525,75 1570,55" fill="#a855f7" />
+    <polygon points="1545,30 1490,38 1505,70 1525,75" fill="#c084fc" />
+    <polygon points="1570,55 1525,75 1530,95 1562,110" fill="#7e22ce" />
+    <polygon points="1525,75 1505,70 1485,105 1530,95" fill="#e9d5ff" />
+    <polygon points="1578,22 1525,75 1555,45" fill="#f5d0fe" opacity="0.8" />
+
+    <!-- Unten-Links Kristallcluster -->
+    <polygon points="22,978 55,970 75,925 30,945" fill="#a855f7" />
+    <polygon points="55,970 110,962 95,930 75,925" fill="#c084fc" />
+    <polygon points="30,945 75,925 70,905 38,890" fill="#7e22ce" />
+    <polygon points="75,925 95,930 115,895 70,905" fill="#e9d5ff" />
+    <polygon points="22,978 75,925 45,955" fill="#f5d0fe" opacity="0.8" />
+
+    <!-- Unten-Rechts Kristallcluster -->
+    <polygon points="1578,978 1545,970 1525,925 1570,945" fill="#a855f7" />
+    <polygon points="1545,970 1490,962 1505,930 1525,925" fill="#c084fc" />
+    <polygon points="1570,945 1525,925 1530,905 1562,890" fill="#7e22ce" />
+    <polygon points="1525,925 1505,930 1485,895 1530,905" fill="#e9d5ff" />
+    <polygon points="1578,978 1525,925 1555,955" fill="#f5d0fe" opacity="0.8" />
+  </g>
 </svg>

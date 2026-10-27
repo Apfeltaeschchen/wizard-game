@@ -2284,6 +2284,7 @@ const WizardAuth = (() => {
   }
 
   function setCachedUser(user) {
+    currentUser = user || null;
     try {
       if (user) {
         const json = JSON.stringify(user);
@@ -2600,9 +2601,9 @@ const WizardAuth = (() => {
         userAvatarEl.className = `seat-avatar ${frameClass}`;
         const initial = (currentUser.username || '?').charAt(0).toUpperCase();
         if (currentUser.avatar_id && currentUser.avatar_id.startsWith('icon_')) {
-          userAvatarEl.innerHTML = `<img src="/images/avatars/${currentUser.avatar_id}.png" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" onerror="this.style.display='none';">${initial}`;
+          userAvatarEl.innerHTML = `<img src="/images/avatars/${currentUser.avatar_id}.png" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
         } else if (currentUser.avatar_id && currentUser.avatar_id.startsWith('wizard_')) {
-          userAvatarEl.innerHTML = `<img src="/images/avatars/${currentUser.avatar_id}.svg" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" onerror="this.style.display='none';">${initial}`;
+          userAvatarEl.innerHTML = `<img src="/images/avatars/${currentUser.avatar_id}.svg" alt="" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
         } else {
           userAvatarEl.innerText = initial;
         }
@@ -2814,7 +2815,9 @@ const WizardAuth = (() => {
       const initial = (u.username || '?').charAt(0).toUpperCase();
       avatarShieldEl.className = `seat-avatar frame-${f}`;
       if (a && a.startsWith('icon_')) {
-        avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.png" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.parentElement.innerText='${initial}';">`;
+        avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.png" class="seat-avatar-img" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+      } else if (a && a.startsWith('wizard_')) {
+        avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.svg" class="seat-avatar-img" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
       } else {
         avatarShieldEl.innerHTML = `<span style="font-family:var(--font-heading);font-size:28px;color:var(--gold-bright);">${initial}</span>`;
       }
@@ -3107,7 +3110,7 @@ const WizardAuth = (() => {
             </td>
             <td>
               <div class="lb-player-cell">
-                <div class="seat-avatar" style="width: 26px; height: 30px; font-size: 12px; margin: 0; box-shadow: none;">${initial}</div>
+                <div class="seat-avatar" style="width: 30px; height: 30px; font-size: 12px; margin: 0; box-shadow: none;">${initial}</div>
                 <span class="lb-player-name">${escapeHtml(entry.username)}</span>
               </div>
             </td>
@@ -3174,7 +3177,7 @@ const WizardAuth = (() => {
             </td>
             <td>
               <div class="lb-player-cell">
-                <div class="seat-avatar" style="width: 26px; height: 30px; font-size: 12px; margin: 0; box-shadow: none;">${initial}</div>
+                <div class="seat-avatar" style="width: 30px; height: 30px; font-size: 12px; margin: 0; box-shadow: none;">${initial}</div>
                 <span class="lb-player-name">${escapeHtml(entry.username)}</span>
               </div>
             </td>
@@ -4312,7 +4315,7 @@ const WizardVault = (() => {
     if (type === 'avatar_frame') return u.equipped_avatar_frame === itemId;
     if (type === 'card_back') return u.equipped_card_back === itemId;
     if (type === 'table_skin') return u.equipped_table_skin === itemId;
-    if (type === 'title') return u.equipped_title === itemId;
+    if (type === 'title') return (u.title === itemId || u.equipped_title === itemId);
     if (type === 'lobby_background') return u.equipped_lobby_background === itemId;
     return false;
   }
@@ -5320,7 +5323,7 @@ const WizardVault = (() => {
     if (type === 'avatar_frame') {
       const frameId = item.id || 'none';
       return `
-        <div class="seat-avatar frame-${frameId}" style="width:48px;height:54px;margin-bottom:6px;box-shadow:0 3px 8px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;" title="${escapeHtml(item.name || '')}">
+        <div class="seat-avatar frame-${frameId}" style="width:48px;height:48px;margin-bottom:6px;box-shadow:0 3px 8px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;" title="${escapeHtml(item.name || '')}">
           <span style="font-family:var(--font-heading);font-size:22px;color:var(--gold-bright);">${initial}</span>
         </div>
       `;
@@ -5387,11 +5390,11 @@ const WizardVault = (() => {
 
     const a = u.avatar_id || 'default';
     if (previewInitial && previewImg) {
-      if (!a || a === 'default' || a === 'wizard_blue' || !a.startsWith('icon_')) {
+      if (!a || a === 'default') {
         previewInitial.style.display = 'flex';
         previewInitial.innerText = initial;
         previewImg.style.display = 'none';
-      } else {
+      } else if (a.startsWith('icon_')) {
         previewInitial.style.display = 'none';
         previewImg.style.display = 'block';
         previewImg.src = `/images/avatars/${a}.png`;
@@ -5400,6 +5403,19 @@ const WizardVault = (() => {
           previewInitial.style.display = 'flex';
           previewInitial.innerText = initial;
         };
+      } else if (a.startsWith('wizard_')) {
+        previewInitial.style.display = 'none';
+        previewImg.style.display = 'block';
+        previewImg.src = `/images/avatars/${a}.svg`;
+        previewImg.onerror = function() {
+          previewImg.style.display = 'none';
+          previewInitial.style.display = 'flex';
+          previewInitial.innerText = initial;
+        };
+      } else {
+        previewInitial.style.display = 'flex';
+        previewInitial.innerText = initial;
+        previewImg.style.display = 'none';
       }
     }
 
@@ -5466,14 +5482,22 @@ const WizardVault = (() => {
       if (previewWrap) previewWrap.className = `wardrobe-mirror-avatar-wrap seat-avatar frame-${u.equipped_avatar_frame || 'none'}`;
       if (previewInitial && previewImg) {
         const curA = u.avatar_id || 'default';
-        if (!curA || curA === 'default' || curA === 'wizard_blue' || !curA.startsWith('icon_')) {
+        if (!curA || curA === 'default') {
           previewInitial.style.display = 'flex';
           previewInitial.innerText = initial;
           previewImg.style.display = 'none';
-        } else {
+        } else if (curA.startsWith('icon_')) {
           previewInitial.style.display = 'none';
           previewImg.style.display = 'block';
           previewImg.src = `/images/avatars/${curA}.png`;
+        } else if (curA.startsWith('wizard_')) {
+          previewInitial.style.display = 'none';
+          previewImg.style.display = 'block';
+          previewImg.src = `/images/avatars/${curA}.svg`;
+        } else {
+          previewInitial.style.display = 'flex';
+          previewInitial.innerText = initial;
+          previewImg.style.display = 'none';
         }
       }
       const catList = vaultData.catalog || {};
@@ -6104,9 +6128,20 @@ function openPlayerDetailModal(data, source = 'table') {
     const initial = isFriendSource ? (data.username ? data.username.charAt(0).toUpperCase() : '?') : (isBot ? '🤖' : (data.name ? data.name.charAt(0).toUpperCase() : '?'));
     const title = data.title || (isBot ? 'Virtueller Zitadellen-Gefährte' : 'Magier der Zitadelle');
 
-    if (avatarEl) avatarEl.innerText = initial;
+    if (avatarEl) {
+      const a = data.avatar_id || data.avatarId;
+      const f = data.equipped_avatar_frame || data.avatarFrame || 'none';
+      avatarEl.className = `player-detail-avatar-large seat-avatar frame-${f}`;
+      if (a && a.startsWith('icon_')) {
+        avatarEl.innerHTML = `<img src="/images/avatars/${a}.png" class="seat-avatar-img" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;" alt="${escapeHtml(name)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+      } else if (a && a.startsWith('wizard_')) {
+        avatarEl.innerHTML = `<img src="/images/avatars/${a}.svg" class="seat-avatar-img" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;" alt="${escapeHtml(name)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+      } else {
+        avatarEl.innerText = initial;
+      }
+    }
     if (nameEl) nameEl.innerText = name || 'Magier';
-    if (titleEl) titleEl.innerText = title;
+    if (titleEl) titleEl.innerHTML = getTitleBadgeHtml(title);
 
     // Status
     if (statusEl) {
@@ -7164,6 +7199,62 @@ socket.on('matchFormatChanged', ({ matchFormat, teams }) => {
   updateWaitingRoomView(amIHost);
 });
 
+// Seltenheiten für Titel-Plaketten
+const TITLE_RARITIES = {
+  // Legendary
+  'Oberster Erzmagier': 'legendary',
+  'Unantastbar': 'legendary',
+  'Herrscher des Chaos': 'legendary',
+  'Legende der Zitadelle': 'legendary',
+  'Beherrscher der Zeit': 'legendary',
+  'Der Ewig-Wachende': 'legendary',
+  'Sonnengott von Solaria': 'legendary',
+  'Avatar des Schicksals': 'legendary',
+  'Der Kopflose Reiter': 'legendary',
+  // Epic
+  'Drachenbändiger': 'epic',
+  'Vampir-Bannmeister': 'epic',
+  'Schicksalsweber': 'epic',
+  'Das Orakel von Avalon': 'epic',
+  'Meister der Renonce': 'epic',
+  'Der Dreifach-Gekrönte': 'epic',
+  'Phönixgeborener': 'epic',
+  'Schattenfürst': 'epic',
+  'Großinquisitor': 'epic',
+  'Herrscher der Gezeiten': 'epic',
+  'Die Weiße Hexe': 'epic',
+  'Vollstrecker der Prophezeiung': 'epic',
+  'Kürbiskönig von Halloween': 'epic',
+  'Graf der Finsternis': 'epic',
+  // Rare
+  'Seher der Sterne': 'rare',
+  'Schattenmeister': 'rare',
+  'Hüter der Flamme': 'rare',
+  'Gezeitenrufer': 'rare',
+  'Frostgeborener': 'rare',
+  'Meister der Vorhersage': 'rare',
+  'Der Scharfsinnige': 'rare',
+  'König der Bettler': 'rare',
+  'Wolfsseele': 'rare',
+  'Freund der Feen': 'rare',
+  'Sturmbringer': 'rare',
+  'Der Unberechenbare': 'rare',
+  'Archivar des Rates': 'rare',
+  'Hofmagier': 'rare',
+  'Nachtmahr der Zitadelle': 'rare',
+  'Geisterbeschwörer': 'rare'
+};
+
+function getTitleBadgeHtml(titleName) {
+  if (!titleName) return '';
+  const rarity = TITLE_RARITIES[titleName] || 'common';
+  let icon = '';
+  if (rarity === 'legendary') icon = '✦ ';
+  else if (rarity === 'epic') icon = '❖ ';
+  else if (rarity === 'rare') icon = '◆ ';
+  return `<div class="player-title-badge title-rarity-${rarity}" title="Titel: ${escapeHtml(titleName)}">${icon}${escapeHtml(titleName)}${icon ? ' ' + icon.trim() : ''}</div>`;
+}
+
 // Hilfsfunktion: Erstellt ein Spieler-Element für den Warteraum
 function createPlayerWaitingItem(p, isHostUser) {
   const isMe = (p.sessionId === mySessionId);
@@ -7199,7 +7290,7 @@ function createPlayerWaitingItem(p, isHostUser) {
       : '<span style="color: #e74c3c; font-size: 12px; font-weight: bold;">● Getrennt</span>');
 
   const initial = p.isBot ? '🤖' : (p.name ? p.name.charAt(0).toUpperCase() : '?');
-  const titleHtml = p.title ? `<div style="font-size: 11px; color: #d6be90; font-style: italic;">${escapeHtml(p.title)}</div>` : '';
+  const titleHtml = p.title ? getTitleBadgeHtml(p.title) : '';
 
   let rankBadgeHtml = '';
   if (p.rank && (p.userId || p.isBot)) {
@@ -7239,9 +7330,9 @@ function createPlayerWaitingItem(p, isHostUser) {
   let avatarVisualHtml = initial;
   if (p.avatarId) {
     if (p.avatarId.startsWith('icon_')) {
-      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none';">${initial}`;
+      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
     } else if (p.avatarId.startsWith('wizard_')) {
-      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.style.display='none';">${initial}`;
+      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
     }
   }
   const levelBadgeHtml = (p.accountLevel && p.accountLevel > 0)
@@ -7250,7 +7341,7 @@ function createPlayerWaitingItem(p, isHostUser) {
 
   item.innerHTML = `
     <div style="display: flex; align-items: center; gap: 10px;">
-      <div class="seat-avatar ${frameClass}" style="width: 32px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${avatarVisualHtml}</div>
+      <div class="seat-avatar ${frameClass}" style="width: 36px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${avatarVisualHtml}</div>
       <div>
         <div style="font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
           <b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge} ${botBadge}
@@ -8897,8 +8988,12 @@ function renderOpponents() {
 
     const frameClass = `frame-${p.avatarFrame || 'none'}`;
     let avatarVisualHtml = `<span class="seat-avatar-initial">${initial}</span>`;
-    if (p.avatarId && p.avatarId.startsWith('icon_')) {
-      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.remove();">${initial}`;
+    if (p.avatarId) {
+      if (p.avatarId.startsWith('icon_')) {
+        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+      } else if (p.avatarId.startsWith('wizard_')) {
+        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+      }
     }
     const levelBadgeHtml = (p.accountLevel && p.accountLevel > 0)
       ? `<span class="user-pill-level-badge" title="Stufe ${p.accountLevel}">Lvl ${p.accountLevel}</span>`
@@ -8906,8 +9001,10 @@ function renderOpponents() {
 
     seatEl.innerHTML = `
       ${foreheadCardHtml}
-      <div class="seat-avatar ${disconnectedClass} ${frameClass}">
-        ${avatarVisualHtml}
+      <div class="seat-avatar-container" style="position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <div class="seat-avatar ${disconnectedClass} ${frameClass}">
+          ${avatarVisualHtml}
+        </div>
         ${dealerPinHtml}
       </div>
       <div class="seat-details">
@@ -9115,6 +9212,12 @@ function renderTrickCards(trickCards, animateLast = true) {
     const frontFace = renderCard(item.card);
     frontFace.classList.add('card-3d-face', 'card-3d-front');
     cardWrapper.appendChild(frontFace);
+
+    const backFace = document.createElement('div');
+    const myCardBack = (currentUser && currentUser.equipped_card_back) || 'default';
+    backFace.className = `card card-back cardback-theme-${myCardBack} card-3d-face card-3d-back`;
+    backFace.innerHTML = `<div class="card-back-inner"><div class="card-back-ornament"></div></div>`;
+    cardWrapper.appendChild(backFace);
 
     const rot = ((idx % 4) - 1.5) * 4;
     cardWrapper.style.setProperty('--rand-rot', `${rot}deg`);
@@ -9695,18 +9798,22 @@ function renderCard(card) {
   }
 
   if (card.isBlind || card.type === 'blind_card') {
-    div.classList.add('card-blind');
+    const myCardBack = (currentUser && currentUser.equipped_card_back) || 'default';
+    div.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBack}`);
     div.innerHTML = `
-      <div class="card-corner top-left">
-        <span class="card-val">?</span>
-      </div>
-      <div class="card-center">
-        <div class="card-center-crest" style="font-size: 20px;">✦</div>
-        <div class="card-center-val" style="font-size: 28px; color: var(--gold-bright); margin-top: 1px;">?</div>
-        <div class="card-name-label"><em>Stirn-Karte</em></div>
-      </div>
-      <div class="card-corner bottom-right">
-        <span class="card-val">?</span>
+      <div class="card-back-inner">
+        <div class="card-back-ornament"></div>
+        <div class="card-corner top-left">
+          <span class="card-val">?</span>
+        </div>
+        <div class="card-center">
+          <div class="card-center-crest" style="font-size: 20px;">✦</div>
+          <div class="card-center-val" style="font-size: 28px; color: var(--gold-bright); margin-top: 1px;">?</div>
+          <div class="card-name-label"><em>Stirn-Karte</em></div>
+        </div>
+        <div class="card-corner bottom-right">
+          <span class="card-val">?</span>
+        </div>
       </div>
     `;
     return div;
@@ -10370,12 +10477,16 @@ function startMvpVoting(data, onDone) {
 
       const initial = cand.name ? cand.name.charAt(0).toUpperCase() : '?';
       const av = cand.avatarId || 'default';
-      const isCustom = av.startsWith('icon_');
-      const imgHtml = isCustom ? `<img src="/images/avatars/${av}.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.remove();">${initial}` : initial;
+      let imgHtml = initial;
+      if (av.startsWith('icon_')) {
+        imgHtml = `<img src="/images/avatars/${av}.png" alt="" class="seat-avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+      } else if (av.startsWith('wizard_')) {
+        imgHtml = `<img src="/images/avatars/${av}.svg" alt="" class="seat-avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+      }
 
       card.innerHTML = `
-        <div class="seat-avatar frame-${cand.frame || 'none'}" style="width: 58px; height: 66px; font-size: 26px; margin-bottom: 6px;">
-          ${imgHtml}${initial}
+        <div class="seat-avatar frame-${cand.frame || 'none'}" style="width: 58px; height: 58px; font-size: 26px; margin-bottom: 6px;">
+          ${imgHtml}
         </div>
         <div style="font-weight: 800; font-size: 14px; color: #fff; margin-bottom: 2px;">${escapeHtml(cand.name)}</div>
         <div class="mvp-card-badge">${cand.badge || '⭐ Meistermagier'}</div>

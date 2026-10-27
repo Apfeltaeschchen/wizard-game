@@ -68,23 +68,40 @@
     </g>
   </g>
 
-  <!-- 4. EINGELEFASSTE ZIERBORDÜRE AM INNEREN RAND (BEVEL) -->
-  <rect x="25" y="25" width="1550" height="950" rx="18" ry="18" fill="none" stroke="url(#goldInlayGrad)" stroke-width="1.2" opacity="0.45" />
-  <rect x="35" y="35" width="1530" height="930" rx="12" ry="12" fill="none" stroke="url(#goldInlayGrad)" stroke-width="0.6" stroke-dasharray="10 5" opacity="0.3" />
+  <!-- 4. EINGELEFASSTE UMLAUFENDE GOLD-KORDELBORDÜRE AM INNEREN RAND (ZITADELLEN-EDITION) -->
+  <rect x="18" y="18" width="1564" height="964" rx="20" ry="20" fill="none" stroke="url(#goldInlayGrad)" stroke-width="3" opacity="0.8" />
+  <rect x="24" y="24" width="1552" height="952" rx="16" ry="16" fill="none" stroke="#fef08a" stroke-width="1.8" stroke-dasharray="8 4 2 4" opacity="0.75" />
+  <rect x="34" y="34" width="1532" height="932" rx="12" ry="12" fill="none" stroke="url(#goldInlayGrad)" stroke-width="1.2" opacity="0.5" />
+  <rect x="42" y="42" width="1516" height="916" rx="8" ry="8" fill="none" stroke="#fef08a" stroke-width="0.8" stroke-dasharray="4 4" opacity="0.4" />
 
-  <!-- 5. POLIERTE MESSING-ECKSPANGEN -->
-  <g stroke="url(#goldInlayGrad)" fill="url(#brassGleam)" stroke-width="1.5" opacity="0.65">
-    <!-- Oben-Links -->
-    <path d="M 25,120 L 25,45 Q 25,25 45,25 L 120,25 L 95,50 L 50,50 L 50,95 Z" />
-    <circle cx="65" cy="65" r="4" fill="#d4af37" />
-    <!-- Oben-Rechts -->
-    <path d="M 1575,120 L 1575,45 Q 1575,25 1555,25 L 1480,25 L 1505,50 L 1550,50 L 1550,95 Z" />
-    <circle cx="1535" cy="65" r="4" fill="#d4af37" />
-    <!-- Unten-Links -->
-    <path d="M 25,880 L 25,955 Q 25,975 45,975 L 120,975 L 95,950 L 50,950 L 50,905 Z" />
-    <circle cx="65" cy="935" r="4" fill="#d4af37" />
-    <!-- Unten-Rechts -->
-    <path d="M 1575,880 L 1575,955 Q 1575,975 1555,975 L 1480,975 L 1505,950 L 1550,950 L 1550,905 Z" />
-    <circle cx="1535" cy="935" r="4" fill="#d4af37" />
+  <!-- 5. POLIERTE FILIGRANE AKANTHUS-MESSINGSPANGEN & ECKBESCHLÄGE -->
+  <g stroke="url(#goldInlayGrad)" fill="url(#brassGleam)" stroke-width="1.8" opacity="0.85">
+    <!-- Oben-Links: Akanthus-Spange & Eckbeschlag -->
+    <path d="M 18,140 L 18,45 Q 18,18 45,18 L 140,18 L 115,48 Q 65,48 48,65 L 48,115 Z" />
+    <path d="M 52,52 Q 85,25 125,32 Q 95,55 70,85 Z" fill="#d4af37" opacity="0.6" stroke-width="1" />
+    <circle cx="72" cy="72" r="5" fill="#fef08a" stroke="#713f12" stroke-width="1.5" />
+    <circle cx="110" cy="35" r="3.5" fill="#d4af37" />
+    <circle cx="35" cy="110" r="3.5" fill="#d4af37" />
+
+    <!-- Oben-Rechts: Akanthus-Spange & Eckbeschlag -->
+    <path d="M 1582,140 L 1582,45 Q 1582,18 1555,18 L 1460,18 L 1485,48 Q 1535,48 1552,65 L 1552,115 Z" />
+    <path d="M 1548,52 Q 1515,25 1475,32 Q 1505,55 1530,85 Z" fill="#d4af37" opacity="0.6" stroke-width="1" />
+    <circle cx="1528" cy="72" r="5" fill="#fef08a" stroke="#713f12" stroke-width="1.5" />
+    <circle cx="1490" cy="35" r="3.5" fill="#d4af37" />
+    <circle cx="1565" cy="110" r="3.5" fill="#d4af37" />
+
+    <!-- Unten-Links: Akanthus-Spange & Eckbeschlag -->
+    <path d="M 18,860 L 18,955 Q 18,982 45,982 L 140,982 L 115,952 Q 65,952 48,935 L 48,885 Z" />
+    <path d="M 52,948 Q 85,975 125,968 Q 95,945 70,915 Z" fill="#d4af37" opacity="0.6" stroke-width="1" />
+    <circle cx="72" cy="928" r="5" fill="#fef08a" stroke="#713f12" stroke-width="1.5" />
+    <circle cx="110" cy="965" r="3.5" fill="#d4af37" />
+    <circle cx="35" cy="890" r="3.5" fill="#d4af37" />
+
+    <!-- Unten-Rechts: Akanthus-Spange & Eckbeschlag -->
+    <path d="M 1582,860 L 1582,955 Q 1582,982 1555,982 L 1460,982 L 1485,952 Q 1535,952 1552,935 L 1552,885 Z" />
+    <path d="M 1548,948 Q 1515,975 1475,968 Q 1505,945 1530,915 Z" fill="#d4af37" opacity="0.6" stroke-width="1" />
+    <circle cx="1528" cy="928" r="5" fill="#fef08a" stroke="#713f12" stroke-width="1.5" />
+    <circle cx="1490" cy="965" r="3.5" fill="#d4af37" />
+    <circle cx="1565" cy="890" r="3.5" fill="#d4af37" />
   </g>
 </svg>

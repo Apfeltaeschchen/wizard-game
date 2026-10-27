@@ -1338,8 +1338,8 @@
       inset: 0;
       border-radius: inherit;
       pointer-events: none;
-      background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.42) 85%, rgba(0, 0, 0, 0.72) 100%);
-      box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.7);
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.18) 85%, rgba(0, 0, 0, 0.35) 100%);
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45);
       z-index: 5;
     }
 
@@ -1525,12 +1525,10 @@
       0%, 100% {
         box-shadow: 0 0 10px rgba(240, 195, 85, 0.7), 0 0 20px rgba(240, 195, 85, 0.35), inset 0 0 6px rgba(240, 195, 85, 0.4);
         border-color: var(--gold-antique);
-        transform: scale(1);
       }
       50% {
         box-shadow: 0 0 22px rgba(240, 195, 85, 1), 0 0 40px rgba(240, 195, 85, 0.75), 0 0 60px rgba(240, 195, 85, 0.4), inset 0 0 10px rgba(240, 195, 85, 0.8);
         border-color: #fffbeb;
-        transform: scale(1.14);
       }
     }
 
@@ -1565,6 +1563,8 @@
     .seat-avatar {
       width: 20px;
       height: 20px;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
       border-radius: 50%;
       background: linear-gradient(180deg, #374151 0%, #111827 100%);
       display: flex;
@@ -4614,6 +4614,44 @@
       font-style: italic;
     }
 
+    .player-title-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-subheading);
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      padding: 1.5px 8px;
+      border-radius: 10px;
+      margin-top: 4px;
+      background: rgba(30, 20, 10, 0.7);
+      border: 1px solid rgba(212, 163, 89, 0.45);
+      color: #d6be90;
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    .player-title-badge.title-rarity-rare {
+      color: #60a5fa;
+      border-color: rgba(96, 165, 250, 0.6);
+      background: rgba(30, 58, 138, 0.35);
+      box-shadow: 0 0 6px rgba(96, 165, 250, 0.25);
+    }
+    .player-title-badge.title-rarity-epic {
+      color: #c084fc;
+      border-color: rgba(192, 132, 252, 0.6);
+      background: rgba(88, 28, 135, 0.35);
+      box-shadow: 0 0 8px rgba(192, 132, 252, 0.3);
+    }
+    .player-title-badge.title-rarity-legendary {
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.75);
+      background: linear-gradient(180deg, rgba(120, 53, 15, 0.55) 0%, rgba(69, 26, 3, 0.75) 100%);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.45);
+      text-shadow: 0 0 4px rgba(245, 158, 11, 0.6);
+    }
+
     .waiting-player-avatar {
       width: 38px;
       height: 38px;
@@ -5718,13 +5756,14 @@
 
     .btn-vault-action {
       position: relative;
-      border-color: #f59e0b !important;
+      border: 1.5px solid var(--gold-bright) !important;
       color: #fbbf24 !important;
-      background: linear-gradient(180deg, rgba(245, 158, 11, 0.25), rgba(120, 53, 15, 0.4)) !important;
+      background: linear-gradient(180deg, #4d2d14 0%, #281406 100%) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7), 0 0 12px rgba(245, 158, 11, 0.45) !important;
     }
     .btn-vault-action:hover {
-      background: linear-gradient(180deg, rgba(245, 158, 11, 0.4), rgba(120, 53, 15, 0.6)) !important;
-      box-shadow: 0 0 14px rgba(245, 158, 11, 0.5) !important;
+      background: linear-gradient(180deg, #663d1a 0%, #3a1d0a 100%) !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 18px rgba(245, 158, 11, 0.75) !important;
     }
     .vault-notification-badge {
       position: absolute;
@@ -5874,8 +5913,8 @@
       animation: voidCrystalFloat 2.4s infinite ease-in-out;
     }
     @keyframes voidCrystalFloat {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px #c084fc); }
-      50% { transform: scale(1.05); filter: drop-shadow(0 0 14px #a855f7); }
+      0%, 100% { filter: drop-shadow(0 0 6px #c084fc); }
+      50% { filter: drop-shadow(0 0 16px #a855f7); }
     }
 
     /* SCHATZKAMMER MODAL */
@@ -6975,6 +7014,149 @@
     }
 
     /* =====================================================================
+       VOLLWERTIGE ECHTE SPIELKARTEN-RÜCKSEITEN (.card.card-back)
+       ===================================================================== */
+    .card.card-back {
+      padding: 4px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card.card-back .card-back-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+      border: 1.5px solid rgba(240, 195, 85, 0.5);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .card.card-back .card-back-inner::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border: 1px dashed rgba(240, 195, 85, 0.35);
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .card.card-back .card-back-ornament {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ORNAMENTE & SIEGEL DER 10 KARTENDECKS AUF ECHTEN SPIELKARTEN */
+    .card.card-back.cardback-theme-default .card-back-ornament::after {
+      content: '✦';
+      font-size: 34px;
+      font-weight: 900;
+      color: #78350f;
+      text-shadow: 0 1px 3px rgba(254, 240, 138, 0.9);
+      font-family: var(--font-heading);
+    }
+    .card.card-back.cardback-theme-citadel_ancient .card-back-inner {
+      border: 1.5px solid #fef08a !important;
+    }
+    .card.card-back.cardback-theme-citadel_ancient .card-back-ornament::after {
+      content: '❂';
+      font-size: 38px;
+      color: #fef08a;
+      text-shadow: 0 0 14px #f59e0b, 0 2px 5px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+    .card.card-back.cardback-theme-parchment .card-back-ornament::after {
+      content: '⚜';
+      font-size: 34px;
+      color: #fbbf24;
+      text-shadow: 0 0 8px #78350f, 0 1px 3px rgba(0,0,0,0.8);
+      font-family: var(--font-heading);
+    }
+    .card.card-back.cardback-theme-forest .card-back-ornament::after {
+      content: '❧';
+      font-size: 38px;
+      color: #a7f3d0;
+      text-shadow: 0 0 14px #10b981, 0 1px 4px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+    .card.card-back.cardback-theme-spider_queen .card-back-ornament::after {
+      content: '🕸';
+      font-size: 34px;
+      color: #e9d5ff;
+      filter: drop-shadow(0 0 8px #a855f7);
+    }
+    .card.card-back.cardback-theme-shadow .card-back-ornament::after {
+      content: '☬';
+      font-size: 34px;
+      color: #e9d5ff;
+      text-shadow: 0 0 12px #9333ea, 0 1px 3px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+    .card.card-back.cardback-theme-pumpkin_king .card-back-ornament::after {
+      content: '❖';
+      font-size: 38px;
+      color: #fed7aa;
+      text-shadow: 0 0 14px #ea580c, 0 2px 5px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+    .card.card-back.cardback-theme-gravestone_runes .card-back-ornament::after {
+      content: '☩';
+      font-size: 38px;
+      color: #cbd5e1;
+      text-shadow: 0 0 10px #38bdf8, 0 2px 4px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+    .card.card-back.cardback-theme-astral .card-back-ornament::after {
+      content: '✵';
+      font-size: 38px;
+      color: #c7d2fe;
+      text-shadow: 0 0 12px #6366f1, 0 1px 4px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+    .card.card-back.cardback-theme-dragon .card-back-ornament::after {
+      content: '◈';
+      font-size: 40px;
+      color: #fef08a;
+      text-shadow: 0 0 14px #dc2626, 0 2px 5px rgba(0,0,0,0.9);
+      font-family: var(--font-heading);
+    }
+
+    /* STIRNKARTE IM SPIEL AUF KARTENRÜCKSEITE (.card.card-blind.card-back) */
+    .card.card-blind.card-back {
+      position: relative;
+    }
+    .card.card-blind.card-back .card-center {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .card.card-blind.card-back .card-back-ornament {
+      opacity: 0.28;
+    }
+
+    /* 3D-KARTENRÜCKSEITE FÜR DEN KARTENFLUG */
+    .card-3d-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform: rotateY(180deg);
+    }
+
+    /* =====================================================================
        ZERO CRUDE ICONS: SPIELTISCH-VORSCHAUEN (MINI-POKERTISCHE OHNE EMOJIS)
        ===================================================================== */
     .cosmetic-mini-table {
@@ -7427,8 +7609,8 @@
       animation: ghostSpecterFloat 2.6s infinite ease-in-out;
     }
     @keyframes ghostSpecterFloat {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.7)); }
-      50% { transform: scale(1.04); filter: drop-shadow(0 0 18px rgba(94, 234, 212, 0.95)); }
+      0%, 100% { filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.7)); }
+      50% { filter: drop-shadow(0 0 20px rgba(94, 234, 212, 0.95)); }
     }
     .seat-avatar.frame-mvp_glow {
       border: 3px solid #fbbf24;
@@ -7712,7 +7894,7 @@
         <!-- ANGEMELDET-MODUS -->
         <div id="auth-user-controls" class="auth-bar-group" style="display: none;">
           <div id="authUserPill" class="user-crest-pill" title="Profil &amp; Statistiken öffnen">
-            <div id="lobbyUserAvatarShield" class="seat-avatar frame-none" style="width: 28px; height: 32px; font-size: 13px; margin: 0; box-shadow: none;">M</div>
+            <div id="lobbyUserAvatarShield" class="seat-avatar frame-none" style="width: 32px; height: 32px; font-size: 13px; margin: 0; box-shadow: none;">M</div>
             <div class="user-pill-text">
               <div style="display: flex; align-items: center; gap: 4px;">
                 <span id="lobbyUserName" class="user-pill-name">Magier</span>
@@ -8690,7 +8872,7 @@
       <!-- PROFIL-HEADER -->
       <div class="profile-hero-card">
         <div class="profile-avatar-wrap">
-          <div id="profileAvatarShield" class="seat-avatar" style="width: 54px; height: 60px; font-size: 26px; border-width: 2px;">M</div>
+          <div id="profileAvatarShield" class="seat-avatar" style="width: 58px; height: 58px; font-size: 26px; border-width: 2px;">M</div>
         </div>
         <div class="profile-hero-info">
           <h2 id="profileUsername" class="profile-username">Magier</h2>
@@ -9488,7 +9670,7 @@
       </div>
 
       <div class="highlight-spotlight-player">
-        <div id="highlightPlayerAvatarWrap" class="seat-avatar frame-golden_runes" style="width: 76px; height: 86px; font-size: 34px;">
+        <div id="highlightPlayerAvatarWrap" class="seat-avatar frame-golden_runes" style="width: 76px; height: 76px; font-size: 34px;">
           <img id="highlightPlayerAvatarImg" src="/images/avatars/wizard_blue.svg" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
         </div>
         <div>

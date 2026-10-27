@@ -77,6 +77,67 @@
     <circle r="6" fill="#ffffff" />
   </g>
 
-  <!-- 4. ASTRALE MESSING-BORDÜRE MIT HIMMELSKOORDINATEN -->
-  <rect x="25" y="25" width="1550" height="950" rx="16" fill="none" stroke="url(#astralGold)" stroke-width="1.2" stroke-dasharray="40 20 10 20" opacity="0.4" />
+  <!-- 4. UMLAUFENDER GOLDENER TIERKREISKRANZ & GRADMARKIERUNGEN AM AUSSENRAND -->
+  <g stroke="url(#astralGold)" fill="none" opacity="0.85">
+    <!-- Äußere doppelte Messing-Bordüre -->
+    <rect x="18" y="18" width="1564" height="964" rx="20" stroke-width="2.5" opacity="0.8" />
+    <rect x="28" y="28" width="1544" height="944" rx="14" stroke-width="1.2" opacity="0.6" />
+    <rect x="36" y="36" width="1528" height="928" rx="10" stroke-width="0.8" stroke-dasharray="10 5" opacity="0.45" />
+
+    <!-- Gradmarkierungen oben & unten (Teilungskranz) -->
+    <g stroke="#fef08a" stroke-width="1.2" opacity="0.75">
+      <!-- Obere Gradstriche -->
+      <line x1="200" y1="18" x2="200" y2="28" /><line x1="300" y1="18" x2="300" y2="28" /><line x1="400" y1="18" x2="400" y2="28" />
+      <line x1="500" y1="18" x2="500" y2="28" /><line x1="600" y1="18" x2="600" y2="28" /><line x1="700" y1="18" x2="700" y2="28" />
+      <line x1="800" y1="18" x2="800" y2="32" stroke-width="2" /><line x1="900" y1="18" x2="900" y2="28" /><line x1="1000" y1="18" x2="1000" y2="28" />
+      <line x1="1100" y1="18" x2="1100" y2="28" /><line x1="1200" y1="18" x2="1200" y2="28" /><line x1="1300" y1="18" x2="1300" y2="28" /><line x1="1400" y1="18" x2="1400" y2="28" />
+
+      <!-- Untere Gradstriche -->
+      <line x1="200" y1="972" x2="200" y2="982" /><line x1="300" y1="972" x2="300" y2="982" /><line x1="400" y1="972" x2="400" y2="982" />
+      <line x1="500" y1="972" x2="500" y2="982" /><line x1="600" y1="972" x2="600" y2="982" /><line x1="700" y1="972" x2="700" y2="982" />
+      <line x1="800" y1="968" x2="800" y2="982" stroke-width="2" /><line x1="900" y1="972" x2="900" y2="982" /><line x1="1000" y1="972" x2="1000" y2="982" />
+      <line x1="1100" y1="972" x2="1100" y2="982" /><line x1="1200" y1="972" x2="1200" y2="982" /><line x1="1300" y1="972" x2="1300" y2="982" /><line x1="1400" y1="972" x2="1400" y2="982" />
+
+      <!-- Linke & rechte Gradstriche -->
+      <line x1="18" y1="250" x2="28" y2="250" /><line x1="18" y1="500" x2="32" y2="500" stroke-width="2" /><line x1="18" y1="750" x2="28" y2="750" />
+      <line x1="972" y1="250" x2="982" y2="250" /><line x1="1568" y1="500" x2="1582" y2="500" stroke-width="2" /><line x1="1572" y1="750" x2="1582" y2="750" />
+    </g>
+
+    <!-- Himmels- & Tierkreis-Symbole entlang der Ränder -->
+    <g fill="#fef08a" font-family="sans-serif" font-size="12" text-anchor="middle" opacity="0.85">
+      <text x="350" y="32">♈</text><text x="650" y="32">♉</text><text x="950" y="32">♊</text><text x="1250" y="32">♋</text>
+      <text x="350" y="976">♌</text><text x="650" y="976">♍</text><text x="950" y="976">♎</text><text x="1250" y="976">♏</text>
+    </g>
+  </g>
+
+  <!-- 5. FILIGRANE ASTROLABIUM-ECKBESCHLÄGE -->
+  <g stroke="url(#astralGold)" fill="#0b1333" stroke-width="1.8" opacity="0.9">
+    <!-- Oben-Links: Astrolabium Quadrant -->
+    <path d="M 18,140 L 18,36 Q 18,18 36,18 L 140,18" />
+    <path d="M 18,18 L 110,110" stroke-dasharray="3 3" />
+    <path d="M 28,110 A 90,90 0 0,0 110,28" stroke-width="1.5" />
+    <circle cx="36" cy="36" r="6" fill="#fef08a" />
+    <circle cx="36" cy="36" r="2" fill="#040612" />
+
+    <!-- Oben-Rechts: Astrolabium Quadrant -->
+    <path d="M 1582,140 L 1582,36 Q 1582,18 1564,18 L 1460,18" />
+    <path d="M 1582,18 L 1490,110" stroke-dasharray="3 3" />
+    <path d="M 1572,110 A 90,90 0 0,1 1490,28" stroke-width="1.5" />
+    <circle cx="1564" cy="36" r="6" fill="#fef08a" />
+    <circle cx="1564" cy="36" r="2" fill="#040612" />
+
+    <!-- Unten-Links: Astrolabium Quadrant -->
+    <path d="M 18,860 L 18,964 Q 18,982 36,982 L 140,982" />
+    <path d="M 18,982 L 110,890" stroke-dasharray="3 3" />
+    <path d="M 28,890 A 90,90 0 0,1 110,972" stroke-width="1.5" />
+    <circle cx="36" cy="964" r="6" fill="#fef08a" />
+    <circle cx="36" cy="964" r="2" fill="#040612" />
+
+    <!-- Unten-Rechts: Astrolabium Quadrant -->
+    <path d="M 1582,860 L 1582,964 Q 1582,982 1564,982 L 1460,982" />
+    <path d="M 1582,982 L 1490,890" stroke-dasharray="3 3" />
+    <path d="M 1572,890 A 90,90 0 0,0 1490,972" stroke-width="1.5" />
+    <circle cx="1564" cy="964" r="6" fill="#fef08a" />
+    <circle cx="1564" cy="964" r="2" fill="#040612" />
+  </g>
 </svg>

@@ -70,6 +70,47 @@
     <circle r="22" stroke-width="1.2" fill="#fef08a" fill-opacity="0.3" />
   </g>
 
-  <!-- 4. GESCHWÄRZTER EISENRAND MIT DÄMONISCHEN RUNEN -->
-  <rect x="25" y="25" width="1550" height="950" rx="14" fill="none" stroke="url(#magmaFissureGrad)" stroke-width="1.4" stroke-dasharray="30 15 5 15" opacity="0.35" />
+  <!-- 4. GEZACKTE BASALTKANTEN MIT GLÜHENDEN MAGMARISSEN ENTLANG DER BANDE -->
+  <g stroke="url(#magmaFissureGrad)" fill="none" opacity="0.88" filter="url(#magmaGlow)">
+    <!-- Äußere gezackte Basalt-Bande -->
+    <rect x="18" y="18" width="1564" height="964" rx="16" stroke-width="2.5" opacity="0.6" />
+    <rect x="26" y="26" width="1548" height="948" rx="12" stroke-width="1.2" stroke-dasharray="20 8 4 8" opacity="0.5" />
+
+    <!-- Umlaufende leuchtende Magmarisse an den Kanten (Oben & Unten) -->
+    <path d="M 30,30 L 120,38 L 240,24 L 380,36 L 520,26 L 680,38 L 820,24 L 980,36 L 1140,26 L 1300,38 L 1440,26 L 1570,30" stroke-width="2.2" />
+    <path d="M 30,970 L 120,962 L 240,976 L 380,964 L 520,974 L 680,962 L 820,976 L 980,964 L 1140,974 L 1300,962 L 1440,974 L 1570,970" stroke-width="2.2" />
+
+    <!-- Umlaufende leuchtende Magmarisse an den Flanken (Links & Rechts) -->
+    <path d="M 30,30 L 38,150 L 24,300 L 36,460 L 26,620 L 38,780 L 28,900 L 30,970" stroke-width="2.2" />
+    <path d="M 1570,30 L 1562,150 L 1576,300 L 1564,460 L 1574,620 L 1562,780 L 1572,900 L 1570,970" stroke-width="2.2" />
+
+    <!-- Feine glühende Nebenadern in die Tischfläche hinein -->
+    <path d="M 380,36 L 410,70 M 820,24 L 840,65 M 1300,38 L 1280,72" stroke="#fef08a" stroke-width="1.2" />
+    <path d="M 520,974 L 500,935 M 980,964 L 1010,930 M 1440,974 L 1420,935" stroke="#fef08a" stroke-width="1.2" />
+    <path d="M 24,300 L 65,320 M 38,780 L 75,760" stroke="#fef08a" stroke-width="1.2" />
+    <path d="M 1576,300 L 1535,320 M 1562,780 L 1525,760" stroke="#fef08a" stroke-width="1.2" />
+  </g>
+
+  <!-- 5. BASALT-ECKBESCHLÄGE MIT GLÜHENDEN MAGMA-KERNEN -->
+  <g fill="#1b0604" stroke="url(#magmaFissureGrad)" stroke-width="2">
+    <!-- Oben-Links Basalt-Kralle -->
+    <polygon points="18,130 18,36 36,18 130,18 100,50 50,50 50,100" />
+    <circle cx="48" cy="48" r="8" fill="#f97316" filter="url(#magmaGlow)" />
+    <circle cx="48" cy="48" r="3.5" fill="#fef08a" />
+
+    <!-- Oben-Rechts Basalt-Kralle -->
+    <polygon points="1582,130 1582,36 1564,18 1470,18 1500,50 1550,50 1550,100" />
+    <circle cx="1552" cy="48" r="8" fill="#f97316" filter="url(#magmaGlow)" />
+    <circle cx="1552" cy="48" r="3.5" fill="#fef08a" />
+
+    <!-- Unten-Links Basalt-Kralle -->
+    <polygon points="18,870 18,964 36,982 130,982 100,950 50,950 50,900" />
+    <circle cx="48" cy="952" r="8" fill="#f97316" filter="url(#magmaGlow)" />
+    <circle cx="48" cy="952" r="3.5" fill="#fef08a" />
+
+    <!-- Unten-Rechts Basalt-Kralle -->
+    <polygon points="1582,870 1582,964 1564,982 1470,982 1500,950 1550,950 1550,900" />
+    <circle cx="1552" cy="952" r="8" fill="#f97316" filter="url(#magmaGlow)" />
+    <circle cx="1552" cy="952" r="3.5" fill="#fef08a" />
+  </g>
 </svg>
