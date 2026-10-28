@@ -7382,20 +7382,21 @@
       display: none !important;
     }
 
-    /* TISCH-DECKSTAPEL (3D PHYSISCHER TALON NEBEN DEM TRUMPF) */
+    /* TISCH-DECKSTAPEL (3D PHYSISCHER TALON MIT AUFLIEGENDEM TRUMPF) */
     .table-deck-pile {
       position: relative;
-      width: clamp(38px, 9vw, 48px);
-      height: calc(clamp(38px, 9vw, 48px) * (1498 / 1050));
+      width: clamp(42px, 10vw, 54px);
+      height: calc(clamp(42px, 10vw, 54px) * (1498 / 1050));
       aspect-ratio: 1050 / 1498;
-      border-radius: 5px;
-      margin-top: 5px;
+      border-radius: 6px;
+      margin-top: 4px;
       cursor: pointer;
       user-select: none;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.25, 1), box-shadow 0.25s ease;
       background-size: cover !important;
       background-position: center !important;
       border: 1.5px solid var(--gold-antique);
+      perspective: 800px;
       /* Plastischer 3D-Kartenstapel mit Schichtkanten */
       box-shadow:
         0 1px 0 #1e1005,
@@ -7403,7 +7404,7 @@
         0 3px 0 #1e1005,
         0 4px 0 #522d0d,
         0 5px 0 #1e1005,
-        0 6px 12px rgba(0,0,0,0.85);
+        0 6px 14px rgba(0,0,0,0.88);
     }
     .table-deck-pile:hover {
       transform: translateY(-2px) scale(1.04);
@@ -7460,6 +7461,67 @@
       border-radius: 6px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.8);
       pointer-events: none;
+      z-index: 5;
+    }
+
+    /* TRUMPFKARTE DIREKT AUF DEM STAPEL */
+    .trump-card-on-deck {
+      position: absolute;
+      inset: -1px;
+      margin: 0 !important;
+      width: calc(100% + 2px) !important;
+      height: calc(100% + 2px) !important;
+      border-radius: inherit;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65);
+      transform-origin: center center;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.25, 1);
+      z-index: 2;
+    }
+    .trump-card-on-deck.trump-placed-angled {
+      transform: rotate(-3.5deg) scale(0.98);
+    }
+    .trump-card-on-deck:hover {
+      transform: rotate(0deg) scale(1.05);
+      z-index: 10;
+    }
+
+    /* AUFDECK-FLIP AUF DEM STAPEL */
+    @keyframes trumpFlipOntoDeck {
+      0% {
+        transform: translateY(-16px) scale(1.12) rotateY(180deg) rotate(4deg);
+        opacity: 0.7;
+        box-shadow: 0 16px 28px rgba(0,0,0,0.9);
+      }
+      50% {
+        transform: translateY(-10px) scale(1.08) rotateY(90deg) rotate(-2deg);
+        opacity: 1;
+      }
+      100% {
+        transform: rotate(-3.5deg) scale(0.98) rotateY(0deg);
+        opacity: 1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65);
+      }
+    }
+    .trump-card-revealing {
+      animation: trumpFlipOntoDeck 0.45s cubic-bezier(0.2, 0.8, 0.25, 1) both !important;
+    }
+
+    /* STIRNKARTEN EINBLENDUNG BEI ANKUNFT */
+    .forehead-floating-card {
+      transition: transform 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.25s ease;
+    }
+    .forehead-floating-card.forehead-pop-in {
+      animation: foreheadPopIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+    }
+    @keyframes foreheadPopIn {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -30%) scale(0.4) rotate(-8deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+      }
     }
 
     /* 3D-CARD-FLIP BEIM AUSTEILEN */
@@ -9033,14 +9095,15 @@
         </div>
       </div>
       
-      <!-- KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS SCHWEBEND) -->
+      <!-- KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS SCHWEBEND) MIT AUFLIEGENDEM TRUMPF AUF DEM 3D-TALON -->
       <div class="trump-section-fixed" id="trump-wrapper" title="Aufgedeckte Trumpfkarte & Nachziehdeck">
-        <div class="trump-label">Trumpf</div>
-        <div id="trump-container"></div>
+        <div class="trump-label">Trumpf & Talon</div>
         <!-- PHYSISCHER 3D-KARTENSTAPEL (TALON) -->
         <div id="table-deck-pile" class="table-deck-pile cardback-theme-default" title="Nachziehstapel der Hohen Zitadelle">
+          <div id="trump-container"></div>
           <span id="table-deck-badge" class="table-deck-count-badge">60</span>
         </div>
+        <div id="trump-subtext-container" style="display: flex; justify-content: center; width: 100%; margin-top: 2px;"></div>
         <div id="bidding-summary-pill" class="bidding-summary-pill" style="display: none;">🎯 Bilanz: -</div>
       </div>
 

@@ -127,7 +127,16 @@ const sandbox = {
 
 vm.createContext(sandbox);
 
-// Führe renderCard Definition aus
+// Führe Hilfsfunktionen und renderCard Definition aus
+const helperIdx = js.indexOf('function getCurrentUserCardBack()');
+if (helperIdx !== -1) {
+  const helperCode = js.substring(
+    helperIdx,
+    js.indexOf('// --- INTERAKTIVER 3D-KARTENRÜCKEN-INSPEKTOR')
+  );
+  vm.runInContext(helperCode, sandbox);
+}
+
 const renderCardCode = js.substring(
   js.indexOf('function renderCard(card)'),
   js.indexOf('// --- DAS BUCH DER WAHRHEIT')
@@ -159,11 +168,15 @@ const wizFront = wizFlipper.children.find(c => c.classList.contains('card-face-f
 assert.ok(wizFront.innerHTML.includes('Erzmagier'), 'Vorderseite muss Erzmagier-Label enthalten');
 console.log('✓ 3b. Erzmagier erfolgreich mit Dual-Face gerendert');
 
-// Test 3c: Blind-Karte (z. B. Stirnkarte des Spielers)
+// Test 3c: Blind-Karte (z. B. Stirnkarte des Spielers mit 3D-Flipper)
 const blindCardEl = sandbox.renderCard({ type: 'blind_card', isBlind: true });
 assert.ok(blindCardEl.classList.contains('card-blind'), 'Blind-Karte muss .card-blind besitzen');
 assert.ok(blindCardEl.classList.contains('card-back'), 'Blind-Karte muss .card-back besitzen');
-console.log('✓ 3c. Blind-Karte bleibt als einfache verdeckte Karte intakt');
+const blindFlipper = blindCardEl.children.find(c => c.classList.contains('card-flipper'));
+assert.ok(blindFlipper, 'Blind-Karte muss .card-flipper für den Austeil-Flip besitzen');
+const blindFront = blindFlipper.children.find(c => c.classList.contains('card-face-front'));
+assert.ok(blindFront.innerHTML.includes('Stirn-Karte'), 'Vorderseite muss Stirn-Karten Label enthalten');
+console.log('✓ 3c. Blind-Karte erfolgreich mit Dual-Face und 3D-Flipper gerendert');
 
 // 4. Verifiziere animateTableDealing und opponent-deck-badge an Sitzen
 console.log('4. Verifiziere animateTableDealing & opponent-deck-badge Integration...');

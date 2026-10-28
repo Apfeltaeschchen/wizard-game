@@ -6470,6 +6470,34 @@ const WizardVault = (() => {
 })();
 if (typeof window !== 'undefined') window.WizardVault = WizardVault;
 
+// --- AUSFALLSICHERE ERMITTLUNG DES AUSGERÜSTETEN KARTENRÜCKENS DES SPIELERS ---
+function getCurrentUserCardBack() {
+  try {
+    if (typeof WizardAuth !== 'undefined' && WizardAuth.getUser && WizardAuth.getUser()) {
+      const u = WizardAuth.getUser();
+      if (u && u.equipped_card_back) return u.equipped_card_back;
+    }
+    if (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) {
+      const vd = WizardVault.getVaultData();
+      if (vd && vd.user && vd.user.equipped_card_back) return vd.user.equipped_card_back;
+    }
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.equipped_card_back) {
+      return currentUser.equipped_card_back;
+    }
+    if (typeof vaultData !== 'undefined' && vaultData && vaultData.user && vaultData.user.equipped_card_back) {
+      return vaultData.user.equipped_card_back;
+    }
+    if (typeof localStorage !== 'undefined') {
+      const cached = localStorage.getItem('wizard_user');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.equipped_card_back) return parsed.equipped_card_back;
+      }
+    }
+  } catch (e) {}
+  return 'default';
+}
+
 // --- INTERAKTIVER 3D-KARTENRÜCKEN-INSPEKTOR ---
 function openCardBackInspectModal(deckId) {
   try {
@@ -8232,7 +8260,12 @@ socket.on('gameStarted', ({ round, maxRounds: mr, trumpCard, gameState }) => {
 
   closeScoreDrawer();
   closeRulesDrawer();
-  renderTrumpCard(trumpCard);
+  // Wenn eine Austeilanimation ansteht, wird der Trumpf erst nach den Handkarten aufgedeckt
+  if (!isDealingAnimationPending) {
+    renderTrumpCard(trumpCard);
+  } else {
+    updateTableDeckPile();
+  }
   renderOpponents();
   renderScoreBoard();
   updateMyStatsHUD();
@@ -8439,10 +8472,10 @@ socket.on('handDealt', (hand) => {
   const dealDelay = isDrawerOpen ? 820 : 150;
   dealDelayTimer = setTimeout(() => {
     dealDelayTimer = null;
+    // Sicherstellen, dass der Spielbildschirm bei Austeilbeginn aktiv ist
     if (typeof gameScreen !== 'undefined' && gameScreen && gameScreen.style.display === 'none') {
-      isDealingAnimationPending = false;
-      pendingTurnState = null;
-      return;
+      if (typeof switchScreen === 'function') switchScreen('game');
+      if (tableArea) tableArea.style.display = 'flex';
     }
 
     // 1. Tischweite Austeilanimation (Uno-Style) an alle Mitspieler starten
@@ -8460,7 +8493,16 @@ socket.on('handDealt', (hand) => {
     else staggerMs = 38;
 
     const maxOpponentOffset = Math.max(0, (cachedPlayers.length - 2) * 25);
-    const totalDealDuration = Math.max(0, count - 1) * staggerMs + 400 + maxOpponentOffset;
+    const handDealDuration = Math.max(0, count - 1) * staggerMs + 400 + maxOpponentOffset;
+
+    // 4. Nachdem die Handkarten gelandet sind: Trumpfkarte feierlich auf den 3D-Stapel aufdecken
+    setTimeout(() => {
+      if (cachedTrumpCard) {
+        renderTrumpCard(cachedTrumpCard, true);
+      }
+    }, Math.max(150, handDealDuration - 100));
+
+    const totalDealDuration = handDealDuration + 480;
 
     dealFinishTimer = setTimeout(() => {
       dealFinishTimer = null;
@@ -9304,15 +9346,24 @@ function animateTableDealing(roundCardCount) {
     const fxRect = fxLayer.getBoundingClientRect ? fxLayer.getBoundingClientRect() : null;
     if (!fxRect || fxRect.width === 0) return;
 
-    // Start-Position: Tischmitte (#trick-container oder #table-area Zentrum)
+    // Start-Position: Nachziehstapel (#table-deck-pile oder #trump-wrapper)
     let startX = fxRect.width / 2;
     let startY = fxRect.height / 2;
-    const trickContainer = document.getElementById('trick-container');
-    if (trickContainer && trickContainer.getBoundingClientRect) {
-      const tRect = trickContainer.getBoundingClientRect();
-      if (tRect && tRect.width > 0 && tRect.height > 0) {
-        startX = (tRect.left + tRect.width / 2) - fxRect.left;
-        startY = (tRect.top + tRect.height / 2) - fxRect.top;
+    const deckPile = document.getElementById('table-deck-pile') || document.getElementById('trump-wrapper');
+    if (deckPile && deckPile.getBoundingClientRect) {
+      const dRect = deckPile.getBoundingClientRect();
+      if (dRect && dRect.width > 0 && dRect.height > 0) {
+        startX = (dRect.left + dRect.width / 2) - fxRect.left;
+        startY = (dRect.top + dRect.height / 2) - fxRect.top;
+      }
+    } else {
+      const trickContainer = document.getElementById('trick-container');
+      if (trickContainer && trickContainer.getBoundingClientRect) {
+        const tRect = trickContainer.getBoundingClientRect();
+        if (tRect && tRect.width > 0 && tRect.height > 0) {
+          startX = (tRect.left + tRect.width / 2) - fxRect.left;
+          startY = (tRect.top + tRect.height / 2) - fxRect.top;
+        }
       }
     }
 
@@ -9392,6 +9443,15 @@ function animateTableDealing(roundCardCount) {
               setTimeout(() => {
                 if (seatEl && seatEl.classList) seatEl.classList.remove('seat-card-pulse');
               }, 350);
+
+              // Falls in Runde 1 eine Stirnkarte vorliegt: Bei Ankunft sanft aufdecken
+              const foreheadCard = seatEl.querySelector('.forehead-floating-card');
+              if (foreheadCard) {
+                foreheadCard.style.opacity = '1';
+                foreheadCard.classList.remove('forehead-pop-in');
+                void foreheadCard.offsetWidth;
+                foreheadCard.classList.add('forehead-pop-in');
+              }
             }
           }, flightDuration);
         }, cardDelay);
@@ -9497,8 +9557,9 @@ function renderOpponents() {
         `;
       }
 
+      const initialForeheadOpacity = isDealingAnimationPending ? '0' : '1';
       foreheadCardHtml = `
-        <div class="forehead-floating-card" title="Stirnkarte von ${escapeHtml(p.name)}">
+        <div class="forehead-floating-card" style="opacity: ${initialForeheadOpacity};" title="Stirnkarte von ${escapeHtml(p.name)}">
           ${cardEl.outerHTML}
           ${badgeHtml}
         </div>
@@ -9818,7 +9879,7 @@ function renderTrickCards(trickCards, animateLast = true) {
 
     const backFace = document.createElement('div');
     const cardPlayer = cachedPlayers.find(p => p.sessionId === item.playerSessionId);
-    const playerCardBack = (cardPlayer && cardPlayer.cardBack) || (currentUser && currentUser.equipped_card_back) || 'default';
+    const playerCardBack = (cardPlayer && cardPlayer.cardBack) || getCurrentUserCardBack();
     backFace.className = `card card-back cardback-theme-${playerCardBack} card-3d-face card-3d-back`;
     backFace.innerHTML = `<div class="card-back-inner"><div class="card-back-ornament"></div></div>`;
     cardWrapper.appendChild(backFace);
@@ -9903,49 +9964,46 @@ function renderTrickCards(trickCards, animateLast = true) {
   });
 }
 
-// --- TRUMPFKARTE RENDERN (KOMPAKTER TALISMAN-DOCK) ---
-function renderTrumpCard(trumpCard) {
-  trumpContainer.innerHTML = '';
-
-  const wrap = document.createElement('div');
-  wrap.style.display = 'flex';
-  wrap.style.flexDirection = 'column';
-  wrap.style.alignItems = 'center';
+// --- TRUMPFKARTE RENDERN (DIREKT AUF DEM 3D-TALON PLATZIERT) ---
+function renderTrumpCard(trumpCard, isNewDeal = false) {
+  const trumpContainer = document.getElementById('trump-container');
+  const subTextContainer = document.getElementById('trump-subtext-container');
+  if (trumpContainer) trumpContainer.innerHTML = '';
+  if (subTextContainer) subTextContainer.innerHTML = '';
 
   const suitNames = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
 
   if (!trumpCard) {
-    const emptyCard = document.createElement('div');
-    emptyCard.classList.add('card', 'trump-card-compact');
-    emptyCard.style.background = 'rgba(24, 14, 8, 0.7)';
-    emptyCard.style.borderColor = '#5a371c';
-    emptyCard.innerHTML = '<span style="font-size: 16px; color: var(--gold-antique); font-family: var(--font-medieval);">-</span>';
-
-    const subText = document.createElement('div');
-    subText.style.fontStyle = 'italic';
-    subText.style.fontSize = '9px';
-    subText.style.color = '#d6be90';
-    subText.style.marginTop = '2px';
-    subText.style.fontFamily = 'var(--font-subheading)';
-    subText.innerText = 'Kein Trumpf';
-
-    wrap.appendChild(emptyCard);
-    wrap.appendChild(subText);
-    wrap.title = 'Kein Trumpf in dieser Runde';
-    trumpContainer.appendChild(wrap);
+    if (subTextContainer) {
+      subTextContainer.innerHTML = '<span style="font-style: italic; font-size: 9px; color: #d6be90; font-family: var(--font-subheading);">Kein Trumpf</span>';
+    }
+    updateTableDeckPile();
     return;
   }
 
   const el = renderCard(trumpCard);
-  el.classList.add('trump-card-compact');
-  wrap.appendChild(el);
+  el.classList.add('trump-card-compact', 'trump-card-on-deck', 'trump-placed-angled');
+
+  if (isNewDeal) {
+    el.classList.add('trump-card-revealing');
+    setTimeout(() => {
+      el.classList.remove('trump-card-revealing');
+      if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) {
+        WizardAudio.playCardSnap();
+      }
+    }, 450);
+  }
+
+  if (trumpContainer) {
+    trumpContainer.appendChild(el);
+  }
 
   const subText = document.createElement('div');
   subText.style.fontWeight = 'bold';
   subText.style.fontSize = '9.5px';
-  subText.style.marginTop = '2px';
   subText.style.fontFamily = 'var(--font-subheading)';
   subText.style.whiteSpace = 'nowrap';
+  subText.style.textAlign = 'center';
 
   if (trumpCard.type === 'werewolf_trump_pending') {
     subText.style.color = '#f59e0b';
@@ -9970,14 +10028,16 @@ function renderTrumpCard(trumpCard) {
     subText.innerText = `${suitNames[trumpCard.suit] || trumpCard.suit} ${trumpCard.value || ''}`;
   }
 
-  wrap.title = `Aufgedeckter Trumpf: ${subText.innerText}`;
-  wrap.addEventListener('click', () => {
+  if (subTextContainer) {
+    subTextContainer.appendChild(subText);
+  }
+
+  el.title = `Aufgedeckter Trumpf: ${subText.innerText}`;
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
     showToast(`Aufgedeckter Trumpf: ${subText.innerText}`);
     if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('light');
   });
-
-  wrap.appendChild(subText);
-  trumpContainer.appendChild(wrap);
 
   // Tisch-Deckstapel aktualisieren
   updateTableDeckPile();
@@ -9991,7 +10051,7 @@ function updateTableDeckPile() {
 
   // Ermittle das aktive Kartendeck des Hosts oder Tisches
   const hostPlayer = (cachedPlayers || []).find(p => p.isDealer || p.isHost);
-  const activeDeckSkin = (hostPlayer && hostPlayer.cardBack) || (currentUser && currentUser.equipped_card_back) || 'default';
+  const activeDeckSkin = (hostPlayer && hostPlayer.cardBack) || getCurrentUserCardBack();
 
   // Ermittle Seltenheit für das Rarity-Aura-Styling am Tisch
   const deckRarityMap = {
@@ -10470,10 +10530,27 @@ function renderCard(card) {
     };
   }
 
+  div.classList.add('card-dual-face');
+  const flipper = document.createElement('div');
+  flipper.className = 'card-flipper';
+
+  const frontFace = document.createElement('div');
+  frontFace.className = 'card-face card-face-front';
+  if (div.classList.contains('card-has-artwork')) {
+    frontFace.classList.add('card-has-artwork');
+  }
+
+  const myCardBackSkin = (typeof getCurrentUserCardBack === 'function')
+    ? getCurrentUserCardBack()
+    : ((typeof currentUser !== 'undefined' && currentUser && currentUser.equipped_card_back) || (typeof vaultData !== 'undefined' && vaultData && vaultData.user && vaultData.user.equipped_card_back) || 'default');
+  const backFace = document.createElement('div');
+  backFace.className = `card-face card-face-back card-back cardback-theme-${myCardBackSkin}`;
+  backFace.innerHTML = '';
+
   if (card.isBlind || card.type === 'blind_card') {
-    const myCardBack = (currentUser && currentUser.equipped_card_back) || (vaultData && vaultData.user && vaultData.user.equipped_card_back) || 'default';
-    div.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBack}`);
-    div.innerHTML = `
+    div.classList.add('card-blind', 'card-back');
+    frontFace.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBackSkin}`);
+    frontFace.innerHTML = `
       <div class="card-corner top-left">
         <span class="card-val">?</span>
       </div>
@@ -10486,23 +10563,11 @@ function renderCard(card) {
         <span class="card-val">?</span>
       </div>
     `;
+    flipper.appendChild(backFace);
+    flipper.appendChild(frontFace);
+    div.appendChild(flipper);
     return div;
   }
-
-  div.classList.add('card-dual-face');
-  const flipper = document.createElement('div');
-  flipper.className = 'card-flipper';
-
-  const frontFace = document.createElement('div');
-  frontFace.className = 'card-face card-face-front';
-  if (div.classList.contains('card-has-artwork')) {
-    frontFace.classList.add('card-has-artwork');
-  }
-
-  const myCardBackSkin = (currentUser && currentUser.equipped_card_back) || (vaultData && vaultData.user && vaultData.user.equipped_card_back) || 'default';
-  const backFace = document.createElement('div');
-  backFace.className = `card-face card-face-back card-back cardback-theme-${myCardBackSkin}`;
-  backFace.innerHTML = '';
 
   if (card.type === 'wizard') {
     div.classList.add('card-wizard');
