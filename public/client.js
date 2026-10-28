@@ -5838,7 +5838,8 @@ const WizardVault = (() => {
 
       const card = document.createElement('div');
       const isTitleCategory = (singularType === 'title');
-      card.className = `cosmetic-item-card ${isTitleCategory ? 'is-title-card' : ''} ${isEquipped ? 'equipped' : ''} ${!isOwned ? 'locked' : ''}`;
+      const itemRarity = item.rarity || 'common';
+      card.className = `cosmetic-item-card rarity-${itemRarity} ${isTitleCategory ? 'is-title-card' : ''} ${isEquipped ? 'equipped' : ''} ${!isOwned ? 'locked' : ''}`;
 
       const visualHtml = getCosmeticVisualHtml(item, singularType);
 
