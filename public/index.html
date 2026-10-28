@@ -7241,10 +7241,10 @@
        AUTHENTISCHE HIGH-END FANTASY-KARTENRÜCKEN (1050x1498 SVG VEKTORKUNST)
        ===================================================================== */
     .cosmetic-mini-cardback {
-      width: 54px;
-      height: 77px;
+      width: 66px;
+      height: 94px;
       aspect-ratio: 1050 / 1498;
-      border-radius: 6px;
+      border-radius: 7px;
       position: relative;
       display: flex;
       flex-direction: column;
@@ -7259,15 +7259,60 @@
       background-size: cover !important;
       background-position: center !important;
       background-repeat: no-repeat !important;
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
       cursor: pointer;
     }
     .cosmetic-mini-cardback:hover {
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.9), 0 0 12px rgba(240, 195, 85, 0.5);
+      transform: translateY(-4px) scale(1.06);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.95), 0 0 16px rgba(240, 195, 85, 0.6);
     }
     .cosmetic-mini-cardback-inner {
       display: none !important;
+    }
+
+    /* SELTENHEITS-STUFEN FÜR MINI-KARTENRÜCKEN (VISUELLES TIERING) */
+    /* 1. Common: Dunkles Eichenholz & gealtertes Eisen/Messing */
+    .cosmetic-mini-cardback.rarity-common {
+      border: 2px solid #78350f !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(180, 83, 9, 0.4) !important;
+    }
+    /* 2. Rare: Poliertes Elfen-Silber / Saphir-Smaragd mit feinem Kaltglühen */
+    .cosmetic-mini-cardback.rarity-rare {
+      border: 2px solid #38bdf8 !important;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.85), 0 0 14px rgba(56, 189, 248, 0.4), inset 0 0 0 1px rgba(224, 242, 254, 0.4) !important;
+    }
+    .cosmetic-mini-cardback.rarity-rare:hover {
+      box-shadow: 0 8px 22px rgba(0,0,0,0.95), 0 0 20px rgba(56, 189, 248, 0.75) !important;
+    }
+    /* 3. Epic: Dämonen-Obsidian & pulsierendes Twilight-Purpur */
+    .cosmetic-mini-cardback.rarity-epic {
+      border: 2px solid #c084fc !important;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.9), 0 0 16px rgba(192, 132, 252, 0.5), inset 0 0 0 1px rgba(245, 208, 254, 0.4) !important;
+      animation: pulseEpicBack 2.4s ease-in-out infinite alternate;
+    }
+    .cosmetic-mini-cardback.rarity-epic:hover {
+      box-shadow: 0 8px 26px rgba(0,0,0,0.95), 0 0 24px rgba(192, 132, 252, 0.9) !important;
+    }
+    /* 4. Legendary: 3D-Barockgold, Akanthusblätter & Sonnenfeuer-Sheen */
+    .cosmetic-mini-cardback.rarity-legendary {
+      border: 2.5px solid #fbbf24 !important;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.95), 0 0 22px rgba(251, 191, 36, 0.7), inset 0 0 0 1px rgba(254, 240, 138, 0.6) !important;
+      animation: pulseLegendaryBack 2s ease-in-out infinite alternate;
+    }
+    .cosmetic-mini-cardback.rarity-legendary::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -60%;
+      width: 220%;
+      height: 220%;
+      background: linear-gradient(135deg, transparent 40%, rgba(254, 240, 138, 0.45) 50%, transparent 60%);
+      transform: rotate(30deg);
+      animation: goldSheenSweep 3.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .cosmetic-mini-cardback.rarity-legendary:hover {
+      box-shadow: 0 10px 30px rgba(0,0,0,0.98), 0 0 30px rgba(251, 191, 36, 0.95) !important;
     }
 
     /* 10 KARTENRÜCKEN HIGH-END SVG MAPPINGS */
@@ -7278,7 +7323,7 @@
     .cardback-theme-citadel_ancient {
       background-image: url('/images/card_backs/back_citadel_ancient.svg') !important;
       border-color: #fbbf24 !important;
-      box-shadow: 0 0 14px rgba(251, 191, 36, 0.6) !important;
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.75) !important;
     }
     .cardback-theme-parchment {
       background-image: url('/images/card_backs/back_parchment.svg') !important;
@@ -7295,26 +7340,27 @@
     .cardback-theme-shadow {
       background-image: url('/images/card_backs/back_shadow.svg') !important;
       border-color: #c084fc !important;
-      box-shadow: 0 0 12px rgba(192, 132, 252, 0.4) !important;
+      box-shadow: 0 0 14px rgba(192, 132, 252, 0.5) !important;
     }
     .cardback-theme-pumpkin_king {
       background-image: url('/images/card_backs/back_pumpkin_king.svg') !important;
       border-color: #fb923c !important;
-      box-shadow: 0 0 12px rgba(249, 115, 22, 0.4) !important;
+      box-shadow: 0 0 14px rgba(249, 115, 22, 0.5) !important;
     }
     .cardback-theme-gravestone_runes {
       background-image: url('/images/card_backs/back_gravestone_runes.svg') !important;
       border-color: #94a3b8 !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;
     }
     .cardback-theme-astral {
       background-image: url('/images/card_backs/back_astral.svg') !important;
       border-color: #818cf8 !important;
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.45) !important;
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.5) !important;
     }
     .cardback-theme-dragon {
       background-image: url('/images/card_backs/back_dragon.svg') !important;
       border-color: #fbbf24 !important;
-      box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.65) !important;
     }
 
     /* =====================================================================
@@ -7346,10 +7392,10 @@
       margin-top: 5px;
       cursor: pointer;
       user-select: none;
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       background-size: cover !important;
       background-position: center !important;
-      border: 1px solid var(--gold-antique);
+      border: 1.5px solid var(--gold-antique);
       /* Plastischer 3D-Kartenstapel mit Schichtkanten */
       box-shadow:
         0 1px 0 #1e1005,
@@ -7361,6 +7407,44 @@
     }
     .table-deck-pile:hover {
       transform: translateY(-2px) scale(1.04);
+    }
+    .table-deck-pile.rarity-common {
+      border-color: #b45309;
+    }
+    .table-deck-pile.rarity-rare {
+      border-color: #38bdf8;
+      box-shadow:
+        0 1px 0 #082f49,
+        0 2px 0 #0369a1,
+        0 3px 0 #082f49,
+        0 4px 0 #0284c7,
+        0 5px 0 #082f49,
+        0 6px 14px rgba(0,0,0,0.85),
+        0 0 12px rgba(56, 189, 248, 0.45);
+    }
+    .table-deck-pile.rarity-epic {
+      border-color: #c084fc;
+      box-shadow:
+        0 1px 0 #2e1065,
+        0 2px 0 #581c87,
+        0 3px 0 #2e1065,
+        0 4px 0 #7e22ce,
+        0 5px 0 #2e1065,
+        0 6px 14px rgba(0,0,0,0.9),
+        0 0 16px rgba(192, 132, 252, 0.55);
+      animation: pulseEpicBack 2.4s ease-in-out infinite alternate;
+    }
+    .table-deck-pile.rarity-legendary {
+      border-color: #fbbf24;
+      box-shadow:
+        0 1px 0 #451a03,
+        0 2px 0 #92400e,
+        0 3px 0 #451a03,
+        0 4px 0 #d97706,
+        0 5px 0 #451a03,
+        0 6px 16px rgba(0,0,0,0.95),
+        0 0 20px rgba(251, 191, 36, 0.7);
+      animation: pulseLegendaryBack 2s ease-in-out infinite alternate;
     }
     .table-deck-count-badge {
       position: absolute;
@@ -7424,8 +7508,40 @@
       background-size: cover !important;
       background-position: center !important;
       cursor: pointer;
-      transition: transform 0.15s ease-out;
+      transition: transform 0.15s ease-out, box-shadow 0.25s ease;
       transform-style: preserve-3d;
+      position: relative;
+      overflow: hidden;
+    }
+    .cardback-inspect-card.rarity-common {
+      border-color: #92400e;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 20px rgba(180, 83, 9, 0.35);
+    }
+    .cardback-inspect-card.rarity-rare {
+      border-color: #38bdf8;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 35px rgba(56, 189, 248, 0.6);
+    }
+    .cardback-inspect-card.rarity-epic {
+      border-color: #c084fc;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 45px rgba(192, 132, 252, 0.75);
+      animation: pulseEpicBack 2.4s ease-in-out infinite alternate;
+    }
+    .cardback-inspect-card.rarity-legendary {
+      border-color: #fbbf24;
+      box-shadow: 0 16px 45px rgba(0,0,0,0.98), 0 0 55px rgba(251, 191, 36, 0.9);
+      animation: pulseLegendaryBack 2s ease-in-out infinite alternate;
+    }
+    .cardback-inspect-card.rarity-legendary::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -60%;
+      width: 220%;
+      height: 220%;
+      background: linear-gradient(135deg, transparent 40%, rgba(254, 240, 138, 0.45) 50%, transparent 60%);
+      transform: rotate(30deg);
+      animation: goldSheenSweep 3.2s ease-in-out infinite;
+      pointer-events: none;
     }
     .cardback-inspect-details {
       margin-top: 16px;

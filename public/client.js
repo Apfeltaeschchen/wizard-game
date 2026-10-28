@@ -5612,8 +5612,9 @@ const WizardVault = (() => {
 
     if (type === 'card_back') {
       const themeClass = `cardback-theme-${item.id}`;
+      const rarityClass = `rarity-${item.rarity || 'common'}`;
       return `
-        <div class="cosmetic-mini-cardback ${themeClass}" title="${escapeHtml(item.name || '')} (Klicken für 3D-Großansicht)" onclick="if(typeof openCardBackInspectModal === 'function'){ openCardBackInspectModal('${escapeHtml(item.id)}'); }"></div>
+        <div class="cosmetic-mini-cardback ${themeClass} ${rarityClass}" title="${escapeHtml(item.name || '')} (Klicken für 3D-Großansicht)" onclick="if(typeof openCardBackInspectModal === 'function'){ openCardBackInspectModal('${escapeHtml(item.id)}'); }"></div>
       `;
     }
 
@@ -5733,7 +5734,8 @@ const WizardVault = (() => {
     if (previewLobby) previewLobby.innerText = lobbyItem ? lobbyItem.name : 'Hallen der Zitadelle';
 
     const previewDeckBox = document.getElementById('wardrobePreviewDeckBox');
-    if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${u.equipped_card_back || 'default'}`;
+    const deckRarity = (deckItem && deckItem.rarity) || 'common';
+    if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${u.equipped_card_back || 'default'} rarity-${deckRarity}`;
     const previewTableBox = document.getElementById('wardrobePreviewTableBox');
     if (previewTableBox) previewTableBox.className = `cosmetic-mini-table table-theme-${u.equipped_table_skin || 'emerald_felt'}`;
     const previewLobbyBox = document.getElementById('wardrobePreviewLobbyBox');
@@ -5815,7 +5817,8 @@ const WizardVault = (() => {
         updateTitleElement(previewTitle, u.title || 'Zauberlehrling');
       }
 
-      if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${u.equipped_card_back || 'default'}`;
+      const curDeckRarity = (curDeck && curDeck.rarity) || 'common';
+      if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${u.equipped_card_back || 'default'} rarity-${curDeckRarity}`;
       if (previewTableBox) previewTableBox.className = `cosmetic-mini-table table-theme-${u.equipped_table_skin || 'emerald_felt'}`;
       if (previewLobbyBox) previewLobbyBox.className = `cosmetic-mini-lobby lobby-theme-${u.equipped_lobby_background || 'citadel_halls'}`;
       if (previewStage) previewStage.className = `wardrobe-preview-stage lobby-theme-${u.equipped_lobby_background || 'citadel_halls'}`;
@@ -5888,7 +5891,8 @@ const WizardVault = (() => {
           if (previewFrame) previewFrame.innerText = item.name;
         } else if (singularType === 'card_back') {
           if (previewDeck) previewDeck.innerText = item.name;
-          if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${item.id}`;
+          const itemRar = item.rarity || 'common';
+          if (previewDeckBox) previewDeckBox.className = `cosmetic-mini-cardback cardback-theme-${item.id} rarity-${itemRar}`;
         } else if (singularType === 'table_skin') {
           if (previewTable) previewTable.innerText = item.name;
           if (previewTableBox) previewTableBox.className = `cosmetic-mini-table table-theme-${item.id}`;
@@ -6512,7 +6516,7 @@ function openCardBackInspectModal(deckId) {
     }
     if (loreEl) loreEl.innerText = lore;
 
-    cardEl.className = `cardback-inspect-card cardback-theme-${deckId}`;
+    cardEl.className = `cardback-inspect-card cardback-theme-${deckId} rarity-${rarity}`;
     cardEl.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
 
     // 3D Parallax Tilt Effekt bei Mausbewegung
@@ -9989,7 +9993,22 @@ function updateTableDeckPile() {
   const hostPlayer = (cachedPlayers || []).find(p => p.isDealer || p.isHost);
   const activeDeckSkin = (hostPlayer && hostPlayer.cardBack) || (currentUser && currentUser.equipped_card_back) || 'default';
 
-  deckPile.className = `table-deck-pile cardback-theme-${activeDeckSkin}`;
+  // Ermittle Seltenheit für das Rarity-Aura-Styling am Tisch
+  const deckRarityMap = {
+    default: 'common',
+    parchment: 'rare',
+    forest: 'rare',
+    spider_queen: 'rare',
+    shadow: 'epic',
+    astral: 'epic',
+    pumpkin_king: 'epic',
+    gravestone_runes: 'epic',
+    dragon: 'legendary',
+    citadel_ancient: 'legendary'
+  };
+  const activeRarity = deckRarityMap[activeDeckSkin] || 'common';
+
+  deckPile.className = `table-deck-pile cardback-theme-${activeDeckSkin} rarity-${activeRarity}`;
 
   // Verbleibende Karten im Talon berechnen: 60 - ausgeteilte Handkarten - 1 Trumpfkarte
   const totalPlayers = (cachedPlayers && cachedPlayers.length > 0) ? cachedPlayers.length : 3;
