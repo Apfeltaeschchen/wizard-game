@@ -1,66 +1,65 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <!-- Gotisches Schattengrau & Vampir-Violett -->
-    <radialGradient id="batGothic" cx="30%" cy="30%" r="70%">
+    <radialGradient id="batGothicRing" cx="30%" cy="30%" r="70%">
       <stop offset="0%" stop-color="#9333ea"/>
-      <stop offset="35%" stop-color="#581c87"/>
-      <stop offset="70%" stop-color="#1e1b4b"/>
-      <stop offset="100%" stop-color="#090514"/>
+      <stop offset="40%" stop-color="#581c87"/>
+      <stop offset="80%" stop-color="#2e1065"/>
+      <stop offset="100%" stop-color="#0f0728"/>
     </radialGradient>
-    <linearGradient id="batWingSkin" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#c084fc"/>
-      <stop offset="35%" stop-color="#7e22ce"/>
-      <stop offset="70%" stop-color="#3b0764"/>
-      <stop offset="100%" stop-color="#140224"/>
+    <linearGradient id="batWingGrad2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d8b4fe"/>
+      <stop offset="40%" stop-color="#9333ea"/>
+      <stop offset="80%" stop-color="#581c87"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
     </linearGradient>
-    <filter id="batAura" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.9"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#a855f7" flood-opacity="0.7"/>
+    <filter id="batCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.85"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#9333ea" flood-opacity="0.5"/>
     </filter>
   </defs>
 
-  <g filter="url(#batAura)">
-    <!-- 1. Feiner gotischer Zierring (r=35.5, stroke 1.5px) -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#batGothic)" stroke-width="1.6"/>
-    <circle cx="50" cy="50" r="36.8" stroke="#a855f7" stroke-width="0.8" stroke-dasharray="3 3"/>
+  <g filter="url(#batCalmShadow)">
+    <!-- 1. Schlanker gotischer Zierring (r=35.5, stroke 1.8px - Innenbereich r < 34.5 vollkommen frei!) -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#batGothicRing)" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="37.2" stroke="#a855f7" stroke-width="0.8" stroke-dasharray="3 3"/>
 
-    <!-- 2. WEIT NACH AUSSEN GESPANNTES FLEDERMAUS-SCHWINGENWERK (r=36 bis r=49) -->
+    <!-- 2. Äußere zarte gotische Spitzbögen & Verzierungen (r=37 bis r=46) -->
+    <!-- Rankenartige Schwingen-Bögen, die sich außen an den Reif schmiegen -->
+    <path d="M25,32 C20,28 14,35 12,42 C16,42 18,48 14,54 C18,54 22,60 25,66" stroke="#7e22ce" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <path d="M75,32 C80,28 86,35 88,42 C84,42 82,48 86,54 C82,54 78,60 75,66" stroke="#7e22ce" stroke-width="1.2" stroke-linecap="round" fill="none"/>
     
-    <!-- LINKE SCHWINGE (Entfaltet sich elegant nach außen links zwischen 8 Uhr und 11 Uhr) -->
-    <!-- Äußerer Schwingenbogen: startet an r=36 und schwingt weit nach x=10 heraus! -->
-    <path d="M28,26 C18,22 10,28 8,36 C14,35 18,39 12,46 C18,45 22,50 14,58 C21,57 26,63 24,71 C28,64 32,59 34,55" fill="none" stroke="url(#batWingSkin)" stroke-width="1.8"/>
-    <path d="M28,26 C18,22 10,28 8,36 C14,35 18,39 12,46 C18,45 22,50 14,58 C21,57 26,63 24,71 C28,64 32,59 34,55 Z" fill="url(#batWingSkin)" fill-opacity="0.25"/>
-    <!-- Schwingen-Fingerrippen nach außen -->
-    <path d="M28,26 Q19,32 12,46" stroke="#c084fc" stroke-width="0.7"/>
-    <path d="M25,38 Q18,45 14,58" stroke="#c084fc" stroke-width="0.7"/>
-    <!-- Äußere Schwingenspitze oben links (x=8, y=36) -->
-    <polygon points="8,36 11,34 9,38" fill="#e9d5ff"/>
-
-    <!-- RECHTE SCHWINGE (Symmetrisch nach außen rechts entfaltet zwischen 1 Uhr und 4 Uhr) -->
-    <path d="M72,26 C82,22 90,28 92,36 C86,35 82,39 88,46 C82,45 78,50 86,58 C79,57 74,63 76,71 C72,64 68,59 66,55" fill="none" stroke="url(#batWingSkin)" stroke-width="1.8"/>
-    <path d="M72,26 C82,22 90,28 92,36 C86,35 82,39 88,46 C82,45 78,50 86,58 C79,57 74,63 76,71 C72,64 68,59 66,55 Z" fill="url(#batWingSkin)" fill-opacity="0.25"/>
-    <path d="M72,26 Q81,32 88,46" stroke="#c084fc" stroke-width="0.7"/>
-    <path d="M75,38 Q82,45 86,58" stroke="#c084fc" stroke-width="0.7"/>
-    <polygon points="92,36 89,34 91,38" fill="#e9d5ff"/>
-
-    <!-- Oben (12 Uhr): Kleine fliegende Fledermäuse Silhouette im Außenraum -->
-    <!-- Gotische Spitze auf 12 Uhr nach außen ragend bis y=6 -->
-    <polygon points="50,6 47,15 53,15" fill="#3b0764" stroke="#a855f7" stroke-width="0.6"/>
-    <!-- Fliegende Mini-Fledermäuse oben links & rechts -->
-    <path d="M30,12 Q33,8 37,11 Q35,12 34,14 Q32,12 30,12 Z" fill="#7e22ce"/>
-    <path d="M70,12 Q67,8 63,11 Q65,12 66,14 Q68,12 70,12 Z" fill="#7e22ce"/>
-
-    <!-- Unten (6 Uhr): Gotischer Ziersporn nach außen bis y=88 -->
-    <polygon points="50,88 47,79 53,79" fill="#3b0764" stroke="#a855f7" stroke-width="0.6"/>
+    <!-- Unten: Zarte gotische Spitze nach außen (y=88) -->
+    <polygon points="50,88 47,80 53,80" fill="#3b0764" stroke="#a855f7" stroke-width="0.6"/>
     <circle cx="50" cy="81" r="1.2" fill="#c084fc"/>
 
-    <!-- 3. SUBTIL NACH INNEN RAGENDE ZIERSPITZEN (Greifen nur 2-3px ganz dezent über die Avatarkante) -->
-    <!-- Feine Daumenkralle links greift bis x=32 ins Bild -->
-    <polygon points="35.5,41 32,42 35.5,43.5" fill="#e9d5ff" stroke="#3b0764" stroke-width="0.3"/>
-    <!-- Feine Daumenkralle rechts greift bis x=68 ins Bild -->
-    <polygon points="64.5,41 68,42 64.5,43.5" fill="#e9d5ff" stroke="#3b0764" stroke-width="0.3"/>
+    <!-- 3. ANIMIERTE FLEDERMAUS OBEN AUF DEM REIF (y=6 bis y=15, schlägt alle 8s mit den Flügeln) -->
+    <g transform="translate(50, 11)">
+      <!-- Fledermaus-Körper & Kopf -->
+      <ellipse cx="0" cy="0" rx="2" ry="3" fill="#1e1b4b" stroke="#7e22ce" stroke-width="0.5"/>
+      <!-- Ohren -->
+      <polygon points="-2,-2 -3,-5 -1,-3" fill="#3b0764"/>
+      <polygon points="2,-2 3,-5 1,-3" fill="#3b0764"/>
+      <!-- Leuchtende Augen -->
+      <circle cx="-0.8" cy="-1" r="0.4" fill="#fbcfe8"/>
+      <circle cx="0.8" cy="-1" r="0.4" fill="#fbcfe8"/>
 
-    <!-- Zarte Spornspitze oben greift bis y=32.5 -->
-    <polygon points="48.5,35.5 50,32.5 51.5,35.5" fill="#7e22ce"/>
+      <!-- Linker Flügel mit animiertem Flügelschlag (alle 8s schlägt er zweimal kurz: bei 0s, 0.3s, 0.6s, dann Ruhe) -->
+      <g>
+        <path d="M-2,0 C-6,-5 -12,-3 -14,2 C-10,3 -8,7 -4,4 Z" fill="url(#batWingGrad2)" stroke="#1e1b4b" stroke-width="0.4"/>
+        <animateTransform attributeName="transform" type="rotate"
+          values="0 0,0; -35 0,0; 10 0,0; -35 0,0; 0 0,0; 0 0,0"
+          keyTimes="0; 0.03; 0.06; 0.09; 0.12; 1"
+          dur="8s" repeatCount="indefinite"/>
+      </g>
+
+      <!-- Rechter Flügel mit animiertem Flügelschlag -->
+      <g>
+        <path d="M2,0 C6,-5 12,-3 14,2 C10,3 8,7 4,4 Z" fill="url(#batWingGrad2)" stroke="#1e1b4b" stroke-width="0.4"/>
+        <animateTransform attributeName="transform" type="rotate"
+          values="0 0,0; 35 0,0; -10 0,0; 35 0,0; 0 0,0; 0 0,0"
+          keyTimes="0; 0.03; 0.06; 0.09; 0.12; 1"
+          dur="8s" repeatCount="indefinite"/>
+      </g>
+    </g>
   </g>
 </svg>

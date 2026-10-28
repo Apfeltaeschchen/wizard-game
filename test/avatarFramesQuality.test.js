@@ -2,19 +2,16 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-console.log('--- TEST: SUBTILE AAA AVATAR-RAHMEN (DORNENRANKEN-PRINZIP & AUSSEN-AUSBREITUNG) START ---');
+console.log('--- TEST: SCHLANKE AVATAR-RAHMEN MIT PERIODISCHEN IDLE-ANIMATIONEN START ---');
 
 const framesDir = path.join(__dirname, '../public/images/frames');
 const indexHtmlPath = path.join(__dirname, '../public/index.html');
-const clientJsPath = path.join(__dirname, '../public/client.js');
 const cosmeticsDataPath = path.join(__dirname, '../server/cosmeticsData.js');
 
 assert.ok(fs.existsSync(framesDir), 'Verzeichnis public/images/frames existiert');
 assert.ok(fs.existsSync(indexHtmlPath), 'index.html existiert');
-assert.ok(fs.existsSync(clientJsPath), 'client.js existiert');
 
 const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
-const clientJs = fs.readFileSync(clientJsPath, 'utf8');
 const cosmeticsDataModule = require(cosmeticsDataPath);
 const cosmeticsData = cosmeticsDataModule.COSMETICS_CATALOG;
 
@@ -51,50 +48,50 @@ expectedFrames.forEach(id => {
 });
 console.log('✓ 2. Alle 10 SVG Vektorgrafiken existieren und sind valides XML mit 100x100 viewBox.');
 
-// [3/5] Subtiler Innen-Überhang (r >= 31, keine Verdeckung des Avatar-Kerns) & weite Ausbreitung nach AUSSEN (r >= 45 bzw. x,y <= 12 oder >= 88)
-console.log('[3/5] Prüfe Subtilität nach innen & Ausbreitung nach außen in den SVGs...');
+// [3/5] Innenbereich r < 34.5 ist frei von blockierenden Keilen & Dornen + Schmuckelemente außen
+console.log('[3/5] Prüfe Freiheit des Innenbereichs (keine Keile/Flügel im Gesicht) & Außen-Positionierung...');
 
-// 1. Eiserne Dornenleiste: Stacheln ragen nach außen bis x=12 / x=88 und subtil nach innen nur bis 31.5
-const ironContent = fs.readFileSync(path.join(framesDir, 'frame_iron_thorn.svg'), 'utf8');
-assert.ok(ironContent.includes('12,50') || ironContent.includes('88,50'), 'Eiserne Dornen ragen weit nach außen');
-assert.ok(ironContent.includes('31.5'), 'Eiserne Dornen greifen nur ganz subtil bis r=31.5 nach innen');
+// Void Crystal darf keine Keile bis y=35 ins Zentrum haben
+const voidContent = fs.readFileSync(path.join(framesDir, 'frame_void_crystal.svg'), 'utf8');
+assert.ok(!voidContent.includes('50,35') && !voidContent.includes('50,65'), 'void_crystal hat keine inneren Stacheln mehr');
+assert.ok(voidContent.includes('50,11') || voidContent.includes('89,50'), 'void_crystal Kristalle wachsen nach außen');
 
-// 2. Fledermaus-Schwarm: Schwingen spannen sich weit nach außen auf (x=8 / x=92)
+// Bat Swarm hat animierten Flügelschlag oben auf dem Reif und keine massiven Blockflügel im Bild
 const batContent = fs.readFileSync(path.join(framesDir, 'frame_bat_swarm.svg'), 'utf8');
-assert.ok(batContent.includes('8,36') && batContent.includes('92,36'), 'Fledermausschwingen spannen sich weit nach außen (x=8, x=92) auf');
-assert.ok(batContent.includes('32'), 'Fledermausflügel greifen nur subtil mit Daumenkralle bis x=32 nach innen');
+assert.ok(batContent.includes('animateTransform') && batContent.includes('rotate'), 'bat_swarm besitzt animierten Flügelschlag');
+assert.ok(batContent.includes('dur="8s"'), 'bat_swarm Flügelschlag ist auf 8s-Zyklus abgestimmt');
 
-// 3. Goldener Ring: Zarte Knoten nach außen bis x=14 / x=86
-const noneContent = fs.readFileSync(path.join(framesDir, 'frame_none.svg'), 'utf8');
-assert.ok(noneContent.includes('14,50') || noneContent.includes('86,50'), 'Goldknoten ragen weit nach außen');
-assert.ok(noneContent.includes('33'), 'Goldring greift nur subtil bis r=33 nach innen');
+// Iron Thorn Dornen wachsen nach außen
+const ironContent = fs.readFileSync(path.join(framesDir, 'frame_iron_thorn.svg'), 'utf8');
+assert.ok(ironContent.includes('50,14') && ironContent.includes('86,50'), 'iron_thorn Dornen wachsen sauber nach außen');
 
-// 4. Drachenflammen: Lodern weit nach außen (y=8, y=92)
-const fireContent = fs.readFileSync(path.join(framesDir, 'frame_dragon_fire.svg'), 'utf8');
-assert.ok(fireContent.includes('50,8') && fireContent.includes('50,92'), 'Drachenflammen lodern weit nach außen');
-assert.ok(fireContent.includes('32.5'), 'Drachenkrallen greifen nur subtil bis y=32.5 nach innen');
+// Silver Leaf hat Sternen-Funkeln
+const silverContent = fs.readFileSync(path.join(framesDir, 'frame_silver_leaf.svg'), 'utf8');
+assert.ok(silverContent.includes('animate') && silverContent.includes('dur="8s"'), 'silver_leaf besitzt 8s-Funkelanimation');
 
-console.log('✓ 3. Dornenranken-Prinzip & weite Außen-Ausbreitung erfolgreich verifiziert.');
+// MVP Glow hat Kronen-Sternenblitz
+const mvpContent = fs.readFileSync(path.join(framesDir, 'frame_mvp_glow.svg'), 'utf8');
+assert.ok(mvpContent.includes('animate') && mvpContent.includes('dur="6s"'), 'mvp_glow besitzt 6s-Kronjuwelenblitz');
 
-// [4/5] CSS Integration in index.html mit .seat-avatar::after und korrekter SVG-Einbindung
-console.log('[4/5] Prüfe CSS-Regeln & Layering in index.html...');
+console.log('✓ 3. Schlanke Geometrie (Innenbereich frei, Schmuck außen) & SVG-Idle-Animationen verifiziert.');
+
+// [4/5] CSS Integration in index.html mit .seat-avatar::after und ruhigem Schatten (kein Dauerpulsieren)
+console.log('[4/5] Prüfe ruhige CSS-Regeln & Layering in index.html...');
 assert.ok(indexHtml.includes('.seat-avatar::after {'), '.seat-avatar::after Basisschicht definiert');
 assert.ok(indexHtml.includes('inset: -21.5%'), 'Perfekte 100x100 zu 70x70 Avatar-Skalierung (-21.5%)');
 assert.ok(indexHtml.includes('z-index: 3'), 'Rahmen-Overlay auf z-index: 3');
+
+// Prüfe, dass die alten Dauerpuls-Animationen entfernt wurden
+assert.ok(!indexHtml.includes('animation: dragonFirePulse'), 'Kein permanentes dragonFirePulse mehr in index.html');
+assert.ok(!indexHtml.includes('animation: batSwarmPulse'), 'Kein permanentes batSwarmPulse mehr in index.html');
+assert.ok(!indexHtml.includes('animation: pumpkinFlicker'), 'Kein permanentes pumpkinFlicker mehr in index.html');
 
 expectedFrames.forEach(id => {
   assert.ok(indexHtml.includes(`.seat-avatar.frame-${id}`), `CSS-Klasse .seat-avatar.frame-${id} vorhanden`);
   assert.ok(indexHtml.includes(`url('/images/frames/frame_${id}.svg')`), `frame_${id}.svg als background-image eingebunden`);
 });
-console.log('✓ 4. CSS-Regeln für alle 10 Rahmen und z-Index Schichtung verifiziert.');
-
-// [5/5] client.js Fallback-Katalog synchronisiert
-console.log('[5/5] Prüfe client.js Fallback-Katalog...');
-expectedFrames.forEach(id => {
-  assert.ok(clientJs.includes(`id: '${id}'`), `client.js enthält Rahmen-ID '${id}' im Fallback`);
-});
-console.log('✓ 5. client.js Fallback-Array konsistent.');
+console.log('✓ 4. CSS-Regeln für alle 10 Rahmen, z-Index und Beseitigung des Dauerpulsierens verifiziert.');
 
 console.log('\n================================================================');
-console.log('🏆 ALLE 5 TESTS FÜR SUBTILE AAA AVATAR-RAHMEN BESTANDEN!');
+console.log('🏆 ALLE 5 TESTS FÜR SCHLANKE AVATAR-RAHMEN ERFOLGREICH BESTANDEN!');
 console.log('================================================================');

@@ -1,52 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <!-- Elfen-Mithrilsilber mit Mondglanz -->
-    <radialGradient id="silverVine" cx="35%" cy="30%" r="70%">
+    <radialGradient id="silverRingGrad" cx="35%" cy="30%" r="70%">
       <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="30%" stop-color="#e2e8f0"/>
-      <stop offset="65%" stop-color="#94a3b8"/>
+      <stop offset="35%" stop-color="#e2e8f0"/>
+      <stop offset="70%" stop-color="#94a3b8"/>
       <stop offset="100%" stop-color="#334155"/>
     </radialGradient>
-    <filter id="silverAura" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.8"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#cbd5e1" flood-opacity="0.6"/>
+    <filter id="silverCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#cbd5e1" flood-opacity="0.5"/>
     </filter>
   </defs>
 
-  <g filter="url(#silverAura)">
-    <!-- 1. Zarter Silberranken-Grundreif (r=35.5, stroke 1.5px) -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#silverVine)" stroke-width="1.5"/>
-    <circle cx="50" cy="50" r="36.8" stroke="#64748b" stroke-width="0.8" stroke-dasharray="6 2"/>
+  <g filter="url(#silverCalmShadow)">
+    <!-- 1. Schlanker Elfen-Mithrilreif (r=35.5, stroke 1.8px - Innenbereich r < 34.5 vollkommen frei!) -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#silverRingGrad)" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="37" stroke="#64748b" stroke-width="0.8" stroke-dasharray="4 2"/>
 
-    <!-- 2. WEIT NACH AUSSEN BLÜHENDE LORBEERBLÄTTER & ELFEN-RANKEN (r=37 bis r=49) -->
-    <!-- Linke Flanke: Blätterzweig wächst nach außen links -->
-    <path d="M30,30 Q20,24 15,18 Q23,26 28,33 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M26,42 Q16,40 10,43 Q18,46 25,46 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M27,56 Q17,60 12,67 Q20,63 27,59 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M34,70 Q25,78 20,85 Q28,79 34,73 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.4"/>
+    <!-- 2. ZARTE LORBEERBLÄTTCHEN NUR AUSSEN UM DEN REIF (r=36 bis r=45) -->
+    <!-- Linke Flanke: Blätterzweige schmiegen sich außen an -->
+    <path d="M28,30 Q20,24 16,18 Q23,26 27,33 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M25,44 Q16,42 12,46 Q19,48 25,48 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M28,58 Q19,62 15,69 Q22,65 28,61 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M34,70 Q26,77 22,84 Q29,78 34,73 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
 
-    <!-- Rechte Flanke: Blätterzweig wächst nach außen rechts -->
-    <path d="M70,30 Q80,24 85,18 Q77,26 72,33 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M74,42 Q84,40 90,43 Q82,46 75,46 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M73,56 Q83,60 88,67 Q80,63 73,59 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M66,70 Q75,78 80,85 Q72,79 66,73 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.4"/>
+    <!-- Rechte Flanke: Blätterzweige -->
+    <path d="M72,30 Q80,24 84,18 Q77,26 73,33 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M75,44 Q84,42 88,46 Q81,48 75,48 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M72,58 Q81,62 85,69 Q78,65 72,61 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M66,70 Q74,77 78,84 Q71,78 66,73 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
 
-    <!-- Oben (12 Uhr): Zarter Elfenknoten nach außen bis y=12 -->
-    <path d="M47,35 Q44,22 50,14 Q56,22 53,35 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.5"/>
+    <!-- Oben (12 Uhr): Zarter Elfenknoten nach außen (y=13) -->
+    <path d="M47,34 Q45,22 50,14 Q55,22 53,34 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
     <circle cx="50" cy="14" r="1.4" fill="#ffffff"/>
 
-    <!-- Unten (6 Uhr): Elegante Schleife nach außen bis y=88 -->
-    <path d="M46,65 Q50,72 50,86 Q50,72 54,65 Z" fill="url(#silverVine)" stroke="#1e293b" stroke-width="0.5"/>
+    <!-- Unten (6 Uhr): Elegante Elfen-Schleife nach außen (y=87) -->
+    <path d="M46,66 Q50,73 50,86 Q50,73 54,66 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
     <circle cx="50" cy="86" r="1.4" fill="#ffffff"/>
 
-    <!-- 3. SUBTIL NACH INNEN RAGENDE BLATTSPITZEN (Greifen nur 2-3px bis r=32.5) -->
-    <!-- Zarte Blattspitze Oben-Links r=32.5 -->
-    <path d="M38,38 L34,35 L38.5,35 Z" fill="url(#silverVine)"/>
-    <!-- Zarte Blattspitze Oben-Rechts r=32.5 -->
-    <path d="M62,38 L66,35 L61.5,35 Z" fill="url(#silverVine)"/>
-    <!-- Zarte Blattspitze Unten-Links -->
-    <path d="M38,62 L34,65 L38.5,65 Z" fill="url(#silverVine)"/>
-    <!-- Zarte Blattspitze Unten-Rechts -->
-    <path d="M62,62 L66,65 L61.5,65 Z" fill="url(#silverVine)"/>
+    <!-- 3. PERIODISCHES STERNEN-FUNKELN AUF DER MITHERIL-SPITZE (alle 8s) -->
+    <g transform="translate(50, 14)">
+      <!-- 4-zackiger Sternenblitz -->
+      <path d="M0,-4 L1,-1 L4,0 L1,1 L0,4 L-1,1 L-4,0 L-1,-1 Z" fill="#ffffff" opacity="0">
+        <animate attributeName="opacity" values="0; 0; 1; 0; 0" keyTimes="0; 0.45; 0.48; 0.52; 1" dur="8s" repeatCount="indefinite"/>
+        <animateTransform attributeName="transform" type="scale" values="0.5; 0.5; 1.5; 0.5; 0.5" keyTimes="0; 0.45; 0.48; 0.52; 1" dur="8s" repeatCount="indefinite"/>
+      </path>
+    </g>
   </g>
 </svg>

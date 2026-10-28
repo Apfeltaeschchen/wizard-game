@@ -1,46 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <!-- Sonnengold & Runenlicht -->
-    <radialGradient id="solarFine" cx="35%" cy="30%" r="70%">
+    <radialGradient id="solarRuneRing" cx="35%" cy="30%" r="70%">
       <stop offset="0%" stop-color="#fffbeb"/>
       <stop offset="35%" stop-color="#fbbf24"/>
       <stop offset="70%" stop-color="#d97706"/>
       <stop offset="100%" stop-color="#78350f"/>
     </radialGradient>
-    <filter id="runeAura" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.8"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#fbbf24" flood-opacity="0.75"/>
+    <filter id="runeCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#fbbf24" flood-opacity="0.5"/>
     </filter>
   </defs>
 
-  <g filter="url(#runeAura)">
-    <!-- 1. Schlanker Sonnenreif (r=35.5, stroke 1.5px) -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#solarFine)" stroke-width="1.5"/>
-    <circle cx="50" cy="50" r="37.5" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="2 4"/>
+  <g filter="url(#runeCalmShadow)">
+    <!-- 1. Schlanker Sonnenreif (r=35.5, stroke 1.8px - Innenbereich r < 34.5 vollkommen frei!) -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#solarRuneRing)" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="37.2" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="2 4"/>
 
-    <!-- 2. WEIT NACH AUSSEN STRAHLENDE SONNENLANZEN & RUNEN (r=37 bis r=49) -->
-    <!-- Sonnenstrahl Oben (12 Uhr) nach außen bis y=10 -->
-    <path d="M48,35 L50,10 L52,35 Z" fill="url(#solarFine)" stroke="#78350f" stroke-width="0.4"/>
-    <line x1="50" y1="35" x2="50" y2="12" stroke="#ffffff" stroke-width="0.5"/>
-    <!-- Diagonale Sonnenstrahlen außen -->
-    <path d="M68,32 L83,17 L72,28 Z" fill="url(#solarFine)"/>
-    <path d="M72,48 L90,50 L72,52 Z" fill="url(#solarFine)"/>
-    <path d="M68,68 L83,83 L72,72 Z" fill="url(#solarFine)"/>
-    <path d="M48,65 L50,90 L52,65 Z" fill="url(#solarFine)"/>
-    <path d="M32,68 L17,83 L28,72 Z" fill="url(#solarFine)"/>
-    <path d="M28,48 L10,50 L28,52 Z" fill="url(#solarFine)"/>
-    <path d="M32,32 L17,17 L28,28 Z" fill="url(#solarFine)"/>
+    <!-- 2. ZARTE SONNENFLARE-SPITZEN & RUNEN NUR AUSSEN (r=36 bis r=46) -->
+    <!-- Sonnenstrahl Oben (12 Uhr) nach außen bis y=12 -->
+    <path d="M48,34 L50,12 L52,34 Z" fill="url(#solarRuneRing)" stroke="#78350f" stroke-width="0.4"/>
+    <line x1="50" y1="34" x2="50" y2="14" stroke="#ffffff" stroke-width="0.4"/>
 
-    <!-- Schwebende Runen-Symbole im Außenraum (Algiz, Tiwaz, Sowilo, Ansuz) -->
-    <path d="M50,18 L50,26 M47,21 L50,18 L53,21" stroke="#fef08a" stroke-width="0.9" stroke-linecap="round"/>
-    <path d="M78,50 L70,50 M75,47 L78,50 L75,53" stroke="#fef08a" stroke-width="0.9" stroke-linecap="round"/>
-    <path d="M50,82 L50,74 M47,79 L50,82 L53,79" stroke="#fef08a" stroke-width="0.9" stroke-linecap="round"/>
-    <path d="M22,50 L30,50 M25,47 L22,50 L25,53" stroke="#fef08a" stroke-width="0.9" stroke-linecap="round"/>
+    <!-- Sonnenstrahl Rechts (3 Uhr) nach außen bis x=88 -->
+    <path d="M66,48 L88,50 L66,52 Z" fill="url(#solarRuneRing)" stroke="#78350f" stroke-width="0.4"/>
+    <!-- Sonnenstrahl Unten (6 Uhr) nach außen bis y=88 -->
+    <path d="M48,66 L50,88 L52,66 Z" fill="url(#solarRuneRing)" stroke="#78350f" stroke-width="0.4"/>
+    <!-- Sonnenstrahl Links (9 Uhr) nach außen bis x=12 -->
+    <path d="M34,48 L12,50 L34,52 Z" fill="url(#solarRuneRing)" stroke="#78350f" stroke-width="0.4"/>
 
-    <!-- 3. SUBTIL NACH INNEN RAGENDE RUNENPFEILE (Nur 2.5px bis r=33) -->
-    <polygon points="48.5,35.5 50,32.8 51.5,35.5" fill="#fef08a"/>
-    <polygon points="64.5,48.5 67.2,50 64.5,51.5" fill="#fef08a"/>
-    <polygon points="48.5,64.5 50,67.2 51.5,64.5" fill="#fef08a"/>
-    <polygon points="35.5,48.5 32.8,50 35.5,51.5" fill="#fef08a"/>
+    <!-- 4 arkane Runen-Glyphen außen eingraviert -->
+    <g stroke="#fef08a" stroke-width="0.8" stroke-linecap="round">
+      <!-- Algiz oben -->
+      <path d="M50,18 L50,26 M47,21 L50,18 L53,21"/>
+      <!-- Sowilo rechts -->
+      <path d="M78,48 L76,50 L78,52 L76,54"/>
+      <!-- Tiwaz unten -->
+      <path d="M50,82 L50,74 M47,78 L50,82 L53,78"/>
+      <!-- Ansuz links -->
+      <path d="M22,46 L22,54 M22,48 L25,50 M22,51 L25,53"/>
+    </g>
+
+    <!-- 3. PERIODISCHE RUNEN-ERLEUCHTUNG (alle 8s flammen die 4 Runen golden auf) -->
+    <circle cx="50" cy="50" r="35.5" stroke="#fffbeb" stroke-width="2.2" opacity="0">
+      <animate attributeName="opacity" values="0; 0; 0.95; 0; 0" keyTimes="0; 0.35; 0.4; 0.45; 1" dur="8s" repeatCount="indefinite"/>
+    </circle>
   </g>
 </svg>
