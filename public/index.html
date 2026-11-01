@@ -80,19 +80,19 @@
       --suit-yellow-base: #a66a0d;
 
       /* --- KARTEN-DIMENSIONEN (EXAKT 1050 × 1498 PX RATIO) --- */
-      --card-w: clamp(88px, 8.5vw, 135px);
+      --card-w: clamp(80px, 7.6vw, 120px);
       --card-h: calc(var(--card-w) * (1498 / 1050));
     }
 
     /* WEICHE SKALIERUNG BEI KOMPAKTEN BILDSCHIRMHÖHEN (LAPTOPS / TABLETS) */
     @media (max-height: 780px) {
       :root {
-        --card-w: clamp(75px, 6.8vw, 105px);
+        --card-w: clamp(70px, 6.2vw, 98px);
       }
     }
     @media (max-height: 660px) {
       :root {
-        --card-w: clamp(64px, 5.5vw, 88px);
+        --card-w: clamp(60px, 5.2vw, 82px);
       }
     }
 
@@ -1308,7 +1308,7 @@
       background-color: var(--wood-dark);
       background-image: url('/images/tables/table_emerald_felt.svg');
       background-repeat: no-repeat !important;
-      background-size: 100% 100% !important;
+      background-size: cover !important;
       background-position: center center !important;
       border: none !important;
       outline: none !important;
@@ -1375,19 +1375,16 @@
       outline: none !important;
     }
 
-    /* EXTREMER ZUG-BLITZ (0.45s INTENSIVER GOLD-IMPULS BEI ZUGBEGINN) */
+    /* SUBTILER TISCH-IMPULS BEI ZUGBEGINN */
     @keyframes turnStartExtremeFlashAnim {
       0% {
         box-shadow: 0 0 0 rgba(241, 196, 15, 0);
-        filter: brightness(1);
       }
-      35% {
-        box-shadow: 0 0 65px rgba(241, 196, 15, 0.95), 0 0 100px rgba(241, 196, 15, 0.6), inset 0 0 45px rgba(241, 196, 15, 0.75);
-        filter: brightness(1.4) drop-shadow(0 0 25px rgba(241, 196, 15, 0.85));
+      40% {
+        box-shadow: 0 0 30px rgba(241, 196, 15, 0.6), inset 0 0 25px rgba(241, 196, 15, 0.3);
       }
       100% {
         box-shadow: 0 0 20px rgba(241, 196, 15, 0.35), inset 0 0 25px rgba(0, 0, 0, 0.8);
-        filter: brightness(1);
       }
     }
     .turn-start-extreme-flash {
@@ -1414,74 +1411,78 @@
     /* Pokertisch-Bogen (Reihum-Hufeisen) auf Laptop / Desktop: Großzügige Kurve um den Tisch */
     @media (min-width: 900px) {
       #opponents-container {
-        padding: 8px 60px 8px 140px;
-        max-height: 140px;
-        gap: 16px;
+        padding: 10px 80px 10px 150px;
+        max-height: 160px;
+        gap: 36px;
       }
       .opponents-container.count-2 .player-seat:nth-child(1) {
-        margin-top: 26px;
-        margin-right: 30px;
+        margin-top: 14px;
+        margin-right: 70px;
       }
       .opponents-container.count-2 .player-seat:nth-child(2) {
-        margin-top: 26px;
-        margin-left: 30px;
+        margin-top: 14px;
+        margin-left: 70px;
       }
       .opponents-container.count-3 .player-seat:nth-child(1) {
-        margin-top: 36px;
-        margin-right: 20px;
+        margin-top: 24px;
+        margin-right: 50px;
       }
       .opponents-container.count-3 .player-seat:nth-child(2) {
         margin-top: 0px;
       }
       .opponents-container.count-3 .player-seat:nth-child(3) {
-        margin-top: 36px;
-        margin-left: 20px;
+        margin-top: 24px;
+        margin-left: 50px;
       }
       .opponents-container.count-4 .player-seat:nth-child(1) {
-        margin-top: 44px;
-        margin-right: 18px;
+        margin-top: 36px;
+        margin-right: 40px;
       }
       .opponents-container.count-4 .player-seat:nth-child(2) {
-        margin-top: 6px;
+        margin-top: 4px;
+        margin-right: 15px;
       }
       .opponents-container.count-4 .player-seat:nth-child(3) {
-        margin-top: 6px;
+        margin-top: 4px;
+        margin-left: 15px;
       }
       .opponents-container.count-4 .player-seat:nth-child(4) {
-        margin-top: 44px;
-        margin-left: 18px;
+        margin-top: 36px;
+        margin-left: 40px;
       }
       .opponents-container.count-5 .player-seat:nth-child(1) {
-        margin-top: 52px;
-        margin-right: 16px;
+        margin-top: 44px;
+        margin-right: 32px;
       }
       .opponents-container.count-5 .player-seat:nth-child(2) {
-        margin-top: 16px;
+        margin-top: 12px;
+        margin-right: 10px;
       }
       .opponents-container.count-5 .player-seat:nth-child(3) {
         margin-top: 0px;
       }
       .opponents-container.count-5 .player-seat:nth-child(4) {
-        margin-top: 16px;
+        margin-top: 12px;
+        margin-left: 10px;
       }
       .opponents-container.count-5 .player-seat:nth-child(5) {
-        margin-top: 52px;
-        margin-left: 16px;
+        margin-top: 44px;
+        margin-left: 32px;
       }
 
       /* Größere Pillen & Sitze auf Desktop */
       .player-seat {
-        height: 36px !important;
-        padding: 5px 12px 5px 6px !important;
+        height: 38px !important;
+        padding: 5px 14px 5px 8px !important;
         border-radius: 22px !important;
       }
       .player-seat .seat-avatar {
-        width: 30px !important;
-        height: 30px !important;
-        font-size: 14px !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 15px !important;
       }
       .player-seat .seat-name {
-        font-size: 13px !important;
+        font-size: 13.5px !important;
       }
       .seat-bid-pill {
         font-size: 12px !important;
@@ -1491,7 +1492,7 @@
     }
 
     #opponents-container.round-1-opponents {
-      margin-top: 84px !important;
+      margin-top: 96px !important;
       overflow: visible !important;
     }
     .round-1-opponents .player-seat {
@@ -1706,7 +1707,7 @@
     }
     .forehead-floating-card {
       position: absolute;
-      bottom: calc(100% + 3px);
+      bottom: calc(100% + 8px);
       left: 50%;
       transform: translateX(-50%);
       animation: foreheadCardFloat 2.6s ease-in-out infinite;
@@ -1717,13 +1718,13 @@
       align-items: center;
     }
     .forehead-floating-card .card {
-      width: calc(var(--card-w) * 0.58) !important;
-      height: calc(var(--card-h) * 0.58) !important;
+      width: calc(var(--card-w) * 0.72) !important;
+      height: calc(var(--card-h) * 0.72) !important;
       transform: none !important;
       margin: 0 !important;
-      border-width: 1.5px !important;
+      border-width: 2px !important;
       border-color: var(--gold-bright);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.9), 0 0 10px rgba(240, 195, 85, 0.4);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.92), 0 0 14px rgba(240, 195, 85, 0.5);
     }
     .forehead-floating-card .card.card-red,
     .forehead-floating-card.forehead-card-red .card {
@@ -1838,12 +1839,12 @@
     .forehead-suit-badge {
       display: inline-flex;
       align-items: center;
-      gap: 3px;
-      margin-top: 2px;
-      padding: 1px 5px;
+      gap: 4px;
+      margin-top: 4px;
+      padding: 2px 7px;
       border-radius: 8px;
       font-family: var(--font-medieval), 'Cinzel', Georgia, serif;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.3px;
       line-height: 1.1;
@@ -1853,8 +1854,8 @@
       pointer-events: none;
     }
     .forehead-suit-badge .forehead-suit-icon {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -2461,9 +2462,7 @@
       position: absolute;
       inset: 3px;
       border: 1px solid rgba(118, 86, 21, 0.45);
-      outline: 1px solid rgba(240, 195, 85, 0.3);
-      outline-offset: -2px;
-      border-radius: 4px;
+            border-radius: 4px;
       pointer-events: none;
       z-index: 2;
     }
@@ -2541,8 +2540,6 @@
       position: absolute;
       inset: 3px;
       border: 1px solid rgba(118, 86, 21, 0.45);
-      outline: 1px solid rgba(240, 195, 85, 0.3);
-      outline-offset: -2px;
       border-radius: 4px;
       pointer-events: none;
       z-index: 2;
@@ -3458,15 +3455,18 @@
     @keyframes cardFlyUpEntrance {
       0% {
         opacity: 0;
-        transform: translateY(calc(var(--target-y, 0px) + 90px)) scale(0.88);
+        transform: translateY(calc(var(--target-y, 0px) + 110px)) scale(0.75) rotate(calc(var(--target-rot, 0deg) * 0.4));
+        filter: blur(2px);
       }
-      75% {
+      70% {
         opacity: 1;
-        transform: translateY(calc(var(--target-y, 0px) - 4px)) scale(1.02);
+        transform: translateY(calc(var(--target-y, 0px) - 6px)) scale(1.03) rotate(var(--target-rot, 0deg));
+        filter: blur(0px);
       }
       100% {
         opacity: 1;
-        transform: translateY(var(--target-y, 0px)) scale(1);
+        transform: translateY(var(--target-y, 0px)) scale(1) rotate(var(--target-rot, 0deg));
+        filter: blur(0px);
       }
     }
 
@@ -3474,7 +3474,7 @@
       0% {
         transform: rotateY(180deg);
       }
-      35% {
+      30% {
         transform: rotateY(180deg);
       }
       100% {
@@ -3483,10 +3483,10 @@
     }
 
     .card-fly-up {
-      animation: cardFlyUpEntrance 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: cardFlyUpEntrance 0.42s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
     }
     .card-fly-up .card-flipper {
-      animation: cardUnoFaceReveal 0.38s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+      animation: cardUnoFaceReveal 0.42s cubic-bezier(0.2, 0.8, 0.25, 1) both;
       animation-delay: inherit;
     }
 
@@ -3497,20 +3497,21 @@
     /* TISCH-AUSTEILANIMATION (FLIEGENDE MITTSPIELER-KARTEN) */
     .table-dealing-card {
       position: absolute;
-      width: 44px;
-      height: 64px;
+      width: 48px;
+      height: 68px;
       border-radius: 6px;
-      border: 1.5px solid rgba(240, 195, 85, 0.6);
+      border: 1.5px solid rgba(240, 195, 85, 0.7);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 10px rgba(0, 0, 0, 0.5);
       pointer-events: none;
       z-index: 100;
       transform-origin: center center;
-      transition: transform 0.36s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.36s ease;
+      transition: transform 0.36s cubic-bezier(0.18, 0.89, 0.32, 1.15), opacity 0.36s ease, filter 0.36s ease;
       overflow: hidden;
       box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: center;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));
     }
     .table-dealing-card .card-back-inner {
       width: 100%;
@@ -6017,7 +6018,7 @@
     .poker-table.table-skin-emerald_felt {
       background-color: #051c0d !important;
       background-image: url('/images/tables/table_emerald_felt.svg') !important;
-      background-size: 100% 100% !important;
+      background-size: cover !important;
       background-position: center center !important;
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(5, 46, 22, 0.8) !important;
     }
@@ -6029,7 +6030,7 @@
     .poker-table.table-skin-tavern_wood {
       background-color: #1a0c05 !important;
       background-image: url('/images/tables/table_tavern_wood.svg') !important;
-      background-size: 100% 100% !important;
+      background-size: cover !important;
       background-position: center center !important;
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 45px rgba(0, 0, 0, 0.9) !important;
     }
@@ -6041,7 +6042,7 @@
     .poker-table.table-skin-amethyst_crypt {
       background-color: #0b0314 !important;
       background-image: url('/images/tables/table_amethyst_crypt.svg') !important;
-      background-size: 100% 100% !important;
+      background-size: cover !important;
       background-position: center center !important;
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(88, 28, 135, 0.5) !important;
     }
@@ -6053,7 +6054,7 @@
     .poker-table.table-skin-volcano_keep {
       background-color: #0a0302 !important;
       background-image: url('/images/tables/table_volcano_keep.svg') !important;
-      background-size: 100% 100% !important;
+      background-size: cover !important;
       background-position: center center !important;
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(220, 38, 38, 0.45) !important;
     }
@@ -6065,7 +6066,7 @@
     .poker-table.table-skin-astral_observatory {
       background-color: #030511 !important;
       background-image: url('/images/tables/table_astral_observatory.svg') !important;
-      background-size: 100% 100% !important;
+      background-size: cover !important;
       background-position: center center !important;
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(30, 58, 138, 0.6) !important;
     }
@@ -6165,6 +6166,14 @@
     .seat-avatar.frame-void_crystal::after {
       background-image: url('/images/frames/frame_void_crystal.svg');
       filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.8));
+    }
+    @keyframes voidCrystalFloat {
+      0%, 100% { filter: drop-shadow(0 0 7px rgba(192, 132, 252, 0.7)); }
+      50% { filter: drop-shadow(0 0 18px rgba(168, 85, 247, 0.95)) drop-shadow(0 0 6px #c084fc); }
+    }
+    @keyframes ghostSpecterFloat {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.7)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 18px rgba(94, 234, 212, 0.95)) drop-shadow(0 0 6px #2dd4bf); }
     }
 
     /* SCHATZKAMMER MODAL */
@@ -8263,7 +8272,7 @@
     .poker-table.table-skin-haunted_crypt {
       background-color: #030909 !important;
       background-image: url('/images/tables/table_haunted_crypt.svg') !important;
-      background-size: 100% 100% !important;
+      background-size: cover !important;
       background-position: center center !important;
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 55px rgba(13, 148, 136, 0.5) !important;
     }
@@ -9097,7 +9106,7 @@
       
       <!-- KOMPAKTER TRUMPF-TALISMAN (OBEN-LINKS SCHWEBEND) MIT AUFLIEGENDEM TRUMPF AUF DEM 3D-TALON -->
       <div class="trump-section-fixed" id="trump-wrapper" title="Aufgedeckte Trumpfkarte & Nachziehdeck">
-        <div class="trump-label">Trumpf & Talon</div>
+        <div class="trump-label">Trumpf</div>
         <!-- PHYSISCHER 3D-KARTENSTAPEL (TALON) -->
         <div id="table-deck-pile" class="table-deck-pile cardback-theme-default" title="Nachziehstapel der Hohen Zitadelle">
           <div id="trump-container"></div>
@@ -9233,8 +9242,7 @@
 
       <!-- DEINE HANDKARTEN -->
       <div class="hand-section" id="my-hand-section">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 4px; flex-wrap: wrap;">
-          <div class="hand-title-label" style="font-size: 11px; font-weight: bold; font-family: var(--font-subheading); color: var(--gold-antique);">Deine Handkarten</div>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 8px; flex-wrap: wrap;">
           <div class="my-stats-hud" id="my-stats-hud">
             <span class="hud-badge-icon hud-tricks-icon" title="Erzielte Stiche">🏆</span>
             <span class="hud-label">Erzielte Stiche:</span>

@@ -29,8 +29,7 @@ console.log('✓ 1. CSS & Keyframes für Dual-Face Karten, Tischkarten und Badge
 // 2. Prüfe client.js Funktionsdefinitionen & Logik-Contracts
 console.log('2. Prüfe client.js Funktionsdefinitionen & Contracts...');
 assert.ok(js.includes('function animateTableDealing('), 'animateTableDealing Funktion in client.js definiert');
-assert.ok(js.includes('table-dealing-card'), 'table-dealing-card wird in client.js dynamisch erzeugt');
-assert.ok(js.includes('opponent-deck-badge'), 'opponent-deck-badge wird an Mitspieler-Sitzen gerendert');
+assert.ok(!js.includes('opponent-deck-badge'), 'opponent-deck-badge wurde wie gefordert aus Mitspieler-Sitzen entfernt');
 assert.ok(js.includes('card-flipper'), 'card-flipper wird in renderCard() aufgebaut');
 assert.ok(js.includes('card-face-front'), 'card-face-front wird in renderCard() aufgebaut');
 assert.ok(js.includes('card-face-back'), 'card-face-back wird in renderCard() aufgebaut');

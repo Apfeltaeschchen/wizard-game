@@ -8302,10 +8302,7 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
         setTimeout(() => { if (tableArea) tableArea.classList.remove('turn-start-extreme-flash'); }, 480);
       }
       if (myHandSection) {
-        myHandSection.classList.remove('turn-start-extreme-flash');
-        void myHandSection.offsetWidth;
-        myHandSection.classList.add('turn-start-extreme-flash');
-        setTimeout(() => { if (myHandSection) myHandSection.classList.remove('turn-start-extreme-flash'); }, 480);
+        // Handkarten werden nicht geflasht, nur Spieltisch hat dezenten Impuls
       }
     }
   }
@@ -9346,6 +9343,11 @@ function animateTableDealing(roundCardCount) {
     const fxRect = fxLayer.getBoundingClientRect ? fxLayer.getBoundingClientRect() : null;
     if (!fxRect || fxRect.width === 0) return;
 
+    // Akustischer Impuls zu Beginn des Austeilens
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardDeal) {
+      WizardAudio.playCardDeal();
+    }
+
     // Start-Position: Nachziehstapel (#table-deck-pile oder #trump-wrapper)
     let startX = fxRect.width / 2;
     let startY = fxRect.height / 2;
@@ -9394,26 +9396,24 @@ function animateTableDealing(roundCardCount) {
           const targetY = (sRect.top + sRect.height / 2) - fxRect.top;
 
           const flyCard = document.createElement('div');
-          const themeClass = `cardback-theme-${p.cardBack || 'default'}`;
+          const cardBackSkin = p.cardBack || 'default';
+          const themeClass = `cardback-theme-${cardBackSkin}`;
           flyCard.className = `table-dealing-card card-back ${themeClass}`;
-          flyCard.innerHTML = `
-            <div class="card-back-inner">
-              <div class="card-back-ornament"></div>
-            </div>
-          `;
-          flyCard.style.left = `${startX - 22}px`;
-          flyCard.style.top = `${startY - 32}px`;
-          flyCard.style.transform = `scale(0.5) rotate(0deg)`;
+          flyCard.style.left = `${startX - 24}px`;
+          flyCard.style.top = `${startY - 34}px`;
+          flyCard.style.transform = `scale(0.4) rotate(0deg)`;
           flyCard.style.opacity = '0';
+          flyCard.style.filter = 'blur(1.5px)';
           fxLayer.appendChild(flyCard);
 
-          // Starte Flug
+          // Starte Parabelflug
           const startFlight = () => {
             const deltaX = targetX - startX;
             const deltaY = targetY - startY;
-            const rot = (Math.random() * 26 - 13);
+            const rot = (Math.random() * 20 - 10);
             flyCard.style.opacity = '1';
-            flyCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.72) rotate(${rot}deg)`;
+            flyCard.style.filter = 'blur(0px)';
+            flyCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.75) rotate(${rot}deg)`;
           };
 
           void flyCard.offsetWidth;
@@ -9572,20 +9572,18 @@ function renderOpponents() {
 
     if (p.isHost) {
       nameClass += ' host-name';
-      iconPrefix = '👑 ';
+      iconPrefix = '';
       nameTitle = `Gastgeber: ${escapeHtml(p.name)} – Klicken für Profil`;
     } else if (p.isBot) {
       const diff = p.difficulty || 'master';
       if (diff === 'novice') {
         nameClass += ' bot-novice';
-        iconPrefix = '🌱 ';
       } else if (diff === 'archmage') {
         nameClass += ' bot-archmage';
-        iconPrefix = '⚡ ';
       } else {
         nameClass += ' bot-master';
-        iconPrefix = '✨ ';
       }
+      iconPrefix = '';
       nameTitle = `Virtueller Rat: ${escapeHtml(p.name)} – Klicken für Profil`;
     }
 
@@ -9656,9 +9654,6 @@ function renderOpponents() {
           ${avatarVisualHtml}
         </div>
         ${dealerPinHtml}
-        <div class="opponent-deck-badge cardback-theme-${p.cardBack || 'default'}" title="Kartenrücken: ${escapeHtml(cardBackLabel)}">
-          <div class="opponent-deck-badge-inner"></div>
-        </div>
       </div>
       <div class="seat-details">
         <div class="seat-name-row" style="cursor: pointer;" title="${nameTitle}">
@@ -9686,17 +9681,6 @@ function renderOpponents() {
     if (avatarEl) {
       if (avatarEl.style) avatarEl.style.cursor = 'pointer';
       avatarEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (typeof openPlayerDetailModal === 'function') {
-          openPlayerDetailModal(p, 'table');
-        }
-      });
-    }
-
-    // Klick auf Mini-Kartendeck öffnet ebenfalls Magier-Profil
-    const deckBadge = seatEl.querySelector('.opponent-deck-badge');
-    if (deckBadge) {
-      deckBadge.addEventListener('click', (e) => {
         e.stopPropagation();
         if (typeof openPlayerDetailModal === 'function') {
           openPlayerDetailModal(p, 'table');
@@ -10357,8 +10341,13 @@ function renderHand(isNewDeal = false) {
     const cardElement = renderCard(card);
     const playable = isMyTurn && isPlayingPhase && isCardPlayable(card, myCurrentHand, currentTrick);
 
-    const angle = 0;
-    const offsetY = restY;
+    // Echte Bogen-Geometrie für den Fächer
+    const midIdx = (total - 1) / 2;
+    const diff = index - midIdx;
+    const maxRot = Math.min(24, Math.max(8, total * 2.2));
+    const angle = total > 1 ? (diff / (total - 1)) * maxRot : 0;
+    const arcLift = Math.abs(diff) * (total > 6 ? 2.5 : 1.8);
+    const offsetY = restY + arcLift;
 
     cardElement.setAttribute('data-card-key', getCardKey(card));
     cardElement.setAttribute('data-index', index);
@@ -10392,7 +10381,7 @@ function renderHand(isNewDeal = false) {
         if (inspectedCardIndex !== index) {
           cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
         }
-      }, index * staggerMs + 380);
+      }, index * staggerMs + 420);
       setTimeout(() => {
         if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardDeal) {
           if (staggerMs >= 50 || index % 2 === 0) {
@@ -10540,16 +10529,16 @@ function renderCard(card) {
     frontFace.classList.add('card-has-artwork');
   }
 
-  const myCardBackSkin = (typeof getCurrentUserCardBack === 'function')
+  const myCardBack = (typeof getCurrentUserCardBack === 'function')
     ? getCurrentUserCardBack()
-    : ((typeof currentUser !== 'undefined' && currentUser && currentUser.equipped_card_back) || (typeof vaultData !== 'undefined' && vaultData && vaultData.user && vaultData.user.equipped_card_back) || 'default');
+    : 'default';
   const backFace = document.createElement('div');
-  backFace.className = `card-face card-face-back card-back cardback-theme-${myCardBackSkin}`;
+  backFace.className = `card-face card-face-back card-back card-3d-back cardback-theme-${myCardBack}`;
   backFace.innerHTML = '';
 
   if (card.isBlind || card.type === 'blind_card') {
-    div.classList.add('card-blind', 'card-back');
-    frontFace.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBackSkin}`);
+    div.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBack}`);
+    frontFace.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBack}`);
     frontFace.innerHTML = `
       <div class="card-corner top-left">
         <span class="card-val">?</span>
