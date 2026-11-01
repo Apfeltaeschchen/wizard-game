@@ -23,41 +23,41 @@
     <circle cx="50" cy="50" r="35.5" stroke="url(#voidRingGrad)" stroke-width="1.8"/>
     <circle cx="50" cy="50" r="37.2" stroke="#c084fc" stroke-width="0.8" stroke-dasharray="2 4"/>
 
-    <!-- 2. AMETHYST-KRISTALLE SITZEN NUR AUSSEN AUF DEM REIF (r=36 bis r=46) -->
-    <!-- Kristallgruppe Oben (12 Uhr) nach außen bis y=12 -->
+    <!-- 2. AMETHYST-KRISTALLE SITZEN NUR AUSSEN AUF DEM REIF (Innenraum frei!) -->
+    <!-- Kristallgruppe Oben (12 Uhr) -->
     <g>
-      <polygon points="50,11 47,24 50,34 53,24" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="50" y1="11" x2="50" y2="34" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="42,21 40,28 46,33 47,26" fill="url(#crystalFacet)"/>
-      <polygon points="58,21 60,28 54,33 53,26" fill="url(#crystalFacet)"/>
+      <polygon points="50,15 47,21 50,27 53,21" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
+      <line x1="50" y1="15" x2="50" y2="27" stroke="#ffffff" stroke-width="0.5"/>
+      <polygon points="44,19 41,25 46,27 48,22" fill="url(#crystalFacet)"/>
+      <polygon points="56,19 59,25 54,27 52,22" fill="url(#crystalFacet)"/>
       <!-- Periodischer Prisma-Glanz alle 7s -->
-      <polygon points="50,11 47,24 50,34 53,24" fill="#ffffff" opacity="0">
+      <polygon points="50,15 47,21 50,27 53,21" fill="#ffffff" opacity="0">
         <animate attributeName="opacity" values="0; 0; 0.85; 0; 0" keyTimes="0; 0.3; 0.34; 0.38; 1" dur="7s" repeatCount="indefinite"/>
       </polygon>
     </g>
 
-    <!-- Kristallgruppe Rechts (3 Uhr) nach außen bis x=89 -->
+    <!-- Kristallgruppe Rechts (3 Uhr) -->
     <g>
-      <polygon points="89,50 76,47 66,50 76,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="89" y1="50" x2="66" y2="50" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="79,42 72,40 67,46 74,47" fill="url(#crystalFacet)"/>
-      <polygon points="79,58 72,60 67,54 74,53" fill="url(#crystalFacet)"/>
+      <polygon points="85,50 79,47 73,50 79,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
+      <line x1="85" y1="50" x2="73" y2="50" stroke="#ffffff" stroke-width="0.5"/>
+      <polygon points="81,44 75,41 73,46 78,48" fill="url(#crystalFacet)"/>
+      <polygon points="81,56 75,59 73,54 78,52" fill="url(#crystalFacet)"/>
     </g>
 
-    <!-- Kristallgruppe Unten (6 Uhr) nach außen bis y=89 -->
+    <!-- Kristallgruppe Unten (6 Uhr) -->
     <g>
-      <polygon points="50,89 47,76 50,66 53,76" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="50" y1="89" x2="50" y2="66" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="42,79 40,72 46,67 47,74" fill="url(#crystalFacet)"/>
-      <polygon points="58,79 60,72 54,67 53,74" fill="url(#crystalFacet)"/>
+      <polygon points="50,85 47,79 50,73 53,79" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
+      <line x1="50" y1="85" x2="50" y2="73" stroke="#ffffff" stroke-width="0.5"/>
+      <polygon points="44,81 41,75 46,73 48,78" fill="url(#crystalFacet)"/>
+      <polygon points="56,81 59,75 54,73 52,78" fill="url(#crystalFacet)"/>
     </g>
 
-    <!-- Kristallgruppe Links (9 Uhr) nach außen bis x=11 -->
+    <!-- Kristallgruppe Links (9 Uhr) -->
     <g>
-      <polygon points="11,50 24,47 34,50 24,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="11" y1="50" x2="34" y2="50" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="21,42 28,40 33,46 26,47" fill="url(#crystalFacet)"/>
-      <polygon points="21,58 28,60 33,54 26,53" fill="url(#crystalFacet)"/>
+      <polygon points="15,50 21,47 27,50 21,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
+      <line x1="15" y1="50" x2="27" y2="50" stroke="#ffffff" stroke-width="0.5"/>
+      <polygon points="19,44 25,41 27,46 22,48" fill="url(#crystalFacet)"/>
+      <polygon points="19,56 25,59 27,54 22,52" fill="url(#crystalFacet)"/>
     </g>
 
     <!-- Diagonale schwebende Minisplitter außen (r=42) -->

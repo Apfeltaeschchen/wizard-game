@@ -114,34 +114,22 @@
     </g>
   </g>
 
-  <!-- 5. SCHIMMERNDE AMETHYST-KRISTALLCLUSTER IN DEN 4 ECKEN -->
-  <g fill="#c084fc" stroke="#f3e8ff" stroke-width="1" opacity="0.9" filter="url(#amethystGlow)">
-    <!-- Oben-Links Kristallcluster -->
-    <polygon points="22,22 55,30 75,75 30,55" fill="#a855f7" />
-    <polygon points="55,30 110,38 95,70 75,75" fill="#c084fc" />
-    <polygon points="30,55 75,75 70,95 38,110" fill="#7e22ce" />
-    <polygon points="75,75 95,70 115,105 70,95" fill="#e9d5ff" />
-    <polygon points="22,22 75,75 45,45" fill="#f5d0fe" opacity="0.8" />
+  <!-- 5. DEZENTE, WEICH VERBLENDETE RUNEN-ORNAMENTE & KRISTALLCLUSTER IN DEN 4 ECKEN -->
+  <g fill="none" stroke="#d8b4fe" stroke-width="1.5" opacity="0.45" filter="url(#amethystGlow)">
+    <!-- Oben-Links -->
+    <path d="M 30,70 A 40,40 0 0,1 70,30 M 45,75 A 30,30 0 0,1 75,45" />
+    <circle cx="50" cy="50" r="4" fill="#c084fc" opacity="0.6" />
 
-    <!-- Oben-Rechts Kristallcluster -->
-    <polygon points="1578,22 1545,30 1525,75 1570,55" fill="#a855f7" />
-    <polygon points="1545,30 1490,38 1505,70 1525,75" fill="#c084fc" />
-    <polygon points="1570,55 1525,75 1530,95 1562,110" fill="#7e22ce" />
-    <polygon points="1525,75 1505,70 1485,105 1530,95" fill="#e9d5ff" />
-    <polygon points="1578,22 1525,75 1555,45" fill="#f5d0fe" opacity="0.8" />
+    <!-- Oben-Rechts -->
+    <path d="M 1570,70 A 40,40 0 0,0 1530,30 M 1555,75 A 30,30 0 0,0 1525,45" />
+    <circle cx="1550" cy="50" r="4" fill="#c084fc" opacity="0.6" />
 
-    <!-- Unten-Links Kristallcluster -->
-    <polygon points="22,978 55,970 75,925 30,945" fill="#a855f7" />
-    <polygon points="55,970 110,962 95,930 75,925" fill="#c084fc" />
-    <polygon points="30,945 75,925 70,905 38,890" fill="#7e22ce" />
-    <polygon points="75,925 95,930 115,895 70,905" fill="#e9d5ff" />
-    <polygon points="22,978 75,925 45,955" fill="#f5d0fe" opacity="0.8" />
+    <!-- Unten-Links -->
+    <path d="M 30,930 A 40,40 0 0,0 70,970 M 45,925 A 30,30 0 0,0 75,955" />
+    <circle cx="50" cy="950" r="4" fill="#c084fc" opacity="0.6" />
 
-    <!-- Unten-Rechts Kristallcluster -->
-    <polygon points="1578,978 1545,970 1525,925 1570,945" fill="#a855f7" />
-    <polygon points="1545,970 1490,962 1505,930 1525,925" fill="#c084fc" />
-    <polygon points="1570,945 1525,925 1530,905 1562,890" fill="#7e22ce" />
-    <polygon points="1525,925 1505,930 1485,895 1530,905" fill="#e9d5ff" />
-    <polygon points="1578,978 1525,925 1555,955" fill="#f5d0fe" opacity="0.8" />
+    <!-- Unten-Rechts -->
+    <path d="M 1570,930 A 40,40 0 0,1 1530,970 M 1555,925 A 30,30 0 0,1 1525,955" />
+    <circle cx="1550" cy="950" r="4" fill="#c084fc" opacity="0.6" />
   </g>
 </svg>

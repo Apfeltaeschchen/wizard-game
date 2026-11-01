@@ -5389,8 +5389,6 @@ const WizardVault = (() => {
             <div class="mystery-card-back-sigil rarity-sigil-${rarity}">
               <span class="sigil-icon">${rCfg.icon}</span>
             </div>
-            <div class="mystery-card-rarity-badge rarity-badge-${rarity}">${rCfg.label}</div>
-            <div class="mystery-card-tap-hint">✨ ${rCfg.hint} ✨</div>
           </div>
           <div class="mystery-card-front">
             ${frontContentHtml}
@@ -6496,6 +6494,24 @@ function getCurrentUserCardBack() {
     }
   } catch (e) {}
   return 'default';
+}
+
+// --- INTELLIGENTE NAMENSKÜRZUNG FÜR RESPONSIVE TISCH- & KARTENPLAKETTEN ---
+function shortenPlayerName(name) {
+  if (!name || typeof name !== 'string') return 'Magier';
+  const trimmed = name.trim();
+  const isBot = trimmed.includes('(KI)');
+  const isMe = trimmed.includes('(Du)');
+  const clean = trimmed.replace(/\s*\((KI|Du)\)\s*/gi, '').trim();
+
+  const parts = clean.split(/\s+/);
+  let short = clean;
+  if (parts.length > 1) {
+    short = parts[parts.length - 1];
+  }
+  if (isBot) return `${short} (KI)`;
+  if (isMe) return `${short} (Du)`;
+  return short;
 }
 
 // --- INTERAKTIVER 3D-KARTENRÜCKEN-INSPEKTOR ---
@@ -7759,10 +7775,10 @@ function createPlayerWaitingItem(p, isHostUser) {
     : '';
 
   item.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <div class="seat-avatar ${frameClass}" style="width: 36px; height: 36px; font-size: 14px; margin: 0; box-shadow: none;">${avatarVisualHtml}</div>
-      <div>
-        <div style="font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+      <div class="seat-avatar ${frameClass}" style="width: 38px; height: 38px; font-size: 15px; margin: 0; box-shadow: none; flex-shrink: 0;">${avatarVisualHtml}</div>
+      <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+        <div style="font-size: 14.5px; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; line-height: 1.2;">
           <b>${escapeHtml(p.name)}</b> ${isMe ? '<small style="color: #f1c40f;">(Du)</small>' : ''} ${hostBadge} ${botBadge}
           ${levelBadgeHtml}
           ${rankBadgeHtml}
@@ -9558,8 +9574,10 @@ function renderOpponents() {
       }
 
       const initialForeheadOpacity = isDealingAnimationPending ? '0' : '1';
+      const shortForeheadName = (typeof shortenPlayerName === 'function') ? shortenPlayerName(p.name) : p.name;
       foreheadCardHtml = `
         <div class="forehead-floating-card" style="opacity: ${initialForeheadOpacity};" title="Stirnkarte von ${escapeHtml(p.name)}">
+          <div class="forehead-player-name">${escapeHtml(shortForeheadName)}</div>
           ${cardEl.outerHTML}
           ${badgeHtml}
         </div>
@@ -9657,7 +9675,7 @@ function renderOpponents() {
       </div>
       <div class="seat-details">
         <div class="seat-name-row" style="cursor: pointer;" title="${nameTitle}">
-          <span class="${nameClass}" title="${nameTitle}">${teamPrefix}${iconPrefix}${escapeHtml(p.name)}</span>
+          <span class="${nameClass}" title="${nameTitle}">${teamPrefix}${iconPrefix}${escapeHtml(typeof shortenPlayerName === 'function' ? shortenPlayerName(p.name) : p.name)}</span>
           ${levelBadgeHtml}
         </div>
         ${bidPillHtml}
@@ -9850,7 +9868,9 @@ function renderTrickCards(trickCards, animateLast = true) {
     // Spielername über der gespielten Karte
     const nameBadge = document.createElement('div');
     nameBadge.className = 'trick-card-player-name';
-    nameBadge.innerText = item.playerName || 'Magier';
+    nameBadge.innerText = (typeof shortenPlayerName === 'function')
+      ? shortenPlayerName(item.playerName || 'Magier')
+      : (item.playerName || 'Magier');
     wrap.appendChild(nameBadge);
 
     // Vollwertige 3D-Karte (vollständig sichtbar, unbedeckt oben)
@@ -9959,7 +9979,7 @@ function renderTrumpCard(trumpCard, isNewDeal = false) {
 
   if (!trumpCard) {
     if (subTextContainer) {
-      subTextContainer.innerHTML = '<span style="font-style: italic; font-size: 9px; color: #d6be90; font-family: var(--font-subheading);">Kein Trumpf</span>';
+      subTextContainer.innerHTML = '<span style="font-style: italic; font-size: 10px; color: #d6be90; font-family: var(--font-subheading); padding: 4px 0; display: inline-block;">Kein Trumpf</span>';
     }
     updateTableDeckPile();
     return;
@@ -10540,16 +10560,8 @@ function renderCard(card) {
     div.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBack}`);
     frontFace.classList.add('card-blind', 'card-back', `cardback-theme-${myCardBack}`);
     frontFace.innerHTML = `
-      <div class="card-corner top-left">
-        <span class="card-val">?</span>
-      </div>
-      <div class="card-center">
-        <div class="card-center-crest" style="font-size: 24px; filter: drop-shadow(0 0 10px var(--gold-bright));">👁️</div>
-        <div class="card-center-val" style="font-size: 32px; color: var(--gold-bright); margin-top: 1px; text-shadow: 0 0 14px rgba(240, 195, 85, 0.8);">?</div>
-        <div class="card-name-label" style="background: rgba(10,5,2,0.85); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--gold-antique);"><em>Stirn-Karte</em></div>
-      </div>
-      <div class="card-corner bottom-right">
-        <span class="card-val">?</span>
+      <div class="card-back-inner">
+        <div class="card-back-ornament"></div>
       </div>
     `;
     flipper.appendChild(backFace);

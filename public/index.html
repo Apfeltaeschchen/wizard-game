@@ -1835,6 +1835,21 @@
       display: none !important;
     }
 
+    .forehead-player-name {
+      font-family: var(--font-subheading);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      background: rgba(14, 9, 5, 0.94);
+      border: 1px solid rgba(212, 163, 89, 0.55);
+      border-radius: 6px;
+      padding: 1px 7px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+
     /* DEUTLICHES FARBWAPPEN-BADGE AUF STIRNKARTEN */
     .forehead-suit-badge {
       display: inline-flex;
@@ -1980,13 +1995,18 @@
       top: 8px;
       left: 8px;
       z-index: 30;
+      width: clamp(86px, 10vw, 106px);
+      min-width: clamp(86px, 10vw, 106px);
+      min-height: clamp(124px, 15vh, 142px);
+      box-sizing: border-box;
       background: rgba(18, 10, 5, 0.94);
       border: 1.5px solid var(--gold-antique);
       border-radius: 10px;
-      padding: 4px 6px;
+      padding: 5px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: flex-start;
       box-shadow: 0 4px 16px rgba(0,0,0,0.7), inset 0 0 8px rgba(0,0,0,0.5);
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -2000,7 +2020,7 @@
       font-weight: bold;
       font-family: var(--font-subheading);
       color: var(--gold-antique);
-      margin-bottom: 2px;
+      margin-bottom: 3px;
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
@@ -2009,6 +2029,15 @@
       --card-h: calc(var(--card-w) * (1498 / 1050)) !important;
       margin: 0 !important;
       cursor: pointer !important;
+    }
+    #trump-subtext-container {
+      margin-top: 7px;
+      margin-bottom: 2px;
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
     }
 
     /* TISCHMITTE (100% BREITE FÜR STICHKARTEN ZENTRIERT) */
@@ -2288,17 +2317,7 @@
 
     /* BLIND-KARTE (STIRN-WIZARD RUNDE 1) */
     .card-blind {
-      background: radial-gradient(circle at 50% 35%, #2c1810 0%, #150904 70%, #0a0402 100%) !important;
-      color: var(--gold-bright) !important;
-      border-color: var(--gold-bright) !important;
       box-shadow: 0 0 16px rgba(240, 195, 85, 0.4), 0 6px 20px rgba(0, 0, 0, 0.9) !important;
-    }
-    .card-blind::before {
-      background: radial-gradient(ellipse at center, rgba(240, 195, 85, 0.2) 0%, transparent 75%) !important;
-    }
-    .card-blind::after {
-      border-color: var(--gold-antique) !important;
-      outline-color: #3f2210 !important;
     }
     .card-blind .card-val {
       color: var(--gold-bright);
@@ -2436,7 +2455,7 @@
       overflow: hidden;
     }
     .card-face-front {
-      transform: rotateY(0deg);
+      transform: rotateY(0deg) translateZ(1px);
       background: var(--parchment-base);
       border: 1.5px solid #2e1d11;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 2px 5px rgba(0,0,0,0.5);
@@ -2457,21 +2476,25 @@
       pointer-events: none;
       z-index: 1;
     }
+    .card-red .card-face-front::before,
+    .card-blue .card-face-front::before,
+    .card-green .card-face-front::before,
+    .card-yellow .card-face-front::before,
+    .card.card-has-artwork .card-face-front::before,
+    .card.card-has-artwork .card-face-front::after {
+      display: none !important;
+    }
     .card-face-front::after {
       content: '';
       position: absolute;
       inset: 3px;
       border: 1px solid rgba(118, 86, 21, 0.45);
-            border-radius: 4px;
+      border-radius: 4px;
       pointer-events: none;
       z-index: 2;
     }
-    .card.card-has-artwork .card-face-front::before,
-    .card.card-has-artwork .card-face-front::after {
-      display: none !important;
-    }
     .card-face-back {
-      transform: rotateY(180deg);
+      transform: rotateY(180deg) translateZ(0);
       border-radius: inherit;
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 2px 5px rgba(0,0,0,0.5);
     }
@@ -3451,43 +3474,23 @@
       }
     }
 
-    /* AUSTEIL-ANIMATION (STAFFEL-AUFSTIEG DER HANDKARTEN VON LINKS NACH RECHTS MIT 3D-UNO-REVEAL) */
+    /* AUSTEIL-ANIMATION (STAFFEL-AUFSTIEG DER HANDKARTEN GERADE VON UNTEN NACH OBEN) */
     @keyframes cardFlyUpEntrance {
       0% {
         opacity: 0;
-        transform: translateY(calc(var(--target-y, 0px) + 110px)) scale(0.75) rotate(calc(var(--target-rot, 0deg) * 0.4));
-        filter: blur(2px);
-      }
-      70% {
-        opacity: 1;
-        transform: translateY(calc(var(--target-y, 0px) - 6px)) scale(1.03) rotate(var(--target-rot, 0deg));
-        filter: blur(0px);
+        transform: translateY(calc(var(--target-y, 0px) + 60px)) scale(0.95);
       }
       100% {
         opacity: 1;
         transform: translateY(var(--target-y, 0px)) scale(1) rotate(var(--target-rot, 0deg));
-        filter: blur(0px);
-      }
-    }
-
-    @keyframes cardUnoFaceReveal {
-      0% {
-        transform: rotateY(180deg);
-      }
-      30% {
-        transform: rotateY(180deg);
-      }
-      100% {
-        transform: rotateY(0deg);
       }
     }
 
     .card-fly-up {
-      animation: cardFlyUpEntrance 0.42s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+      animation: cardFlyUpEntrance 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
     .card-fly-up .card-flipper {
-      animation: cardUnoFaceReveal 0.42s cubic-bezier(0.2, 0.8, 0.25, 1) both;
-      animation-delay: inherit;
+      transform: rotateY(0deg) !important;
     }
 
     #hand-container.hand-dealing {
@@ -3936,16 +3939,23 @@
       .trump-section-fixed {
         top: 6px !important;
         left: 6px !important;
+        width: 78px !important;
+        min-width: 78px !important;
+        min-height: 112px !important;
         padding: 3px 5px !important;
         border-radius: 8px !important;
         z-index: 120 !important;
       }
       .trump-label {
         font-size: 8px !important;
-        margin-bottom: 1px !important;
+        margin-bottom: 2px !important;
       }
       .trump-card-compact {
         --card-w: clamp(32px, 8vw, 40px) !important;
+      }
+      #trump-subtext-container {
+        margin-top: 5px !important;
+        min-height: 16px !important;
       }
       #bid-overlay {
         position: absolute;
@@ -6105,7 +6115,7 @@
     .seat-avatar::after {
       content: '';
       position: absolute;
-      inset: -21.5%;
+      inset: -10%;
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;

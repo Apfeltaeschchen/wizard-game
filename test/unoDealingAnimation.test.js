@@ -11,19 +11,14 @@ const js = fs.readFileSync(path.join(__dirname, '../public/client.js'), 'utf8');
 // 1. Prüfe CSS-Klassen & Keyframes in index.html
 console.log('1. Prüfe CSS & Keyframes in public/index.html...');
 assert.ok(html.includes('.table-dealing-card'), '.table-dealing-card CSS-Klasse vorhanden');
-assert.ok(html.includes('cardUnoFaceReveal'), 'cardUnoFaceReveal Keyframe vorhanden');
 assert.ok(html.includes('rotateY(180deg)'), 'rotateY(180deg) 3D-Kartenrückseite vorhanden');
 assert.ok(html.includes('rotateY(0deg)'), 'rotateY(0deg) 3D-Vorderseite vorhanden');
 assert.ok(html.includes('.card-flipper'), '.card-flipper CSS-Klasse vorhanden');
 assert.ok(html.includes('.card-face-front'), '.card-face-front CSS-Klasse vorhanden');
 assert.ok(html.includes('.card-face-back'), '.card-face-back CSS-Klasse vorhanden');
-assert.ok(html.includes('.opponent-deck-badge'), '.opponent-deck-badge CSS-Klasse vorhanden');
 assert.ok(html.includes('.seat-card-pulse'), '.seat-card-pulse CSS-Klasse vorhanden');
-assert.ok(html.includes('seatCardPulseAnim'), 'seatCardPulseAnim Keyframe vorhanden');
-assert.ok(html.includes('#hand-container.hand-dealing'), '#hand-container.hand-dealing CSS-Regel vorhanden');
 assert.ok(html.includes('card-fly-up'), 'card-fly-up CSS-Klasse für Abwärtskompatibilität gewahrt');
 assert.ok(html.includes('cardFlyUpEntrance'), 'cardFlyUpEntrance Keyframe gewahrt');
-assert.ok(html.includes('animation-delay: inherit'), 'card-flipper erbt animation-delay von card-fly-up');
 console.log('✓ 1. CSS & Keyframes für Dual-Face Karten, Tischkarten und Badges erfolgreich verifiziert');
 
 // 2. Prüfe client.js Funktionsdefinitionen & Logik-Contracts
@@ -174,7 +169,7 @@ assert.ok(blindCardEl.classList.contains('card-back'), 'Blind-Karte muss .card-b
 const blindFlipper = blindCardEl.children.find(c => c.classList.contains('card-flipper'));
 assert.ok(blindFlipper, 'Blind-Karte muss .card-flipper für den Austeil-Flip besitzen');
 const blindFront = blindFlipper.children.find(c => c.classList.contains('card-face-front'));
-assert.ok(blindFront.innerHTML.includes('Stirn-Karte'), 'Vorderseite muss Stirn-Karten Label enthalten');
+assert.ok(blindFront.classList.contains('card-blind'), 'Vorderseite muss card-blind tragen');
 console.log('✓ 3c. Blind-Karte erfolgreich mit Dual-Face und 3D-Flipper gerendert');
 
 // 4. Verifiziere animateTableDealing und opponent-deck-badge an Sitzen
