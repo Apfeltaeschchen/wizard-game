@@ -1,4 +1,4 @@
-// Generiert das Deck (60 Karten bei 'classic', 63 Karten bei 'anniversary_30')
+// Generiert das Deck (60 Karten bei 'classic', 70 Karten bei 'anniversary_30')
 function createDeck(edition = 'classic') {
   const suits = ['red', 'blue', 'green', 'yellow'];
   const deck = [];

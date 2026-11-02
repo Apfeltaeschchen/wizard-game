@@ -85,28 +85,28 @@ const BOT_NAMES = [
 // Individuelle Avatar-Artworks & Rahmen für jede Bot-Persönlichkeit
 const INDIVIDUAL_BOT_CUSTOMIZATION = {
   // Novizen
-  'Rincewind (KI)': { avatarId: 'icon_jester', avatarFrame: 'iron_thorn' },
-  'Gilderoy Lockhart (KI)': { avatarId: 'icon_forest_nymph', avatarFrame: 'silver_leaf' },
-  'Presto (KI)': { avatarId: 'icon_pyromancer', avatarFrame: 'golden_runes' },
-  'Gargamel (KI)': { avatarId: 'icon_necromancer', avatarFrame: 'iron_thorn' },
-  'Neville Longbottom (KI)': { avatarId: 'icon_forest_nymph', avatarFrame: 'silver_leaf' },
-  'Orko (KI)': { avatarId: 'icon_jester', avatarFrame: 'ghost_specter' },
+  'Rincewind (KI)': { avatarId: 'icon_bot_rincewind', avatarFrame: 'iron_thorn' },
+  'Gilderoy Lockhart (KI)': { avatarId: 'icon_bot_lockhart', avatarFrame: 'silver_leaf' },
+  'Presto (KI)': { avatarId: 'icon_bot_presto', avatarFrame: 'golden_runes' },
+  'Gargamel (KI)': { avatarId: 'icon_bot_gargamel', avatarFrame: 'iron_thorn' },
+  'Neville Longbottom (KI)': { avatarId: 'icon_bot_longbottom', avatarFrame: 'silver_leaf' },
+  'Orko (KI)': { avatarId: 'icon_bot_orko', avatarFrame: 'ghost_specter' },
 
   // Meister
-  'Severus Snape (KI)': { avatarId: 'icon_vampire', avatarFrame: 'bat_swarm' },
-  'Doctor Strange (KI)': { avatarId: 'icon_seer', avatarFrame: 'void_crystal' },
-  'Yennefer von Vengerberg (KI)': { avatarId: 'icon_moon_witch', avatarFrame: 'golden_runes' },
-  'Howl Pendragon (KI)': { avatarId: 'icon_pyromancer', avatarFrame: 'dragon_fire' },
-  'Raistlin Majere (KI)': { avatarId: 'icon_necromancer', avatarFrame: 'void_crystal' },
-  'Minerva McGonagall (KI)': { avatarId: 'icon_forest_nymph', avatarFrame: 'silver_leaf' },
+  'Severus Snape (KI)': { avatarId: 'icon_bot_snape', avatarFrame: 'bat_swarm' },
+  'Doctor Strange (KI)': { avatarId: 'icon_bot_strange', avatarFrame: 'void_crystal' },
+  'Yennefer von Vengerberg (KI)': { avatarId: 'icon_bot_yennefer', avatarFrame: 'golden_runes' },
+  'Howl Pendragon (KI)': { avatarId: 'icon_bot_howl', avatarFrame: 'dragon_fire' },
+  'Raistlin Majere (KI)': { avatarId: 'icon_bot_raistlin', avatarFrame: 'void_crystal' },
+  'Minerva McGonagall (KI)': { avatarId: 'icon_bot_mcgonagall', avatarFrame: 'silver_leaf' },
 
   // Erzmagier
-  'Gandalf (KI)': { avatarId: 'icon_seer', avatarFrame: 'silver_leaf' },
-  'Albus Dumbledore (KI)': { avatarId: 'icon_pyromancer', avatarFrame: 'void_crystal' },
-  'Merlin (KI)': { avatarId: 'icon_dragon', avatarFrame: 'dragon_fire' },
-  'Saruman (KI)': { avatarId: 'icon_seer', avatarFrame: 'golden_runes' },
-  'Lord Voldemort (KI)': { avatarId: 'icon_necromancer', avatarFrame: 'bat_swarm' },
-  'Elminster (KI)': { avatarId: 'icon_pyromancer', avatarFrame: 'mvp_glow' }
+  'Gandalf (KI)': { avatarId: 'icon_bot_gandalf', avatarFrame: 'silver_leaf' },
+  'Albus Dumbledore (KI)': { avatarId: 'icon_bot_dumbledore', avatarFrame: 'void_crystal' },
+  'Merlin (KI)': { avatarId: 'icon_bot_merlin', avatarFrame: 'dragon_fire' },
+  'Saruman (KI)': { avatarId: 'icon_bot_saruman', avatarFrame: 'golden_runes' },
+  'Lord Voldemort (KI)': { avatarId: 'icon_bot_voldemort', avatarFrame: 'bat_swarm' },
+  'Elminster (KI)': { avatarId: 'icon_bot_elminster', avatarFrame: 'mvp_glow' }
 };
 
 /**
@@ -169,7 +169,8 @@ function calculateNoviceBid(hand, trumpCard, trumpSuit, playerBids = [], isDeale
   const tSuit = trumpSuit || (trumpCard && trumpCard.suit !== 'none' ? trumpCard.suit : 'none');
 
   let raw = 0.0;
-  hand.forEach(c => {
+  hand.forEach(rawCard => {
+    const c = (rawCard.type === 'vampire' && rawCard.copiedCard) ? getEffectiveCard(rawCard) : rawCard;
     if (c.type === 'wizard' || c.type === 'dragon' || c.type === 'werewolf_trump') {
       raw += 1.0;
     } else if (c.type === 'shapeshifter') {
@@ -226,11 +227,13 @@ function calculateMasterBid(hand, trumpCard, trumpSuit, playerBids = [], isDeale
 
   // Zähle Farbenanzahl zur Erkennung von Längen
   const suitCounts = { red: 0, blue: 0, green: 0, yellow: 0 };
-  hand.forEach(c => {
+  hand.forEach(rawCard => {
+    const c = (rawCard.type === 'vampire' && rawCard.copiedCard) ? getEffectiveCard(rawCard) : rawCard;
     if (c.suit && suitCounts[c.suit] !== undefined) suitCounts[c.suit]++;
   });
 
-  hand.forEach(c => {
+  hand.forEach(rawCard => {
+    const c = (rawCard.type === 'vampire' && rawCard.copiedCard) ? getEffectiveCard(rawCard) : rawCard;
     // Locks: Zauberer, Drache, Werwolf-Trumpf
     if (c.type === 'wizard' || c.type === 'dragon' || c.type === 'werewolf_trump') {
       lockTricks += 0.95;
@@ -314,7 +317,7 @@ function calculateArchmageBid(hand, trumpCard, trumpSuit, playerBids = [], isDea
   if (!hand || hand.length === 0) return 0;
   const tSuit = trumpSuit || (trumpCard && trumpCard.suit !== 'none' ? trumpCard.suit : 'none');
 
-  const totalDeck = (edition === 'anniversary_30') ? 69 : 60;
+  const totalDeck = (edition === 'anniversary_30') ? 70 : 60;
   const dealtCards = round * numPlayers;
   const drawPileCount = Math.max(0, totalDeck - dealtCards);
 
@@ -329,7 +332,8 @@ function calculateArchmageBid(hand, trumpCard, trumpSuit, playerBids = [], isDea
 
   const suitCards = { red: [], blue: [], green: [], yellow: [] };
 
-  hand.forEach(c => {
+  hand.forEach(rawCard => {
+    const c = (rawCard.type === 'vampire' && rawCard.copiedCard) ? getEffectiveCard(rawCard) : rawCard;
     if (c.type === 'jester' || c.type === 'fairy') {
       jesterCount++;
       return;
@@ -511,8 +515,13 @@ function chooseMasterCard(hand, currentTrick, trumpCard, myBid, tricksWon, round
   // Anspiel (Lead)
   if (currentTrick.length === 0) {
     if (wantsToWin) {
-      // Spiele Boss-Farbe oder hohen Trumpf an
+      // Spiele Boss-Farbe oder hohen Trumpf an (Zauberer & Drachen vor Trümpfen!)
       evaluated.sort((a, b) => {
+        const isBossA = ['dragon', 'wizard'].includes(a.card.type) || (a.card.type === 'shapeshifter' && a.chosenRole === 'wizard');
+        const isBossB = ['dragon', 'wizard'].includes(b.card.type) || (b.card.type === 'shapeshifter' && b.chosenRole === 'wizard');
+        if (isBossA && !isBossB) return -1;
+        if (!isBossA && isBossB) return 1;
+
         const isTrumpA = (a.card.suit === trumpSuit && trumpSuit !== 'none');
         const isTrumpB = (b.card.suit === trumpSuit && trumpSuit !== 'none');
         if (isTrumpA && !isTrumpB) return -1;
@@ -521,12 +530,18 @@ function chooseMasterCard(hand, currentTrick, trumpCard, myBid, tricksWon, round
       });
       return { cardIndex: evaluated[0].index, chosenRole: evaluated[0].chosenRole, chosenSuit: evaluated[0].chosenSuit };
     } else {
-      // Vermeide Stiche: spiele niedrigste Nicht-Trumpf-Karte an
+      // Vermeide Stiche: spiele niedrigste Nicht-Trumpf-Karte an (Fehlfarben vor Trümpfen!)
       evaluated.sort((a, b) => {
         const isSpecialA = ['wizard', 'dragon', 'unicorn'].includes(a.card.type);
         const isSpecialB = ['wizard', 'dragon', 'unicorn'].includes(b.card.type);
         if (isSpecialA && !isSpecialB) return 1;
         if (!isSpecialA && isSpecialB) return -1;
+
+        const isTrumpA = (a.card.suit === trumpSuit && trumpSuit !== 'none');
+        const isTrumpB = (b.card.suit === trumpSuit && trumpSuit !== 'none');
+        if (!isTrumpA && isTrumpB) return -1;
+        if (isTrumpA && !isTrumpB) return 1;
+
         return (a.card.value || 0) - (b.card.value || 0);
       });
       return { cardIndex: evaluated[0].index, chosenRole: evaluated[0].chosenRole, chosenSuit: evaluated[0].chosenSuit };
@@ -642,8 +657,13 @@ function chooseArchmageCard(hand, currentTrick, trumpCard, myBid, tricksWon, rou
   // --- ANSPEL (LEAD) ---
   if (currentTrick.length === 0) {
     if (wantsToWin) {
-      // Wenn wir Stiche wollen: Vermeide Farben, in denen Gegner Voids haben (Abstich-Gefahr!)
+      // Wenn wir Stiche wollen: Boss-Karten vor Trümpfen, und vermeide Farben mit feindlichen Voids
       evaluated.sort((a, b) => {
+        const isBossA = ['dragon', 'wizard'].includes(a.card.type) || (a.card.type === 'shapeshifter' && a.chosenRole === 'wizard');
+        const isBossB = ['dragon', 'wizard'].includes(b.card.type) || (b.card.type === 'shapeshifter' && b.chosenRole === 'wizard');
+        if (isBossA && !isBossB) return -1;
+        if (!isBossA && isBossB) return 1;
+
         const voidsInA = Object.values(playerVoids).filter(v => v && a.card.suit && v[a.card.suit]).length;
         const voidsInB = Object.values(playerVoids).filter(v => v && b.card.suit && v[b.card.suit]).length;
         if (voidsInA !== voidsInB) return voidsInA - voidsInB; // Weniger Voids = sicherer
@@ -667,12 +687,18 @@ function chooseArchmageCard(hand, currentTrick, trumpCard, myBid, tricksWon, rou
         }
       }
 
-      // Sonst sicherste niedrige Karte
+      // Sonst sicherste niedrige Karte (Fehlfarben vor Trümpfen!)
       evaluated.sort((a, b) => {
         const isSpecialA = ['wizard', 'dragon', 'unicorn'].includes(a.card.type);
         const isSpecialB = ['wizard', 'dragon', 'unicorn'].includes(b.card.type);
         if (isSpecialA && !isSpecialB) return 1;
         if (!isSpecialA && isSpecialB) return -1;
+
+        const isTrumpA = (a.card.suit === trumpSuit && trumpSuit !== 'none');
+        const isTrumpB = (b.card.suit === trumpSuit && trumpSuit !== 'none');
+        if (!isTrumpA && isTrumpB) return -1;
+        if (isTrumpA && !isTrumpB) return 1;
+
         return (a.card.value || 0) - (b.card.value || 0);
       });
       return { cardIndex: evaluated[0].index, chosenRole: evaluated[0].chosenRole, chosenSuit: evaluated[0].chosenSuit };

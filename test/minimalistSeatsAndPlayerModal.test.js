@@ -173,7 +173,7 @@ assert.doesNotThrow(() => {
 assert.strictEqual(mockOpponentsContainer.children.length, 3, 'Es müssen genau 3 Mitspieler-Sitze gerendert worden sein');
 assert(mockOpponentsContainer.className.includes('count-3'), 'Container muss Klasse count-3 erhalten');
 
-const firstSeat = mockOpponentsContainer.children[0];
+const firstSeat = (mockOpponentsContainer.children[0].children && mockOpponentsContainer.children[0].children.length > 0) ? mockOpponentsContainer.children[0].children[0] : mockOpponentsContainer.children[0];
 assert(firstSeat.innerHTML.includes('seat-bid-pill'), 'Sitz muss .seat-bid-pill enthalten');
 assert(firstSeat.innerHTML.includes('🏆 0 / 🎯 0'), 'Sitz muss Gemacht / Vorhersage anzeigen');
 

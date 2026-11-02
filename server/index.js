@@ -456,16 +456,20 @@ function setRoomTimeout(room, fn, ms) {
 function checkRoomCleanup(roomCode) {
   const room = rooms[roomCode];
   if (!room) return;
-  const allDisconnected = room.players.length === 0 || room.players.every(p => !p.connected);
+  const humanPlayers = room.players.filter(p => !p.isBot);
+  const allDisconnected = humanPlayers.length === 0 || humanPlayers.every(p => !p.connected);
 
   if (allDisconnected) {
     if (!room.cleanupTimer) {
       room.cleanupTimer = setTimeout(() => {
         const r = rooms[roomCode];
-        if (r && (r.players.length === 0 || r.players.every(p => !p.connected))) {
-          clearRoomTimers(r);
-          delete rooms[roomCode];
-          console.log(`Raum ${roomCode} nach Inaktivität aufgeräumt.`);
+        if (r) {
+          const humans = r.players.filter(p => !p.isBot);
+          if (humans.length === 0 || humans.every(p => !p.connected)) {
+            clearRoomTimers(r);
+            delete rooms[roomCode];
+            console.log(`Raum ${roomCode} nach Inaktivität aufgeräumt.`);
+          }
         }
       }, 5 * 60 * 1000);
     }
@@ -534,7 +538,8 @@ io.on('connection', (socket) => {
     sendFriendsListTo(socket, socket.user.id);
   }
 
-  socket.on('authIdentify', async ({ token }) => {
+  socket.on('authIdentify', async (payload) => {
+    const { token } = payload || {};
     if (token) {
       const user = await dbModule.getUserByToken(token);
       if (user) {
@@ -545,7 +550,8 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('getFriends', async ({ token } = {}) => {
+  socket.on('getFriends', async (payload) => {
+    const { token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -561,7 +567,8 @@ io.on('connection', (socket) => {
     await sendFriendsListTo(socket, authUser.id);
   });
 
-  socket.on('addFriend', async ({ friendUsername, token }) => {
+  socket.on('addFriend', async (payload) => {
+    const { friendUsername, token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -586,7 +593,8 @@ io.on('connection', (socket) => {
     await sendFriendsListTo(res.friend.id, res.friend.id);
   });
 
-  socket.on('removeFriend', async ({ friendId, token }) => {
+  socket.on('removeFriend', async (payload) => {
+    const { friendId, token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -606,7 +614,8 @@ io.on('connection', (socket) => {
     await sendFriendsListTo(friendId, friendId);
   });
 
-  socket.on('inviteFriendToRoom', async ({ friendId, roomCode, token }) => {
+  socket.on('inviteFriendToRoom', async (payload) => {
+    const { friendId, roomCode, token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -658,7 +667,8 @@ io.on('connection', (socket) => {
   // ==========================================
   // SCHATZKAMMER & KOSMETIK (ETAPPE 6) SOCKETS
   // ==========================================
-  socket.on('vault:getState', async ({ token } = {}) => {
+  socket.on('vault:getState', async (payload) => {
+    const { token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -675,7 +685,8 @@ io.on('connection', (socket) => {
     socket.emit('vault:state', state);
   });
 
-  socket.on('vault:openChest', async ({ chestType, token } = {}) => {
+  socket.on('vault:openChest', async (payload) => {
+    const { chestType, token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -698,7 +709,8 @@ io.on('connection', (socket) => {
     socket.emit('vault:chestOpened', { ...res, user: updatedUser });
   });
 
-  const handleCosmeticEquip = async ({ itemType, itemId, token } = {}) => {
+  const handleCosmeticEquip = async (payload) => {
+    const { itemType, itemId, token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -747,7 +759,8 @@ io.on('connection', (socket) => {
   socket.on('vault:equip', handleCosmeticEquip);
   socket.on('wardrobe:equip', handleCosmeticEquip);
 
-  socket.on('vault:craft', async ({ itemType, itemId, token } = {}) => {
+  socket.on('vault:craft', async (payload) => {
+    const { itemType, itemId, token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -770,7 +783,8 @@ io.on('connection', (socket) => {
     socket.emit('vault:crafted', { ...res, user: updatedUser });
   });
 
-  socket.on('vault:claimMilestone', async ({ milestoneId, token } = {}) => {
+  socket.on('vault:claimMilestone', async (payload) => {
+    const { milestoneId, token } = payload || {};
     let authUser = socket.user;
     if (!authUser && token) {
       authUser = await dbModule.getUserByToken(token);
@@ -794,7 +808,8 @@ io.on('connection', (socket) => {
   });
 
   // Neues Spiel erstellen mit garantiert einmaligem 6-stelligen Zahlencode
-  socket.on('createRoom', async ({ playerName, sessionId, roomCode, authToken, isRanked }) => {
+  socket.on('createRoom', async (payload) => {
+    const { playerName, sessionId, roomCode, authToken, isRanked } = payload || {};
     if (!sessionId) {
       socket.emit('lobbyError', { message: 'Ungültige Session-Daten.' });
       return;
@@ -896,7 +911,8 @@ io.on('connection', (socket) => {
   });
 
   // Spieler tritt einem Raum bei
-  socket.on('joinRoom', async ({ playerName, roomCode, sessionId, createIfNotExists, authToken }) => {
+  socket.on('joinRoom', async (payload) => {
+    const { playerName, roomCode, sessionId, createIfNotExists, authToken } = payload || {};
     if (!roomCode || typeof roomCode !== 'string' || !sessionId) {
       socket.emit('lobbyError', { message: 'Ungültige Raum- oder Session-Daten.' });
       return;
@@ -983,6 +999,7 @@ io.on('connection', (socket) => {
         room.isPaused = false;
         room.pausedReason = null;
         io.to(normalizedCode).emit('gameResumed');
+        resumeRoomExecution(room);
       }
 
       let activePlayer = null;
@@ -1022,7 +1039,7 @@ io.on('connection', (socket) => {
           ? [{ type: 'blind_card', isBlind: true, id: 'blind-1' }]
           : (existingPlayer.hand || []),
         currentTrick: room.currentTrick,
-        players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room),
+        players: getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room, existingPlayer.sessionId),
         activePlayerSessionId: activePlayer ? activePlayer.sessionId : null,
         dealerSessionId: room.players[room.dealerIndex] ? room.players[room.dealerIndex].sessionId : null,
         scoreHistory: room.scoreHistory,
@@ -1145,7 +1162,8 @@ io.on('connection', (socket) => {
   });
 
   // Host ändert die gespielte Edition (classic vs. anniversary_30)
-  socket.on('setEdition', ({ roomCode, edition }) => {
+  socket.on('setEdition', (payload) => {
+    const { roomCode, edition } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1175,7 +1193,8 @@ io.on('connection', (socket) => {
   });
 
   // Host ändert das Spielformat ('ffa' vs. 'team_2v2')
-  socket.on('setMatchFormat', ({ roomCode, matchFormat }) => {
+  socket.on('setMatchFormat', (payload) => {
+    const { roomCode, matchFormat } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1209,7 +1228,8 @@ io.on('connection', (socket) => {
   });
 
   // Host aktualisiert Raum-Einstellungen (Edition, MatchFormat, ScoringMode, BiddingMode)
-  socket.on('updateRoomSettings', ({ roomCode, edition, matchFormat, scoringMode, biddingMode }) => {
+  socket.on('updateRoomSettings', (payload) => {
+    const { roomCode, edition, matchFormat, scoringMode, biddingMode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1258,7 +1278,8 @@ io.on('connection', (socket) => {
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
-  socket.on('setScoringMode', ({ roomCode, scoringMode }) => {
+  socket.on('setScoringMode', (payload) => {
+    const { roomCode, scoringMode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1289,7 +1310,8 @@ io.on('connection', (socket) => {
     io.to(normalizedCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
   });
 
-  socket.on('setBiddingMode', ({ roomCode, biddingMode }) => {
+  socket.on('setBiddingMode', (payload) => {
+    const { roomCode, biddingMode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1321,7 +1343,8 @@ io.on('connection', (socket) => {
   });
 
   // Spieler wechselt Allianz im Allianzen-Modus
-  socket.on('switchTeam', ({ roomCode, team }) => {
+  socket.on('switchTeam', (payload) => {
+    const { roomCode, team } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1367,7 +1390,8 @@ io.on('connection', (socket) => {
   });
 
   // Host würfelt Allianzen zufällig aus
-  socket.on('randomizeTeams', ({ roomCode }) => {
+  socket.on('randomizeTeams', (payload) => {
+    const { roomCode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1428,7 +1452,8 @@ io.on('connection', (socket) => {
   });
 
   // Host fügt einen KI-Magier (Bot) zur Kammer hinzu
-  socket.on('addBot', ({ roomCode, difficulty }) => {
+  socket.on('addBot', (payload) => {
+    const { roomCode, difficulty } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1458,7 +1483,8 @@ io.on('connection', (socket) => {
   });
 
   // Host entfernt einen KI-Magier (gezielt per botSessionId oder den zuletzt hinzugefügten)
-  socket.on('removeBot', ({ roomCode, botSessionId }) => {
+  socket.on('removeBot', (payload) => {
+    const { roomCode, botSessionId } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1507,7 +1533,8 @@ io.on('connection', (socket) => {
   });
 
   // Host verweist einen menschlichen Mitspieler aus dem Warteraum
-  socket.on('kickPlayer', ({ roomCode, targetSessionId }) => {
+  socket.on('kickPlayer', (payload) => {
+    const { roomCode, targetSessionId } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1568,7 +1595,8 @@ io.on('connection', (socket) => {
   });
 
   // Host übergibt die Spielleitung an einen anderen menschlichen Mitspieler
-  socket.on('transferHost', ({ roomCode, targetSessionId }) => {
+  socket.on('transferHost', (payload) => {
+    const { roomCode, targetSessionId } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1618,7 +1646,8 @@ io.on('connection', (socket) => {
   });
 
   // Spiel starten (aus der Lobby)
-  socket.on('startGame', ({ roomCode }) => {
+  socket.on('startGame', (payload) => {
+    const { roomCode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'lobby') return;
@@ -1908,7 +1937,8 @@ io.on('connection', (socket) => {
   }
 
   // Host setzt das Spiel nach Spielende zurück
-  socket.on('resetGame', ({ roomCode }) => {
+  socket.on('resetGame', (payload) => {
+    const { roomCode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -1920,7 +1950,8 @@ io.on('connection', (socket) => {
   });
 
   // Host bricht das pausierte Spiel ab und kehrt in den Warteraum zurück
-  socket.on('abortGameToWaitingRoom', ({ roomCode }) => {
+  socket.on('abortGameToWaitingRoom', (payload) => {
+    const { roomCode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState === 'lobby') return;
@@ -1932,7 +1963,8 @@ io.on('connection', (socket) => {
   });
 
   // Host verteilt Runde neu, wenn ein Spieler getrennt ist
-  socket.on('hostReDealRound', ({ roomCode }) => {
+  socket.on('hostReDealRound', (payload) => {
+    const { roomCode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState === 'lobby') return;
@@ -2002,7 +2034,8 @@ io.on('connection', (socket) => {
   }
 
   // Geber bzw. Werwolf-Spieler wählt Trumpffarbe (Socket Handler)
-  socket.on('selectTrumpSuit', ({ roomCode, suit }) => {
+  socket.on('selectTrumpSuit', (payload) => {
+    const { roomCode, suit } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'choose_trump' || room.isPaused) return;
@@ -2100,7 +2133,8 @@ io.on('connection', (socket) => {
   }
 
   // Spieler gibt Stichvorhersage ab (Socket Handler)
-  socket.on('submitBid', ({ roomCode, bid }) => {
+  socket.on('submitBid', (payload) => {
+    const { roomCode, bid } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'bidding' || room.isPaused) return;
@@ -2744,7 +2778,7 @@ io.on('connection', (socket) => {
     let leadSuit = 'none';
     for (let i = 0; i < room.currentTrick.length; i++) {
       const tc = getEffectiveCard(room.currentTrick[i].card);
-      if (['wizard', 'dragon', 'unicorn', 'bomb'].includes(tc.type)) break;
+      if (['wizard', 'dragon'].includes(tc.type)) break;
       if (tc.type === 'color') {
         leadSuit = tc.suit;
         break;
@@ -3009,7 +3043,8 @@ io.on('connection', (socket) => {
   }
 
   // Spieler spielt eine Karte aus (Socket Handler)
-  socket.on('playCard', ({ roomCode, cardIndex, chosenRole, chosenSuit, witchSwap }) => {
+  socket.on('playCard', (payload) => {
+    const { roomCode, cardIndex, chosenRole, chosenSuit, witchSwap } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'playing_tricks' || room.isPaused) return;
@@ -3024,7 +3059,8 @@ io.on('connection', (socket) => {
   });
 
   // MVP Abstimmung: Spieler gibt seine Stimme ab
-  socket.on('mvp:vote', ({ roomCode, candidateSessionId }) => {
+  socket.on('mvp:vote', (payload) => {
+    const { roomCode, candidateSessionId } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || !room.mvpState || !room.mvpState.votingActive) return;
@@ -3058,7 +3094,8 @@ io.on('connection', (socket) => {
   });
 
   // Spieler wählt verdeckt eine Handkarte zum Weitergeben an den linken Nachbarn (Jongleur)
-  socket.on('submitJugglerPassCard', ({ roomCode, cardIndex }) => {
+  socket.on('submitJugglerPassCard', (payload) => {
+    const { roomCode, cardIndex } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'juggler_passing' || room.isPaused) return;
@@ -3150,7 +3187,8 @@ io.on('connection', (socket) => {
   }
 
   // Spieler, der die Wolke gespielt hat, passt seine Stichvorhersage um +1 oder -1 an
-  socket.on('submitCloudBidAdjustment', ({ roomCode, adjustment }) => {
+  socket.on('submitCloudBidAdjustment', (payload) => {
+    const { roomCode, adjustment } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'cloud_adjust_bid' || room.isPaused) return;
@@ -3191,7 +3229,8 @@ io.on('connection', (socket) => {
   });
 
   // Hexen-Spieler tauscht nach Beenden des Stichs 1 Karte aus dem Stich mit 1 Karte aus der Hand
-  socket.on('submitWitchSwap', ({ roomCode, trickCardIndex, handCardIndex }) => {
+  socket.on('submitWitchSwap', (payload) => {
+    const { roomCode, trickCardIndex, handCardIndex } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room || room.gameState !== 'witch_swap' || room.isPaused) return;
@@ -3262,7 +3301,8 @@ io.on('connection', (socket) => {
   });
 
   // Spieler verlässt den Raum freiwillig (Leave-Button)
-  socket.on('leaveRoom', ({ roomCode }) => {
+  socket.on('leaveRoom', (payload) => {
+    const { roomCode } = payload || {};
     const normalizedCode = (roomCode || '').trim().toUpperCase();
     const room = rooms[normalizedCode];
     if (!room) return;
@@ -3285,7 +3325,8 @@ io.on('connection', (socket) => {
       room.hostSessionId = nextHost.sessionId;
     }
 
-    if (room.players.length === 0) {
+    const remainingHumans = room.players.filter(p => !p.isBot);
+    if (remainingHumans.length === 0) {
       clearRoomTimers(room);
       delete rooms[normalizedCode];
       return;
@@ -3338,6 +3379,27 @@ io.on('connection', (socket) => {
       }
     }
   });
+
+  function resumeRoomExecution(room) {
+    if (!room || room.isPaused) return;
+
+    if (room.gameState === 'evaluating_trick') {
+      const anyPlayerHasCards = room.players.some(p => p.hand && p.hand.length > 0);
+      room.currentTrick = [];
+      io.to(room.roomCode).emit('trickUpdated', []);
+      if (!anyPlayerHasCards) {
+        finishRoundScoring(room.roomCode);
+      } else {
+        room.gameState = 'playing_tricks';
+        io.to(room.roomCode).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room));
+        notifyTurn(room.roomCode);
+      }
+    } else if (room.gameState === 'round_over' && !room.isGameOver) {
+      proceedToNextRound(room.roomCode);
+    } else if (['playing_tricks', 'bidding', 'choose_trump', 'juggler_passing', 'witch_swap', 'cloud_adjust_bid'].includes(room.gameState)) {
+      notifyTurn(room.roomCode);
+    }
+  }
 
   function notifyTurn(roomCode) {
     const room = rooms[roomCode];
@@ -3573,7 +3635,11 @@ io.on('connection', (socket) => {
         rank: p.isBot ? p.rank : (p.userId ? (p.rank || dbModule.getRankDetailsFromSR(p.skillRating || 1000)) : null)
       };
       if (room && room.round === 1 && p.hand && p.hand[0]) {
-        pData.round1Card = p.hand[0];
+        if (viewerSessionId && p.sessionId === viewerSessionId) {
+          pData.round1Card = null;
+        } else {
+          pData.round1Card = p.hand[0];
+        }
       }
       return pData;
     });
@@ -3584,8 +3650,9 @@ io.on('connection', (socket) => {
     const isSecret = (room.biddingMode === 'secret' && room.gameState !== 'round_over' && room.gameState !== 'lobby');
     const isSimultaneousBidding = (room.biddingMode === 'simultaneous' && room.gameState === 'bidding');
     const isSecretBidding = (room.biddingMode === 'secret' && room.gameState === 'bidding');
+    const isRoundOneForehead = (room.round === 1 && room.gameState !== 'lobby');
 
-    if (isSecret || isSimultaneousBidding || isSecretBidding) {
+    if (isSecret || isSimultaneousBidding || isSecretBidding || isRoundOneForehead) {
       room.players.forEach(p => {
         if (p.socketId) {
           io.to(p.socketId).emit('roomUpdated', getSanitizedPlayers(room.players, room.dealerIndex, room.hostSessionId, room, p.sessionId));

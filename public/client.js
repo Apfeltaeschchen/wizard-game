@@ -8390,7 +8390,7 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   tableArea.classList.toggle('my-turn-aura', isMyTurn);
   myHandSection.classList.toggle('my-turn-hand-focus', isMyTurn);
   const myHud = document.getElementById('my-stats-hud');
-  if (myHud) myHud.classList.remove('my-turn-active');
+  if (myHud) myHud.classList.toggle('my-turn-active', isMyTurn);
 
   renderOpponents();
   renderHand();
@@ -9199,10 +9199,11 @@ socket.on('trickWinner', ({ winnerName, winnerSessionId, isBombed, isUnicornVoid
       }
     }
 
+    const clearDelay = Math.max(380, (trickItems.length - 1) * 25 + 340);
     setTimeout(() => {
       trickContainer.innerHTML = '';
       trickContainer.classList.remove('round-1-trick');
-    }, 380);
+    }, clearDelay);
   }, 480);
 });
 
@@ -9646,10 +9647,8 @@ function renderOpponents() {
       }
 
       const initialForeheadOpacity = isDealingAnimationPending ? '0' : '1';
-      const shortForeheadName = (typeof shortenPlayerName === 'function') ? shortenPlayerName(p.name) : p.name;
       foreheadCardHtml = `
         <div class="forehead-floating-card" style="opacity: ${initialForeheadOpacity};" title="Stirnkarte von ${escapeHtml(p.name)}">
-          <div class="forehead-player-name">${escapeHtml(shortForeheadName)}</div>
           ${cardEl.outerHTML}
           ${badgeHtml}
         </div>
@@ -9714,9 +9713,9 @@ function renderOpponents() {
     let avatarVisualHtml = `<span class="seat-avatar-initial">${initial}</span>`;
     if (p.avatarId) {
       if (p.avatarId.startsWith('icon_')) {
-        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'seat-avatar-initial\\'>${initial}</span>';">`;
       } else if (p.avatarId.startsWith('wizard_')) {
-        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'seat-avatar-initial\\'>${initial}</span>';">`;
       }
     }
     const levelBadgeHtml = (p.accountLevel && p.accountLevel > 0)
@@ -10371,7 +10370,9 @@ function renderHand(isNewDeal = false) {
   if (enableSwipe) {
     dynamicMargin = '-16px';
   } else if (total > 15) {
-    dynamicMargin = '-54px';
+    const extra = total - 15;
+    const compression = Math.min(82, 54 + extra * 5.5);
+    dynamicMargin = `-${compression}px`;
   } else if (total > 12) {
     dynamicMargin = '-46px';
   } else if (total > 9) {
@@ -10407,7 +10408,9 @@ function renderHand(isNewDeal = false) {
         cardElement.classList.add('card-inspected');
       } else {
         cardElement.classList.remove('card-inspected');
-        cardElement.style.transform = `translateY(${restY}px) rotate(0deg)`;
+        const targetY = cardElement.style.getPropertyValue('--target-y') || `${restY}px`;
+        const targetRot = cardElement.style.getPropertyValue('--target-rot') || '0deg';
+        cardElement.style.transform = `translateY(${targetY}) rotate(${targetRot})`;
       }
 
       cardElement.classList.toggle('card-playable', playable);

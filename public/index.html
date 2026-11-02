@@ -1356,16 +1356,26 @@
       transition: box-shadow 0.3s ease;
     }
 
-    /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (2s TIEFER ATEM) */
+    /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (PULSIERENDER KANTEN-GLOW EXKLUSIV AM TISCHRAND) */
     @keyframes medievalTurnPulse {
       0% {
-        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(241, 196, 15, 0.35);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85),
+                    0 0 0 1px rgba(240, 195, 85, 0.45),
+                    0 0 16px rgba(241, 196, 15, 0.35),
+                    inset 0 0 35px rgba(0, 0, 0, 0.75);
       }
       50% {
-        box-shadow: inset 0 0 45px rgba(240, 195, 85, 0.45), 0 0 40px rgba(241, 196, 15, 0.85), 0 0 75px rgba(241, 196, 15, 0.55);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85),
+                    0 0 0 2.5px rgba(240, 195, 85, 0.95),
+                    0 0 28px rgba(241, 196, 15, 0.85),
+                    0 0 55px rgba(241, 196, 15, 0.5),
+                    inset 0 0 35px rgba(0, 0, 0, 0.75);
       }
       100% {
-        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(241, 196, 15, 0.35);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85),
+                    0 0 0 1px rgba(240, 195, 85, 0.45),
+                    0 0 16px rgba(241, 196, 15, 0.35),
+                    inset 0 0 35px rgba(0, 0, 0, 0.75);
       }
     }
 
@@ -1373,6 +1383,15 @@
       animation: medievalTurnPulse 2s ease-in-out infinite;
       border: none !important;
       outline: none !important;
+    }
+
+    @keyframes tableTurnFlash {
+      0% { filter: brightness(1); }
+      35% { filter: brightness(1.22) drop-shadow(0 0 25px rgba(240, 195, 85, 0.6)); }
+      100% { filter: brightness(1); }
+    }
+    .poker-table.turn-start-extreme-flash {
+      animation: tableTurnFlash 0.48s ease-out;
     }
 
     .hand-fade-in {
@@ -1411,7 +1430,7 @@
     }
 
     #opponents-container.round-1-opponents .perimeter-zone-top {
-      top: clamp(68px, 11vh, 85px) !important;
+      top: clamp(88px, 13vh, 108px) !important;
     }
 
     .perimeter-zone-left {
@@ -1432,6 +1451,17 @@
       justify-content: center;
       align-items: flex-end;
       gap: 16px;
+    }
+
+    #opponents-container.round-1-opponents .perimeter-zone-right,
+    #opponents-container.round-1-opponents .perimeter-zone-left {
+      gap: clamp(20px, 3.5vh, 32px) !important;
+    }
+
+    .perimeter-zone-right .player-seat:nth-child(2) .forehead-floating-card,
+    .perimeter-zone-left .player-seat:nth-child(2) .forehead-floating-card {
+      bottom: auto;
+      top: calc(100% + 8px);
     }
 
     .player-seat {
@@ -1667,17 +1697,17 @@
     /* SCHWEBENDE STIRNKARTE IN RUNDE 1 ("DRITTES MAGIE-AUGE") */
     @keyframes foreheadCardFloat {
       0%, 100% {
-        transform: translateY(0);
+        transform: translateX(-50%) translateY(0);
         filter: drop-shadow(0 4px 8px rgba(0,0,0,0.85)) drop-shadow(0 0 8px rgba(240, 195, 85, 0.45));
       }
       50% {
-        transform: translateY(-3px);
+        transform: translateX(-50%) translateY(-2px);
         filter: drop-shadow(0 6px 12px rgba(0,0,0,0.95)) drop-shadow(0 0 12px rgba(240, 195, 85, 0.7));
       }
     }
     .forehead-floating-card {
       position: absolute;
-      bottom: calc(100% + 8px);
+      bottom: calc(100% + 4px);
       left: 50%;
       transform: translateX(-50%);
       animation: foreheadCardFloat 2.6s ease-in-out infinite;
@@ -1688,13 +1718,13 @@
       align-items: center;
     }
     .forehead-floating-card .card {
-      width: calc(var(--card-w) * 0.72) !important;
-      height: calc(var(--card-h) * 0.72) !important;
+      width: clamp(34px, calc(var(--card-w) * 0.38), 44px) !important;
+      height: calc(clamp(34px, calc(var(--card-w) * 0.38), 44px) * (1498 / 1050)) !important;
       transform: none !important;
       margin: 0 !important;
       border-width: 2px !important;
       border-color: var(--gold-bright);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.92), 0 0 14px rgba(240, 195, 85, 0.5);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.92), 0 0 10px rgba(240, 195, 85, 0.5);
     }
     .forehead-floating-card .card.card-red,
     .forehead-floating-card.forehead-card-red .card {
@@ -1806,30 +1836,19 @@
     }
 
     .forehead-player-name {
-      font-family: var(--font-subheading);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--gold-bright);
-      background: rgba(14, 9, 5, 0.94);
-      border: 1px solid rgba(212, 163, 89, 0.55);
-      border-radius: 6px;
-      padding: 1px 7px;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+      display: none !important;
     }
 
     /* DEUTLICHES FARBWAPPEN-BADGE AUF STIRNKARTEN */
     .forehead-suit-badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      margin-top: 4px;
-      padding: 2px 7px;
-      border-radius: 8px;
+      gap: 3px;
+      margin-top: 2px;
+      padding: 1px 6px;
+      border-radius: 6px;
       font-family: var(--font-medieval), 'Cinzel', Georgia, serif;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       letter-spacing: 0.3px;
       line-height: 1.1;
@@ -3863,6 +3882,15 @@
         right: 4px !important;
         gap: 8px !important;
       }
+      #opponents-container.round-1-opponents .perimeter-zone-right,
+      #opponents-container.round-1-opponents .perimeter-zone-left {
+        gap: 14px !important;
+      }
+      .perimeter-zone-right .player-seat:nth-child(2) .forehead-floating-card,
+      .perimeter-zone-left .player-seat:nth-child(2) .forehead-floating-card {
+        bottom: auto !important;
+        top: calc(100% + 4px) !important;
+      }
       .player-seat .seat-stats {
         display: none !important;
       }
@@ -3973,10 +4001,10 @@
         gap: 6px;
       }
       .bid-btn {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        font-size: 15px;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        font-size: 16px;
         padding: 0;
       }
     }
@@ -6026,7 +6054,7 @@
       background-image: url('/images/tables/table_emerald_felt.svg') !important;
       background-size: cover !important;
       background-position: center center !important;
-      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(5, 46, 22, 0.8) !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(5, 46, 22, 0.8);
     }
     .poker-table.table-skin-emerald_felt::after {
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.8), 0 0 8px rgba(21, 128, 61, 0.3);
@@ -6037,7 +6065,7 @@
       background-image: url('/images/tables/table_tavern_wood.svg') !important;
       background-size: cover !important;
       background-position: center center !important;
-      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 45px rgba(0, 0, 0, 0.9) !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 45px rgba(0, 0, 0, 0.9);
     }
     .poker-table.table-skin-tavern_wood::after {
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.9), 0 0 10px rgba(180, 83, 9, 0.25);
@@ -6048,7 +6076,7 @@
       background-image: url('/images/tables/table_amethyst_crypt.svg') !important;
       background-size: cover !important;
       background-position: center center !important;
-      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(88, 28, 135, 0.5) !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(88, 28, 135, 0.5);
     }
     .poker-table.table-skin-amethyst_crypt::after {
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(168, 85, 247, 0.35);
@@ -6059,7 +6087,7 @@
       background-image: url('/images/tables/table_volcano_keep.svg') !important;
       background-size: cover !important;
       background-position: center center !important;
-      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(220, 38, 38, 0.45) !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(220, 38, 38, 0.45);
     }
     .poker-table.table-skin-volcano_keep::after {
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(239, 68, 68, 0.35);
@@ -6070,27 +6098,71 @@
       background-image: url('/images/tables/table_astral_observatory.svg') !important;
       background-size: cover !important;
       background-position: center center !important;
-      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(30, 58, 138, 0.6) !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(30, 58, 138, 0.6);
     }
     .poker-table.table-skin-astral_observatory::after {
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(99, 102, 241, 0.35);
     }
 
-    /* THEMEN-SPEZIFISCHE ZUG-AUREN */
+    /* THEMEN-SPEZIFISCHE ZUG-AUREN (KANTEN-PULS OHNE INNENRAUM-ÜBERSTRAHLUNG) */
+    @keyframes turnPulseEmerald {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(34, 197, 94, 0.45), 0 0 16px rgba(34, 197, 94, 0.35), inset 0 0 35px rgba(5, 46, 22, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(34, 197, 94, 0.95), 0 0 28px rgba(34, 197, 94, 0.85), 0 0 52px rgba(234, 179, 8, 0.45), inset 0 0 35px rgba(5, 46, 22, 0.9);
+      }
+    }
     .poker-table.table-skin-emerald_felt.my-turn-aura {
-      box-shadow: inset 0 0 35px rgba(5, 46, 22, 0.9), 0 0 25px rgba(34, 197, 94, 0.5), 0 0 45px rgba(234, 179, 8, 0.45) !important;
+      animation: turnPulseEmerald 2s ease-in-out infinite !important;
+    }
+
+    @keyframes turnPulseTavern {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(245, 158, 11, 0.45), 0 0 16px rgba(245, 158, 11, 0.35), inset 0 0 45px rgba(0, 0, 0, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(245, 158, 11, 0.95), 0 0 28px rgba(245, 158, 11, 0.85), 0 0 55px rgba(217, 119, 6, 0.45), inset 0 0 45px rgba(0, 0, 0, 0.9);
+      }
     }
     .poker-table.table-skin-tavern_wood.my-turn-aura {
-      box-shadow: inset 0 0 45px rgba(0, 0, 0, 0.9), 0 0 25px rgba(245, 158, 11, 0.6), 0 0 50px rgba(217, 119, 6, 0.45) !important;
+      animation: turnPulseTavern 2s ease-in-out infinite !important;
+    }
+
+    @keyframes turnPulseAmethyst {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(168, 85, 247, 0.45), 0 0 16px rgba(168, 85, 247, 0.35), inset 0 0 45px rgba(30, 10, 50, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(168, 85, 247, 0.95), 0 0 28px rgba(168, 85, 247, 0.85), 0 0 55px rgba(192, 132, 252, 0.45), inset 0 0 45px rgba(30, 10, 50, 0.9);
+      }
     }
     .poker-table.table-skin-amethyst_crypt.my-turn-aura {
-      box-shadow: inset 0 0 45px rgba(30, 10, 50, 0.9), 0 0 25px rgba(168, 85, 247, 0.65), 0 0 50px rgba(192, 132, 252, 0.45) !important;
+      animation: turnPulseAmethyst 2s ease-in-out infinite !important;
+    }
+
+    @keyframes turnPulseVolcano {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(239, 68, 68, 0.45), 0 0 16px rgba(239, 68, 68, 0.35), inset 0 0 45px rgba(45, 10, 5, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(239, 68, 68, 0.95), 0 0 28px rgba(239, 68, 68, 0.85), 0 0 55px rgba(249, 115, 22, 0.5), inset 0 0 45px rgba(45, 10, 5, 0.9);
+      }
     }
     .poker-table.table-skin-volcano_keep.my-turn-aura {
-      box-shadow: inset 0 0 45px rgba(45, 10, 5, 0.9), 0 0 25px rgba(239, 68, 68, 0.7), 0 0 55px rgba(249, 115, 22, 0.5) !important;
+      animation: turnPulseVolcano 2s ease-in-out infinite !important;
+    }
+
+    @keyframes turnPulseAstral {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(56, 189, 248, 0.45), 0 0 16px rgba(56, 189, 248, 0.35), inset 0 0 50px rgba(10, 15, 40, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(56, 189, 248, 0.95), 0 0 28px rgba(56, 189, 248, 0.85), 0 0 55px rgba(99, 102, 241, 0.5), inset 0 0 50px rgba(10, 15, 40, 0.9);
+      }
     }
     .poker-table.table-skin-astral_observatory.my-turn-aura {
-      box-shadow: inset 0 0 50px rgba(10, 15, 40, 0.9), 0 0 25px rgba(56, 189, 248, 0.65), 0 0 50px rgba(99, 102, 241, 0.5) !important;
+      animation: turnPulseAstral 2s ease-in-out infinite !important;
     }
 
     /* AVATAR RAHMEN - AAA Dark-Fantasy Vektor-Overlays mit Tiefen-Überlappung */
@@ -8350,13 +8422,21 @@
       background-image: url('/images/tables/table_haunted_crypt.svg') !important;
       background-size: cover !important;
       background-position: center center !important;
-      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 55px rgba(13, 148, 136, 0.5) !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 55px rgba(13, 148, 136, 0.5);
     }
     .poker-table.table-skin-haunted_crypt::after {
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(45, 212, 191, 0.35);
     }
+    @keyframes turnPulseHaunted {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(45, 212, 191, 0.45), 0 0 16px rgba(45, 212, 191, 0.35), inset 0 0 50px rgba(5, 20, 20, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(45, 212, 191, 0.95), 0 0 28px rgba(45, 212, 191, 0.85), 0 0 55px rgba(20, 184, 166, 0.5), inset 0 0 50px rgba(5, 20, 20, 0.9);
+      }
+    }
     .poker-table.table-skin-haunted_crypt.my-turn-aura {
-      box-shadow: inset 0 0 50px rgba(5, 20, 20, 0.9), 0 0 25px rgba(45, 212, 191, 0.65), 0 0 50px rgba(20, 184, 166, 0.5) !important;
+      animation: turnPulseHaunted 2s ease-in-out infinite !important;
     }
 
     /* 7. Kürbis-Laternen-Kranz (Epic) */
