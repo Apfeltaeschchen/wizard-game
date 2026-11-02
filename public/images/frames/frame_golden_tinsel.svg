@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="goldTinsel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="none" stroke="url(#goldTinsel)" stroke-width="5" stroke-dasharray="6,3"/>
+  <circle cx="50" cy="50" r="42" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
+  <!-- Sparkle stars -->
+  <polygon points="50,2 52,6 56,6 53,9 54,13 50,11 46,13 47,9 44,6 48,6" fill="#fde047"/>
+  <polygon points="98,50 94,52 94,56 91,53 87,54 89,50 87,46 91,47 94,44 94,48" fill="#fde047"/>
+  <polygon points="50,98 48,94 44,94 47,91 46,87 50,89 54,87 53,91 56,94 52,94" fill="#fde047"/>
+  <polygon points="2,50 6,48 6,44 9,47 13,46 11,50 13,54 9,53 6,56 6,52" fill="#fde047"/>
+</svg>

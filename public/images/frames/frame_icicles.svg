@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="iceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="none" stroke="#7dd3fc" stroke-width="2.5" opacity="0.8"/>
+  <!-- Hanging icicles from top rim -->
+  <polygon points="20,10 24,10 22,28" fill="url(#iceGrad)"/>
+  <polygon points="35,6 40,6 37.5,34" fill="url(#iceGrad)"/>
+  <polygon points="48,4 53,4 50.5,38" fill="url(#iceGrad)"/>
+  <polygon points="62,6 67,6 64.5,32" fill="url(#iceGrad)"/>
+  <polygon points="78,10 82,10 80,26" fill="url(#iceGrad)"/>
+  <!-- Lower frost rim -->
+  <circle cx="50" cy="50" r="44" fill="none" stroke="#bae6fd" stroke-width="1.5" stroke-dasharray="3,4"/>
+</svg>

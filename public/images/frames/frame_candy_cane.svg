@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <pattern id="candyStripe" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#dc2626" stroke-width="5"/>
+      <line x1="5" y1="0" x2="5" y2="10" stroke="#ffffff" stroke-width="5"/>
+    </pattern>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="none" stroke="url(#candyStripe)" stroke-width="6"/>
+  <circle cx="50" cy="50" r="49" fill="none" stroke="#ef4444" stroke-width="1"/>
+  <circle cx="50" cy="50" r="43" fill="none" stroke="#dc2626" stroke-width="1"/>
+</svg>

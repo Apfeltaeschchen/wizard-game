@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="frostFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="60%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#frostFlame)" stroke-width="4"/>
+  <!-- Flame licks -->
+  <path d="M 50,4 C 45,12 40,16 50,22 C 55,16 60,12 50,4 Z" fill="url(#frostFlame)"/>
+  <path d="M 96,50 C 88,45 84,40 78,50 C 84,55 88,60 96,50 Z" fill="url(#frostFlame)"/>
+  <path d="M 50,96 C 55,88 60,84 50,78 C 45,84 40,88 50,96 Z" fill="url(#frostFlame)"/>
+  <path d="M 4,50 C 12,55 16,60 22,50 C 16,45 12,40 4,50 Z" fill="url(#frostFlame)"/>
+</svg>

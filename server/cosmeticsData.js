@@ -44,7 +44,21 @@ const COSMETICS_CATALOG = {
     { id: 'icon_forest_nymph', name: 'Waldnymphe', rarity: 'rare', image: '/images/avatars/icon_forest_nymph.png', lore: 'Geboren aus uraltem Moos und leuchtendem Feenstaub.' },
     { id: 'icon_necromancer', name: 'Nekromant', rarity: 'rare', image: '/images/avatars/icon_necromancer.png', lore: 'Spricht im Flüsterton mit den Seelen verblichener Kartenspieler.' },
     { id: 'icon_vampire', name: 'Vampir-Graf', rarity: 'epic', image: '/images/avatars/icon_vampire.png', lore: 'Ein edler Aristokrat aus den finsteren Gewölben der Nacht.' },
-    { id: 'icon_seer', name: 'Astralseherin', rarity: 'legendary', image: '/images/avatars/icon_seer.png', lore: 'Sieht jeden Stich voraus, noch bevor das Deck gemischt wird.' }
+    { id: 'icon_seer', name: 'Astralseherin', rarity: 'legendary', image: '/images/avatars/icon_seer.png', lore: 'Sieht jeden Stich voraus, noch bevor das Deck gemischt wird.' },
+
+    // Weihnachts-Spezial (Winter Solstice & Christmas)
+    { id: 'icon_santa_archmage', name: 'Weihnachtsmann der Zitadelle', rarity: 'legendary', event: 'christmas', image: '/images/avatars/icon_santa_archmage.png', lore: 'Purpurrote Samtkapuze, funkelnder Sternenbart und uralte Julmagie.' },
+    { id: 'icon_rudolph_stag', name: 'Rudolph der Sternenhirsch', rarity: 'epic', event: 'christmas', image: '/images/avatars/icon_rudolph_stag.png', lore: 'Ein erhabener Silberhirsch mit leuchtend rubinrotem Sternen-Amulett.' },
+    { id: 'icon_gingerbread_golem', name: 'Lebkuchen-Golem', rarity: 'rare', event: 'christmas', image: '/images/avatars/icon_gingerbread_golem.png', lore: 'Mit Zuckerguss-Runen verzaubert, verbreitet er warmen Zimtduft.' },
+    { id: 'icon_frost_snowman', name: 'Arktischer Schneemagier', rarity: 'rare', event: 'christmas', image: '/images/avatars/icon_frost_snowman.png', lore: 'Belebt durch arktische Winde mit magischem Zylinder und Eisfokus.' },
+    { id: 'icon_nutcracker_general', name: 'Nussknacker-General', rarity: 'epic', event: 'christmas', image: '/images/avatars/icon_nutcracker_general.png', lore: 'Prächtige Parade-Uniform mit funkelndem Goldsäbel und schneidigem Blick.' },
+    { id: 'icon_yule_elf', name: 'Wichtel-Meister', rarity: 'rare', event: 'christmas', image: '/images/avatars/icon_yule_elf.png', lore: 'Fliegende Hände und feine Zauberwerkzeuge fertigen arkanes Spielzeug.' },
+    { id: 'icon_krampus_demon', name: 'Krampus der Schattenwälder', rarity: 'legendary', event: 'christmas', image: '/images/avatars/icon_krampus_demon.png', lore: 'Straft nachlässige Magier mit eisernen Ketten und züngelnden Schatten.' },
+    { id: 'icon_winter_queen', name: 'Eiskönigin von Niflheim', rarity: 'legendary', event: 'christmas', image: '/images/avatars/icon_winter_queen.png', lore: 'Gekrönt von reinstem Gletscherquarz, gebietet sie über ewigen Frost.' },
+    { id: 'icon_frost_golem', name: 'Frost-Koloss', rarity: 'epic', event: 'christmas', image: '/images/avatars/icon_frost_golem.png', lore: 'Ein wandelnder Eisgletscher mit azurblauen Runenadern.' },
+    { id: 'icon_candle_fairy', name: 'Kerzenlicht-Fee', rarity: 'rare', event: 'christmas', image: '/images/avatars/icon_candle_fairy.png', lore: 'Sanft schwebende Lichtgestalt mit wärmenden goldenen Flammenflügeln.' },
+    { id: 'icon_peppermint_sorcerer', name: 'Pfefferminz-Hexer', rarity: 'common', event: 'christmas', image: '/images/avatars/icon_peppermint_sorcerer.png', lore: 'Rot-weiß gestreifte Seidengewänder mit erfrischendem Minzzauber.' },
+    { id: 'icon_yule_goat', name: 'Julbock der Ahnen', rarity: 'common', event: 'christmas', image: '/images/avatars/icon_yule_goat.png', lore: 'Traditioneller Strohbock mit feuerroten Bändern und Schutzrunen.' }
   ],
 
   card_backs: [
@@ -64,7 +78,20 @@ const COSMETICS_CATALOG = {
 
     // Legendär (Legendary)
     { id: 'dragon', name: 'Drachenschuppe', rarity: 'legendary', lore: 'Echte rote Lindwurmschuppen-Panzerung mit feuerfesten Goldbeschlägen und Schlitzauge.' },
-    { id: 'citadel_ancient', name: 'Arkane Zitadelle (30 Jahre Jubiläums-Gold)', rarity: 'legendary', lore: 'Das berühmte kobaltblaue Meisterstück der Hohen Zitadelle mit echten Goldfiligran-Bordüren und Arkan-Kompass.' }
+    { id: 'citadel_ancient', name: 'Arkane Zitadelle (30 Jahre Jubiläums-Gold)', rarity: 'legendary', lore: 'Das berühmte kobaltblaue Meisterstück der Hohen Zitadelle mit echten Goldfiligran-Bordüren und Arkan-Kompass.' },
+
+    // Weihnachts-Spezial (Winter Solstice & Christmas)
+    { id: 'star_of_bethlehem', name: 'Stern von Bethlehem', rarity: 'legendary', event: 'christmas', lore: 'Achtzackiger Barockgoldstern auf nachtblauem Damast mit Akanthus-Ecken.' },
+    { id: 'snowflake_mandala', name: 'Eiskristall-Mandala', rarity: 'rare', event: 'christmas', lore: 'Filigranes sechseckiges Schneeflocken-Mandala in Eiscyan und reinem Silber.' },
+    { id: 'christmas_tree_tapestry', name: 'Weihnachtsbaum-Gobelin', rarity: 'rare', event: 'christmas', lore: 'Tannengrüner Nadelteppich mit goldenem Stern und funkelndem Kerzenschein.' },
+    { id: 'reindeer_crest', name: 'Wappen des Sternenhirsches', rarity: 'epic', event: 'christmas', lore: 'Silbergeweih-Wappen auf rubinrotem Samt mit Eichenlaub-Bordüre.' },
+    { id: 'gingerbread_heart', name: 'Lebkuchenherz der Zitadelle', rarity: 'common', event: 'christmas', lore: 'Würziger Honigkuchen mit weißem Spritzglasur-Medaillon und Arkan-Schleife.' },
+    { id: 'nutcracker_regiment', name: 'Nussknacker-Regiment', rarity: 'epic', event: 'christmas', lore: 'Kaiserliche Paradesäbel, scharlachrote Epauletten und Königskrone.' },
+    { id: 'aurora_borealis_deck', name: 'Tanz der Nordlichter', rarity: 'epic', event: 'christmas', lore: 'Ein schimmerndes Farbenspiel aus Smaragdgrün und Purpur über Arktiseis.' },
+    { id: 'candlelight_vigil', name: 'Adventskerzen-Wache', rarity: 'rare', event: 'christmas', lore: 'Vier brennende Wachskerzen im goldenen Sternenkreis auf Pergament.' },
+    { id: 'frost_filigree', name: 'Raureif-Filigran', rarity: 'rare', event: 'christmas', lore: 'Gotische Silberranken und zarte Eiskristalle auf Schiefergrund.' },
+    { id: 'yule_log_fire', name: 'Julklotz-Feuer', rarity: 'epic', event: 'christmas', lore: 'Glutheißes Eichenholz mit prasselnden goldenen Sonnenwend-Funken.' },
+    { id: 'winter_solstice_gold', name: 'Wintersonnenwende (Gold)', rarity: 'legendary', event: 'christmas', lore: '3D-Sonnenrad aus purem Barockgold mit funkelnden Frostkristall-Inlays.' }
   ],
 
   table_skins: [
@@ -74,7 +101,20 @@ const COSMETICS_CATALOG = {
     { id: 'volcano_keep', name: 'Vulkan-Festung', rarity: 'epic', icon: '🌋', lore: 'Pechschwarzer Basaltstein mit glühenden Magma-Adern.' },
     { id: 'astral_observatory', name: 'Sternen-Observatorium', rarity: 'legendary', icon: '🌌', lore: 'Ein kreisförmiges Observatorium unter freiem Himmelszelt.' },
     // Halloween Spezial
-    { id: 'haunted_crypt', name: 'Spukhaus-Gruft', rarity: 'epic', icon: '🪦', lore: 'Ein gespenstischer Steintisch, umhüllt von kaltem Geisternebel und Spinnweben.' }
+    { id: 'haunted_crypt', name: 'Spukhaus-Gruft', rarity: 'epic', icon: '🪦', lore: 'Ein gespenstischer Steintisch, umhüllt von kaltem Geisternebel und Spinnweben.' },
+
+    // Weihnachts-Spezial (Winter Solstice & Christmas)
+    { id: 'velvet_red_gold', name: 'Königlicher Festtags-Samt', rarity: 'epic', event: 'christmas', icon: '🍷', lore: 'Prächtiger rubinroter Samtfilz mit geschwungenen Goldverzierungen.' },
+    { id: 'frosty_blue_ice', name: 'Ewiges Gletschereis', rarity: 'rare', event: 'christmas', icon: '🧊', lore: 'Gefrorene, spiegelglatte Cyan-Tafel mit feinen Raureifkanten.' },
+    { id: 'pine_green_wood', name: 'Immergrüne Tannendielen', rarity: 'rare', event: 'christmas', icon: '🌲', lore: 'Dunkelgrün lasierte Nadelholzbohlen mit Tannenzapfen-Gravur.' },
+    { id: 'yule_hearthstone', name: 'Kaminfeuer-Herdstein', rarity: 'rare', event: 'christmas', icon: '🔥', lore: 'Warmer Schieferstein mit behaglichen Kaminglut-Reflexen.' },
+    { id: 'gingerbread_table', name: 'Lebkuchen-Tafel', rarity: 'common', event: 'christmas', icon: '🍪', lore: 'Honigbraune Pfefferkuchenplatte mit zarten weißen Zuckergusslinien.' },
+    { id: 'midnight_winter_snow', name: 'Mitternachtsschnee', rarity: 'epic', event: 'christmas', icon: '❄️', lore: 'Tiefes Mitternachtsblau mit funkelnden Eisstern-Intarsien.' },
+    { id: 'candy_cane_felt', name: 'Zuckerstangen-Filz', rarity: 'common', event: 'christmas', icon: '🦯', lore: 'Kräftig roter Filz mit rot-weiß spiralisierter Randkante.' },
+    { id: 'aurora_lake', name: 'Spiegelnder Polar-See', rarity: 'epic', event: 'christmas', icon: '🌌', lore: 'Dunkles Spiegeleis mit smaragd-violetten Nordlicht-Reflexen.' },
+    { id: 'nutcracker_suite', name: 'Prunksaal des Nussknackers', rarity: 'legendary', event: 'christmas', icon: '👑', lore: 'Königliches Mahagoni-Parkett mit goldenen Sternrauten.' },
+    { id: 'starlit_observatory_winter', name: 'Winterliches Observatorium', rarity: 'legendary', event: 'christmas', icon: '⭐', lore: 'Blauschwarzer Marmor mit schneebedecktem Zodiak-Zirkel.' },
+    { id: 'frozen_runestone', name: 'Arktischer Runenstein', rarity: 'epic', event: 'christmas', icon: '🪨', lore: 'Verwitterter Basalt mit azurblau leuchtenden Frost-Glyphen.' }
   ],
 
   avatar_frames: [
@@ -88,7 +128,20 @@ const COSMETICS_CATALOG = {
     { id: 'pumpkin_lantern', name: 'Kürbis-Laternen-Kranz', rarity: 'epic', icon: '🎃', lore: 'Flackernde Schnitzkürbisse und Herbstlaub umrahmen das Avatar-Medaillon.' },
     { id: 'bat_swarm', name: 'Fledermaus-Schwarm', rarity: 'rare', icon: '🦇', lore: 'Schwebende Fledermäuse und dichter violetter Spuknebel.' },
     { id: 'ghost_specter', name: 'Geisterhafte Erscheinung', rarity: 'epic', icon: '👻', lore: 'Transparente, spektrale Seelenfratzen aus der Unterwelt.' },
-    { id: 'mvp_glow', name: 'Krone des Meistermagiers', rarity: 'legendary', icon: '👑', lore: 'Eine strahlende goldene Aura, die dem gekrönten MVP der Zitadelle gebührt.' }
+    { id: 'mvp_glow', name: 'Krone des Meistermagiers', rarity: 'legendary', icon: '👑', lore: 'Eine strahlende goldene Aura, die dem gekrönten MVP der Zitadelle gebührt.' },
+
+    // Weihnachts-Spezial (Winter Solstice & Christmas)
+    { id: 'holly_wreath', name: 'Stechpalmen-Kranz', rarity: 'rare', event: 'christmas', icon: '🌿', lore: 'Smaragdgrüne Blätter mit leuchtend roten Winterbeeren.' },
+    { id: 'icicles', name: 'Gletscher-Eiszapfen', rarity: 'rare', event: 'christmas', icon: '🧊', lore: 'Kristallklare herabhängende Eiszapfen mit Frostschimmer.' },
+    { id: 'golden_tinsel', name: 'Goldenes Lametta', rarity: 'epic', event: 'christmas', icon: '✨', lore: 'Feine geschwungene Goldgirlanden mit funkelnden Lichtreflexen.' },
+    { id: 'candy_cane', name: 'Zuckerstangen-Reif', rarity: 'common', event: 'christmas', icon: '🦯', lore: 'Rot-weiß spiralisierter Reif mit süßem Glanz.' },
+    { id: 'gingerbread_border', name: 'Lebkuchen-Kruste', rarity: 'common', event: 'christmas', icon: '🍪', lore: 'Gebackener Pfefferkuchenrand mit filigranem Zuckergussmuster.' },
+    { id: 'frostfire', name: 'Frostfeuer-Aura', rarity: 'epic', event: 'christmas', icon: '🔥', lore: 'Cyanblaue züngelnde Flammen umhüllt von klirrenden Eissplittern.' },
+    { id: 'christmas_lights', name: 'Lichterketten-Glanz', rarity: 'rare', event: 'christmas', icon: '💡', lore: 'Farbige Zauberlämpchen in sanftem, warmem Glühen.' },
+    { id: 'snowflake_crystal', name: 'Eisblumen-Kristall', rarity: 'epic', event: 'christmas', icon: '❄️', lore: 'Sechseckige Eiskristallspitzen mit arktischem Schimmer.' },
+    { id: 'nutcracker_gold', name: 'Nussknacker-Ehrenring', rarity: 'epic', event: 'christmas', icon: '🎖️', lore: 'Rubinrotes Ordensband mit doppelter Goldkordel.' },
+    { id: 'starlit_halo', name: 'Sternenglanz-Heiligenschein', rarity: 'legendary', event: 'christmas', icon: '🌟', lore: 'Prächtiger goldener Strahlenkranz mit funkelnden Sternenstaub-Partikeln.' },
+    { id: 'jingle_bells', name: 'Silberne Festglöckchen', rarity: 'rare', event: 'christmas', icon: '🔔', lore: 'Polierter Silberrand mit zierlichen Glöckchen und roter Seidenschleife.' }
   ],
 
   lobby_backgrounds: [
@@ -98,7 +151,21 @@ const COSMETICS_CATALOG = {
     { id: 'tavern_fireplace', name: 'Kaminfeuer-Taverne', rarity: 'rare', icon: '🍺', lore: 'Rustikales Holz, behagliche Wärme und das Knistern von Eichenbalken.' },
     { id: 'astral_observatory', name: 'Sternen-Observatorium', rarity: 'epic', icon: '🌌', lore: 'Ein endloser Blick in kreisende Galaxien und glühende Sternbilder.' },
     { id: 'magma_forge', name: 'Magmaschmiede der Zwerge', rarity: 'epic', icon: '🌋', lore: 'Glühender Basaltstein und fliegende Funken aus den Tiefen des Berges.' },
-    { id: 'celestial_sanctum', name: 'Himmlisches Sanktum', rarity: 'legendary', icon: '☀️', lore: 'Erhabener goldener Marmor, durchflutet von göttlichen Sonnenstrahlen.' }
+    { id: 'celestial_sanctum', name: 'Himmlisches Sanktum', rarity: 'legendary', icon: '☀️', lore: 'Erhabener goldener Marmor, durchflutet von göttlichen Sonnenstrahlen.' },
+
+    // Weihnachts-Spezial (Winter Solstice & Christmas)
+    { id: 'snowy_castle', name: 'Verschneite Felsenburg', rarity: 'rare', event: 'christmas', icon: '🏰', image: '/images/backgrounds/bg_snowy_castle.png', lore: 'Zinnen und Türme der Hohen Zitadelle im dichten Schneefall.' },
+    { id: 'cozy_hearth', name: 'Behaglicher Kaminabend', rarity: 'common', event: 'christmas', icon: '🔥', image: '/images/backgrounds/bg_cozy_hearth.png', lore: 'Rustikaler Kamin mit prasselndem Holzfeuer und Tannenzweigen.' },
+    { id: 'winter_pine_forest', name: 'Winterlicher Tannenzauber', rarity: 'rare', event: 'christmas', icon: '🌲', image: '/images/backgrounds/bg_winter_pine_forest.png', lore: 'Tief verschneite Tannen unter klarem Polarhimmel mit Sternenstaub.' },
+    { id: 'aurora_borealis', name: 'Polarlichter der Arktis', rarity: 'epic', event: 'christmas', icon: '🌌', image: '/images/backgrounds/bg_aurora_borealis.png', lore: 'Smaragd- und purpurfarbene Aurora-Schleier über gefrorenen Gipfeln.' },
+    { id: 'santas_workshop', name: 'Wichtel-Werkstatt', rarity: 'rare', event: 'christmas', icon: '🎁', image: '/images/backgrounds/bg_santas_workshop.png', lore: 'Warme Werkstatthalle voller Holzspielzeug, Zahnräder und Bänder.' },
+    { id: 'starlit_bethlehem', name: 'Stern von Bethlehem', rarity: 'epic', event: 'christmas', icon: '⭐', image: '/images/backgrounds/bg_starlit_bethlehem.png', lore: 'Strahlender Weihnachtsstern am mitternachtsblauen Himmelszelt.' },
+    { id: 'icy_cavern', name: 'Gefrorene Tropfsteinhöhle', rarity: 'rare', event: 'christmas', icon: '❄️', image: '/images/backgrounds/bg_icy_cavern.png', lore: 'Tiefblaue Eishöhle mit riesigen transparenten Eiszapfen.' },
+    { id: 'christmas_market', name: 'Magischer Weihnachtsmarkt', rarity: 'epic', event: 'christmas', icon: '🏮', image: '/images/backgrounds/bg_christmas_market.png', lore: 'Stimmungsvolle Marktstände mit Lichtern und dampfenden Kesseln.' },
+    { id: 'toy_factory', name: 'Arkanes Spielzeug-Atelier', rarity: 'rare', event: 'christmas', icon: '🧸', image: '/images/backgrounds/bg_toy_factory.png', lore: 'Magische Werkbänke mit verzauberten Nussknackern und Glaskugeln.' },
+    { id: 'glacier_peak', name: 'Gletschergipfel der Stille', rarity: 'legendary', event: 'christmas', icon: '🏔️', image: '/images/backgrounds/bg_glacier_peak.png', lore: 'Monumentaler schneebedeckter Berg unter funkelndem Sternenzelt.' },
+    { id: 'yule_banquet_hall', name: 'Festliche Festtagstafel', rarity: 'legendary', event: 'christmas', icon: '🍷', image: '/images/backgrounds/bg_yule_banquet_hall.png', lore: 'Gotischer Rittersaal mit reich gedeckter Tafel und Kronleuchtern.' },
+    { id: 'gingerbread_village', name: 'Lebkuchen-Dorf', rarity: 'rare', event: 'christmas', icon: '🍪', image: '/images/backgrounds/bg_gingerbread_village.png', lore: 'Winterliches Miniaturdorf mit Pfefferkuchenhäuschen und Zuckerrodeln.' }
   ],
 
   titles: [
@@ -158,7 +225,21 @@ const COSMETICS_CATALOG = {
     { id: 'Sonnengott von Solaria', name: 'Sonnengott von Solaria', rarity: 'legendary' },
     { id: 'Avatar des Schicksals', name: 'Avatar des Schicksals', rarity: 'legendary' },
     { id: 'Der Kopflose Reiter', name: 'Der Kopflose Reiter', rarity: 'legendary' },
-    { id: 'MVP der Zitadelle', name: 'MVP der Zitadelle', rarity: 'legendary' }
+    { id: 'MVP der Zitadelle', name: 'MVP der Zitadelle', rarity: 'legendary' },
+
+    // Weihnachts-Spezial (Winter Solstice & Christmas)
+    { id: 'Weihnachtsmagier', name: 'Weihnachtsmagier', rarity: 'legendary', event: 'christmas' },
+    { id: 'Geist der Weihnacht', name: 'Geist der Weihnacht', rarity: 'legendary', event: 'christmas' },
+    { id: 'Hüter der Wintersonnenwende', name: 'Hüter der Wintersonnenwende', rarity: 'legendary', event: 'christmas' },
+    { id: 'Herrscher des Frosts', name: 'Herrscher des Frosts', rarity: 'epic', event: 'christmas' },
+    { id: 'Krampus-Bändiger', name: 'Krampus-Bändiger', rarity: 'epic', event: 'christmas' },
+    { id: 'Stern von Bethlehem', name: 'Stern von Bethlehem', rarity: 'epic', event: 'christmas' },
+    { id: 'Meister der Wichtel', name: 'Meister der Wichtel', rarity: 'rare', event: 'christmas' },
+    { id: 'Nussknacker-General', name: 'Nussknacker-General', rarity: 'rare', event: 'christmas' },
+    { id: 'Schneesturmbringer', name: 'Schneesturmbringer', rarity: 'rare', event: 'christmas' },
+    { id: 'Lebkuchen-Bäcker', name: 'Lebkuchen-Bäcker', rarity: 'common', event: 'christmas' },
+    { id: 'Kerzenwächter', name: 'Kerzenwächter', rarity: 'common', event: 'christmas' },
+    { id: 'Frosttänzer', name: 'Frosttänzer', rarity: 'rare', event: 'christmas' }
   ]
 };
 
