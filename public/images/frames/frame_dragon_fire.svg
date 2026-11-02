@@ -18,35 +18,35 @@
   </defs>
 
   <g filter="url(#fireCalmShadow)">
-    <!-- 1. Schlanker Basalt-Drachenreif (r=35.5, stroke 1.8px - Innenbereich r < 34.5 vollkommen frei!) -->
+    <!-- 1. Schlanker Basalt-Drachenreif (r=35.5, stroke 1.8px) -->
     <circle cx="50" cy="50" r="35.5" stroke="url(#dragonBasalt)" stroke-width="1.8"/>
     <circle cx="50" cy="50" r="37" stroke="#ea580c" stroke-width="0.8" stroke-dasharray="4 2"/>
 
-    <!-- 2. FEINE DRACHENSPORNE & FLAMMENZÜNGLEIN NUR AUSSEN (r=36 bis r=46) -->
-    <!-- Zarte Flamme Oben (12 Uhr) nach außen bis y=14 -->
-    <path d="M47,34 Q45,22 50,14 Q55,22 53,34 Q50,26 47,34 Z" fill="url(#dragonFlameSpurt)"/>
-    <path d="M42,35 Q37,25 33,20 Q39,26 44,33 Z" fill="url(#dragonFlameSpurt)"/>
-    <path d="M58,35 Q63,25 67,20 Q61,26 56,33 Z" fill="url(#dragonFlameSpurt)"/>
+    <!-- 2. PLASTISCHE DRACHENSPORNE & FLAMMENZÜNGLEIN (Fassung bei r=33.0 mit subtiler 3D-Tiefe, Zungen nach außen bis r=42.0) -->
+    <!-- Zarte Flamme Oben (12 Uhr): Startet bei r=33 (y=17) mit Bogen nach y=8 -->
+    <path d="M47,17 Q45,12 50,8 Q55,12 53,17 Q50,15 47,17 Z" fill="url(#dragonFlameSpurt)"/>
+    <path d="M43,18 Q38,15 34,11 Q41,14 45,17 Z" fill="url(#dragonFlameSpurt)"/>
+    <path d="M57,18 Q62,15 66,11 Q59,14 55,17 Z" fill="url(#dragonFlameSpurt)"/>
 
-    <!-- Flammen Flanke Rechts nach außen bis x=86 -->
-    <path d="M66,48 Q76,46 86,50 Q76,54 66,52 Z" fill="url(#dragonFlameSpurt)"/>
-    <!-- Flammen Unten (6 Uhr) nach außen bis y=86 -->
-    <path d="M47,66 Q45,78 50,86 Q55,78 53,66 Z" fill="url(#dragonFlameSpurt)"/>
-    <!-- Flammen Flanke Links nach außen bis x=14 -->
-    <path d="M34,48 Q24,46 14,50 Q24,54 34,52 Z" fill="url(#dragonFlameSpurt)"/>
+    <!-- Flammen Flanke Rechts: Startet bei r=33 (x=83) bis x=92 -->
+    <path d="M83,47 Q88,45 92,50 Q88,55 83,53 Z" fill="url(#dragonFlameSpurt)"/>
+    <!-- Flammen Unten (6 Uhr): Startet bei r=33 (y=83) bis y=92 -->
+    <path d="M47,83 Q45,88 50,92 Q55,88 53,83 Z" fill="url(#dragonFlameSpurt)"/>
+    <!-- Flammen Flanke Links: Startet bei r=33 (x=17) bis x=8 -->
+    <path d="M17,47 Q12,45 8,50 Q12,55 17,53 Z" fill="url(#dragonFlameSpurt)"/>
 
     <!-- 3. PERIODISCHES GLUT-AUFFLACKERN & FUNKENSPRÜHEN (alle 6s) -->
     <!-- Obere Flamme flammt kurz auf -->
-    <path d="M48,34 Q44,18 50,8 Q56,18 52,34 Z" fill="#fffbeb" opacity="0">
+    <path d="M48,17 Q44,12 50,8 Q56,12 52,17 Z" fill="#fffbeb" opacity="0">
       <animate attributeName="opacity" values="0; 0; 0.95; 0.4; 0" keyTimes="0; 0.4; 0.45; 0.5; 1" dur="6s" repeatCount="indefinite"/>
     </path>
     <!-- Aufsteigende Funken -->
-    <circle cx="49" cy="10" r="0.8" fill="#fef08a" opacity="0">
-      <animate attributeName="cy" values="10; 4; 2" keyTimes="0; 0.5; 1" dur="6s" repeatCount="indefinite"/>
+    <circle cx="49" cy="8" r="0.8" fill="#fef08a" opacity="0">
+      <animate attributeName="cy" values="8; 4; 2" keyTimes="0; 0.5; 1" dur="6s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0; 1; 0" keyTimes="0; 0.45; 0.55" dur="6s" repeatCount="indefinite"/>
     </circle>
-    <circle cx="52" cy="11" r="0.8" fill="#f97316" opacity="0">
-      <animate attributeName="cy" values="11; 6; 3" keyTimes="0; 0.5; 1" dur="6s" repeatCount="indefinite"/>
+    <circle cx="52" cy="9" r="0.8" fill="#f97316" opacity="0">
+      <animate attributeName="cy" values="9; 5; 3" keyTimes="0; 0.5; 1" dur="6s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0; 1; 0" keyTimes="0; 0.46; 0.56" dur="6s" repeatCount="indefinite"/>
     </circle>
   </g>

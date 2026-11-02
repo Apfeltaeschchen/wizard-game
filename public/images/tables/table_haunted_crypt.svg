@@ -75,41 +75,32 @@
     <circle r="35" stroke-width="1.5" fill="#2dd4bf" fill-opacity="0.12" />
   </g>
 
-  <!-- 4. GOTISCHE STEINGESIMS-KANTEN MIT TÜRKIESEM GEISTERLICHT-GLIMMEN -->
-  <g stroke="url(#spectralGrad)" fill="none" opacity="0.85" filter="url(#spectralGlow)">
-    <!-- Äußere gotische Gesimsleiste -->
-    <rect x="18" y="18" width="1564" height="964" rx="16" stroke-width="2.5" opacity="0.75" />
-    <rect x="28" y="28" width="1544" height="944" rx="12" stroke-width="1.2" opacity="0.6" />
+  <!-- 4. GOTISCHE STEINGESIMS-KANTEN MIT TÜRKIESEM GEISTERLICHT-GLIMMEN (EINGEBETTET) -->
+  <g stroke="url(#spectralGrad)" fill="none" opacity="0.75" filter="url(#spectralGlow)">
+    <!-- Innere gotische Gesimsleiste (eingerückt, kantenfrei) -->
+    <rect x="45" y="45" width="1510" height="910" rx="14" stroke-width="1.8" opacity="0.5" />
 
     <!-- Gotische Spitzbogen-Friese entlang der oberen & unteren Kante -->
-    <path d="M 160,28 Q 185,18 210,28 Q 235,18 260,28 Q 285,18 310,28 Q 335,18 360,28 Q 385,18 410,28 Q 435,18 460,28 Q 485,18 510,28 Q 535,18 560,28 Q 585,18 610,28 Q 635,18 660,28 Q 685,18 710,28 Q 735,18 760,28 Q 785,18 810,28 Q 835,18 860,28 Q 885,18 910,28 Q 935,18 960,28 Q 985,18 1010,28 Q 1035,18 1060,28 Q 1085,18 1110,28 Q 1135,18 1160,28 Q 1185,18 1210,28 Q 1235,18 1260,28 Q 1285,18 1310,28 Q 1335,18 1360,28 Q 1385,18 1410,28 Q 1435,18 1460,28" stroke-width="1.4" opacity="0.7" />
-    <path d="M 160,972 Q 185,982 210,972 Q 235,982 260,972 Q 285,982 310,972 Q 335,982 360,972 Q 385,982 410,972 Q 435,982 460,972 Q 485,982 510,972 Q 535,982 560,972 Q 585,982 610,972 Q 635,982 660,972 Q 685,982 710,972 Q 735,982 760,972 Q 785,982 810,972 Q 835,982 860,972 Q 885,982 910,972 Q 935,982 960,972 Q 985,982 1010,972 Q 1035,982 1060,972 Q 1085,982 1110,972 Q 1135,982 1160,972 Q 1185,982 1210,972 Q 1235,982 1260,972 Q 1285,982 1310,972 Q 1335,982 1360,972 Q 1385,982 1410,972 Q 1435,982 1460,972" stroke-width="1.4" opacity="0.7" />
+    <path d="M 160,45 Q 185,35 210,45 Q 235,35 260,45 Q 285,35 310,45 Q 335,35 360,45 Q 385,35 410,45 Q 435,35 460,45 Q 485,35 510,45 Q 535,35 560,45 Q 585,35 610,45 Q 635,35 660,45 Q 685,35 710,45 Q 735,35 760,45 Q 785,35 810,45 Q 835,35 860,45 Q 885,35 910,45 Q 935,35 960,45 Q 985,35 1010,45 Q 1035,35 1060,45 Q 1085,35 1110,45 Q 1135,35 1160,45 Q 1185,35 1210,45 Q 1235,35 1260,45 Q 1285,35 1310,45 Q 1335,35 1360,45 Q 1385,35 1410,45 Q 1435,35 1460,45" stroke-width="1.2" opacity="0.6" />
+    <path d="M 160,955 Q 185,965 210,955 Q 235,965 260,955 Q 285,965 310,955 Q 335,965 360,955 Q 385,965 410,955 Q 435,965 460,955 Q 485,965 510,955 Q 535,965 560,955 Q 585,965 610,955 Q 635,965 660,955 Q 685,965 710,955 Q 735,965 760,955 Q 785,965 810,955 Q 835,965 860,955 Q 885,965 910,955 Q 935,965 960,955 Q 985,965 1010,955 Q 1035,965 1060,955 Q 1085,965 1110,955 Q 1135,965 1160,955 Q 1185,965 1210,955 Q 1235,965 1260,955 Q 1285,965 1310,955 Q 1335,965 1360,955 Q 1385,965 1410,955 Q 1435,965 1460,955" stroke-width="1.2" opacity="0.6" />
   </g>
 
-  <!-- 5. GOTISCHE WASSERSPEIER- / DÄMONENKOPF-RELIEFS IN DEN 4 ECKEN -->
-  <g fill="#071717" stroke="url(#spectralGrad)" stroke-width="1.6" opacity="0.95">
+  <!-- 5. GOTISCHE WASSERSPEIER- / DÄMONENKOPF-RELIEFS (EINGEFASST IN DEN ECKEN, KANTENFREI) -->
+  <g fill="#071717" stroke="url(#spectralGrad)" stroke-width="1.4" opacity="0.85">
     <!-- Oben-Links Wasserspeier-Relief -->
-    <path d="M 18,140 L 18,45 Q 18,18 45,18 L 140,18 L 110,48 Q 50,50 48,110 Z" />
-    <path d="M 32,32 Q 55,20 75,45 Q 95,20 118,32 Q 105,75 75,90 Q 45,75 32,32 Z" fill="#042f2e" stroke-width="1.2" />
-    <circle cx="62" cy="48" r="3" fill="#2dd4bf" filter="url(#spectralGlow)" />
-    <circle cx="88" cy="48" r="3" fill="#2dd4bf" filter="url(#spectralGlow)" />
+    <path d="M 60,115 Q 60,65 115,65 Q 90,90 60,115 Z" />
+    <circle cx="85" cy="85" r="3.5" fill="#2dd4bf" filter="url(#spectralGlow)" />
 
     <!-- Oben-Rechts Wasserspeier-Relief -->
-    <path d="M 1582,140 L 1582,45 Q 1582,18 1555,18 L 1460,18 L 1490,48 Q 1550,50 1552,110 Z" />
-    <path d="M 1568,32 Q 1545,20 1525,45 Q 1505,20 1482,32 Q 1495,75 1525,90 Q 1555,75 1568,32 Z" fill="#042f2e" stroke-width="1.2" />
-    <circle cx="1538" cy="48" r="3" fill="#2dd4bf" filter="url(#spectralGlow)" />
-    <circle cx="1512" cy="48" r="3" fill="#2dd4bf" filter="url(#spectralGlow)" />
+    <path d="M 1540,115 Q 1540,65 1485,65 Q 1510,90 1540,115 Z" />
+    <circle cx="1515" cy="85" r="3.5" fill="#2dd4bf" filter="url(#spectralGlow)" />
 
     <!-- Unten-Links Wasserspeier-Relief -->
-    <path d="M 18,860 L 18,955 Q 18,982 45,982 L 140,982 L 110,952 Q 50,950 48,890 Z" />
-    <path d="M 32,968 Q 55,980 75,955 Q 95,980 118,968 Q 105,925 75,910 Q 45,925 32,968 Z" fill="#042f2e" stroke-width="1.2" />
-    <circle cx="62" cy="952" r="3" fill="#2dd4bf" filter="url(#spectralGlow)" />
-    <circle cx="88" cy="952" r="3" fill="#2dd4bf" filter="url(#spectralGlow)" />
+    <path d="M 60,885 Q 60,935 115,935 Q 90,910 60,885 Z" />
+    <circle cx="85" cy="915" r="3.5" fill="#2dd4bf" filter="url(#spectralGlow)" />
 
     <!-- Unten-Rechts Wasserspeier-Relief -->
-    <path d="M 1582,860 L 1582,955 Q 1582,982 1555,982 L 1460,982 L 1490,952 Q 1550,950 1552,890 Z" />
-    <path d="M 1568,968 Q 1545,980 1525,955 Q 1505,980 1482,968 Q 1495,925 1525,910 Q 1555,925 1568,968 Z" fill="#042f2e" stroke-width="1.2" />
-    <circle cx="1538" cy="952" r="3" fill="#2dd4bf" filter="url(#spectralGlow)" />
-    <circle cx="1512" cy="952" r="3" fill="#2dd4bf" filter="url(#spectralGlow)" />
+    <path d="M 1540,885 Q 1540,935 1485,935 Q 1510,910 1540,885 Z" />
+    <circle cx="1515" cy="915" r="3.5" fill="#2dd4bf" filter="url(#spectralGlow)" />
   </g>
 </svg>

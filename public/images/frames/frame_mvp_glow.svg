@@ -13,30 +13,30 @@
   </defs>
 
   <g filter="url(#royalCalmShadow)">
-    <!-- 1. Schlanker Goldreif (r=35.5, stroke 1.8px - Innenbereich r < 34.5 vollkommen frei!) -->
+    <!-- 1. Schlanker Goldreif (r=35.5, stroke 1.8px) -->
     <circle cx="50" cy="50" r="35.5" stroke="url(#royalRingFine)" stroke-width="1.8"/>
     <circle cx="50" cy="50" r="37.2" stroke="#b45309" stroke-width="0.8"/>
 
-    <!-- 2. ZARTE PHÖNIXFEDERN NUR AUSSEN (r=36 bis r=46) -->
-    <path d="M66,48 Q78,44 86,50 Q78,56 66,52 Z" fill="url(#royalRingFine)" stroke="#78350f" stroke-width="0.3"/>
-    <path d="M47,66 Q45,78 50,86 Q55,78 53,66 Z" fill="url(#royalRingFine)" stroke="#78350f" stroke-width="0.3"/>
-    <circle cx="50" cy="78" r="1.4" fill="#3b82f6"/>
-    <path d="M34,48 Q22,44 14,50 Q22,56 34,52 Z" fill="url(#royalRingFine)" stroke="#78350f" stroke-width="0.3"/>
+    <!-- 2. PLASTISCHE PHÖNIXFEDERN (Fassung bei r=33.0 mit subtiler 3D-Tiefe, Schwingen nach außen bis r=42.0) -->
+    <path d="M83,48 Q88,44 92,50 Q88,56 83,52 Z" fill="url(#royalRingFine)" stroke="#78350f" stroke-width="0.3"/>
+    <path d="M47,83 Q45,88 50,92 Q55,88 53,83 Z" fill="url(#royalRingFine)" stroke="#78350f" stroke-width="0.3"/>
+    <circle cx="50" cy="85" r="1.4" fill="#3b82f6"/>
+    <path d="M17,48 Q12,44 8,50 Q12,56 17,52 Z" fill="url(#royalRingFine)" stroke="#78350f" stroke-width="0.3"/>
 
-    <!-- 3. 5-ZACKIGE MEISTERMAGIER-KRONE SITZT FREI OBEN AUF DEM REIF (y=4 bis y=14) -->
-    <g transform="translate(50, 10)">
+    <!-- 3. 5-ZACKIGE MEISTERMAGIER-KRONE SITZT FREI OBEN AUF DEM REIF (y=6 bis y=14) -->
+    <g transform="translate(50, 12)">
       <!-- Krone-Silhouette nach oben -->
-      <path d="M-9,4 L-9,-2 L-4,1 L0,-8 L4,1 L9,-2 L9,4 Z" fill="url(#royalRingFine)" stroke="#78350f" stroke-width="0.4"/>
+      <path d="M-7,3 L-7,-1 L-3.5,0.5 L0,-5 L3.5,0.5 L7,-1 L7,3 Z" fill="url(#royalRingFine)" stroke="#78350f" stroke-width="0.4"/>
       <!-- Perlen auf Zacken -->
-      <circle cx="0" cy="-8" r="1.1" fill="#ffffff"/>
-      <circle cx="-9" cy="-2" r="0.8" fill="#ffffff"/>
-      <circle cx="9" cy="-2" r="0.8" fill="#ffffff"/>
+      <circle cx="0" cy="-5" r="0.9" fill="#ffffff"/>
+      <circle cx="-7" cy="-1" r="0.7" fill="#ffffff"/>
+      <circle cx="7" cy="-1" r="0.7" fill="#ffffff"/>
       <!-- Zentraler imperialer Rubin -->
-      <ellipse cx="0" cy="0" rx="2" ry="2.4" fill="#ef4444" stroke="#fef08a" stroke-width="0.4"/>
+      <ellipse cx="0" cy="1" rx="1.6" ry="1.8" fill="#ef4444" stroke="#fef08a" stroke-width="0.4"/>
 
       <!-- PERIODISCHER STERNENBLITZ AUF DEM ZENTRALEN RUBIN (alle 6s) -->
       <g>
-        <path d="M0,-5 L1,-1 L5,0 L1,1 L0,5 L-1,1 L-5,0 L-1,-1 Z" fill="#ffffff" opacity="0">
+        <path d="M0,-3 L0.8,-0.8 L3,0 L0.8,0.8 L0,3 L-0.8,0.8 L-3,0 L-0.8,-0.8 Z" fill="#ffffff" opacity="0">
           <animate attributeName="opacity" values="0; 0; 1; 0; 0" keyTimes="0; 0.5; 0.54; 0.58; 1" dur="6s" repeatCount="indefinite"/>
           <animateTransform attributeName="transform" type="scale" values="0.5; 0.5; 1.4; 0.5; 0.5" keyTimes="0; 0.5; 0.54; 0.58; 1" dur="6s" repeatCount="indefinite"/>
         </path>

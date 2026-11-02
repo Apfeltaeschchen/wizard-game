@@ -14,56 +14,56 @@
     </linearGradient>
     <filter id="voidCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.85"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#a855f7" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#a855f7" flood-opacity="0.5"/>
     </filter>
   </defs>
 
   <g filter="url(#voidCalmShadow)">
-    <!-- 1. Schlanker Astralreif (r=35.5, stroke 1.8px - Innenbereich r < 34.5 vollkommen frei!) -->
+    <!-- 1. Schlanker Astralreif (r=35.5, stroke 1.8px) -->
     <circle cx="50" cy="50" r="35.5" stroke="url(#voidRingGrad)" stroke-width="1.8"/>
     <circle cx="50" cy="50" r="37.2" stroke="#c084fc" stroke-width="0.8" stroke-dasharray="2 4"/>
 
-    <!-- 2. AMETHYST-KRISTALLE SITZEN NUR AUSSEN AUF DEM REIF (Innenraum frei!) -->
+    <!-- 2. PLASTISCHE ASTRALKRISTALLE (Facetten ragen dezent bis r=32.5 für 3D-Tiefe, Außenkristalle bis r=42.0) -->
     <!-- Kristallgruppe Oben (12 Uhr) -->
     <g>
-      <polygon points="50,15 47,21 50,27 53,21" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="50" y1="15" x2="50" y2="27" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="44,19 41,25 46,27 48,22" fill="url(#crystalFacet)"/>
-      <polygon points="56,19 59,25 54,27 52,22" fill="url(#crystalFacet)"/>
+      <polygon points="50,8 47,13 50,18 53,13" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
+      <line x1="50" y1="8" x2="50" y2="18" stroke="#ffffff" stroke-width="0.5"/>
+      <polygon points="44,11 41,15 46,18 48,14" fill="url(#crystalFacet)"/>
+      <polygon points="56,11 59,15 54,18 52,14" fill="url(#crystalFacet)"/>
       <!-- Periodischer Prisma-Glanz alle 7s -->
-      <polygon points="50,15 47,21 50,27 53,21" fill="#ffffff" opacity="0">
+      <polygon points="50,8 47,13 50,18 53,13" fill="#ffffff" opacity="0">
         <animate attributeName="opacity" values="0; 0; 0.85; 0; 0" keyTimes="0; 0.3; 0.34; 0.38; 1" dur="7s" repeatCount="indefinite"/>
       </polygon>
     </g>
 
     <!-- Kristallgruppe Rechts (3 Uhr) -->
     <g>
-      <polygon points="85,50 79,47 73,50 79,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="85" y1="50" x2="73" y2="50" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="81,44 75,41 73,46 78,48" fill="url(#crystalFacet)"/>
-      <polygon points="81,56 75,59 73,54 78,52" fill="url(#crystalFacet)"/>
+      <polygon points="92,50 87,47 82,50 87,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
+      <line x1="92" y1="50" x2="82" y2="50" stroke="#ffffff" stroke-width="0.5"/>
+      <polygon points="89,44 85,41 82,46 86,48" fill="url(#crystalFacet)"/>
+      <polygon points="89,56 85,59 82,54 86,52" fill="url(#crystalFacet)"/>
     </g>
 
     <!-- Kristallgruppe Unten (6 Uhr) -->
     <g>
-      <polygon points="50,85 47,79 50,73 53,79" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="50" y1="85" x2="50" y2="73" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="44,81 41,75 46,73 48,78" fill="url(#crystalFacet)"/>
-      <polygon points="56,81 59,75 54,73 52,78" fill="url(#crystalFacet)"/>
+      <polygon points="50,92 47,87 50,82 53,87" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
+      <line x1="50" y1="92" x2="50" y2="82" stroke="#ffffff" stroke-width="0.5"/>
+      <polygon points="44,89 41,85 46,82 48,86" fill="url(#crystalFacet)"/>
+      <polygon points="56,89 59,85 54,82 52,86" fill="url(#crystalFacet)"/>
     </g>
 
     <!-- Kristallgruppe Links (9 Uhr) -->
     <g>
-      <polygon points="15,50 21,47 27,50 21,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="15" y1="50" x2="27" y2="50" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="19,44 25,41 27,46 22,48" fill="url(#crystalFacet)"/>
-      <polygon points="19,56 25,59 27,54 22,52" fill="url(#crystalFacet)"/>
+      <polygon points="8,50 13,47 18,50 13,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
+      <line x1="8" y1="50" x2="18" y2="50" stroke="#ffffff" stroke-width="0.5"/>
+      <polygon points="11,44 15,41 18,46 14,48" fill="url(#crystalFacet)"/>
+      <polygon points="11,56 15,59 18,54 14,52" fill="url(#crystalFacet)"/>
     </g>
 
-    <!-- Diagonale schwebende Minisplitter außen (r=42) -->
-    <circle cx="25" cy="25" r="1.2" fill="#e9d5ff"/>
-    <circle cx="75" cy="25" r="1.2" fill="#e9d5ff"/>
-    <circle cx="75" cy="75" r="1.2" fill="#e9d5ff"/>
-    <circle cx="25" cy="75" r="1.2" fill="#e9d5ff"/>
+    <!-- Diagonale schwebende Minisplitter außen (r=41) -->
+    <circle cx="21" cy="21" r="1.2" fill="#e9d5ff"/>
+    <circle cx="79" cy="21" r="1.2" fill="#e9d5ff"/>
+    <circle cx="79" cy="79" r="1.2" fill="#e9d5ff"/>
+    <circle cx="21" cy="79" r="1.2" fill="#e9d5ff"/>
   </g>
 </svg>

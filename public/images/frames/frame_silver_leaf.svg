@@ -13,37 +13,34 @@
   </defs>
 
   <g filter="url(#silverCalmShadow)">
-    <!-- 1. Schlanker Elfen-Mithrilreif (r=35.5, stroke 1.8px - Innenbereich r < 34.5 vollkommen frei!) -->
+    <!-- 1. Schlanker Elfen-Mithrilreif (r=35.5, stroke 1.8px) -->
     <circle cx="50" cy="50" r="35.5" stroke="url(#silverRingGrad)" stroke-width="1.8"/>
     <circle cx="50" cy="50" r="37" stroke="#64748b" stroke-width="0.8" stroke-dasharray="4 2"/>
 
-    <!-- 2. ZARTE LORBEERBLÄTTCHEN NUR AUSSEN UM DEN REIF (r=36 bis r=45) -->
-    <!-- Linke Flanke: Blätterzweige schmiegen sich außen an -->
-    <path d="M28,30 Q20,24 16,18 Q23,26 27,33 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M25,44 Q16,42 12,46 Q19,48 25,48 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M28,58 Q19,62 15,69 Q22,65 28,61 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M34,70 Q26,77 22,84 Q29,78 34,73 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <!-- 2. PLASTISCHE LORBEERBLÄTTCHEN (Fassung bei r=33.0 mit subtiler 3D-Tiefe, Blätter nach außen bis r=42.0) -->
+    <!-- Linke Flanke: Blätterzweige schmiegen sich an den Reif -->
+    <path d="M26,26 Q21,23 18,20 Q24,25 27,27 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M17,46 Q13,44 10,48 Q15,50 17,50 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M26,74 Q21,77 18,80 Q24,75 27,73 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
 
     <!-- Rechte Flanke: Blätterzweige -->
-    <path d="M72,30 Q80,24 84,18 Q77,26 73,33 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M75,44 Q84,42 88,46 Q81,48 75,48 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M72,58 Q81,62 85,69 Q78,65 72,61 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
-    <path d="M66,70 Q74,77 78,84 Q71,78 66,73 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M74,26 Q79,23 82,20 Q76,25 73,27 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M83,46 Q87,44 90,48 Q85,50 83,50 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <path d="M74,74 Q79,77 82,80 Q76,75 73,73 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
 
-    <!-- Oben (12 Uhr): Zarter Elfenknoten nach außen (y=13) -->
-    <path d="M47,34 Q45,22 50,14 Q55,22 53,34 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
-    <circle cx="50" cy="14" r="1.4" fill="#ffffff"/>
+    <!-- Oben (12 Uhr): Zarter Elfenknoten mit Fassung bei r=33 (y=17) bis y=9 -->
+    <path d="M47,17 Q45,12 50,9 Q55,12 53,17 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <circle cx="50" cy="9" r="1.3" fill="#ffffff"/>
 
-    <!-- Unten (6 Uhr): Elegante Elfen-Schleife nach außen (y=87) -->
-    <path d="M46,66 Q50,73 50,86 Q50,73 54,66 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
-    <circle cx="50" cy="86" r="1.4" fill="#ffffff"/>
+    <!-- Unten (6 Uhr): Elegante Elfen-Schleife mit Fassung bei r=33 (y=83) bis y=91 -->
+    <path d="M46,83 Q50,87 50,91 Q50,87 54,83 Z" fill="url(#silverRingGrad)" stroke="#1e293b" stroke-width="0.4"/>
+    <circle cx="50" cy="91" r="1.3" fill="#ffffff"/>
 
-    <!-- 3. PERIODISCHES STERNEN-FUNKELN AUF DER MITHERIL-SPITZE (alle 8s) -->
-    <g transform="translate(50, 14)">
-      <!-- 4-zackiger Sternenblitz -->
-      <path d="M0,-4 L1,-1 L4,0 L1,1 L0,4 L-1,1 L-4,0 L-1,-1 Z" fill="#ffffff" opacity="0">
+    <!-- 3. PERIODISCHES STERNEN-FUNKELN AUF DER MITHRIL-SPITZE (alle 8s) -->
+    <g transform="translate(50, 9)">
+      <path d="M0,-3 L0.8,-0.8 L3,0 L0.8,0.8 L0,3 L-0.8,0.8 L-3,0 L-0.8,-0.8 Z" fill="#ffffff" opacity="0">
         <animate attributeName="opacity" values="0; 0; 1; 0; 0" keyTimes="0; 0.45; 0.48; 0.52; 1" dur="8s" repeatCount="indefinite"/>
-        <animateTransform attributeName="transform" type="scale" values="0.5; 0.5; 1.5; 0.5; 0.5" keyTimes="0; 0.45; 0.48; 0.52; 1" dur="8s" repeatCount="indefinite"/>
+        <animateTransform attributeName="transform" type="scale" values="0.5; 0.5; 1.4; 0.5; 0.5" keyTimes="0; 0.45; 0.48; 0.52; 1" dur="8s" repeatCount="indefinite"/>
       </path>
     </g>
   </g>

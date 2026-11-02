@@ -57,17 +57,15 @@ assert.ok(finishCode.includes('selectedPodiumTier = finishedTier;'), 'Behält Tr
 assert.ok(finishCode.includes('selectedPodiumTier = null;'), 'Fällt auf Priorisierung zurück wenn Vorrat erschöpft');
 console.log('✓ 3. Ketten-Öffnen derselben Truhensorte fehlerfrei verifiziert.');
 
-// [4/5] Rarity-spezifische Kosmetik-Rückseiten
+// [4/5] Rarity-spezifische Kosmetik-Rückseiten (Artwork pur ohne Text-Badge laut User-Wunsch)
 console.log('[4/5] Überprüfe Fancier Rarity-Differentiated Card Backs...');
 assert.ok(clientJs.includes('rarity-back-${rarity}'), 'Dynamische Rarity-Klasse auf Kartenrückseite');
 assert.ok(clientJs.includes('rarity-sigil-${rarity}'), 'Dynamische Rarity-Klasse auf Sigil');
-assert.ok(clientJs.includes('rarity-badge-${rarity}'), 'Dynamische Rarity-Badge auf Rückseite');
 
 assert.ok(indexHtml.includes('.mystery-card-wrap.rarity-common .mystery-card-back'), 'CSS für Common Rückseite');
 assert.ok(indexHtml.includes('.mystery-card-wrap.rarity-rare .mystery-card-back'), 'CSS für Rare Rückseite');
 assert.ok(indexHtml.includes('.mystery-card-wrap.rarity-epic .mystery-card-back'), 'CSS für Epic Rückseite');
 assert.ok(indexHtml.includes('.mystery-card-wrap.rarity-legendary .mystery-card-back'), 'CSS für Legendary Rückseite');
-assert.ok(indexHtml.includes('.mystery-card-rarity-badge'), 'CSS für .mystery-card-rarity-badge');
 assert.ok(indexHtml.includes('@keyframes goldSheenSweep'), 'Lichtschein-Animation für Legendary Rückseite vorhanden');
 console.log('✓ 4. Edle, seltenheitsspezifische Kartenrückseiten verifiziert.');
 
