@@ -1391,15 +1391,16 @@
       animation: turnStartExtremeFlashAnim 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     }
 
-    /* MITSPIELER-SITZE (KOMPAKTES HORIZONTALES BADGE-SYSTEM) */
+    /* MITSPIELER-SITZE (KOMPAKTES HORIZONTALES BADGE-SYSTEM AM OBEREN TISCHRAND) */
     #opponents-container {
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       flex-wrap: wrap;
       gap: 12px;
-      padding: 4px 150px;
-      margin-bottom: 2px;
+      padding: 2px 140px 4px 140px;
+      margin-top: 0;
+      margin-bottom: 0;
       z-index: 15;
       flex-shrink: 0;
       max-height: 105px;
@@ -1411,63 +1412,64 @@
     /* Pokertisch-Bogen (Reihum-Hufeisen) auf Laptop / Desktop: Großzügige Kurve um den Tisch */
     @media (min-width: 900px) {
       #opponents-container {
-        padding: 10px 80px 10px 150px;
-        max-height: 160px;
-        gap: 36px;
+        padding: 4px 60px 4px 130px;
+        max-height: 125px;
+        gap: 28px;
+        align-items: flex-start;
       }
       .opponents-container.count-2 .player-seat:nth-child(1) {
-        margin-top: 14px;
-        margin-right: 70px;
+        margin-top: 6px;
+        margin-right: 80px;
       }
       .opponents-container.count-2 .player-seat:nth-child(2) {
-        margin-top: 14px;
-        margin-left: 70px;
+        margin-top: 6px;
+        margin-left: 80px;
       }
       .opponents-container.count-3 .player-seat:nth-child(1) {
-        margin-top: 24px;
-        margin-right: 50px;
+        margin-top: 10px;
+        margin-right: 60px;
       }
       .opponents-container.count-3 .player-seat:nth-child(2) {
         margin-top: 0px;
       }
       .opponents-container.count-3 .player-seat:nth-child(3) {
-        margin-top: 24px;
-        margin-left: 50px;
+        margin-top: 10px;
+        margin-left: 60px;
       }
       .opponents-container.count-4 .player-seat:nth-child(1) {
-        margin-top: 36px;
-        margin-right: 40px;
+        margin-top: 14px;
+        margin-right: 45px;
       }
       .opponents-container.count-4 .player-seat:nth-child(2) {
-        margin-top: 4px;
-        margin-right: 15px;
+        margin-top: 0px;
+        margin-right: 18px;
       }
       .opponents-container.count-4 .player-seat:nth-child(3) {
-        margin-top: 4px;
-        margin-left: 15px;
+        margin-top: 0px;
+        margin-left: 18px;
       }
       .opponents-container.count-4 .player-seat:nth-child(4) {
-        margin-top: 36px;
-        margin-left: 40px;
+        margin-top: 14px;
+        margin-left: 45px;
       }
       .opponents-container.count-5 .player-seat:nth-child(1) {
-        margin-top: 44px;
-        margin-right: 32px;
+        margin-top: 16px;
+        margin-right: 36px;
       }
       .opponents-container.count-5 .player-seat:nth-child(2) {
-        margin-top: 12px;
-        margin-right: 10px;
+        margin-top: 4px;
+        margin-right: 14px;
       }
       .opponents-container.count-5 .player-seat:nth-child(3) {
         margin-top: 0px;
       }
       .opponents-container.count-5 .player-seat:nth-child(4) {
-        margin-top: 12px;
-        margin-left: 10px;
+        margin-top: 4px;
+        margin-left: 14px;
       }
       .opponents-container.count-5 .player-seat:nth-child(5) {
-        margin-top: 44px;
-        margin-left: 32px;
+        margin-top: 16px;
+        margin-left: 36px;
       }
 
       /* Größere Pillen & Sitze auf Desktop */
@@ -1492,7 +1494,7 @@
     }
 
     #opponents-container.round-1-opponents {
-      margin-top: 96px !important;
+      margin-top: 68px !important;
       overflow: visible !important;
     }
     .round-1-opponents .player-seat {
@@ -7335,48 +7337,68 @@
     }
 
     /* 10 KARTENRÜCKEN HIGH-END SVG MAPPINGS */
-    .cardback-theme-default {
+    .cardback-theme-default,
+    .card.card-blind.cardback-theme-default,
+    .card.card-blind .card-face-front.cardback-theme-default {
       background-image: url('/images/card_backs/back_default.svg') !important;
       border-color: #d97706 !important;
     }
-    .cardback-theme-citadel_ancient {
+    .cardback-theme-citadel_ancient,
+    .card.card-blind.cardback-theme-citadel_ancient,
+    .card.card-blind .card-face-front.cardback-theme-citadel_ancient {
       background-image: url('/images/card_backs/back_citadel_ancient.svg') !important;
       border-color: #fbbf24 !important;
       box-shadow: 0 0 18px rgba(251, 191, 36, 0.75) !important;
     }
-    .cardback-theme-parchment {
+    .cardback-theme-parchment,
+    .card.card-blind.cardback-theme-parchment,
+    .card.card-blind .card-face-front.cardback-theme-parchment {
       background-image: url('/images/card_backs/back_parchment.svg') !important;
       border-color: #b45309 !important;
     }
-    .cardback-theme-forest {
+    .cardback-theme-forest,
+    .card.card-blind.cardback-theme-forest,
+    .card.card-blind .card-face-front.cardback-theme-forest {
       background-image: url('/images/card_backs/back_forest.svg') !important;
       border-color: #34d399 !important;
     }
-    .cardback-theme-spider_queen {
+    .cardback-theme-spider_queen,
+    .card.card-blind.cardback-theme-spider_queen,
+    .card.card-blind .card-face-front.cardback-theme-spider_queen {
       background-image: url('/images/card_backs/back_spider_queen.svg') !important;
       border-color: #c084fc !important;
     }
-    .cardback-theme-shadow {
+    .cardback-theme-shadow,
+    .card.card-blind.cardback-theme-shadow,
+    .card.card-blind .card-face-front.cardback-theme-shadow {
       background-image: url('/images/card_backs/back_shadow.svg') !important;
       border-color: #c084fc !important;
       box-shadow: 0 0 14px rgba(192, 132, 252, 0.5) !important;
     }
-    .cardback-theme-pumpkin_king {
+    .cardback-theme-pumpkin_king,
+    .card.card-blind.cardback-theme-pumpkin_king,
+    .card.card-blind .card-face-front.cardback-theme-pumpkin_king {
       background-image: url('/images/card_backs/back_pumpkin_king.svg') !important;
       border-color: #fb923c !important;
       box-shadow: 0 0 14px rgba(249, 115, 22, 0.5) !important;
     }
-    .cardback-theme-gravestone_runes {
+    .cardback-theme-gravestone_runes,
+    .card.card-blind.cardback-theme-gravestone_runes,
+    .card.card-blind .card-face-front.cardback-theme-gravestone_runes {
       background-image: url('/images/card_backs/back_gravestone_runes.svg') !important;
       border-color: #94a3b8 !important;
       box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;
     }
-    .cardback-theme-astral {
+    .cardback-theme-astral,
+    .card.card-blind.cardback-theme-astral,
+    .card.card-blind .card-face-front.cardback-theme-astral {
       background-image: url('/images/card_backs/back_astral.svg') !important;
       border-color: #818cf8 !important;
       box-shadow: 0 0 14px rgba(99, 102, 241, 0.5) !important;
     }
-    .cardback-theme-dragon {
+    .cardback-theme-dragon,
+    .card.card-blind.cardback-theme-dragon,
+    .card.card-blind .card-face-front.cardback-theme-dragon {
       background-image: url('/images/card_backs/back_dragon.svg') !important;
       border-color: #fbbf24 !important;
       box-shadow: 0 0 18px rgba(239, 68, 68, 0.65) !important;
@@ -7535,11 +7557,11 @@
     @keyframes foreheadPopIn {
       0% {
         opacity: 0;
-        transform: translate(-50%, -30%) scale(0.4) rotate(-8deg);
+        transform: translate(-50%, 0) scale(0.4) rotate(-8deg);
       }
       100% {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        transform: translate(-50%, 0) scale(1) rotate(0deg);
       }
     }
 
@@ -7633,6 +7655,14 @@
     /* STIRNKARTE IM SPIEL AUF KARTENRÜCKSEITE (.card.card-blind.card-back) */
     .card.card-blind.card-back {
       position: relative;
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+    }
+    .card.card-blind .card-face-front {
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
     }
     .card.card-blind.card-back .card-center {
       position: absolute;

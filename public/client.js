@@ -10563,6 +10563,9 @@ function renderCard(card) {
       <div class="card-back-inner">
         <div class="card-back-ornament"></div>
       </div>
+      <div class="card-center">
+        <span class="card-center-val">?</span>
+      </div>
     `;
     flipper.appendChild(backFace);
     flipper.appendChild(frontFace);
