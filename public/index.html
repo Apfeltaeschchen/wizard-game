@@ -1362,7 +1362,7 @@
         box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(241, 196, 15, 0.35);
       }
       50% {
-        box-shadow: inset 0 0 45px rgba(240, 195, 85, 0.25), 0 0 35px rgba(241, 196, 15, 0.7), 0 0 60px rgba(241, 196, 15, 0.35);
+        box-shadow: inset 0 0 45px rgba(240, 195, 85, 0.45), 0 0 40px rgba(241, 196, 15, 0.85), 0 0 75px rgba(241, 196, 15, 0.55);
       }
       100% {
         box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 20px rgba(241, 196, 15, 0.35);
@@ -1375,104 +1375,108 @@
       outline: none !important;
     }
 
-    /* SUBTILER TISCH-IMPULS BEI ZUGBEGINN */
-    @keyframes turnStartExtremeFlashAnim {
-      0% {
-        box-shadow: 0 0 0 rgba(241, 196, 15, 0);
-      }
-      40% {
-        box-shadow: 0 0 30px rgba(241, 196, 15, 0.6), inset 0 0 25px rgba(241, 196, 15, 0.3);
-      }
-      100% {
-        box-shadow: 0 0 20px rgba(241, 196, 15, 0.35), inset 0 0 25px rgba(0, 0, 0, 0.8);
-      }
+    .hand-fade-in {
+      animation: handFadeInSimple 0.1s ease-out forwards;
     }
-    .turn-start-extreme-flash {
-      animation: turnStartExtremeFlashAnim 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    @keyframes handFadeInSimple {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    /* MITSPIELER-SITZE (KOMPAKTES HORIZONTALES BADGE-SYSTEM AM OBEREN TISCHRAND) */
+    /* MITSPIELER-SITZE (ABSOLUTES PERIMETER-LAYOUT AM TISCHRAND) */
     #opponents-container {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 12px;
-      padding: 2px 140px 4px 140px;
-      margin-top: 0;
-      margin-bottom: 0;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
       z-index: 15;
-      flex-shrink: 0;
-      max-height: 105px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      transition: margin-top 0.3s ease;
+      overflow: visible !important;
     }
 
-    /* Pokertisch-Bogen (Reihum-Hufeisen) auf Laptop / Desktop: Großzügige Kurve um den Tisch */
-    @media (min-width: 900px) {
-      #opponents-container {
-        padding: 4px 60px 4px 130px;
-        max-height: 125px;
-        gap: 28px;
-        align-items: flex-start;
-      }
-      .opponents-container.count-2 .player-seat:nth-child(1) {
-        margin-top: 6px;
-        margin-right: 80px;
-      }
-      .opponents-container.count-2 .player-seat:nth-child(2) {
-        margin-top: 6px;
-        margin-left: 80px;
-      }
-      .opponents-container.count-3 .player-seat:nth-child(1) {
-        margin-top: 10px;
-        margin-right: 60px;
-      }
-      .opponents-container.count-3 .player-seat:nth-child(2) {
-        margin-top: 0px;
-      }
-      .opponents-container.count-3 .player-seat:nth-child(3) {
-        margin-top: 10px;
-        margin-left: 60px;
-      }
-      .opponents-container.count-4 .player-seat:nth-child(1) {
-        margin-top: 14px;
-        margin-right: 45px;
-      }
-      .opponents-container.count-4 .player-seat:nth-child(2) {
-        margin-top: 0px;
-        margin-right: 18px;
-      }
-      .opponents-container.count-4 .player-seat:nth-child(3) {
-        margin-top: 0px;
-        margin-left: 18px;
-      }
-      .opponents-container.count-4 .player-seat:nth-child(4) {
-        margin-top: 14px;
-        margin-left: 45px;
-      }
-      .opponents-container.count-5 .player-seat:nth-child(1) {
-        margin-top: 16px;
-        margin-right: 36px;
-      }
-      .opponents-container.count-5 .player-seat:nth-child(2) {
-        margin-top: 4px;
-        margin-right: 14px;
-      }
-      .opponents-container.count-5 .player-seat:nth-child(3) {
-        margin-top: 0px;
-      }
-      .opponents-container.count-5 .player-seat:nth-child(4) {
-        margin-top: 4px;
-        margin-left: 14px;
-      }
-      .opponents-container.count-5 .player-seat:nth-child(5) {
-        margin-top: 16px;
-        margin-left: 36px;
-      }
+    .player-seat {
+      position: absolute;
+      pointer-events: auto;
+      z-index: 20;
+    }
 
-      /* Größere Pillen & Sitze auf Desktop */
+    /* 3 Spieler (2 Mitspieler) -> Beide oben gleichmäßig verteilt */
+    .opponents-container.count-2 .player-seat.seat-slot-0 {
+      top: 10px;
+      left: 33%;
+      transform: translateX(-50%);
+    }
+    .opponents-container.count-2 .player-seat.seat-slot-1 {
+      top: 10px;
+      left: 67%;
+      transform: translateX(-50%);
+    }
+
+    /* 4 Spieler (3 Mitspieler) -> 1x links, 1x oben mittig, 1x rechts */
+    .opponents-container.count-3 .player-seat.seat-slot-0 {
+      top: 45%;
+      left: 14px;
+      transform: translateY(-50%);
+    }
+    .opponents-container.count-3 .player-seat.seat-slot-1 {
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .opponents-container.count-3 .player-seat.seat-slot-2 {
+      top: 45%;
+      right: 14px;
+      transform: translateY(-50%);
+    }
+
+    /* 5 Spieler (4 Mitspieler) -> 1x links, 2x oben, 1x rechts */
+    .opponents-container.count-4 .player-seat.seat-slot-0 {
+      top: 45%;
+      left: 14px;
+      transform: translateY(-50%);
+    }
+    .opponents-container.count-4 .player-seat.seat-slot-1 {
+      top: 10px;
+      left: 35%;
+      transform: translateX(-50%);
+    }
+    .opponents-container.count-4 .player-seat.seat-slot-2 {
+      top: 10px;
+      left: 65%;
+      transform: translateX(-50%);
+    }
+    .opponents-container.count-4 .player-seat.seat-slot-3 {
+      top: 45%;
+      right: 14px;
+      transform: translateY(-50%);
+    }
+
+    /* 6 Spieler (5 Mitspieler) -> 1x links, 2x oben, 2x rechts */
+    .opponents-container.count-5 .player-seat.seat-slot-0 {
+      top: 45%;
+      left: 14px;
+      transform: translateY(-50%);
+    }
+    .opponents-container.count-5 .player-seat.seat-slot-1 {
+      top: 10px;
+      left: 35%;
+      transform: translateX(-50%);
+    }
+    .opponents-container.count-5 .player-seat.seat-slot-2 {
+      top: 10px;
+      left: 65%;
+      transform: translateX(-50%);
+    }
+    .opponents-container.count-5 .player-seat.seat-slot-3 {
+      top: 32%;
+      right: 14px;
+      transform: translateY(-50%);
+    }
+    .opponents-container.count-5 .player-seat.seat-slot-4 {
+      top: 58%;
+      right: 14px;
+      transform: translateY(-50%);
+    }
+
+    @media (min-width: 900px) {
       .player-seat {
         height: 38px !important;
         padding: 5px 14px 5px 8px !important;
@@ -1494,7 +1498,6 @@
     }
 
     #opponents-container.round-1-opponents {
-      margin-top: 68px !important;
       overflow: visible !important;
     }
     .round-1-opponents .player-seat {
@@ -1628,7 +1631,7 @@
       font-size: 11.5px;
       font-weight: 700;
       color: #f7eedb;
-      max-width: 95px;
+      max-width: 140px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -3131,6 +3134,12 @@
     /* WEISSE & GRAUE TAVERNESTAUBS-PARTIKEL BEIM AUFPRALL */
     .trick-card-item {
       position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: clamp(68px, 7vw, 105px);
+      box-sizing: border-box;
+      flex-shrink: 0;
     }
 
     .card-dust-cloud {
@@ -3189,8 +3198,10 @@
       margin-bottom: 4px;
       white-space: nowrap;
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-      display: inline-block;
-      max-width: 95px;
+      display: block;
+      width: max-content;
+      max-width: calc(clamp(68px, 7vw, 105px) + 20px);
+      text-align: center;
       overflow: hidden;
       text-overflow: ellipsis;
       box-shadow: 0 2px 6px rgba(0,0,0,0.7);
@@ -3199,7 +3210,7 @@
       .trick-card-player-name {
         font-size: 12px;
         padding: 2px 9px;
-        max-width: 130px;
+        max-width: calc(clamp(68px, 7vw, 105px) + 24px);
       }
     }
 
@@ -3822,53 +3833,68 @@
       #status-message { display: none !important; }
 
       #opponents-container {
-        margin-left: 82px !important;
-        width: calc(100% - 86px) !important;
-        gap: 6px !important;
-        padding: 2px 2px !important;
-        max-height: 54px !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        flex-wrap: nowrap !important;
-        justify-content: center !important;
-        justify-content: safe center !important;
+        position: absolute !important;
+        inset: 0 !important;
+        pointer-events: none !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
       }
       .player-seat {
-        padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        height: auto !important;
-        width: auto !important;
-        flex-direction: column !important;
+        padding: 2px 5px !important;
+        background: linear-gradient(180deg, rgba(28, 18, 11, 0.94) 0%, rgba(14, 9, 5, 0.97) 100%) !important;
+        border: 1px solid #5a371c !important;
+        border-radius: 14px !important;
+        height: 26px !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
         align-items: center !important;
-        gap: 2px !important;
-        flex-shrink: 0 !important;
+        gap: 3px !important;
+        max-width: 130px !important;
       }
-      .player-seat .seat-name-row,
-      .player-seat .seat-name,
+      .player-seat .seat-name-row {
+        display: inline-flex !important;
+      }
+      .player-seat .seat-name {
+        display: inline-block !important;
+        font-size: 9.5px !important;
+        max-width: 48px !important;
+      }
       .player-seat .seat-title,
-      .player-seat .player-rank-badge,
       .player-seat .seat-bot-pill {
         display: none !important;
       }
+      .player-seat .user-pill-level-badge {
+        font-size: 8px !important;
+        padding: 0 2px !important;
+      }
       .player-seat .seat-avatar {
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 13px !important;
-        position: relative !important;
-        border-width: 1.5px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.85) !important;
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 10px !important;
       }
       .player-seat .seat-bid-pill {
-        font-size: 10px !important;
-        padding: 2px 6px !important;
-        border-radius: 8px !important;
-        margin-top: 2px !important;
-        z-index: 2 !important;
-        cursor: pointer !important;
-        pointer-events: auto !important;
+        font-size: 9px !important;
+        padding: 1px 4px !important;
+        border-radius: 6px !important;
+        margin-top: 0 !important;
       }
+      /* Mobile perimeter positions */
+      .opponents-container.count-2 .player-seat.seat-slot-0 { top: 8px !important; left: 28% !important; }
+      .opponents-container.count-2 .player-seat.seat-slot-1 { top: 8px !important; left: 72% !important; }
+      .opponents-container.count-3 .player-seat.seat-slot-0 { top: 46% !important; left: 4px !important; }
+      .opponents-container.count-3 .player-seat.seat-slot-1 { top: 8px !important; left: 50% !important; }
+      .opponents-container.count-3 .player-seat.seat-slot-2 { top: 46% !important; right: 4px !important; }
+      .opponents-container.count-4 .player-seat.seat-slot-0 { top: 46% !important; left: 4px !important; }
+      .opponents-container.count-4 .player-seat.seat-slot-1 { top: 8px !important; left: 32% !important; }
+      .opponents-container.count-4 .player-seat.seat-slot-2 { top: 8px !important; left: 68% !important; }
+      .opponents-container.count-4 .player-seat.seat-slot-3 { top: 46% !important; right: 4px !important; }
+      .opponents-container.count-5 .player-seat.seat-slot-0 { top: 46% !important; left: 4px !important; }
+      .opponents-container.count-5 .player-seat.seat-slot-1 { top: 8px !important; left: 32% !important; }
+      .opponents-container.count-5 .player-seat.seat-slot-2 { top: 8px !important; left: 68% !important; }
+      .opponents-container.count-5 .player-seat.seat-slot-3 { top: 34% !important; right: 4px !important; }
+      .opponents-container.count-5 .player-seat.seat-slot-4 { top: 58% !important; right: 4px !important; }
       .player-seat .seat-stats {
         display: none !important;
       }

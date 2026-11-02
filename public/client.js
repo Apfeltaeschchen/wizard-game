@@ -8304,13 +8304,10 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   isMyTurn = (mySessionId === activePlayerSessionId);
   currentGameState = gameState;
 
-  // ANIMIERTES "DU BIST DRAN!" POP-UP FEEDBACK & EXTREM-FLASH + KRISTALL-GONG
+  // ANIMIERTES "DU BIST DRAN!" POP-UP FEEDBACK & EXTREM-FLASH (GONG STUMMGESCHALTET)
   if (isMyTurn && (!previouslyMyTurn || gameState === 'playing_tricks' || gameState === 'bidding')) {
     triggerTurnPopup();
     if (!previouslyMyTurn) {
-      if (typeof WizardAudio !== 'undefined' && WizardAudio.playTurnChime) {
-        WizardAudio.playTurnChime();
-      }
       if (tableArea) {
         tableArea.classList.remove('turn-start-extreme-flash');
         void tableArea.offsetWidth;
@@ -8323,11 +8320,11 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
     }
   }
 
-  // SUBTILE TISCH-AURA & HANDKARTEN-FOKUS
+  // ATMENDER TISCH-AURA BEI EIGENEM ZUG (UM DEN GESAMTEN TISCH)
   tableArea.classList.toggle('my-turn-aura', isMyTurn);
   myHandSection.classList.toggle('my-turn-hand-focus', isMyTurn);
   const myHud = document.getElementById('my-stats-hud');
-  if (myHud) myHud.classList.toggle('my-turn-active', isMyTurn);
+  if (myHud) myHud.classList.remove('my-turn-active');
 
   renderOpponents();
   renderHand();
@@ -8475,66 +8472,32 @@ socket.on('handDealt', (hand) => {
 
   // Erstes Austeilen dieser Runde (nur 1x pro Runde)
   hasDealtThisRound = true;
-  isDealingAnimationPending = true;
+  isDealingAnimationPending = false;
   handContainer.innerHTML = '';
 
   const isDrawerOpen = (scoreDrawer && scoreDrawer.classList.contains('open'));
   closeScoreDrawer();
 
-  // Wenn das Sidepanel verschwindet: 320ms Ausblendung + 500ms Pause (halbe Sekunde nichts) = 820ms; sonst knackige 150ms
-  const dealDelay = isDrawerOpen ? 820 : 150;
-  dealDelayTimer = setTimeout(() => {
-    dealDelayTimer = null;
-    // Sicherstellen, dass der Spielbildschirm bei Austeilbeginn aktiv ist
-    if (typeof gameScreen !== 'undefined' && gameScreen && gameScreen.style.display === 'none') {
-      if (typeof switchScreen === 'function') switchScreen('game');
-      if (tableArea) tableArea.style.display = 'flex';
-    }
+  // Sicherstellen, dass der Spielbildschirm aktiv ist
+  if (typeof gameScreen !== 'undefined' && gameScreen && gameScreen.style.display === 'none') {
+    if (typeof switchScreen === 'function') switchScreen('game');
+    if (tableArea) tableArea.style.display = 'flex';
+  }
 
-    // 1. Tischweite Austeilanimation (Uno-Style) an alle Mitspieler starten
-    animateTableDealing(myCurrentHand.length);
+  // Sofortige Darstellung der Handkarten mit 100ms sanftem Erscheinen
+  renderHand(true);
 
-    // 2. Eigene Handkarten austeilen und flippen
-    renderHand(true);
+  if (cachedTrumpCard) {
+    renderTrumpCard(cachedTrumpCard, false);
+  }
 
-    // 3. Dauer berechnen und isDealingAnimationPending halten bis alle Karten aufgedeckt sind
-    const count = myCurrentHand.length;
-    let staggerMs = 75;
-    if (count <= 1) staggerMs = 80;
-    else if (count <= 6) staggerMs = 70;
-    else if (count <= 12) staggerMs = 50;
-    else staggerMs = 38;
+  if (handContainer) handContainer.classList.remove('hand-dealing');
 
-    const maxOpponentOffset = Math.max(0, (cachedPlayers.length - 2) * 25);
-    const handDealDuration = Math.max(0, count - 1) * staggerMs + 400 + maxOpponentOffset;
-
-    // 4. Nachdem die Handkarten gelandet sind: Trumpfkarte feierlich auf den 3D-Stapel aufdecken
-    setTimeout(() => {
-      if (cachedTrumpCard) {
-        renderTrumpCard(cachedTrumpCard, true);
-      }
-    }, Math.max(150, handDealDuration - 100));
-
-    const totalDealDuration = handDealDuration + 480;
-
-    dealFinishTimer = setTimeout(() => {
-      dealFinishTimer = null;
-      isDealingAnimationPending = false;
-      if (handContainer) handContainer.classList.remove('hand-dealing');
-
-      if (typeof gameScreen !== 'undefined' && gameScreen && gameScreen.style.display === 'none') {
-        pendingTurnState = null;
-        return;
-      }
-
-      // Falls während des Austeilens ein Biet-Overlay gepuffert wurde:
-      if (pendingTurnState) {
-        const stateToHandle = pendingTurnState;
-        pendingTurnState = null;
-        handleTurnState(stateToHandle.activePlayerSessionId, stateToHandle.gameState, stateToHandle.forbiddenBid);
-      }
-    }, totalDealDuration);
-  }, dealDelay);
+  if (pendingTurnState) {
+    const stateToHandle = pendingTurnState;
+    pendingTurnState = null;
+    handleTurnState(stateToHandle.activePlayerSessionId, stateToHandle.gameState, stateToHandle.forbiddenBid);
+  }
 });
 
 // Trumpfwahl-Buttons (Geber)
@@ -9496,10 +9459,11 @@ function renderOpponents() {
     opponentsContainer.className = `opponents-container count-${opponents.length}`;
     opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
 
-  opponents.forEach(p => {
+  opponents.forEach((p, idx) => {
     const isHisTurn = (p.sessionId === currentActiveSessionId);
     const seatEl = document.createElement('div');
     seatEl.classList.add('player-seat');
+    seatEl.classList.add(`seat-slot-${idx}`);
     seatEl.id = `seat-${p.sessionId}`;
     seatEl.setAttribute('data-session-id', p.sessionId);
     seatEl.setAttribute('data-player-name', p.name);
@@ -9839,19 +9803,16 @@ function updateBiddingSummaryPill() {
   let statusClass = '';
 
   if (diff > 0) {
-    statusText = `+${diff} Überboten`;
     statusClass = 'bidding-summary-overbid';
   } else if (diff < 0) {
-    statusText = `${diff} Unterboten`;
     statusClass = 'bidding-summary-underbid';
   } else {
-    statusText = 'Ausgeglichen';
     statusClass = 'bidding-summary-even';
   }
 
   pill.style.display = 'inline-flex';
   pill.className = `bidding-summary-pill ${statusClass}`;
-  pill.innerText = `🎯 ${sumBids} / ${currentRound} (${statusText})`;
+  pill.innerText = `🔮 ${sumBids} / ${currentRound}`;
 }
 
 // --- AAA FLIP 3D-KARTENFLUGBAHN, RICHTUNGSWINKEL & AUFPRALL-EFFEKTE ---
@@ -10383,32 +10344,10 @@ function renderHand(isNewDeal = false) {
     cardElement.style.setProperty('--target-rot', `${angle}deg`);
 
     if (isNewDeal) {
-      if (handContainer) handContainer.classList.add('hand-dealing');
-      cardElement.classList.add('card-fly-up');
-      let staggerMs = 75;
-      if (total <= 1) staggerMs = 80;
-      else if (total <= 6) staggerMs = 70;
-      else if (total <= 12) staggerMs = 50;
-      else staggerMs = 38;
-
-      cardElement.style.animationDelay = `${index * staggerMs}ms`;
-      const flipperEl = cardElement.querySelector('.card-flipper');
-      if (flipperEl) {
-        flipperEl.style.animationDelay = `${index * staggerMs}ms`;
+      cardElement.classList.add('hand-fade-in');
+      if (inspectedCardIndex !== index) {
+        cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
       }
-      setTimeout(() => {
-        cardElement.classList.remove('card-fly-up');
-        if (inspectedCardIndex !== index) {
-          cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
-        }
-      }, index * staggerMs + 420);
-      setTimeout(() => {
-        if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardDeal) {
-          if (staggerMs >= 50 || index % 2 === 0) {
-            WizardAudio.playCardDeal();
-          }
-        }
-      }, index * staggerMs);
     } else if (inspectedCardIndex !== index) {
       cardElement.style.transform = `translateY(${offsetY}px) rotate(${angle}deg)`;
     }
@@ -10562,9 +10501,6 @@ function renderCard(card) {
     frontFace.innerHTML = `
       <div class="card-back-inner">
         <div class="card-back-ornament"></div>
-      </div>
-      <div class="card-center">
-        <span class="card-center-val">?</span>
       </div>
     `;
     flipper.appendChild(backFace);
