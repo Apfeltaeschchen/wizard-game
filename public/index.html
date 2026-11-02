@@ -1350,10 +1350,10 @@
       inset: 3px;
       border-radius: 8px;
       pointer-events: none;
-      border: 1px solid rgba(212, 163, 89, 0.28);
-      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
+      border: none !important;
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85);
       z-index: 6;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      transition: box-shadow 0.3s ease;
     }
 
     /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (2s TIEFER ATEM) */
@@ -1383,7 +1383,7 @@
       to { opacity: 1; }
     }
 
-    /* MITSPIELER-SITZE (ABSOLUTES PERIMETER-LAYOUT AM TISCHRAND) */
+    /* MITSPIELER-SITZE (3-ZONEN PERIMETER-SYSTEM AM TISCHRAND) */
     #opponents-container {
       position: absolute;
       inset: 0;
@@ -1392,88 +1392,53 @@
       overflow: visible !important;
     }
 
-    .player-seat {
+    .perimeter-zone {
       position: absolute;
+      display: flex;
+      pointer-events: none;
+      z-index: 16;
+    }
+
+    .perimeter-zone-top {
+      top: 12px;
+      left: clamp(100px, 12vw, 130px);
+      right: 30px;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(14px, 2.5vw, 28px);
+      transition: top 0.3s ease;
+    }
+
+    #opponents-container.round-1-opponents .perimeter-zone-top {
+      top: clamp(68px, 11vh, 85px) !important;
+    }
+
+    .perimeter-zone-left {
+      top: 50%;
+      left: 14px;
+      transform: translateY(-50%);
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .perimeter-zone-right {
+      top: 50%;
+      right: 14px;
+      transform: translateY(-50%);
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 16px;
+    }
+
+    .player-seat {
+      position: relative !important;
       pointer-events: auto;
       z-index: 20;
-    }
-
-    /* 3 Spieler (2 Mitspieler) -> Beide oben gleichmäßig verteilt */
-    .opponents-container.count-2 .player-seat.seat-slot-0 {
-      top: 10px;
-      left: 33%;
-      transform: translateX(-50%);
-    }
-    .opponents-container.count-2 .player-seat.seat-slot-1 {
-      top: 10px;
-      left: 67%;
-      transform: translateX(-50%);
-    }
-
-    /* 4 Spieler (3 Mitspieler) -> 1x links, 1x oben mittig, 1x rechts */
-    .opponents-container.count-3 .player-seat.seat-slot-0 {
-      top: 45%;
-      left: 14px;
-      transform: translateY(-50%);
-    }
-    .opponents-container.count-3 .player-seat.seat-slot-1 {
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .opponents-container.count-3 .player-seat.seat-slot-2 {
-      top: 45%;
-      right: 14px;
-      transform: translateY(-50%);
-    }
-
-    /* 5 Spieler (4 Mitspieler) -> 1x links, 2x oben, 1x rechts */
-    .opponents-container.count-4 .player-seat.seat-slot-0 {
-      top: 45%;
-      left: 14px;
-      transform: translateY(-50%);
-    }
-    .opponents-container.count-4 .player-seat.seat-slot-1 {
-      top: 10px;
-      left: 35%;
-      transform: translateX(-50%);
-    }
-    .opponents-container.count-4 .player-seat.seat-slot-2 {
-      top: 10px;
-      left: 65%;
-      transform: translateX(-50%);
-    }
-    .opponents-container.count-4 .player-seat.seat-slot-3 {
-      top: 45%;
-      right: 14px;
-      transform: translateY(-50%);
-    }
-
-    /* 6 Spieler (5 Mitspieler) -> 1x links, 2x oben, 2x rechts */
-    .opponents-container.count-5 .player-seat.seat-slot-0 {
-      top: 45%;
-      left: 14px;
-      transform: translateY(-50%);
-    }
-    .opponents-container.count-5 .player-seat.seat-slot-1 {
-      top: 10px;
-      left: 35%;
-      transform: translateX(-50%);
-    }
-    .opponents-container.count-5 .player-seat.seat-slot-2 {
-      top: 10px;
-      left: 65%;
-      transform: translateX(-50%);
-    }
-    .opponents-container.count-5 .player-seat.seat-slot-3 {
-      top: 32%;
-      right: 14px;
-      transform: translateY(-50%);
-    }
-    .opponents-container.count-5 .player-seat.seat-slot-4 {
-      top: 58%;
-      right: 14px;
-      transform: translateY(-50%);
+      flex-shrink: 0;
     }
 
     @media (min-width: 900px) {
@@ -3880,21 +3845,24 @@
         border-radius: 6px !important;
         margin-top: 0 !important;
       }
-      /* Mobile perimeter positions */
-      .opponents-container.count-2 .player-seat.seat-slot-0 { top: 8px !important; left: 28% !important; }
-      .opponents-container.count-2 .player-seat.seat-slot-1 { top: 8px !important; left: 72% !important; }
-      .opponents-container.count-3 .player-seat.seat-slot-0 { top: 46% !important; left: 4px !important; }
-      .opponents-container.count-3 .player-seat.seat-slot-1 { top: 8px !important; left: 50% !important; }
-      .opponents-container.count-3 .player-seat.seat-slot-2 { top: 46% !important; right: 4px !important; }
-      .opponents-container.count-4 .player-seat.seat-slot-0 { top: 46% !important; left: 4px !important; }
-      .opponents-container.count-4 .player-seat.seat-slot-1 { top: 8px !important; left: 32% !important; }
-      .opponents-container.count-4 .player-seat.seat-slot-2 { top: 8px !important; left: 68% !important; }
-      .opponents-container.count-4 .player-seat.seat-slot-3 { top: 46% !important; right: 4px !important; }
-      .opponents-container.count-5 .player-seat.seat-slot-0 { top: 46% !important; left: 4px !important; }
-      .opponents-container.count-5 .player-seat.seat-slot-1 { top: 8px !important; left: 32% !important; }
-      .opponents-container.count-5 .player-seat.seat-slot-2 { top: 8px !important; left: 68% !important; }
-      .opponents-container.count-5 .player-seat.seat-slot-3 { top: 34% !important; right: 4px !important; }
-      .opponents-container.count-5 .player-seat.seat-slot-4 { top: 58% !important; right: 4px !important; }
+      /* Mobile 3-Zonen Perimeter Anpassung */
+      .perimeter-zone-top {
+        top: 6px !important;
+        left: 82px !important;
+        right: 12px !important;
+        gap: 8px !important;
+      }
+      #opponents-container.round-1-opponents .perimeter-zone-top {
+        top: 52px !important;
+      }
+      .perimeter-zone-left {
+        left: 4px !important;
+        gap: 8px !important;
+      }
+      .perimeter-zone-right {
+        right: 4px !important;
+        gap: 8px !important;
+      }
       .player-seat .seat-stats {
         display: none !important;
       }
@@ -6061,7 +6029,6 @@
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(5, 46, 22, 0.8) !important;
     }
     .poker-table.table-skin-emerald_felt::after {
-      border-color: rgba(234, 179, 8, 0.35);
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.8), 0 0 8px rgba(21, 128, 61, 0.3);
     }
 
@@ -6073,7 +6040,6 @@
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 45px rgba(0, 0, 0, 0.9) !important;
     }
     .poker-table.table-skin-tavern_wood::after {
-      border-color: rgba(180, 83, 9, 0.4);
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.9), 0 0 10px rgba(180, 83, 9, 0.25);
     }
 
@@ -6085,7 +6051,6 @@
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(88, 28, 135, 0.5) !important;
     }
     .poker-table.table-skin-amethyst_crypt::after {
-      border-color: rgba(192, 132, 252, 0.4);
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(168, 85, 247, 0.35);
     }
 
@@ -6097,7 +6062,6 @@
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(220, 38, 38, 0.45) !important;
     }
     .poker-table.table-skin-volcano_keep::after {
-      border-color: rgba(248, 113, 113, 0.4);
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(239, 68, 68, 0.35);
     }
 
@@ -6109,7 +6073,6 @@
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(30, 58, 138, 0.6) !important;
     }
     .poker-table.table-skin-astral_observatory::after {
-      border-color: rgba(56, 189, 248, 0.4);
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(99, 102, 241, 0.35);
     }
 
@@ -7678,6 +7641,53 @@
       max-width: 380px;
     }
 
+    /* INTERAKTIVER 3D-SPIELTISCH-INSPEKTOR */
+    .table-inspect-preview {
+      width: min(560px, 88vw);
+      height: calc(min(560px, 88vw) * (1000 / 1600));
+      aspect-ratio: 1600 / 1000;
+      border-radius: 16px;
+      border: 3px solid var(--gold-bright);
+      box-shadow: 0 16px 42px rgba(0,0,0,0.95), 0 0 30px rgba(240, 195, 85, 0.35);
+      background-size: cover !important;
+      background-position: center !important;
+      cursor: pointer;
+      transition: transform 0.15s ease-out, box-shadow 0.25s ease;
+      transform-style: preserve-3d;
+      position: relative;
+      overflow: hidden;
+    }
+    .table-inspect-preview.rarity-common {
+      border-color: #92400e;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 20px rgba(180, 83, 9, 0.35);
+    }
+    .table-inspect-preview.rarity-rare {
+      border-color: #38bdf8;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 35px rgba(56, 189, 248, 0.6);
+    }
+    .table-inspect-preview.rarity-epic {
+      border-color: #c084fc;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.95), 0 0 45px rgba(192, 132, 252, 0.75);
+      animation: pulseEpicBack 2.4s ease-in-out infinite alternate;
+    }
+    .table-inspect-preview.rarity-legendary {
+      border-color: #fbbf24;
+      box-shadow: 0 16px 45px rgba(0,0,0,0.98), 0 0 55px rgba(251, 191, 36, 0.9);
+      animation: pulseLegendaryBack 2s ease-in-out infinite alternate;
+    }
+    .table-inspect-preview.rarity-legendary::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      left: -60%;
+      width: 220%;
+      height: 220%;
+      background: linear-gradient(135deg, transparent 40%, rgba(254, 240, 138, 0.45) 50%, transparent 60%);
+      transform: rotate(30deg);
+      animation: goldSheenSweep 3.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+
     /* STIRNKARTE IM SPIEL AUF KARTENRÜCKSEITE (.card.card-blind.card-back) */
     .card.card-blind.card-back {
       position: relative;
@@ -8343,7 +8353,6 @@
       box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 55px rgba(13, 148, 136, 0.5) !important;
     }
     .poker-table.table-skin-haunted_crypt::after {
-      border-color: rgba(45, 212, 191, 0.4);
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(45, 212, 191, 0.35);
     }
     .poker-table.table-skin-haunted_crypt.my-turn-aura {
@@ -10318,9 +10327,9 @@
                       <div id="wardrobePreviewLobbyBox" class="cosmetic-mini-lobby lobby-theme-citadel_halls" style="margin-bottom: 0;"></div>
                       <div id="wardrobePreviewLobby" class="wardrobe-slot-name">Hallen der Zitadelle</div>
                     </div>
-                    <div class="wardrobe-preview-slot" title="Spieltisch-Filz">
+                    <div class="wardrobe-preview-slot" title="Spieltisch-Filz (Klicken für 3D-Großansicht)" style="cursor: pointer;" onclick="if(typeof openTableInspectModal === 'function'){ const u = (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) ? WizardVault.getVaultData().user : {}; openTableInspectModal(u.equipped_table_skin || 'emerald_felt'); }">
                       <div class="wardrobe-slot-label">Spieltisch</div>
-                      <div id="wardrobePreviewTableBox" class="cosmetic-mini-table table-theme-emerald_felt" style="margin-bottom: 0;"></div>
+                      <div id="wardrobePreviewTableBox" class="cosmetic-mini-table table-theme-emerald_felt" style="margin-bottom: 0; cursor: pointer;"></div>
                       <div id="wardrobePreviewTable" class="wardrobe-slot-name">Klassischer Filz</div>
                     </div>
                   </div>
@@ -10338,9 +10347,9 @@
 
                   <!-- RECHTE SEITE: KARTENDECK & RAHMEN -->
                   <div class="wardrobe-preview-side">
-                    <div class="wardrobe-preview-slot" title="Kartendeck-Rücken">
+                    <div class="wardrobe-preview-slot" title="Kartendeck-Rücken (Klicken für 3D-Großansicht)" style="cursor: pointer;" onclick="if(typeof openCardBackInspectModal === 'function'){ const u = (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) ? WizardVault.getVaultData().user : {}; openCardBackInspectModal(u.equipped_card_back || 'default'); }">
                       <div class="wardrobe-slot-label">Kartendeck</div>
-                      <div id="wardrobePreviewDeckBox" class="cosmetic-mini-cardback cardback-theme-default" style="margin-bottom: 0;">
+                      <div id="wardrobePreviewDeckBox" class="cosmetic-mini-cardback cardback-theme-default" style="margin-bottom: 0; cursor: pointer;">
                         <div class="cosmetic-mini-cardback-inner"></div>
                       </div>
                       <div id="wardrobePreviewDeck" class="wardrobe-slot-name">Novizen-Pergament</div>
@@ -10641,12 +10650,25 @@
   <!-- INTERAKTIVER 3D-KARTENRÜCKEN-INSPEKTOR MODAL -->
   <div id="cardbackInspectModal" class="cardback-inspect-modal" onclick="if(event.target === this) this.style.display='none';">
     <div style="display: flex; flex-direction: column; align-items: center; max-width: 90vw;">
-      <div id="cardbackInspectCard" class="cardback-inspect-card" title="Klicken zum Schließen"></div>
+      <div id="cardbackInspectCard" class="cardback-inspect-card" title="Klicken zum Schließen" onclick="document.getElementById('cardbackInspectModal').style.display='none';"></div>
       <div class="cardback-inspect-details">
         <h3 id="cardbackInspectTitle" style="margin: 0 0 6px; font-family: var(--font-heading); color: var(--gold-bright); font-size: 18px;">Novizen-Pergament</h3>
         <div id="cardbackInspectRarity" style="font-size: 12px; font-weight: bold; color: #d97706; margin-bottom: 8px;">Gewöhnlich</div>
         <p id="cardbackInspectLore" style="margin: 0 0 16px; font-size: 13px; font-style: italic; color: #cbd5e1; line-height: 1.4;">Handbeschöpftes Lederpergament mit arkanen Schutzrunen.</p>
         <button type="button" class="btn-auth-bar btn-auth-gold" onclick="document.getElementById('cardbackInspectModal').style.display='none';" style="padding: 6px 20px; font-size: 12px; cursor: pointer;">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERAKTIVER 3D-SPIELTISCH-INSPEKTOR MODAL -->
+  <div id="tableInspectModal" class="cardback-inspect-modal" onclick="if(event.target === this) this.style.display='none';">
+    <div style="display: flex; flex-direction: column; align-items: center; max-width: 90vw;">
+      <div id="tableInspectTable" class="table-inspect-preview" title="Klicken zum Schließen" onclick="document.getElementById('tableInspectModal').style.display='none';"></div>
+      <div class="cardback-inspect-details">
+        <h3 id="tableInspectTitle" style="margin: 0 0 6px; font-family: var(--font-heading); color: var(--gold-bright); font-size: 18px;">Klassischer Smaragd-Filz</h3>
+        <div id="tableInspectRarity" style="font-size: 12px; font-weight: bold; color: #d97706; margin-bottom: 8px;">Gewöhnlich</div>
+        <p id="tableInspectLore" style="margin: 0 0 16px; font-size: 13px; font-style: italic; color: #cbd5e1; line-height: 1.4;">Klassischer Smaragd-Filz mit arkanen Gold-Intarsien und Lehrlings-Zirkel.</p>
+        <button type="button" class="btn-auth-bar btn-auth-gold" onclick="document.getElementById('tableInspectModal').style.display='none';" style="padding: 6px 20px; font-size: 12px; cursor: pointer;">Schließen</button>
       </div>
     </div>
   </div>

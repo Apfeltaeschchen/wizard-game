@@ -82,6 +82,33 @@ const BOT_NAMES = [
   ...BOT_PROFILES.archmage.names
 ];
 
+// Individuelle Avatar-Artworks & Rahmen für jede Bot-Persönlichkeit
+const INDIVIDUAL_BOT_CUSTOMIZATION = {
+  // Novizen
+  'Rincewind (KI)': { avatarId: 'icon_jester', avatarFrame: 'iron_thorn' },
+  'Gilderoy Lockhart (KI)': { avatarId: 'icon_forest_nymph', avatarFrame: 'silver_leaf' },
+  'Presto (KI)': { avatarId: 'icon_pyromancer', avatarFrame: 'golden_runes' },
+  'Gargamel (KI)': { avatarId: 'icon_necromancer', avatarFrame: 'iron_thorn' },
+  'Neville Longbottom (KI)': { avatarId: 'icon_forest_nymph', avatarFrame: 'silver_leaf' },
+  'Orko (KI)': { avatarId: 'icon_jester', avatarFrame: 'ghost_specter' },
+
+  // Meister
+  'Severus Snape (KI)': { avatarId: 'icon_vampire', avatarFrame: 'bat_swarm' },
+  'Doctor Strange (KI)': { avatarId: 'icon_seer', avatarFrame: 'void_crystal' },
+  'Yennefer von Vengerberg (KI)': { avatarId: 'icon_moon_witch', avatarFrame: 'golden_runes' },
+  'Howl Pendragon (KI)': { avatarId: 'icon_pyromancer', avatarFrame: 'dragon_fire' },
+  'Raistlin Majere (KI)': { avatarId: 'icon_necromancer', avatarFrame: 'void_crystal' },
+  'Minerva McGonagall (KI)': { avatarId: 'icon_forest_nymph', avatarFrame: 'silver_leaf' },
+
+  // Erzmagier
+  'Gandalf (KI)': { avatarId: 'icon_seer', avatarFrame: 'silver_leaf' },
+  'Albus Dumbledore (KI)': { avatarId: 'icon_pyromancer', avatarFrame: 'void_crystal' },
+  'Merlin (KI)': { avatarId: 'icon_dragon', avatarFrame: 'dragon_fire' },
+  'Saruman (KI)': { avatarId: 'icon_seer', avatarFrame: 'golden_runes' },
+  'Lord Voldemort (KI)': { avatarId: 'icon_necromancer', avatarFrame: 'bat_swarm' },
+  'Elminster (KI)': { avatarId: 'icon_pyromancer', avatarFrame: 'mvp_glow' }
+};
+
 /**
  * Erstellt ein Bot-Spieler-Objekt mit spezifischer Schwierigkeitsstufe
  * @param {Array} existingPlayers 
@@ -93,11 +120,17 @@ function createBotPlayer(existingPlayers = [], difficulty = 'master') {
 
   const existingNames = new Set(existingPlayers.map(p => p.name));
   let chosenName = profile.names.find(n => !existingNames.has(n));
+  let baseName = chosenName;
   if (!chosenName) {
     const pool = profile.names;
-    const base = pool[existingPlayers.filter(p => p.isBot).length % pool.length].replace(' (KI)', '');
-    chosenName = `${base} II (KI)`;
+    baseName = pool[existingPlayers.filter(p => p.isBot).length % pool.length];
+    const cleaned = baseName.replace(' (KI)', '');
+    chosenName = `${cleaned} II (KI)`;
   }
+
+  const botCustom = INDIVIDUAL_BOT_CUSTOMIZATION[chosenName] || INDIVIDUAL_BOT_CUSTOMIZATION[baseName] || {};
+  const botAvatarId = botCustom.avatarId || profile.avatarId;
+  const botAvatarFrame = botCustom.avatarFrame || profile.avatarFrame;
 
   const botSessionId = 'bot_' + Math.random().toString(36).substring(2, 9);
 
@@ -106,12 +139,12 @@ function createBotPlayer(existingPlayers = [], difficulty = 'master') {
     socketId: 'sock_' + botSessionId,
     userId: null,
     name: chosenName,
-    avatarId: profile.avatarId,
+    avatarId: botAvatarId,
     title: profile.title,
     skillRating: profile.skillRating,
     rank: { ...profile.rank },
     difficulty: diffKey,
-    avatarFrame: profile.avatarFrame,
+    avatarFrame: botAvatarFrame,
     cardBack: profile.cardBack,
     accountLevel: profile.accountLevel,
     isBot: true,

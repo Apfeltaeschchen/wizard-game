@@ -81,9 +81,6 @@
 
   <!-- 4. DURCHGEHENDES BAND LEUCHTENDER KANTENRUNEN (OBEN & UNTEN, EINGERÜCKT) -->
   <g stroke="url(#crystalVeinGrad)" fill="none" opacity="0.8" filter="url(#amethystGlow)">
-    <!-- Sanfte innere Führungs-Linie (kantenfrei) -->
-    <rect x="45" y="45" width="1510" height="910" rx="14" stroke-width="1.4" opacity="0.4" stroke-dasharray="16 8 4 8" />
-
     <!-- Obere Runenzeile eingerückt -->
     <g transform="translate(140, 50)" stroke-width="1.8" opacity="0.8">
       <!-- Wiederholte arkane Krypta-Glyphen oben -->

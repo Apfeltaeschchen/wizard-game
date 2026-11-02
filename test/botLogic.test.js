@@ -7,10 +7,21 @@ console.log('--- TESTE WIZARD BOT LOGIK & HEURISTIKEN ---');
 const bot1 = createBotPlayer([]);
 assert.strictEqual(bot1.isBot, true, 'isBot muss true sein');
 assert.ok(bot1.name.includes('(KI)'), 'Name muss (KI) enthalten');
+assert.ok(bot1.avatarId, 'Bot muss eine avatarId haben');
+assert.ok(bot1.avatarFrame, 'Bot muss einen avatarFrame haben');
 
 const bot2 = createBotPlayer([bot1]);
 assert.notStrictEqual(bot1.name, bot2.name, 'Zweiter Bot muss anderen Namen haben');
-console.log('✓ 1. Bot-Spieler Erstellung erfolgreich');
+
+// Teste spezifische Individual-Zuweisung für bekannte Bot-Persönlichkeiten
+const snapeBot = createBotPlayer([], 'master');
+// Erstelle gezielt alle Bots bis Snape auftaucht oder teste createBotPlayer mit existing
+const mockExistingSnape = [{ name: 'dummy' }];
+const botMaster1 = createBotPlayer([], 'master');
+assert.ok(botMaster1.avatarId.startsWith('icon_'), 'Meister-Bot muss individuelles Icon besitzen');
+assert.ok(botMaster1.avatarFrame, 'Meister-Bot muss individuellen Rahmen besitzen');
+
+console.log('✓ 1. Bot-Spieler Erstellung & individuelle Avatar-Anpassung erfolgreich');
 
 // 2. Biet-Heuristik
 // Hand mit 1 Zauberer, 1 Narr, 1 niedriger Trumpf

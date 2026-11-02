@@ -5619,7 +5619,7 @@ const WizardVault = (() => {
     if (type === 'table_skin') {
       const themeClass = `table-theme-${item.id}`;
       return `
-        <div class="cosmetic-mini-table ${themeClass}" title="${escapeHtml(item.name || '')}"></div>
+        <div class="cosmetic-mini-table ${themeClass}" title="${escapeHtml(item.name || '')} (Klicken für 3D-Großansicht)" style="cursor: pointer;" onclick="if(typeof openTableInspectModal === 'function'){ openTableInspectModal('${escapeHtml(item.id)}'); }"></div>
       `;
     }
 
@@ -6584,6 +6584,72 @@ function openCardBackInspectModal(deckId) {
   }
 }
 if (typeof window !== 'undefined') window.openCardBackInspectModal = openCardBackInspectModal;
+
+// --- INTERAKTIVER 3D-SPIELTISCH-INSPEKTOR ---
+function openTableInspectModal(tableId) {
+  try {
+    const modal = document.getElementById('tableInspectModal');
+    const tableEl = document.getElementById('tableInspectTable');
+    const titleEl = document.getElementById('tableInspectTitle');
+    const rarityEl = document.getElementById('tableInspectRarity');
+    const loreEl = document.getElementById('tableInspectLore');
+    if (!modal || !tableEl) return;
+
+    let tableItem = null;
+    if (typeof WizardVault !== 'undefined' && WizardVault.getVaultData) {
+      const vData = WizardVault.getVaultData();
+      if (vData && vData.catalog && vData.catalog.table_skins) {
+        tableItem = vData.catalog.table_skins.find(t => t.id === tableId);
+      }
+    }
+
+    const fallbackLore = {
+      emerald_felt: 'Klassischer Smaragd-Filz mit arkanen Gold-Intarsien und Lehrlings-Zirkel.',
+      tavern_wood: 'Rustikales Eichenholz aus der Drachentaverne mit Eisenbeschlägen und Brandrunen.',
+      amethyst_crypt: 'Dunkelviolette Runenplatten der Krypta mit sanft pulsierendem Kristallglanz.',
+      volcano_keep: 'Glühender Basalt aus der Vulkan-Festung mit brodelnden Magma-Adern.',
+      astral_observatory: 'Mitternachtsblauer Kosmos-Marmor mit goldenem Tierkreiskranz und Sternkarte.',
+      haunted_crypt: 'Verfluchter Katakomben-Stein mit geisterhaften Spektral-Nebeln und Knochen-Intarsien.'
+    };
+
+    const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
+    const rarColors = { common: '#d97706', rare: '#34d399', epic: '#c084fc', legendary: '#fbbf24' };
+
+    const name = tableItem ? tableItem.name : (tableId === 'emerald_felt' ? 'Klassischer Smaragd-Filz' : tableId);
+    const rarity = (tableItem && tableItem.rarity) || (tableId === 'astral_observatory' ? 'legendary' : (tableId === 'amethyst_crypt' || tableId === 'volcano_keep' ? 'epic' : (tableId === 'tavern_wood' ? 'rare' : 'common')));
+    const lore = (tableItem && tableItem.lore) || fallbackLore[tableId] || 'Ein prunkvoller Spieltisch der Hohen Zitadelle.';
+
+    if (titleEl) titleEl.innerText = name;
+    if (rarityEl) {
+      rarityEl.innerText = rarNames[rarity] || rarity;
+      rarityEl.style.color = rarColors[rarity] || '#fbbf24';
+    }
+    if (loreEl) loreEl.innerText = lore;
+
+    tableEl.className = `table-inspect-preview table-theme-${tableId} rarity-${rarity}`;
+    tableEl.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+
+    // 3D Parallax Tilt Effekt bei Mausbewegung
+    tableEl.onmousemove = (e) => {
+      const rect = tableEl.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      const rotX = -(y / (rect.height / 2)) * 10;
+      const rotY = (x / (rect.width / 2)) * 10;
+      tableEl.style.transform = `perspective(1000px) rotateX(${rotX.toFixed(1)}deg) rotateY(${rotY.toFixed(1)}deg) scale(1.02)`;
+    };
+    tableEl.onmouseleave = () => {
+      tableEl.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+    };
+
+    modal.style.display = 'flex';
+    if (typeof WizardAudio !== 'undefined' && WizardAudio.playCardSnap) WizardAudio.playCardSnap();
+    if (typeof GrimoireHaptics !== 'undefined') GrimoireHaptics.impact('medium');
+  } catch (err) {
+    console.error('Fehler in openTableInspectModal:', err);
+  }
+}
+if (typeof window !== 'undefined') window.openTableInspectModal = openTableInspectModal;
 
 // --- MAGIER-PROFIL & SPIELER-DETAILS MODAL (SPIELTISCH & GRIMOIRE DER GEFÄHRTEN) ---
 function openPlayerDetailModal(data, source = 'table') {
@@ -9459,6 +9525,48 @@ function renderOpponents() {
     opponentsContainer.className = `opponents-container count-${opponents.length}`;
     opponentsContainer.classList.toggle('round-1-opponents', currentRound === 1);
 
+    // 3 Robuste Perimeter-Zonen am Tischrand erzeugen
+    const zoneLeft = document.createElement('div');
+    zoneLeft.className = 'perimeter-zone perimeter-zone-left';
+
+    const zoneTop = document.createElement('div');
+    zoneTop.className = 'perimeter-zone perimeter-zone-top';
+
+    const zoneRight = document.createElement('div');
+    zoneRight.className = 'perimeter-zone perimeter-zone-right';
+
+    opponentsContainer.appendChild(zoneLeft);
+    opponentsContainer.appendChild(zoneTop);
+    opponentsContainer.appendChild(zoneRight);
+
+    // Zuweisung der Sitze zu Zonen je nach Mitspieler-Anzahl:
+    // 3 Spieler (2 Gegner) -> beide oben
+    // 4 Spieler (3 Gegner) -> 1x links, 1x oben, 1x rechts
+    // 5 Spieler (4 Gegner) -> 1x links, 2x oben, 1x rechts
+    // 6 Spieler (5 Gegner) -> 1x links, 2x oben, 2x rechts
+    const getZoneForOpponent = (idx, total) => {
+      if (total <= 2) return zoneTop;
+      if (total === 3) {
+        if (idx === 0) return zoneLeft;
+        if (idx === 1) return zoneTop;
+        return zoneRight;
+      }
+      if (total === 4) {
+        if (idx === 0) return zoneLeft;
+        if (idx === 1 || idx === 2) return zoneTop;
+        return zoneRight;
+      }
+      if (total === 5) {
+        if (idx === 0) return zoneLeft;
+        if (idx === 1 || idx === 2) return zoneTop;
+        return zoneRight;
+      }
+      // Fallback bei mehr als 6 Spielern
+      if (idx === 0) return zoneLeft;
+      if (idx >= total - 2) return zoneRight;
+      return zoneTop;
+    };
+
   opponents.forEach((p, idx) => {
     const isHisTurn = (p.sessionId === currentActiveSessionId);
     const seatEl = document.createElement('div');
@@ -9696,7 +9804,8 @@ function renderOpponents() {
       }
     });
 
-    opponentsContainer.appendChild(seatEl);
+    const targetZone = getZoneForOpponent(idx, opponents.length);
+    targetZone.appendChild(seatEl);
   });
   updateBiddingSummaryPill();
   } catch (err) {
@@ -10519,7 +10628,6 @@ function renderCard(card) {
       <div class="card-center">
         <div class="card-center-crest">${MEDIEVAL_ICONS.wizard}</div>
         <div class="card-center-val" style="font-size: 26px; color: #fef08a; margin-top: 2px;">Z</div>
-        <div class="card-name-label"><em>Erzmagier</em></div>
       </div>
       <div class="card-corner bottom-right">
         <span class="card-val">Z</span>
