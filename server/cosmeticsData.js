@@ -88,7 +88,13 @@ const COSMETICS_CATALOG = {
     { id: 'pumpkin_lantern', name: 'Kürbis-Laternen-Kranz', rarity: 'epic', icon: '🎃', lore: 'Flackernde Schnitzkürbisse und Herbstlaub umrahmen das Avatar-Medaillon.' },
     { id: 'bat_swarm', name: 'Fledermaus-Schwarm', rarity: 'rare', icon: '🦇', lore: 'Schwebende Fledermäuse und dichter violetter Spuknebel.' },
     { id: 'ghost_specter', name: 'Geisterhafte Erscheinung', rarity: 'epic', icon: '👻', lore: 'Transparente, spektrale Seelenfratzen aus der Unterwelt.' },
-    { id: 'mvp_glow', name: 'Krone des Meistermagiers', rarity: 'legendary', icon: '👑', lore: 'Eine strahlende goldene Aura, die dem gekrönten MVP der Zitadelle gebührt.' }
+    { id: 'mvp_glow', name: 'Krone des Meistermagiers', rarity: 'legendary', icon: '👑', lore: 'Eine strahlende goldene Aura, die dem gekrönten MVP der Zitadelle gebührt.' },
+    // Winter- & Yule-Sonderedition (Handgefertigte Gothic-Rahmen)
+    { id: 'gothic_frost_spires', name: 'Gotische Frost-Kathedrale', rarity: 'rare', icon: '❄️', lore: 'Eiskristallines Maßwerk mit zarten gotischen Fialen und schwebendem Froststern.' },
+    { id: 'yule_owl_wings', name: 'Schwingen der Yule-Eule', rarity: 'rare', icon: '🦉', lore: 'Mondsilbernes Gefieder mit schlafender weißer Eule und zarter Flügelschlag-Animation.' },
+    { id: 'silver_mistletoe_relic', name: 'Silbernes Mistel-Relikt', rarity: 'epic', icon: '🌿', lore: 'Antike Efeuranken mit schimmernden Perlenbeeren und schwingender Festtags-Glocke.' },
+    { id: 'solstice_dragon_hearth', name: 'Feuerkrone des Winterdrachen', rarity: 'epic', icon: '🐉', lore: 'Dunkle Hornpanzerung mit glühendem Kohlenstein und sanft atmendem Drachenfeuer.' },
+    { id: 'celestial_angel_filigree', name: 'Himmlisches Engels-Filigran', rarity: 'legendary', icon: '✨', lore: 'Erhabenes Gold-Filigran mit barockem Engelsmaßwerk und strahlendem Heiligenschein.' }
   ],
 
   lobby_backgrounds: [
