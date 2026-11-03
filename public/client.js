@@ -2974,7 +2974,12 @@ const WizardAuth = (() => {
       { id: 'pumpkin_lantern', name: 'Kürbis-Laternen-Kranz', isDefault: false, rarity: 'epic' },
       { id: 'bat_swarm', name: 'Fledermaus-Schwarm', isDefault: false, rarity: 'rare' },
       { id: 'ghost_specter', name: 'Geisterhafte Erscheinung', isDefault: false, rarity: 'epic' },
-      { id: 'mvp_glow', name: 'Krone des Meistermagiers', isDefault: false, rarity: 'legendary' }
+            { id: 'mvp_glow', name: 'Krone des Meistermagiers', isDefault: false, rarity: 'legendary' },
+      { id: 'hearth_pine_wreath', name: 'Kaminholz & Tannengrün', isDefault: false, rarity: 'common' },
+      { id: 'gothic_frost_chime', name: 'Gotische Frostglocke', isDefault: false, rarity: 'rare' },
+      { id: 'silver_mistletoe_relic', name: 'Silbernes Mistel-Relikt', isDefault: false, rarity: 'epic' },
+      { id: 'nutcracker_vanguard', name: 'Kaiserliche Nussknacker-Garde', isDefault: false, rarity: 'epic' },
+      { id: 'celestial_bethlehem_star', name: 'Stern von Bethlehem', isDefault: false, rarity: 'legendary' }
     ];
     populateSelect(frameSelect, frameItems, u.equipped_avatar_frame || 'none', 'avatar_frame');
 

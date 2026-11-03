@@ -89,12 +89,12 @@ const COSMETICS_CATALOG = {
     { id: 'bat_swarm', name: 'Fledermaus-Schwarm', rarity: 'rare', icon: '🦇', lore: 'Schwebende Fledermäuse und dichter violetter Spuknebel.' },
     { id: 'ghost_specter', name: 'Geisterhafte Erscheinung', rarity: 'epic', icon: '👻', lore: 'Transparente, spektrale Seelenfratzen aus der Unterwelt.' },
     { id: 'mvp_glow', name: 'Krone des Meistermagiers', rarity: 'legendary', icon: '👑', lore: 'Eine strahlende goldene Aura, die dem gekrönten MVP der Zitadelle gebührt.' },
-    // Winter- & Yule-Sonderedition (Handgefertigte Gothic-Rahmen)
-    { id: 'gothic_frost_spires', name: 'Gotische Frost-Kathedrale', rarity: 'rare', icon: '❄️', lore: 'Eiskristallines Maßwerk mit zarten gotischen Fialen und schwebendem Froststern.' },
-    { id: 'yule_owl_wings', name: 'Schwingen der Yule-Eule', rarity: 'rare', icon: '🦉', lore: 'Mondsilbernes Gefieder mit schlafender weißer Eule und zarter Flügelschlag-Animation.' },
-    { id: 'silver_mistletoe_relic', name: 'Silbernes Mistel-Relikt', rarity: 'epic', icon: '🌿', lore: 'Antike Efeuranken mit schimmernden Perlenbeeren und schwingender Festtags-Glocke.' },
-    { id: 'solstice_dragon_hearth', name: 'Feuerkrone des Winterdrachen', rarity: 'epic', icon: '🐉', lore: 'Dunkle Hornpanzerung mit glühendem Kohlenstein und sanft atmendem Drachenfeuer.' },
-    { id: 'celestial_angel_filigree', name: 'Himmlisches Engels-Filigran', rarity: 'legendary', icon: '✨', lore: 'Erhabenes Gold-Filigran mit barockem Engelsmaßwerk und strahlendem Heiligenschein.' }
+        // Weihnachts-Sonderedition (Handgefertigte Festtags- & Winterrahmen)
+    { id: 'hearth_pine_wreath', name: 'Kaminholz & Tannengrün', rarity: 'common', icon: '🪵', lore: 'Dunkle Eichenholz-Späne und frische Tannenzweige, die nach Harz und behaglichem Kaminfeuer duften.' },
+    { id: 'gothic_frost_chime', name: 'Gotische Frostglocke', rarity: 'rare', icon: '❄️', lore: 'Eiskristallines Kathedralenmaßwerk mit feinen Fialen und einer schwingenden Glocke aus reinem Raureif.' },
+    { id: 'silver_mistletoe_relic', name: 'Silbernes Mistel-Relikt', rarity: 'epic', icon: '🌿', lore: 'Antike Elfen-Silberranken mit schimmernden Perlenbeeren und einer geweihten Festtagskerze der Wintersonnenwende.' },
+    { id: 'nutcracker_vanguard', name: 'Kaiserliche Nussknacker-Garde', rarity: 'epic', icon: '💂', lore: 'Geschmiedet nach der Parade-Rüstung der königlichen Spielzeug-Garde, verziert mit tiefrotem Samt und polierten Goldtressen.' },
+    { id: 'celestial_bethlehem_star', name: 'Stern von Bethlehem', rarity: 'legendary', icon: '✨', lore: 'Erhabenes barockes Maßwerk aus göttlichem Lichtgold, behütet von schwebenden Engelsflügeln und dem ewigen Weihnachtsstern.' }
   ],
 
   lobby_backgrounds: [

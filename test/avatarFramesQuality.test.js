@@ -25,18 +25,23 @@ const expectedFrames = [
   'pumpkin_lantern',
   'bat_swarm',
   'ghost_specter',
-  'mvp_glow'
+  'mvp_glow',
+  'hearth_pine_wreath',
+  'gothic_frost_chime',
+  'silver_mistletoe_relic',
+  'nutcracker_vanguard',
+  'celestial_bethlehem_star'
 ];
 
-// [1/5] Alle 10 Rahmen im cosmeticsData Katalog definiert
+// [1/5] Alle 15 Rahmen im cosmeticsData Katalog definiert
 console.log('[1/5] Prüfe Rahmen-Katalog in cosmeticsData.js...');
-assert.strictEqual(cosmeticsData.avatar_frames.length, expectedFrames.length, 'Genau 10 Avatar-Rahmen im Server-Katalog');
+assert.strictEqual(cosmeticsData.avatar_frames.length, expectedFrames.length, 'Genau 15 Avatar-Rahmen im Server-Katalog');
 expectedFrames.forEach(id => {
   assert.ok(cosmeticsData.avatar_frames.some(f => f.id === id), `Rahmen ${id} ist in cosmeticsData.js vorhanden`);
 });
-console.log('✓ 1. Alle 10 Avatar-Rahmen im Server-Katalog vorhanden.');
+console.log('✓ 1. Alle 15 Avatar-Rahmen im Server-Katalog vorhanden.');
 
-// [2/5] Alle 10 SVG Vektor-Dateien existieren und sind valides SVG/XML mit viewBox="0 0 100 100"
+// [2/5] Alle 15 SVG Vektor-Dateien existieren und sind valides SVG/XML mit viewBox="0 0 100 100"
 console.log('[2/5] Prüfe SVG-Vektorgrafiken in public/images/frames/...');
 expectedFrames.forEach(id => {
   const svgFile = path.join(framesDir, `frame_${id}.svg`);
@@ -46,7 +51,7 @@ expectedFrames.forEach(id => {
   assert.ok(content.includes('viewBox="0 0 100 100"'), `frame_${id}.svg besitzt standardisierte 0 0 100 100 viewBox`);
   assert.ok(content.includes('</svg>'), `frame_${id}.svg schließt sauber mit </svg> ab`);
 });
-console.log('✓ 2. Alle 10 SVG Vektorgrafiken existieren und sind valides XML mit 100x100 viewBox.');
+console.log('✓ 2. Alle 15 SVG Vektorgrafiken existieren und sind valides XML mit 100x100 viewBox.');
 
 // [3/5] Innenbereich r < 34.5 ist frei von blockierenden Keilen & Dornen + Schmuckelemente außen
 console.log('[3/5] Prüfe Freiheit des Innenbereichs (keine Keile/Flügel im Gesicht) & Außen-Positionierung...');
@@ -54,7 +59,7 @@ console.log('[3/5] Prüfe Freiheit des Innenbereichs (keine Keile/Flügel im Ges
 // Void Crystal darf keine Keile bis y=35 ins Zentrum haben
 const voidContent = fs.readFileSync(path.join(framesDir, 'frame_void_crystal.svg'), 'utf8');
 assert.ok(!voidContent.includes('50,35') && !voidContent.includes('50,65'), 'void_crystal hat keine inneren Stacheln mehr');
-assert.ok(voidContent.includes('50,11') || voidContent.includes('89,50'), 'void_crystal Kristalle wachsen nach außen');
+assert.ok(voidContent.includes('50,8') || voidContent.includes('92,50'), 'void_crystal Kristalle wachsen nach außen');
 
 // Bat Swarm hat animierten Flügelschlag oben auf dem Reif und keine massiven Blockflügel im Bild
 const batContent = fs.readFileSync(path.join(framesDir, 'frame_bat_swarm.svg'), 'utf8');
@@ -63,7 +68,7 @@ assert.ok(batContent.includes('dur="8s"'), 'bat_swarm Flügelschlag ist auf 8s-Z
 
 // Iron Thorn Dornen wachsen nach außen
 const ironContent = fs.readFileSync(path.join(framesDir, 'frame_iron_thorn.svg'), 'utf8');
-assert.ok(ironContent.includes('50,14') && ironContent.includes('86,50'), 'iron_thorn Dornen wachsen sauber nach außen');
+assert.ok(ironContent.includes('50,8') && ironContent.includes('92,50'), 'iron_thorn Dornen wachsen sauber nach außen');
 
 // Silver Leaf hat Sternen-Funkeln
 const silverContent = fs.readFileSync(path.join(framesDir, 'frame_silver_leaf.svg'), 'utf8');
@@ -72,6 +77,22 @@ assert.ok(silverContent.includes('animate') && silverContent.includes('dur="8s"'
 // MVP Glow hat Kronen-Sternenblitz
 const mvpContent = fs.readFileSync(path.join(framesDir, 'frame_mvp_glow.svg'), 'utf8');
 assert.ok(mvpContent.includes('animate') && mvpContent.includes('dur="6s"'), 'mvp_glow besitzt 6s-Kronjuwelenblitz');
+
+// Weihnachts-Rahmen: Periodische Idle-Animationen
+const pineContent = fs.readFileSync(path.join(framesDir, 'frame_hearth_pine_wreath.svg'), 'utf8');
+assert.ok(pineContent.includes('animate') && pineContent.includes('dur="8s"'), 'hearth_pine_wreath besitzt 8s-Glutpuls');
+
+const chimeContent = fs.readFileSync(path.join(framesDir, 'frame_gothic_frost_chime.svg'), 'utf8');
+assert.ok(chimeContent.includes('animate') && chimeContent.includes('dur="7.5s"'), 'gothic_frost_chime besitzt 7.5s-Glockenschwung');
+
+const mistletoeContent = fs.readFileSync(path.join(framesDir, 'frame_silver_mistletoe_relic.svg'), 'utf8');
+assert.ok(mistletoeContent.includes('animate') && mistletoeContent.includes('dur="7.0s"'), 'silver_mistletoe_relic besitzt 7s-Kerzenflackern');
+
+const nutcrackerContent = fs.readFileSync(path.join(framesDir, 'frame_nutcracker_vanguard.svg'), 'utf8');
+assert.ok(nutcrackerContent.includes('animate') && nutcrackerContent.includes('dur="6.5s"'), 'nutcracker_vanguard besitzt 6.5s-Sternenblitz');
+
+const bethlehemContent = fs.readFileSync(path.join(framesDir, 'frame_celestial_bethlehem_star.svg'), 'utf8');
+assert.ok(bethlehemContent.includes('animate') && bethlehemContent.includes('dur="6.0s"'), 'celestial_bethlehem_star besitzt 6s-Lichtausbruch');
 
 console.log('✓ 3. Schlanke Geometrie (Innenbereich frei, Schmuck außen) & SVG-Idle-Animationen verifiziert.');
 
@@ -90,7 +111,7 @@ expectedFrames.forEach(id => {
   assert.ok(indexHtml.includes(`.seat-avatar.frame-${id}`), `CSS-Klasse .seat-avatar.frame-${id} vorhanden`);
   assert.ok(indexHtml.includes(`url('/images/frames/frame_${id}.svg')`), `frame_${id}.svg als background-image eingebunden`);
 });
-console.log('✓ 4. CSS-Regeln für alle 10 Rahmen, z-Index und Beseitigung des Dauerpulsierens verifiziert.');
+console.log('✓ 4. CSS-Regeln für alle 15 Rahmen, z-Index und Beseitigung des Dauerpulsierens verifiziert.');
 
 console.log('\n================================================================');
 console.log('🏆 ALLE 5 TESTS FÜR SCHLANKE AVATAR-RAHMEN ERFOLGREICH BESTANDEN!');

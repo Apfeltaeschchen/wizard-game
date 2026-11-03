@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Rustikales Eichenholz & Kaminfeuer Gradienten -->
+    <radialGradient id="hearthWoodRing" cx="30%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="35%" stop-color="#78350f"/>
+      <stop offset="70%" stop-color="#451a03"/>
+      <stop offset="100%" stop-color="#1c0a03"/>
+    </radialGradient>
+    <linearGradient id="pineNeedleGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="35%" stop-color="#15803d"/>
+      <stop offset="75%" stop-color="#166534"/>
+      <stop offset="100%" stop-color="#052e16"/>
+    </linearGradient>
+    <radialGradient id="coalEmberGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="35%" stop-color="#f97316"/>
+      <stop offset="75%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </radialGradient>
+    <filter id="hearthPineShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.88"/>
+      <feDropShadow dx="0" dy="1.8" stdDeviation="2.2" flood-color="#b45309" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#hearthPineShadow)">
+    <!-- 1. Robuster Eichenholz-Reif (r=35.5, stroke 1.8px) & Hanfseil-Dotted Accent -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#hearthWoodRing)" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="37.2" stroke="#d97706" stroke-width="0.8" stroke-dasharray="3 3"/>
+
+    <!-- 2. Tannenzweig-Bündel & Rinden-Relief Flanke Links -->
+    <g stroke="url(#pineNeedleGrad)" stroke-linecap="round" fill="none">
+      <!-- Äußerer Zweigbogen (bleibt strikt unter maxR 44.0) -->
+      <path d="M19,34 C14,30 11,36 9,42 C13,43 15,48 11,54 C15,55 18,60 20,66" stroke-width="1.2"/>
+      <!-- Nadelbüschel -->
+      <path d="M11,38 L8,36 M10,44 L7,43 M12,50 L9,51 M14,56 L11,58" stroke-width="0.8" stroke="#86efac"/>
+      <!-- Kleine Tannenzapfen-Schuppe -->
+      <polygon points="10,42 14,43 12,40" fill="#78350f" stroke="#451a03" stroke-width="0.3"/>
+      <polygon points="12,52 16,53 14,50" fill="#78350f" stroke="#451a03" stroke-width="0.3"/>
+    </g>
+
+    <!-- Tannenzweig-Bündel & Rinden-Relief Flanke Rechts -->
+    <g stroke="url(#pineNeedleGrad)" stroke-linecap="round" fill="none">
+      <!-- Äußerer Zweigbogen -->
+      <path d="M81,34 C86,30 89,36 91,42 C87,43 85,48 89,54 C85,55 82,60 80,66" stroke-width="1.2"/>
+      <!-- Nadelbüschel -->
+      <path d="M89,38 L92,36 M90,44 L93,43 M88,50 L91,51 M86,56 L89,58" stroke-width="0.8" stroke="#86efac"/>
+      <!-- Tannenzapfen-Schuppe -->
+      <polygon points="90,42 86,43 88,40" fill="#78350f" stroke="#451a03" stroke-width="0.3"/>
+      <polygon points="88,52 84,53 86,50" fill="#78350f" stroke="#451a03" stroke-width="0.3"/>
+    </g>
+
+    <!-- 3. Unten: Rustikaler Holzknoten mit Hanfband (y=83 bis y=91, r~33.5 bis 41) -->
+    <polygon points="50,91 46,83 54,83" fill="#451a03" stroke="#b45309" stroke-width="0.6"/>
+    <!-- Hanfband-Schleife -->
+    <path d="M45,84 C48,87 52,87 55,84" stroke="#d97706" stroke-width="0.8" fill="none"/>
+    <circle cx="50" cy="85.5" r="1.1" fill="#78350f" stroke="#d97706" stroke-width="0.4"/>
+
+    <!-- 4. Oben: Geschnitzter Holzstern mit glimmendem Kohlekern (y=7 bis y=15) -->
+    <g transform="translate(50, 11)">
+      <!-- Geschnitzter Holzstern (Rückseite/Fassung) -->
+      <polygon points="0,-4 1.2,-1.2 4,0 1.2,1.2 0,4 -1.2,1.2 -4,0 -1.2,-1.2" fill="#451a03" stroke="#78350f" stroke-width="0.5"/>
+      <!-- Warmer Kohlenkern -->
+      <circle cx="0" cy="0" r="1.5" fill="url(#coalEmberGlow)" stroke="#ea580c" stroke-width="0.3"/>
+      <circle cx="0" cy="0" r="0.6" fill="#fef08a"/>
+
+      <!-- Periodischer Kaminglut-Puls alle 8s -->
+      <circle cx="0" cy="0" r="1.5" fill="#fef08a" opacity="0">
+        <animate attributeName="opacity" values="0; 0; 0.95; 0.2; 0.85; 0; 0"
+          keyTimes="0; 0.45; 0.50; 0.54; 0.58; 0.64; 1" dur="8s" repeatCount="indefinite"/>
+        <animate attributeName="r" values="1.2; 1.2; 2.5; 1.8; 2.3; 1.2; 1.2"
+          keyTimes="0; 0.45; 0.50; 0.54; 0.58; 0.64; 1" dur="8s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+  </g>
+</svg>
