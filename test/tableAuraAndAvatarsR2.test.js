@@ -171,6 +171,12 @@ assert.ok(js.includes('trickContainer.dataset.cardCount = trickCards.length'), '
 // 5.4 Longbottom Lore-Mapping
 assert.ok(js.includes("'longbottom':"), 'BOT_LORE_DATABASE muss longbottom Mapping enthalten');
 
+// 5.5 Tischmitte absolute Zentrierung & Seiten-Sitze gestapelte Stichansage
+assert.ok(html.includes('.table-center-row {') && html.includes('position: absolute;') && html.includes('top: 49%;'), 'table-center-row muss absolut bei top: 49% im Erzmagier-Siegel zentriert sein');
+assert.ok(html.includes('.perimeter-zone-left .seat-details') && html.includes('flex-direction: column !important;'), 'Seitensitze links müssen seat-details als Spalte anordnen');
+assert.ok(html.includes('.perimeter-zone-right .seat-details') && html.includes('flex-direction: column !important;'), 'Seitensitze rechts müssen seat-details als Spalte anordnen');
+assert.ok(html.includes('.perimeter-zone-left .player-seat') && html.includes('height: auto !important;'), 'Seitensitze müssen dynamische Höhe für gestapelte Stichansagen haben');
+
 console.log('✓ R5: Stirnkarten-Größe, Fächerung & Klick-Interaktion erfolgreich verifiziert.');
 
 console.log('================================================================');

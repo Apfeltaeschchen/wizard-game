@@ -1684,6 +1684,33 @@
       background: rgba(0, 0, 0, 0.75);
     }
 
+    /* SEITEN-SITZE (LINKS & RECHTS): STICHANSAGE UNTER DEM NAMEN */
+    .perimeter-zone-left .player-seat,
+    .perimeter-zone-right .player-seat {
+      height: auto !important;
+      min-height: 38px !important;
+      padding: 4px 10px 4px 6px !important;
+      border-radius: 18px !important;
+      align-items: center !important;
+    }
+
+    .perimeter-zone-left .seat-details,
+    .perimeter-zone-right .seat-details {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      justify-content: center !important;
+      gap: 2px !important;
+      line-height: 1.1 !important;
+    }
+
+    .perimeter-zone-left .seat-bid-pill,
+    .perimeter-zone-right .seat-bid-pill {
+      margin-top: 1px !important;
+      font-size: 10px !important;
+      padding: 1.5px 6px !important;
+    }
+
     .seat-stats {
       display: none;
     }
@@ -2025,16 +2052,17 @@
       width: 100%;
     }
 
-    /* TISCHMITTE (100% BREITE FÜR STICHKARTEN ZENTRIERT) */
+    /* TISCHMITTE (100% BREITE FÜR STICHKARTEN MATHEMATISCH ZENTRIERT IM ERZMAGIER-SIEGEL) */
     .table-center-row {
       display: flex;
       justify-content: center;
       align-items: center;
       width: 100%;
-      margin: 2px 0;
-      position: relative;
+      position: absolute;
+      top: 49%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       z-index: 20;
-      flex: 1;
       min-height: 0;
       pointer-events: none !important;
     }
@@ -3164,8 +3192,8 @@
       gap: 14px;
     }
     #trick-container.round-1-trick .trick-card-item {
-      transform: scale(1.15);
-      margin: 0 8px;
+      transform: scale(1.12);
+      margin: 0 6px;
       transform-origin: center center;
     }
 
@@ -3929,6 +3957,26 @@
       .perimeter-zone-left .player-seat:nth-child(2) .forehead-floating-card {
         bottom: auto !important;
         top: calc(100% + 4px) !important;
+      }
+      .perimeter-zone-left .player-seat,
+      .perimeter-zone-right .player-seat {
+        height: auto !important;
+        min-height: 30px !important;
+        padding: 2px 6px 2px 4px !important;
+        border-radius: 12px !important;
+      }
+      .perimeter-zone-left .seat-details,
+      .perimeter-zone-right .seat-details {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1px !important;
+      }
+      .perimeter-zone-left .seat-bid-pill,
+      .perimeter-zone-right .seat-bid-pill {
+        font-size: 8.5px !important;
+        padding: 1px 4px !important;
+        margin-top: 1px !important;
       }
       .player-seat .seat-stats {
         display: none !important;
