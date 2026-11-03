@@ -10930,51 +10930,51 @@ function renderCard(card) {
     frontFace.classList.add(`card-glow-${card.chosenSuit}`);
   }
 
-  // Namens-Banner unter allen arkanen Nicht-Zahlen-Karten (auch bei vollflächigem Artwork sichtbar!)
+  // Dezent-schnörkeliger Namenszug unter arkanen Karten (außerhalb des Bildbereichs)
   let bottomLabelText = '';
   const suitNamesGerman = { red: 'Rot', blue: 'Blau', green: 'Grün', yellow: 'Gelb' };
   if (card.type === 'wizard') {
-    bottomLabelText = '🧙‍♂️ Zauberer';
+    bottomLabelText = 'Zauberer';
   } else if (card.type === 'jester') {
-    bottomLabelText = '🃏 Narr';
+    bottomLabelText = 'Narr';
   } else if (card.type === 'dragon') {
-    bottomLabelText = '🐉 Drache';
+    bottomLabelText = 'Drache';
   } else if (card.type === 'fairy') {
-    bottomLabelText = '🧚 Fee';
+    bottomLabelText = 'Fee';
   } else if (card.type === 'bomb') {
-    bottomLabelText = '💣 Bombe';
+    bottomLabelText = 'Bombe';
   } else if (card.type === 'unicorn') {
-    bottomLabelText = '🦄 Einhorn';
+    bottomLabelText = 'Einhorn';
   } else if (card.type === 'werewolf' || card.type === 'werewolf_trump_pending') {
-    bottomLabelText = '🐺 Mondbiest';
+    bottomLabelText = 'Mondbiest';
   } else if (card.type === 'werewolf_trump') {
     const sName = suitNamesGerman[card.chosenSuit || card.suit] || '';
-    bottomLabelText = sName ? `🐺 Mondbiest (${sName})` : '🐺 Mondbiest';
+    bottomLabelText = sName ? `Mondbiest (${sName})` : 'Mondbiest';
   } else if (card.type === 'witch') {
-    bottomLabelText = '🧙‍♀️ Hexe';
+    bottomLabelText = 'Hexe';
   } else if (card.type === 'vampire') {
-    bottomLabelText = '🧛 Vampir';
+    bottomLabelText = 'Vampir';
   } else if (card.type === 'shapeshifter') {
     if (card.chosenRole === 'wizard') {
-      bottomLabelText = '🎭 Doppelgänger (E)';
+      bottomLabelText = 'Doppelgänger (E)';
     } else if (card.chosenRole === 'jester') {
-      bottomLabelText = '🎭 Doppelgänger (S)';
+      bottomLabelText = 'Doppelgänger (S)';
     } else {
-      bottomLabelText = '🎭 Doppelgänger';
+      bottomLabelText = 'Doppelgänger';
     }
   } else if (card.type === 'cloud') {
     const sName = suitNamesGerman[card.chosenSuit] || '';
-    bottomLabelText = sName ? `☁️ Wolke (${sName})` : '☁️ Wolke';
+    bottomLabelText = sName ? `Wolke (${sName})` : 'Wolke';
   } else if (card.type === 'juggler') {
     const sName = suitNamesGerman[card.chosenSuit] || '';
-    bottomLabelText = sName ? `🤹 Jongleur (${sName})` : '🤹 Jongleur';
+    bottomLabelText = sName ? `Jongleur (${sName})` : 'Jongleur';
   }
 
   if (bottomLabelText) {
     const bLabel = document.createElement('div');
     bLabel.className = 'card-bottom-label';
     bLabel.innerText = bottomLabelText;
-    frontFace.appendChild(bLabel);
+    div.appendChild(bLabel);
   }
 
   if (artImg) {

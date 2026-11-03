@@ -825,7 +825,7 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12);
       gap: 10px;
       position: relative;
-      z-index: 250;
+      z-index: 100;
       flex-shrink: 0;
     }
 
@@ -1327,10 +1327,10 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: box-shadow 0.3s ease;
+      transition: box-shadow 0.8s ease;
       overflow: visible !important;
       position: relative;
-      z-index: 50;
+      z-index: 300 !important;
     }
 
     /* MATHEMATISCH ZENTRIERTE, VOLLKOMMEN SYMMETRISCHE TISCH-VIGNETTE */
@@ -1362,19 +1362,20 @@
     @keyframes medievalTurnPulse {
       0%, 100% {
         box-shadow: 0 0 28px rgba(0, 0, 0, 0.85),
-                    0 0 10px rgba(240, 195, 85, 0.35),
-                    inset 0 0 20px rgba(240, 195, 85, 0.15);
+                    0 0 16px rgba(240, 195, 85, 0.55),
+                    0 0 32px rgba(240, 195, 85, 0.25),
+                    inset 0 0 20px rgba(240, 195, 85, 0.2);
       }
       50% {
         box-shadow: 0 0 28px rgba(0, 0, 0, 0.85),
-                    0 0 26px rgba(240, 195, 85, 0.85),
-                    0 0 45px rgba(240, 195, 85, 0.4),
-                    inset 0 0 30px rgba(240, 195, 85, 0.35);
+                    0 0 30px rgba(240, 195, 85, 0.9),
+                    0 0 55px rgba(240, 195, 85, 0.45),
+                    inset 0 0 32px rgba(240, 195, 85, 0.35);
       }
     }
 
     .poker-table.my-turn-aura {
-      animation: medievalTurnPulse 2s ease-in-out infinite;
+      animation: medievalTurnPulse 3s ease-in-out infinite;
       border: none !important;
       outline: none !important;
     }
@@ -1400,7 +1401,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      z-index: 150 !important;
+      z-index: 310 !important;
       overflow: visible !important;
     }
 
@@ -1408,7 +1409,7 @@
       position: absolute;
       display: flex;
       pointer-events: none;
-      z-index: 155 !important;
+      z-index: 315 !important;
     }
 
     .perimeter-zone-top {
@@ -1460,7 +1461,7 @@
     .player-seat {
       position: relative !important;
       pointer-events: auto !important;
-      z-index: 160 !important;
+      z-index: 320 !important;
       flex-shrink: 0;
     }
 
@@ -1704,7 +1705,7 @@
       left: 50%;
       transform: translateX(-50%);
       animation: foreheadCardFloat 2.6s ease-in-out infinite;
-      z-index: 180;
+      z-index: 330 !important;
       pointer-events: none;
       display: flex;
       flex-direction: column;
@@ -3240,21 +3241,28 @@
     /* BESCHRIFTUNGS-BANNER UNTER ARKANEN KARTEN */
     .card-bottom-label {
       position: absolute;
-      bottom: 2px;
+      top: calc(100% + 3px);
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(14, 9, 5, 0.9);
-      border: 1px solid rgba(212, 163, 89, 0.5);
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-family: var(--font-medieval);
-      font-size: clamp(8px, calc(var(--card-w) * 0.11), 11px);
-      color: var(--gold-bright);
+      background: none !important;
+      border: none !important;
+      border-radius: 0;
+      padding: 0;
+      font-family: var(--font-heading), 'Cinzel Decorative', Georgia, serif;
+      font-style: italic;
+      font-size: clamp(9px, calc(var(--card-w) * 0.12), 12px);
+      color: #f6d365;
+      letter-spacing: 0.6px;
       white-space: nowrap;
       z-index: 5;
       pointer-events: none;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.85);
-      text-shadow: 0 1px 2px #000;
+      box-shadow: none !important;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.8);
+    }
+
+    .forehead-floating-card .card-bottom-label,
+    .trump-card-compact .card-bottom-label {
+      display: none !important;
     }
 
     /* FARBSCHATTEN (GLOW) FÜR WOLKE & JONGLEUR */
@@ -6138,62 +6146,62 @@
     /* THEMEN-SPEZIFISCHE ZUG-AUREN (SANFTER KANTEN-PULS OHNE HARTE RINGE) */
     @keyframes turnPulseEmerald {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 35px rgba(5, 46, 22, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(240, 195, 85, 0.55), 0 0 32px rgba(240, 195, 85, 0.25), inset 0 0 35px rgba(5, 46, 22, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 35px rgba(5, 46, 22, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 30px rgba(240, 195, 85, 0.9), 0 0 55px rgba(240, 195, 85, 0.45), inset 0 0 35px rgba(5, 46, 22, 0.9);
       }
     }
     .poker-table.table-skin-emerald_felt.my-turn-aura {
-      animation: turnPulseEmerald 2s ease-in-out infinite !important;
+      animation: turnPulseEmerald 3s ease-in-out infinite !important;
     }
 
     @keyframes turnPulseTavern {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(0, 0, 0, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(240, 195, 85, 0.55), 0 0 32px rgba(240, 195, 85, 0.25), inset 0 0 45px rgba(0, 0, 0, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 45px rgba(0, 0, 0, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 30px rgba(240, 195, 85, 0.9), 0 0 55px rgba(240, 195, 85, 0.45), inset 0 0 45px rgba(0, 0, 0, 0.9);
       }
     }
     .poker-table.table-skin-tavern_wood.my-turn-aura {
-      animation: turnPulseTavern 2s ease-in-out infinite !important;
+      animation: turnPulseTavern 3s ease-in-out infinite !important;
     }
 
     @keyframes turnPulseAmethyst {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(30, 10, 50, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(240, 195, 85, 0.55), 0 0 32px rgba(240, 195, 85, 0.25), inset 0 0 45px rgba(30, 10, 50, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 45px rgba(30, 10, 50, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 30px rgba(240, 195, 85, 0.9), 0 0 55px rgba(240, 195, 85, 0.45), inset 0 0 45px rgba(30, 10, 50, 0.9);
       }
     }
     .poker-table.table-skin-amethyst_crypt.my-turn-aura {
-      animation: turnPulseAmethyst 2s ease-in-out infinite !important;
+      animation: turnPulseAmethyst 3s ease-in-out infinite !important;
     }
 
     @keyframes turnPulseVolcano {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(45, 10, 5, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(240, 195, 85, 0.55), 0 0 32px rgba(240, 195, 85, 0.25), inset 0 0 45px rgba(45, 10, 5, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 45px rgba(45, 10, 5, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 30px rgba(240, 195, 85, 0.9), 0 0 55px rgba(240, 195, 85, 0.45), inset 0 0 45px rgba(45, 10, 5, 0.9);
       }
     }
     .poker-table.table-skin-volcano_keep.my-turn-aura {
-      animation: turnPulseVolcano 2s ease-in-out infinite !important;
+      animation: turnPulseVolcano 3s ease-in-out infinite !important;
     }
 
     @keyframes turnPulseAstral {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 50px rgba(10, 15, 40, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(240, 195, 85, 0.55), 0 0 32px rgba(240, 195, 85, 0.25), inset 0 0 50px rgba(10, 15, 40, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 50px rgba(10, 15, 40, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 30px rgba(240, 195, 85, 0.9), 0 0 55px rgba(240, 195, 85, 0.45), inset 0 0 50px rgba(10, 15, 40, 0.9);
       }
     }
     .poker-table.table-skin-astral_observatory.my-turn-aura {
-      animation: turnPulseAstral 2s ease-in-out infinite !important;
+      animation: turnPulseAstral 3s ease-in-out infinite !important;
     }
 
     /* WEIHNACHTS-TISCH-SKINS */
@@ -8776,14 +8784,14 @@
     }
     @keyframes turnPulseHaunted {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 50px rgba(5, 20, 20, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(240, 195, 85, 0.55), 0 0 32px rgba(240, 195, 85, 0.25), inset 0 0 50px rgba(5, 20, 20, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 50px rgba(5, 20, 20, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 30px rgba(240, 195, 85, 0.9), 0 0 55px rgba(240, 195, 85, 0.45), inset 0 0 50px rgba(5, 20, 20, 0.9);
       }
     }
     .poker-table.table-skin-haunted_crypt.my-turn-aura {
-      animation: turnPulseHaunted 2s ease-in-out infinite !important;
+      animation: turnPulseHaunted 3s ease-in-out infinite !important;
     }
 
     /* 7. Kürbis-Laternen-Kranz (Epic) */
