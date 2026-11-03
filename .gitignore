@@ -8,14 +8,12 @@ test/*.db*
 .DS_Store
 Thumbs.db
 .idea/
-.agents/teamwork/
 
 # Android & Capacitor Build Caches
 android/.gradle/
 android/build/
 android/app/build/
 android/.idea/
-.agents/teamwork/
 android/*.iml
 android/app/*.iml
 android/local.properties

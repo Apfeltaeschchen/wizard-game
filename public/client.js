@@ -3959,12 +3959,7 @@ function getBotLore(botName, botDifficulty) {
 function applyTableSkin(skinId) {
   const tableEl = document.getElementById('table-area') || document.querySelector('.poker-table');
   if (!tableEl) return;
-  const skins = [
-    'emerald_felt', 'tavern_wood', 'amethyst_crypt', 'volcano_keep', 'astral_observatory', 'haunted_crypt',
-    'velvet_red_gold', 'frosty_blue_ice', 'pine_green_wood', 'yule_hearthstone', 'gingerbread_table',
-    'midnight_winter_snow', 'candy_cane_felt', 'aurora_lake', 'nutcracker_suite', 'starlit_observatory_winter',
-    'frozen_runestone'
-  ];
+  const skins = ['emerald_felt', 'tavern_wood', 'amethyst_crypt', 'volcano_keep', 'astral_observatory', 'haunted_crypt'];
   skins.forEach(s => tableEl.classList.remove(`table-skin-${s}`));
   tableEl.classList.add(`table-skin-${skinId || 'emerald_felt'}`);
 }
@@ -3972,11 +3967,7 @@ function applyTableSkin(skinId) {
 function applyLobbyTheme(themeId) {
   const lobby = document.getElementById('lobby-screen');
   const waiting = document.getElementById('waiting-room-screen');
-  const themes = [
-    'citadel_halls', 'haunted_graveyard', 'witch_hut', 'tavern_fireplace', 'astral_observatory', 'magma_forge', 'celestial_sanctum',
-    'snowy_castle', 'cozy_hearth', 'winter_pine_forest', 'aurora_borealis', 'santas_workshop', 'starlit_bethlehem',
-    'icy_cavern', 'christmas_market', 'toy_factory', 'glacier_peak', 'yule_banquet_hall', 'gingerbread_village'
-  ];
+  const themes = ['citadel_halls', 'haunted_graveyard', 'witch_hut', 'tavern_fireplace', 'astral_observatory', 'magma_forge', 'celestial_sanctum'];
   [lobby, waiting].forEach(el => {
     if (!el) return;
     themes.forEach(t => el.classList.remove(`theme-${t}`));
@@ -4063,20 +4054,7 @@ const TITLE_RARITIES = {
   'Schüler der Runen': 'common',
   'Kartenleger': 'common',
   'Der Geduldige': 'common',
-  'Tavernengast': 'common',
-  // Christmas Titles
-  'Weihnachtsmagier': 'legendary',
-  'Geist der Weihnacht': 'legendary',
-  'Hüter der Wintersonnenwende': 'legendary',
-  'Herrscher des Frosts': 'epic',
-  'Krampus-Bändiger': 'epic',
-  'Stern von Bethlehem': 'epic',
-  'Meister der Wichtel': 'rare',
-  'Nussknacker-General': 'rare',
-  'Schneesturmbringer': 'rare',
-  'Frosttänzer': 'rare',
-  'Lebkuchen-Bäcker': 'common',
-  'Kerzenwächter': 'common'
+  'Tavernengast': 'common'
 };
 
 function getTitleRarity(titleName) {
@@ -9749,18 +9727,7 @@ function renderOpponents() {
       pumpkin_king: 'Kürbiskönig',
       gravestone_runes: 'Grabstein-Runen',
       dragon: 'Drachenschuppe',
-      citadel_ancient: 'Arkane Zitadelle',
-      star_of_bethlehem: 'Stern von Bethlehem',
-      snowflake_mandala: 'Eiskristall-Mandala',
-      christmas_tree_tapestry: 'Weihnachtsbaum-Gobelin',
-      reindeer_crest: 'Wappen des Sternenhirsches',
-      gingerbread_heart: 'Lebkuchenherz der Zitadelle',
-      nutcracker_regiment: 'Nussknacker-Regiment',
-      aurora_borealis_deck: 'Tanz der Nordlichter',
-      candlelight_vigil: 'Adventskerzen-Wache',
-      frost_filigree: 'Raureif-Filigran',
-      yule_log_fire: 'Julklotz-Feuer',
-      winter_solstice_gold: 'Wintersonnenwende (Gold)'
+      citadel_ancient: 'Arkane Zitadelle'
     };
     const cardBackLabel = cardBackNames[p.cardBack] || p.cardBack || 'Novizen-Pergament';
 
