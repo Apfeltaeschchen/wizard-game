@@ -1328,7 +1328,9 @@
       flex-direction: column;
       justify-content: space-between;
       transition: box-shadow 0.3s ease;
-      overflow: hidden;
+      overflow: visible !important;
+      position: relative;
+      z-index: 50;
     }
 
     /* MATHEMATISCH ZENTRIERTE, VOLLKOMMEN SYMMETRISCHE TISCH-VIGNETTE */
@@ -1356,26 +1358,18 @@
       transition: box-shadow 0.3s ease;
     }
 
-    /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (PULSIERENDER KANTEN-GLOW EXKLUSIV AM TISCHRAND) */
+    /* KERZENSCHEIN- & ATMUNGS-AURA BEI EIGENEM ZUG (SANFT PULSIERENDER KANTEN-GLOW EXKLUSIV AM TISCHRAND, ANALOG ZUM HUD) */
     @keyframes medievalTurnPulse {
-      0% {
+      0%, 100% {
         box-shadow: 0 0 28px rgba(0, 0, 0, 0.85),
-                    0 0 0 1px rgba(240, 195, 85, 0.45),
-                    0 0 16px rgba(241, 196, 15, 0.35),
-                    inset 0 0 35px rgba(0, 0, 0, 0.75);
+                    0 0 10px rgba(240, 195, 85, 0.35),
+                    inset 0 0 20px rgba(240, 195, 85, 0.15);
       }
       50% {
         box-shadow: 0 0 28px rgba(0, 0, 0, 0.85),
-                    0 0 0 2.5px rgba(240, 195, 85, 0.95),
-                    0 0 28px rgba(241, 196, 15, 0.85),
-                    0 0 55px rgba(241, 196, 15, 0.5),
-                    inset 0 0 35px rgba(0, 0, 0, 0.75);
-      }
-      100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85),
-                    0 0 0 1px rgba(240, 195, 85, 0.45),
-                    0 0 16px rgba(241, 196, 15, 0.35),
-                    inset 0 0 35px rgba(0, 0, 0, 0.75);
+                    0 0 26px rgba(240, 195, 85, 0.85),
+                    0 0 45px rgba(240, 195, 85, 0.4),
+                    inset 0 0 30px rgba(240, 195, 85, 0.35);
       }
     }
 
@@ -1385,13 +1379,12 @@
       outline: none !important;
     }
 
+    /* HARMONISCHES, WEICHES ZUG-HIGHLIGHT OHNE BLENDENDEN BLITZ */
     @keyframes tableTurnFlash {
-      0% { filter: brightness(1); }
-      35% { filter: brightness(1.22) drop-shadow(0 0 25px rgba(240, 195, 85, 0.6)); }
-      100% { filter: brightness(1); }
+      0%, 100% { opacity: 1; }
     }
     .poker-table.turn-start-extreme-flash {
-      animation: tableTurnFlash 0.48s ease-out;
+      /* Deaktiviert zugunsten des sanften Atmens der Tisch-Aura */
     }
 
     .hand-fade-in {
@@ -1407,7 +1400,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      z-index: 15;
+      z-index: 150 !important;
       overflow: visible !important;
     }
 
@@ -1415,7 +1408,7 @@
       position: absolute;
       display: flex;
       pointer-events: none;
-      z-index: 16;
+      z-index: 155 !important;
     }
 
     .perimeter-zone-top {
@@ -1466,8 +1459,8 @@
 
     .player-seat {
       position: relative !important;
-      pointer-events: auto;
-      z-index: 20;
+      pointer-events: auto !important;
+      z-index: 160 !important;
       flex-shrink: 0;
     }
 
@@ -1711,20 +1704,22 @@
       left: 50%;
       transform: translateX(-50%);
       animation: foreheadCardFloat 2.6s ease-in-out infinite;
-      z-index: 35;
+      z-index: 180;
       pointer-events: none;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     .forehead-floating-card .card {
-      width: clamp(54px, calc(var(--card-w) * 0.58), 66px) !important;
-      height: calc(clamp(54px, calc(var(--card-w) * 0.58), 66px) * (1498 / 1050)) !important;
+      width: clamp(68px, calc(var(--card-w) * 0.78), 86px) !important;
+      height: calc(clamp(68px, calc(var(--card-w) * 0.78), 86px) * (1498 / 1050)) !important;
       transform: none !important;
       margin: 0 !important;
-      border-width: 2px !important;
+      border-width: 2.5px !important;
       border-color: var(--gold-bright);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.92), 0 0 10px rgba(240, 195, 85, 0.5);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.92), 0 0 14px rgba(240, 195, 85, 0.55);
+      cursor: pointer;
+      pointer-events: auto !important;
     }
     .forehead-floating-card .card.card-red,
     .forehead-floating-card.forehead-card-red .card {
@@ -1810,22 +1805,22 @@
       filter: contrast(1.15) brightness(1.1);
     }
     .forehead-floating-card .card .card-center-val {
-      font-size: 20px !important;
+      font-size: 24px !important;
     }
     .forehead-floating-card .card .card-center-crest {
-      width: 24px !important;
-      height: 24px !important;
+      width: 28px !important;
+      height: 28px !important;
     }
     .forehead-floating-card .card .card-val {
-      font-size: 11px !important;
+      font-size: 13px !important;
       line-height: 1 !important;
     }
     .forehead-floating-card .card .card-corner {
-      padding: 1px 3px !important;
-      min-width: 12px !important;
+      padding: 1.5px 4px !important;
+      min-width: 14px !important;
       top: 2px !important;
       left: 2px !important;
-      border-radius: 3px !important;
+      border-radius: 4px !important;
     }
     .forehead-floating-card .card .card-corner.bottom-right {
       bottom: 2px !important;
@@ -1844,11 +1839,11 @@
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      margin-top: 2px;
-      padding: 2px 7px;
+      margin-top: 3px;
+      padding: 2px 8px;
       border-radius: 6px;
       font-family: var(--font-medieval), 'Cinzel', Georgia, serif;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.3px;
       line-height: 1.1;
@@ -1858,8 +1853,8 @@
       pointer-events: none;
     }
     .forehead-suit-badge .forehead-suit-icon {
-      width: 13px;
-      height: 13px;
+      width: 15px;
+      height: 15px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -2040,16 +2035,20 @@
       z-index: 20;
       flex: 1;
       min-height: 0;
+      pointer-events: none !important;
     }
 
     .trick-area-center {
       width: 100%;
+      max-width: min(540px, 58vw);
+      margin: 0 auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: calc(var(--card-h) + 16px);
       perspective: 1200px;
+      pointer-events: none !important;
     }
 
     /* ASTROLABIUM- / RUNENTABLEAU FÜR DAS BIETEN */
@@ -3199,11 +3198,43 @@
     }
 
     /* STICHKARTEN-GRÖSSE IN DER TISCHMITTE */
+    #trick-container {
+      pointer-events: none;
+    }
+    #trick-container .trick-card-item {
+      pointer-events: auto !important;
+      position: relative;
+    }
     #trick-container .card {
       --card-w: clamp(68px, 7vw, 105px) !important;
       --card-h: calc(var(--card-w) * (1498 / 1050)) !important;
       filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.75)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
       transition: transform 0.25s ease, filter 0.25s ease;
+    }
+
+    /* ADAPTIVE KASKADIERUNG / FÄCHERUNG DER STICHKARTEN BEI MEHREREN SPIELERN */
+    #trick-container[data-card-count="4"] {
+      gap: 5px !important;
+    }
+    #trick-container[data-card-count="5"] {
+      gap: 0px !important;
+    }
+    #trick-container[data-card-count="6"] {
+      gap: 0px !important;
+    }
+    #trick-container[data-card-count="5"] .card,
+    #trick-container[data-card-count="6"] .card {
+      --card-w: clamp(58px, 5.8vw, 82px) !important;
+    }
+    #trick-container[data-card-count="5"] .trick-card-item:not(:first-child),
+    #trick-container[data-card-count="6"] .trick-card-item:not(:first-child) {
+      margin-left: clamp(-18px, -1.8vw, -10px) !important;
+    }
+    #trick-container[data-card-count="5"] .trick-card-player-name,
+    #trick-container[data-card-count="6"] .trick-card-player-name {
+      font-size: 10px !important;
+      padding: 1px 5px !important;
+      max-width: 72px !important;
     }
 
     /* BESCHRIFTUNGS-BANNER UNTER ARKANEN KARTEN */
@@ -3898,17 +3929,17 @@
         bottom: calc(100% + 2px) !important;
       }
       .forehead-floating-card .card {
-        width: 28px !important;
-        height: 40px !important;
+        width: clamp(44px, 11vw, 56px) !important;
+        height: calc(clamp(44px, 11vw, 56px) * (1498 / 1050)) !important;
       }
       .forehead-suit-badge {
-        font-size: 8px !important;
-        padding: 0 4px !important;
-        margin-top: 1px !important;
+        font-size: 9px !important;
+        padding: 1px 5px !important;
+        margin-top: 2px !important;
       }
       .forehead-suit-badge .forehead-suit-icon {
-        width: 8px !important;
-        height: 8px !important;
+        width: 10px !important;
+        height: 10px !important;
       }
       #opponents-container.round-1-opponents {
         margin-top: 60px !important;
@@ -6104,13 +6135,13 @@
       box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(99, 102, 241, 0.35);
     }
 
-    /* THEMEN-SPEZIFISCHE ZUG-AUREN (KANTEN-PULS OHNE INNENRAUM-ÜBERSTRAHLUNG) */
+    /* THEMEN-SPEZIFISCHE ZUG-AUREN (SANFTER KANTEN-PULS OHNE HARTE RINGE) */
     @keyframes turnPulseEmerald {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(240, 195, 85, 0.45), 0 0 14px rgba(240, 195, 85, 0.35), inset 0 0 35px rgba(5, 46, 22, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 35px rgba(5, 46, 22, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(240, 195, 85, 0.95), 0 0 25px rgba(240, 195, 85, 0.85), 0 0 50px rgba(240, 195, 85, 0.5), inset 0 0 35px rgba(5, 46, 22, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 35px rgba(5, 46, 22, 0.9);
       }
     }
     .poker-table.table-skin-emerald_felt.my-turn-aura {
@@ -6119,10 +6150,10 @@
 
     @keyframes turnPulseTavern {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(240, 195, 85, 0.45), 0 0 14px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(0, 0, 0, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(0, 0, 0, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(240, 195, 85, 0.95), 0 0 25px rgba(240, 195, 85, 0.85), 0 0 50px rgba(240, 195, 85, 0.5), inset 0 0 45px rgba(0, 0, 0, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 45px rgba(0, 0, 0, 0.9);
       }
     }
     .poker-table.table-skin-tavern_wood.my-turn-aura {
@@ -6131,10 +6162,10 @@
 
     @keyframes turnPulseAmethyst {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(240, 195, 85, 0.45), 0 0 14px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(30, 10, 50, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(30, 10, 50, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(240, 195, 85, 0.95), 0 0 25px rgba(240, 195, 85, 0.85), 0 0 50px rgba(240, 195, 85, 0.5), inset 0 0 45px rgba(30, 10, 50, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 45px rgba(30, 10, 50, 0.9);
       }
     }
     .poker-table.table-skin-amethyst_crypt.my-turn-aura {
@@ -6143,10 +6174,10 @@
 
     @keyframes turnPulseVolcano {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(240, 195, 85, 0.45), 0 0 14px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(45, 10, 5, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 45px rgba(45, 10, 5, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(240, 195, 85, 0.95), 0 0 25px rgba(240, 195, 85, 0.85), 0 0 50px rgba(240, 195, 85, 0.5), inset 0 0 45px rgba(45, 10, 5, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 45px rgba(45, 10, 5, 0.9);
       }
     }
     .poker-table.table-skin-volcano_keep.my-turn-aura {
@@ -6155,10 +6186,10 @@
 
     @keyframes turnPulseAstral {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(240, 195, 85, 0.45), 0 0 14px rgba(240, 195, 85, 0.35), inset 0 0 50px rgba(10, 15, 40, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 50px rgba(10, 15, 40, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(240, 195, 85, 0.95), 0 0 25px rgba(240, 195, 85, 0.85), 0 0 50px rgba(240, 195, 85, 0.5), inset 0 0 50px rgba(10, 15, 40, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 50px rgba(10, 15, 40, 0.9);
       }
     }
     .poker-table.table-skin-astral_observatory.my-turn-aura {
@@ -8745,10 +8776,10 @@
     }
     @keyframes turnPulseHaunted {
       0%, 100% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(240, 195, 85, 0.45), 0 0 14px rgba(240, 195, 85, 0.35), inset 0 0 50px rgba(5, 20, 20, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 10px rgba(240, 195, 85, 0.35), inset 0 0 50px rgba(5, 20, 20, 0.9);
       }
       50% {
-        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 0 2.5px rgba(240, 195, 85, 0.95), 0 0 25px rgba(240, 195, 85, 0.85), 0 0 50px rgba(240, 195, 85, 0.5), inset 0 0 50px rgba(5, 20, 20, 0.9);
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 26px rgba(240, 195, 85, 0.85), 0 0 45px rgba(240, 195, 85, 0.4), inset 0 0 50px rgba(5, 20, 20, 0.9);
       }
     }
     .poker-table.table-skin-haunted_crypt.my-turn-aura {

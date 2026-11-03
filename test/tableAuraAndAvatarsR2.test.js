@@ -28,7 +28,7 @@ const pulseMatch = html.match(/@keyframes medievalTurnPulse\s*\{([\s\S]*?)\}/);
 assert.ok(pulseMatch, '@keyframes medievalTurnPulse muss in index.html definiert sein');
 const pulseBody = pulseMatch[1];
 assert.ok(!pulseBody.includes('inset 0 0 45px rgba(240, 195, 85'), 'medievalTurnPulse darf kein 45px helles Inset-Glow ins Spielfeld werfen');
-assert.ok(pulseBody.includes('0 0 0 2.5px') || pulseBody.includes('0 0 0 2px') || pulseBody.includes('0 0 0 1px'), 'medievalTurnPulse muss Kanten-Spread-Ring für Rand-Glow definieren');
+assert.ok(pulseBody.includes('0 0 26px rgba(240, 195, 85, 0.85)') || pulseBody.includes('0 0 10px rgba(240, 195, 85'), 'medievalTurnPulse muss sanft atmenden Rand-Glow analog zum HUD definieren');
 
 // 1.2 Alle 6 Skins müssen ihre themenspezifische .my-turn-aura Klasse und Keyframes besitzen
 const requiredSkins = ['emerald_felt', 'tavern_wood', 'amethyst_crypt', 'volcano_keep', 'astral_observatory', 'haunted_crypt'];
@@ -150,6 +150,29 @@ assert.ok(html.includes('top: clamp(88px, 13vh, 108px) !important;'), 'Runde 1 t
 
 console.log('✓ R1: 6-Spieler Stirnkarten-Layout & Clearance fehlerfrei verifiziert.');
 
+// ---------------------------------------------------------------------
+// [5/5] R5: GROSSE STIRNKARTEN, FÄCHERUNG & PROFIL-INTERAKTION
+// ---------------------------------------------------------------------
+console.log('[5/5] Prüfe R5: Vergrößerte Stirnkarten, kompakte Stich-Fächerung & Profil-Klicks...');
+
+// 5.1 Stirnkarten Vergrößerung
+assert.ok(html.includes('clamp(68px, calc(var(--card-w) * 0.78), 86px)'), 'Stirnkarten müssen auf bis zu 86px vergrößert sein');
+
+// 5.2 Tisch & Zonen Stacking-Context und Pointer-Events
+assert.ok(html.includes('overflow: visible !important;'), 'poker-table muss overflow: visible besitzen');
+assert.ok(html.includes('z-index: 150 !important;'), 'opponents-container muss z-index: 150 besitzen');
+assert.ok(html.includes('pointer-events: none !important;'), 'table-center-row muss pointer-events: none besitzen');
+
+// 5.3 Stichkarten-Fächerung bei 5 und 6 Karten
+assert.ok(html.includes('#trick-container[data-card-count="5"]'), 'trick-container muss data-card-count=5 Styling besitzen');
+assert.ok(html.includes('#trick-container[data-card-count="6"]'), 'trick-container muss data-card-count=6 Styling besitzen');
+assert.ok(js.includes('trickContainer.dataset.cardCount = trickCards.length'), 'client.js muss dataset.cardCount setzen');
+
+// 5.4 Longbottom Lore-Mapping
+assert.ok(js.includes("'longbottom':"), 'BOT_LORE_DATABASE muss longbottom Mapping enthalten');
+
+console.log('✓ R5: Stirnkarten-Größe, Fächerung & Klick-Interaktion erfolgreich verifiziert.');
+
 console.log('================================================================');
-console.log('🏆 ALLE TESTS FÜR R1-R4 ERFOLGREICH BESTANDEN!');
+console.log('🏆 ALLE TESTS ERFOLGREICH BESTANDEN!');
 console.log('================================================================');

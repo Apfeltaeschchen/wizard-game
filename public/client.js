@@ -3781,6 +3781,12 @@ const BOT_LORE_DATABASE = {
     philosophy: 'Zögerliche Vorsicht & Treue',
     story: 'Verlor unzählige Kröten, schmolz mehrere Kessel ein und zweifelt an seinen Zauberkünsten. Doch wenn es hart auf hart kommt, beweist Neville unerschütterlichen Mut – bietet aber lieber stets vorsichtig.'
   },
+  'longbottom': {
+    title: 'Kräuterkundler von Gryffindor (Harry Potter)',
+    level: 'Stufe 14',
+    philosophy: 'Zögerliche Vorsicht & Treue',
+    story: 'Verlor unzählige Kröten, schmolz mehrere Kessel ein und zweifelt an seinen Zauberkünsten. Doch wenn es hart auf hart kommt, beweist Neville unerschütterlichen Mut – bietet aber lieber stets vorsichtig.'
+  },
   'orko': {
     title: 'Hofzauberer von Trolla (He-Man)',
     level: 'Stufe 9',
@@ -8392,20 +8398,9 @@ function handleTurnState(activePlayerSessionId, gameState, forbiddenBid) {
   isMyTurn = (mySessionId === activePlayerSessionId);
   currentGameState = gameState;
 
-  // ANIMIERTES "DU BIST DRAN!" POP-UP FEEDBACK & EXTREM-FLASH (GONG STUMMGESCHALTET)
+  // ANIMIERTES "DU BIST DRAN!" POP-UP FEEDBACK (GONG STUMMGESCHALTET, REIN SANFTER AURA-ÜBERGANG)
   if (isMyTurn && (!previouslyMyTurn || gameState === 'playing_tricks' || gameState === 'bidding')) {
     triggerTurnPopup();
-    if (!previouslyMyTurn) {
-      if (tableArea) {
-        tableArea.classList.remove('turn-start-extreme-flash');
-        void tableArea.offsetWidth;
-        tableArea.classList.add('turn-start-extreme-flash');
-        setTimeout(() => { if (tableArea) tableArea.classList.remove('turn-start-extreme-flash'); }, 480);
-      }
-      if (myHandSection) {
-        // Handkarten werden nicht geflasht, nur Spieltisch hat dezenten Impuls
-      }
-    }
   }
 
   // ATMENDER TISCH-AURA BEI EIGENEM ZUG (UM DEN GESAMTEN TISCH)
@@ -9786,6 +9781,16 @@ function renderOpponents() {
       </div>
     `;
 
+    // Klick auf Stirnkarte öffnet Detail-Inspektion der Stirnkarte
+    const foreheadCard = seatEl.querySelector('.forehead-floating-card');
+    if (foreheadCard && p.round1Card) {
+      foreheadCard.style.cursor = 'pointer';
+      foreheadCard.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openForeheadInspectModal(p);
+      });
+    }
+
     // Klick auf Biet-Pille öffnet Magier-Profil
     const bidPill = seatEl.querySelector('.seat-bid-pill');
     if (bidPill) {
@@ -9821,7 +9826,7 @@ function renderOpponents() {
       });
     }
 
-    // Interaktives Magier-Profil Modal beim Klick auf den Sitz (oder Stirnkarten-Großansicht)
+    // Interaktives Magier-Profil Modal beim Klick auf den Sitz
     seatEl.style.cursor = 'pointer';
     seatEl.setAttribute('title', `${escapeHtml(p.name)} – Klicken für Details`);
     seatEl.addEventListener('click', (e) => {
@@ -9960,12 +9965,14 @@ function updateBiddingSummaryPill() {
 function renderTrickCards(trickCards, animateLast = true) {
   trickContainer.innerHTML = '';
   trickContainer.classList.toggle('round-1-trick', currentRound === 1);
+  trickContainer.dataset.cardCount = trickCards.length;
 
   trickCards.forEach((item, idx) => {
     const isLastCard = (idx === trickCards.length - 1);
     const wrap = document.createElement('div');
     wrap.classList.add('trick-card-item');
     wrap.style.textAlign = 'center';
+    wrap.style.zIndex = idx + 1;
 
     // Spielername über der gespielten Karte
     const nameBadge = document.createElement('div');
