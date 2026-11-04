@@ -6755,19 +6755,31 @@
     }
     .mystery-card-back,
     .mystery-card-front {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
       border-radius: 12px;
-      backface-visibility: hidden;
+      backface-visibility: hidden !important;
+      -webkit-backface-visibility: hidden !important;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 12px 8px;
       box-sizing: border-box;
+      overflow: hidden;
+    }
+    .mystery-card-wrap.flipped .mystery-card-back {
+      pointer-events: none;
+      visibility: hidden;
+      transition: visibility 0s linear 0.32s;
+    }
+    .mystery-card-wrap:not(.flipped) .mystery-card-front {
+      pointer-events: none;
+      visibility: hidden;
+      transition: visibility 0s linear 0.32s;
     }
 
     /* MYSTERY RÜCKSEITE (VERDECKT - HEARTHSTONE / DARK-FANTASY STYLE) */
@@ -6776,8 +6788,7 @@
       border: 2px solid var(--gold-antique, #d4af37);
       box-shadow: 0 10px 25px rgba(0,0,0,0.85);
       transition: box-shadow 0.25s ease;
-      position: relative;
-      overflow: hidden;
+      transform: rotateY(0deg) translateZ(1px);
     }
     .mystery-card-wrap:not(.flipped):hover .mystery-card-back {
       box-shadow: 0 16px 36px rgba(0, 0, 0, 0.95), 0 0 24px rgba(251, 191, 36, 0.65);
@@ -6920,13 +6931,11 @@
 
     /* MYSTERY VORDERSEITE (ENTHÜLLT) */
     .mystery-card-front {
-      transform: rotateY(180deg);
+      transform: rotateY(180deg) translateZ(1px);
       background: radial-gradient(circle at 50% 25%, #1e1b4b 0%, #090301 80%);
       border: 2px solid #e2e8f0;
       box-shadow: 0 10px 25px rgba(0,0,0,0.9);
       cursor: default;
-      position: relative;
-      overflow: hidden;
     }
     .mystery-card-wrap.rarity-common .mystery-card-front {
       background: radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 70%, #020617 100%);
@@ -7001,10 +7010,14 @@
     }
     .drop-card-name {
       font-family: var(--font-heading);
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: bold;
       color: #fef3c7;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .drop-card-rarity {
       font-size: 10px;
@@ -7947,6 +7960,11 @@
     .table-theme-volcano_keep { background: url('/images/tables/table_volcano_keep.svg') center/cover no-repeat !important; border-color: #ef4444; }
     .table-theme-astral_observatory { background: url('/images/tables/table_astral_observatory.svg') center/cover no-repeat !important; border-color: #38bdf8; }
     .table-theme-haunted_crypt { background: url('/images/tables/table_haunted_crypt.svg') center/cover no-repeat !important; border-color: #14b8a6; }
+    .table-theme-yule_hearth_wood { background: url('/images/tables/table_yule_hearth_wood.svg') center/cover no-repeat !important; border-color: #b45309; }
+    .table-theme-frost_slate_shimmer { background: url('/images/tables/table_frost_slate_shimmer.svg') center/cover no-repeat !important; border-color: #38bdf8; }
+    .table-theme-nutcracker_workshop { background: url('/images/tables/table_nutcracker_workshop.svg') center/cover no-repeat !important; border-color: #e11d48; }
+    .table-theme-candlelight_mistletoe { background: url('/images/tables/table_candlelight_mistletoe.svg') center/cover no-repeat !important; border-color: #fb923c; }
+    .table-theme-celestial_solstice_gold { background: url('/images/tables/table_celestial_solstice_gold.svg') center/cover no-repeat !important; border-color: #fbbf24; }
 
     /* =====================================================================
        ZERO CRUDE ICONS: RAUM-WELTEN VORSCHAUEN (ECHTE ARTWORK-THUMBNAILS)
@@ -8157,10 +8175,20 @@
       justify-content: center;
       margin: 14px 0 10px;
     }
+    .drop-title-plaque-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin: 8px 0 6px;
+    }
     .drop-title-plaque-container .title-plaque {
-      max-width: 190px;
-      padding: 10px 14px;
-      font-size: 12.5px;
+      max-width: 140px;
+      padding: 8px 10px;
+      font-size: 11.5px;
+      box-sizing: border-box;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* WARDROBE & PREVIEW */
@@ -8707,6 +8735,122 @@
     }
     .poker-table.table-skin-haunted_crypt.my-turn-aura {
       animation: turnPulseHaunted 3s ease-in-out infinite !important;
+    }
+
+    /* WEIHNACHTS-SONDEREDITION TISCH-SKINS */
+    /* 1. Festtags-Kaminholz & Tannengrün (Common) */
+    .poker-table.table-skin-yule_hearth_wood {
+      background-color: #1a0c05 !important;
+      background-image: url('/images/tables/table_yule_hearth_wood.svg') !important;
+      background-size: cover !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 45px rgba(180, 83, 9, 0.45);
+    }
+    .poker-table.table-skin-yule_hearth_wood::after {
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.9), 0 0 10px rgba(245, 158, 11, 0.3);
+    }
+    @keyframes turnPulseYuleHearth {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(245, 158, 11, 0.55), 0 0 32px rgba(245, 158, 11, 0.25), inset 0 0 45px rgba(60, 25, 5, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 30px rgba(245, 158, 11, 0.95), 0 0 55px rgba(245, 158, 11, 0.5), inset 0 0 45px rgba(60, 25, 5, 0.9);
+      }
+    }
+    .poker-table.table-skin-yule_hearth_wood.my-turn-aura {
+      animation: turnPulseYuleHearth 3s ease-in-out infinite !important;
+    }
+
+    /* 2. Raureif-Schiefer & Frostsilber (Rare) */
+    .poker-table.table-skin-frost_slate_shimmer {
+      background-color: #060e1d !important;
+      background-image: url('/images/tables/table_frost_slate_shimmer.svg') !important;
+      background-size: cover !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(14, 165, 233, 0.45);
+    }
+    .poker-table.table-skin-frost_slate_shimmer::after {
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+    @keyframes turnPulseFrostSlate {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(56, 189, 248, 0.6), 0 0 32px rgba(56, 189, 248, 0.3), inset 0 0 50px rgba(5, 25, 50, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 32px rgba(56, 189, 248, 0.95), 0 0 60px rgba(56, 189, 248, 0.55), inset 0 0 50px rgba(5, 25, 50, 0.9);
+      }
+    }
+    .poker-table.table-skin-frost_slate_shimmer.my-turn-aura {
+      animation: turnPulseFrostSlate 3s ease-in-out infinite !important;
+    }
+
+    /* 3. Kaiserliche Uhrwerk-Werkbank (Epic) */
+    .poker-table.table-skin-nutcracker_workshop {
+      background-color: #1a0207 !important;
+      background-image: url('/images/tables/table_nutcracker_workshop.svg') !important;
+      background-size: cover !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 55px rgba(225, 29, 72, 0.55);
+    }
+    .poker-table.table-skin-nutcracker_workshop::after {
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(251, 191, 36, 0.4);
+    }
+    @keyframes turnPulseNutcrackerWorkshop {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 18px rgba(225, 29, 72, 0.6), 0 0 34px rgba(251, 191, 36, 0.3), inset 0 0 50px rgba(45, 5, 15, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 34px rgba(225, 29, 72, 0.95), 0 0 60px rgba(251, 191, 36, 0.6), inset 0 0 50px rgba(45, 5, 15, 0.9);
+      }
+    }
+    .poker-table.table-skin-nutcracker_workshop.my-turn-aura {
+      animation: turnPulseNutcrackerWorkshop 3s ease-in-out infinite !important;
+    }
+
+    /* 4. Winterkönigin-Marmor & Mistel (Epic) */
+    .poker-table.table-skin-candlelight_mistletoe {
+      background-color: #041019 !important;
+      background-image: url('/images/tables/table_candlelight_mistletoe.svg') !important;
+      background-size: cover !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 55px rgba(251, 146, 60, 0.4);
+    }
+    .poker-table.table-skin-candlelight_mistletoe::after {
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 12px rgba(125, 211, 252, 0.4);
+    }
+    @keyframes turnPulseCandlelightMistletoe {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 16px rgba(251, 146, 60, 0.6), 0 0 32px rgba(125, 211, 252, 0.3), inset 0 0 50px rgba(5, 20, 30, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 32px rgba(251, 146, 60, 0.95), 0 0 58px rgba(125, 211, 252, 0.55), inset 0 0 50px rgba(5, 20, 30, 0.9);
+      }
+    }
+    .poker-table.table-skin-candlelight_mistletoe.my-turn-aura {
+      animation: turnPulseCandlelightMistletoe 3s ease-in-out infinite !important;
+    }
+
+    /* 5. Stern von Bethlehem & Sonnenwend-Gold (Legendary) */
+    .poker-table.table-skin-celestial_solstice_gold {
+      background-color: #030614 !important;
+      background-image: url('/images/tables/table_celestial_solstice_gold.svg') !important;
+      background-size: cover !important;
+      background-position: center center !important;
+      box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 65px rgba(251, 191, 36, 0.5);
+    }
+    .poker-table.table-skin-celestial_solstice_gold::after {
+      box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.85), 0 0 16px rgba(251, 191, 36, 0.6);
+    }
+    @keyframes turnPulseCelestialSolstice {
+      0%, 100% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 20px rgba(251, 191, 36, 0.7), 0 0 38px rgba(52, 211, 153, 0.35), inset 0 0 55px rgba(10, 15, 45, 0.9);
+      }
+      50% {
+        box-shadow: 0 0 28px rgba(0, 0, 0, 0.85), 0 0 36px rgba(251, 191, 36, 0.95), 0 0 65px rgba(192, 132, 252, 0.6), inset 0 0 55px rgba(10, 15, 45, 0.9);
+      }
+    }
+    .poker-table.table-skin-celestial_solstice_gold.my-turn-aura {
+      animation: turnPulseCelestialSolstice 3s ease-in-out infinite !important;
     }
 
     /* 7. Kürbis-Laternen-Kranz (Epic) */

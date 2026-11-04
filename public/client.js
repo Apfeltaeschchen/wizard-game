@@ -3969,7 +3969,10 @@ function getBotLore(botName, botDifficulty) {
 function applyTableSkin(skinId) {
   const tableEl = document.getElementById('table-area') || document.querySelector('.poker-table');
   if (!tableEl) return;
-  const skins = ['emerald_felt', 'tavern_wood', 'amethyst_crypt', 'volcano_keep', 'astral_observatory', 'haunted_crypt'];
+  const skins = [
+    'emerald_felt', 'tavern_wood', 'amethyst_crypt', 'volcano_keep', 'astral_observatory', 'haunted_crypt',
+    'yule_hearth_wood', 'frost_slate_shimmer', 'nutcracker_workshop', 'candlelight_mistletoe', 'celestial_solstice_gold'
+  ];
   skins.forEach(s => tableEl.classList.remove(`table-skin-${s}`));
   tableEl.classList.add(`table-skin-${skinId || 'emerald_felt'}`);
 }
@@ -5407,9 +5410,6 @@ const WizardVault = (() => {
         <div class="mystery-card-inner">
           <div class="mystery-card-back rarity-back-${rarity}">
             <div class="mystery-card-back-pattern"></div>
-            <div class="mystery-card-back-sigil rarity-sigil-${rarity}">
-              <span class="sigil-icon">${rCfg.icon}</span>
-            </div>
           </div>
           <div class="mystery-card-front">
             ${frontContentHtml}
@@ -5498,7 +5498,10 @@ const WizardVault = (() => {
     const remaining = dropsCont.querySelectorAll('.mystery-card-wrap:not(.flipped)');
     if (remaining.length === 0) {
       if (cardsHint) cardsHint.innerHTML = '🎉 <strong>Alle Schätze wurden enthüllt!</strong>';
-      if (btnFlipAll) btnFlipAll.disabled = true;
+      if (btnFlipAll) {
+        btnFlipAll.disabled = true;
+        btnFlipAll.style.display = 'none';
+      }
 
       // 1. Buttons erst freischalten, wenn alle Karten aufgedeckt sind
       if (btnNext) {
@@ -6635,7 +6638,12 @@ function openTableInspectModal(tableId) {
       amethyst_crypt: 'Dunkelviolette Runenplatten der Krypta mit sanft pulsierendem Kristallglanz.',
       volcano_keep: 'Glühender Basalt aus der Vulkan-Festung mit brodelnden Magma-Adern.',
       astral_observatory: 'Mitternachtsblauer Kosmos-Marmor mit goldenem Tierkreiskranz und Sternkarte.',
-      haunted_crypt: 'Verfluchter Katakomben-Stein mit geisterhaften Spektral-Nebeln und Knochen-Intarsien.'
+      haunted_crypt: 'Verfluchter Katakomben-Stein mit geisterhaften Spektral-Nebeln und Knochen-Intarsien.',
+      yule_hearth_wood: 'Schwere Eichenbohlen, behaglich erwärmt vom Prasseln des Yule-Kaminfeuers, umrahmt von duftenden Tannenzweigen und getrockneten Zimt-Reliefs.',
+      frost_slate_shimmer: 'Uralter mitternachtsblauer Gletscherschiefer, überzogen von einem Netz aus filigranen Raureif-Ranken und arktischem Sterlingsilber.',
+      nutcracker_workshop: 'Poliertes Mahagoni und karmesinroter Samt, durchzogen von goldenen Zahnrädern und den imperialen Ziertressen der Kaiserlichen Garde.',
+      candlelight_mistletoe: 'Transluzenter eisblauer Marmor aus den Kathedralen der Winterkönigin, geschmückt mit geweihten Mistelranken und ewig flackerndem Sonnenwend-Kerzenschein.',
+      celestial_solstice_gold: 'Ein monumentales Himmels-Tableau aus mitternächtlichem Lapislazuli und heiligem Sonnenwend-Gold, über das die ewigen Schleier der Polarlichter tanzen.'
     };
 
     const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };

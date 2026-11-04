@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1600 1000" preserveAspectRatio="none">
+  <defs>
+    <!-- Warme Yule-Eichenholz-Maserung -->
+    <filter id="yuleWoodGrain" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.12 0.015" numOctaves="4" result="noise" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.35   0 0 0 0 0.18   0 0 0 0 0.08  0 0 0 0.45 0" />
+    </filter>
+
+    <linearGradient id="yulePlank1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#241208" />
+      <stop offset="50%" stop-color="#361c0d" />
+      <stop offset="100%" stop-color="#1f0e06" />
+    </linearGradient>
+    <linearGradient id="yulePlank2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a150a" />
+      <stop offset="50%" stop-color="#3d2110" />
+      <stop offset="100%" stop-color="#231107" />
+    </linearGradient>
+    <linearGradient id="yulePlank3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#271309" />
+      <stop offset="50%" stop-color="#391e0e" />
+      <stop offset="100%" stop-color="#210f06" />
+    </linearGradient>
+
+    <!-- Kaminfeuer Glutkegel -->
+    <radialGradient id="hearthWarmGlow" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25" />
+      <stop offset="40%" stop-color="#b45309" stop-opacity="0.12" />
+      <stop offset="75%" stop-color="#451a03" stop-opacity="0.04" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.65" />
+    </radialGradient>
+
+    <linearGradient id="yuleGoldBand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#78350f" />
+    </linearGradient>
+  </defs>
+
+  <!-- 1. FÜNF EICHENBOHLEN MIT YULE-MASERUNG -->
+  <rect x="0" y="0" width="1600" height="198" fill="url(#yulePlank1)" />
+  <rect x="0" y="200" width="1600" height="198" fill="url(#yulePlank2)" />
+  <rect x="0" y="400" width="1600" height="198" fill="url(#yulePlank3)" />
+  <rect x="0" y="600" width="1600" height="198" fill="url(#yulePlank2)" />
+  <rect x="0" y="800" width="1600" height="200" fill="url(#yulePlank1)" />
+
+  <!-- FUGEN -->
+  <line x1="0" y1="199" x2="1600" y2="199" stroke="#0a0502" stroke-width="2.2" />
+  <line x1="0" y1="201" x2="1600" y2="201" stroke="#5a2c10" stroke-width="0.8" opacity="0.4" />
+  <line x1="0" y1="399" x2="1600" y2="399" stroke="#0a0502" stroke-width="2.2" />
+  <line x1="0" y1="401" x2="1600" y2="401" stroke="#5a2c10" stroke-width="0.8" opacity="0.4" />
+  <line x1="0" y1="599" x2="1600" y2="599" stroke="#0a0502" stroke-width="2.2" />
+  <line x1="0" y1="601" x2="1600" y2="601" stroke="#5a2c10" stroke-width="0.8" opacity="0.4" />
+  <line x1="0" y1="799" x2="1600" y2="799" stroke="#0a0502" stroke-width="2.2" />
+  <line x1="0" y1="801" x2="1600" y2="801" stroke="#5a2c10" stroke-width="0.8" opacity="0.4" />
+
+  <rect width="1600" height="1000" filter="url(#yuleWoodGrain)" style="mix-blend-mode: overlay;" />
+
+  <!-- 2. KAMINFEUER-WARMLICHT ÜBER DER MITTE -->
+  <rect width="1600" height="1000" fill="url(#hearthWarmGlow)" />
+
+  <!-- 3. ZENTRALER STICH-ZIRKEL (KELTISCHES SONNENWEND-RAD) -->
+  <g transform="translate(800, 500)" stroke="#1a0c05" stroke-width="1.8" fill="none" opacity="0.38">
+    <circle r="280" stroke-dasharray="16 8 4 8" stroke-width="2" />
+    <circle r="260" stroke-width="1.2" />
+    <circle r="160" stroke-width="1.4" stroke-dasharray="8 6" />
+    <circle r="70" stroke-width="1.8" />
+    <!-- 8 Sonnenwend-Strahlen -->
+    <path d="M 0,-260 L 0,260 M -260,0 L 260,0 M -184,-184 L 184,184 M -184,184 L 184,-184" stroke-width="1.2" stroke-dasharray="12 12" />
+    <!-- Eingravierte Tannenzapfen-Runen im Kern -->
+    <circle r="25" fill="#f59e0b" fill-opacity="0.15" stroke="url(#yuleGoldBand)" />
+  </g>
+
+  <!-- 4. RUSTIKALE TANNENNADEL- & ZIMTRANKEN AN DEN RÄNDERN -->
+  <g stroke="#14532d" stroke-width="1.4" fill="none" opacity="0.35">
+    <!-- Nadelbündel oben -->
+    <path d="M 300,30 Q 500,45 800,35 Q 1100,45 1300,30" />
+    <path d="M 320,25 L 335,40 M 360,20 L 375,38 M 450,26 L 460,42 M 750,28 L 760,45 M 850,28 L 840,45 M 1220,22 L 1235,39" stroke-width="1.1" stroke="#166534" />
+    <!-- Nadelbündel unten -->
+    <path d="M 300,970 Q 500,955 800,965 Q 1100,955 1300,970" />
+    <path d="M 320,975 L 335,960 M 360,980 L 375,962 M 750,972 L 760,955 M 850,972 L 840,955 M 1220,978 L 1235,961" stroke-width="1.1" stroke="#166534" />
+  </g>
+
+  <!-- 5. SCHMIEDEEISERNE YULE-ECKBESCHLÄGE -->
+  <g stroke="#374151" fill="#111827" stroke-width="1.6" opacity="0.85">
+    <path d="M 35,130 L 35,45 Q 35,35 45,35 L 130,35 L 115,55 L 55,55 L 55,115 Z" />
+    <circle cx="50" cy="50" r="3.5" fill="#fbbf24" stroke="#78350f" stroke-width="1" />
+    <circle cx="95" cy="45" r="2.5" fill="#9ca3af" />
+    <circle cx="45" cy="95" r="2.5" fill="#9ca3af" />
+
+    <path d="M 1565,130 L 1565,45 Q 1565,35 1555,35 L 1470,35 L 1485,55 L 1545,55 L 1545,115 Z" />
+    <circle cx="1550" cy="50" r="3.5" fill="#fbbf24" stroke="#78350f" stroke-width="1" />
+    <circle cx="1505" cy="45" r="2.5" fill="#9ca3af" />
+    <circle cx="1555" cy="95" r="2.5" fill="#9ca3af" />
+
+    <path d="M 35,870 L 35,955 Q 35,965 45,965 L 130,965 L 115,945 L 55,945 L 55,885 Z" />
+    <circle cx="50" cy="950" r="3.5" fill="#fbbf24" stroke="#78350f" stroke-width="1" />
+    <circle cx="95" cy="955" r="2.5" fill="#9ca3af" />
+    <circle cx="45" cy="905" r="2.5" fill="#9ca3af" />
+
+    <path d="M 1565,870 L 1565,955 Q 1565,965 1555,965 L 1470,965 L 1485,945 L 1545,945 L 1545,885 Z" />
+    <circle cx="1550" cy="950" r="3.5" fill="#fbbf24" stroke="#78350f" stroke-width="1" />
+    <circle cx="1505" cy="955" r="2.5" fill="#9ca3af" />
+    <circle cx="1555" cy="905" r="2.5" fill="#9ca3af" />
+  </g>
+</svg>

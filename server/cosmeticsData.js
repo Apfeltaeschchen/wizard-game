@@ -87,7 +87,13 @@ const COSMETICS_CATALOG = {
     { id: 'volcano_keep', name: 'Vulkan-Festung', rarity: 'epic', icon: '🌋', lore: 'Pechschwarzer Basaltstein mit glühenden Magma-Adern.' },
     { id: 'astral_observatory', name: 'Sternen-Observatorium', rarity: 'legendary', icon: '🌌', lore: 'Ein kreisförmiges Observatorium unter freiem Himmelszelt.' },
     // Halloween Spezial
-    { id: 'haunted_crypt', name: 'Spukhaus-Gruft', rarity: 'epic', icon: '🪦', lore: 'Ein gespenstischer Steintisch, umhüllt von kaltem Geisternebel und Spinnweben.' }
+    { id: 'haunted_crypt', name: 'Spukhaus-Gruft', rarity: 'epic', icon: '🪦', lore: 'Ein gespenstischer Steintisch, umhüllt von kaltem Geisternebel und Spinnweben.' },
+    // Weihnachts-Sonderedition (Handgefertigte Festtags-Tische)
+    { id: 'yule_hearth_wood', name: 'Festtags-Kaminholz & Tannengrün', rarity: 'common', icon: '🪵', lore: 'Schwere Eichenbohlen, behaglich erwärmt vom Prasseln des Yule-Kaminfeuers, umrahmt von duftenden Tannenzweigen und getrockneten Zimt-Reliefs.' },
+    { id: 'frost_slate_shimmer', name: 'Raureif-Schiefer & Frostsilber', rarity: 'rare', icon: '❄️', lore: 'Uralter mitternachtsblauer Gletscherschiefer, überzogen von einem Netz aus filigranen Raureif-Ranken und arktischem Sterlingsilber.' },
+    { id: 'nutcracker_workshop', name: 'Kaiserliche Uhrwerk-Werkbank', rarity: 'epic', icon: '⚙️', lore: 'Poliertes Mahagoni und karmesinroter Samt, durchzogen von goldenen Zahnrädern und den imperialen Ziertressen der Kaiserlichen Garde.' },
+    { id: 'candlelight_mistletoe', name: 'Winterkönigin-Marmor & Mistel', rarity: 'epic', icon: '🕯️', lore: 'Transluzenter eisblauer Marmor aus den Kathedralen der Winterkönigin, geschmückt mit geweihten Mistelranken und ewig flackerndem Sonnenwend-Kerzenschein.' },
+    { id: 'celestial_solstice_gold', name: 'Stern von Bethlehem & Sonnenwend-Gold', rarity: 'legendary', icon: '✨', lore: 'Ein monumentales Himmels-Tableau aus mitternächtlichem Lapislazuli und heiligem Sonnenwend-Gold, über das die ewigen Schleier der Polarlichter tanzen.' }
   ],
 
   avatar_frames: [

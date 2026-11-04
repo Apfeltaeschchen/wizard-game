@@ -46,7 +46,7 @@ for (const expected of EXPECTED_CHRISTMAS_DECKS) {
 console.log('✓ Alle 5 Weihnachts-Kartenrücken im Serverkatalog vollständig und korrekt konfiguriert.');
 
 // 3. SVG-Artwork-Integrität & Android-Spiegelung
-console.log('[3/5] Überprüfe SVG-Struktur und Android-Assets...');
+console.log('[3/5] Überprüfe reine SVG-Vektorstruktur und Android-Assets...');
 for (const expected of EXPECTED_CHRISTMAS_DECKS) {
   const svgName = `back_${expected.id}.svg`;
   const pubPath = path.join(cardBacksDir, svgName);
@@ -58,10 +58,11 @@ for (const expected of EXPECTED_CHRISTMAS_DECKS) {
   const svgContent = fs.readFileSync(pubPath, 'utf8');
   assert.ok(svgContent.includes('<svg'), `${svgName} enthält keinen <svg> Tag`);
   assert.ok(svgContent.includes('viewBox="0 0 1050 1498"'), `${svgName} hat nicht das korrekte viewBox (0 0 1050 1498)`);
-  assert.ok(svgContent.includes('<image'), `${svgName} enthält kein gerendertes Artwork-Element`);
-  assert.ok(svgContent.length > 50000, `${svgName} ist unvollständig klein (${svgContent.length} bytes)`);
+  assert.ok(!svgContent.includes('<image'), `${svgName} darf keine eingebetteten Rasterbilder (<image>) enthalten! 100% reine Vektoren gefordert.`);
+  assert.ok(svgContent.includes('<defs>'), `${svgName} fehlen Farbverläufe/Filter in <defs>`);
+  assert.ok(svgContent.length >= 5000 && svgContent.length <= 25000, `${svgName} liegt nicht im erwarteten schlanken Vektorbereich (${svgContent.length} bytes)`);
 }
-console.log('✓ Alle 5 SVG-Artworks valide und fehlerfrei nach Android gespiegelt.');
+console.log('✓ Alle 5 Kartenrücken sind 100% reine mathematische Vektoren ohne Rasterdaten und fehlerfrei gespiegelt.');
 
 // 4. CSS-Selektoren in public/index.html
 console.log('[4/5] Überprüfe CSS-Selektoren in public/index.html...');

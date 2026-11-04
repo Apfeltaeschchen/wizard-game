@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1600 1000" preserveAspectRatio="none">
+  <defs>
+    <!-- Marmor-Aderung & Raureif Filter -->
+    <filter id="marbleVeinNoise" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.08 0.08" numOctaves="4" result="noise" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.1   0 0 0 0 0.3   0 0 0 0 0.4  0 0 0 0.35 0" />
+    </filter>
+
+    <!-- Warmes Kerzenlicht Filter -->
+    <filter id="candleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="7" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <radialGradient id="cathedralMarbleBg" cx="50%" cy="50%" r="75%">
+      <stop offset="0%" stop-color="#0c2333" />
+      <stop offset="40%" stop-color="#081824" />
+      <stop offset="75%" stop-color="#050f17" />
+      <stop offset="100%" stop-color="#02070a" />
+    </radialGradient>
+
+    <!-- Zartes Eis- und Kerzenschein-Zentrum -->
+    <radialGradient id="sanctuaryCoreGlow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.22" />
+      <stop offset="45%" stop-color="#38bdf8" stop-opacity="0.14" />
+      <stop offset="80%" stop-color="#075985" stop-opacity="0.04" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="sanctuarySilverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0f9ff" />
+      <stop offset="45%" stop-color="#7dd3fc" />
+      <stop offset="80%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+
+    <linearGradient id="mistletoeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80" />
+      <stop offset="50%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#14532d" />
+    </linearGradient>
+  </defs>
+
+  <!-- 1. KATHEDRALEN-EISTISCHPLATTE AUS EISBLAUEM MARMOR -->
+  <rect width="1600" height="1000" fill="url(#cathedralMarbleBg)" />
+  <rect width="1600" height="1000" filter="url(#marbleVeinNoise)" style="mix-blend-mode: overlay;" />
+
+  <!-- 2. GEWEIHTE MISTELRANKEN & PERLENBEEREN AN DEN RÄNDERN -->
+  <g stroke="url(#mistletoeGrad)" stroke-width="1.6" fill="none" opacity="0.55">
+    <!-- Oben Ranke -->
+    <path d="M 150,55 Q 400,85 800,60 Q 1200,85 1450,55" />
+    <!-- Blätter & weiße Beeren -->
+    <circle cx="420" cy="80" r="4.5" fill="#f8fafc" stroke="#38bdf8" stroke-width="0.8" />
+    <circle cx="430" cy="74" r="3.5" fill="#ffffff" />
+    <circle cx="780" cy="62" r="4.5" fill="#f8fafc" stroke="#38bdf8" stroke-width="0.8" />
+    <circle cx="1180" cy="80" r="4.5" fill="#f8fafc" stroke="#38bdf8" stroke-width="0.8" />
+
+    <!-- Unten Ranke -->
+    <path d="M 150,945 Q 400,915 800,940 Q 1200,915 1450,945" />
+    <circle cx="420" cy="920" r="4.5" fill="#f8fafc" stroke="#38bdf8" stroke-width="0.8" />
+    <circle cx="780" cy="938" r="4.5" fill="#f8fafc" stroke="#38bdf8" stroke-width="0.8" />
+    <circle cx="1180" cy="920" r="4.5" fill="#f8fafc" stroke="#38bdf8" stroke-width="0.8" />
+  </g>
+
+  <!-- 3. ZENTRALE GOTISCHE KATHO-ROSETTE (STICH-ZIRKEL) -->
+  <circle cx="800" cy="500" r="330" fill="url(#sanctuaryCoreGlow)" />
+  <g transform="translate(800, 500)" stroke="url(#sanctuarySilverGrad)" fill="none" opacity="0.6">
+    <circle r="280" stroke-width="2" stroke-dasharray="16 6 4 6" />
+    <circle r="260" stroke-width="0.9" />
+
+    <!-- 4 gotische Maßwerk-Bögen (Vierpass) -->
+    <circle cx="0" cy="-110" r="110" stroke-width="1.6" opacity="0.6" />
+    <circle cx="0" cy="110" r="110" stroke-width="1.6" opacity="0.6" />
+    <circle cx="-110" cy="0" r="110" stroke-width="1.6" opacity="0.6" />
+    <circle cx="110" cy="0" r="110" stroke-width="1.6" opacity="0.6" />
+
+    <!-- 8 Spitzbogen-Rippen -->
+    <line x1="0" y1="-260" x2="0" y2="260" stroke-width="1.2" stroke-dasharray="8 8" />
+    <line x1="-260" y1="0" x2="260" y2="0" stroke-width="1.2" stroke-dasharray="8 8" />
+
+    <!-- Zentraler Kerzenschein-Kelch -->
+    <circle r="70" stroke-width="2" />
+    <circle r="22" fill="#fb923c" fill-opacity="0.3" stroke="#fef08a" stroke-width="1.5" />
+    <circle r="8" fill="#ffffff" />
+  </g>
+
+  <!-- 4. FLACKERNDE FESTTAGSKERZEN IN DEN ECKNISCHEN -->
+  <g filter="url(#candleGlow)">
+    <!-- Oben-Links Kerze -->
+    <g transform="translate(90, 85)">
+      <rect x="-6" y="0" width="12" height="32" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+      <ellipse cx="0" cy="-8" rx="4.5" ry="9" fill="#fef08a" />
+      <circle cx="0" cy="-6" r="2.5" fill="#ea580c" />
+    </g>
+    <!-- Oben-Rechts Kerze -->
+    <g transform="translate(1510, 85)">
+      <rect x="-6" y="0" width="12" height="32" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+      <ellipse cx="0" cy="-8" rx="4.5" ry="9" fill="#fef08a" />
+      <circle cx="0" cy="-6" r="2.5" fill="#ea580c" />
+    </g>
+    <!-- Unten-Links Kerze -->
+    <g transform="translate(90, 915)">
+      <rect x="-6" y="-32" width="12" height="32" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+      <ellipse cx="0" cy="-40" rx="4.5" ry="9" fill="#fef08a" />
+      <circle cx="0" cy="-38" r="2.5" fill="#ea580c" />
+    </g>
+    <!-- Unten-Rechts Kerze -->
+    <g transform="translate(1510, 915)">
+      <rect x="-6" y="-32" width="12" height="32" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" />
+      <ellipse cx="0" cy="-40" rx="4.5" ry="9" fill="#fef08a" />
+      <circle cx="0" cy="-38" r="2.5" fill="#ea580c" />
+    </g>
+  </g>
+</svg>

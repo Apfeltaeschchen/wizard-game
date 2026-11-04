@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1600 1000" preserveAspectRatio="none">
+  <defs>
+    <!-- Gletscherschiefer-Bruch & Frost-Filter -->
+    <filter id="glacierSlateNoise" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.18 0.18" numOctaves="4" result="noise" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.15   0 0 0 0 0.28   0 0 0 0 0.45  0 0 0 0.38 0" />
+    </filter>
+
+    <!-- Frost-Glow Filter -->
+    <filter id="frostGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <radialGradient id="glacierBg" cx="50%" cy="50%" r="75%">
+      <stop offset="0%" stop-color="#0e1f3d" />
+      <stop offset="40%" stop-color="#0a172e" />
+      <stop offset="75%" stop-color="#060e1d" />
+      <stop offset="100%" stop-color="#02060d" />
+    </radialGradient>
+
+    <!-- Kaltes Eiskristall-Licht im Zentrum -->
+    <radialGradient id="frostCoreGlow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.28" />
+      <stop offset="45%" stop-color="#0284c7" stop-opacity="0.12" />
+      <stop offset="80%" stop-color="#0c4a6e" stop-opacity="0.03" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="frostSilverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="40%" stop-color="#bae6fd" />
+      <stop offset="80%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+  </defs>
+
+  <!-- 1. TIEFER GLETSCHERSCHIEFER-HINTERGRUND -->
+  <rect width="1600" height="1000" fill="url(#glacierBg)" />
+  <rect width="1600" height="1000" filter="url(#glacierSlateNoise)" style="mix-blend-mode: overlay;" />
+
+  <!-- 2. RAUREIF-EISBLUMEN & FROSTRANKEN AN DEN RÄNDERN -->
+  <g stroke="url(#frostSilverGrad)" stroke-width="0.9" fill="none" opacity="0.45" filter="url(#frostGlow)">
+    <!-- Oben-Links Frostmuster -->
+    <path d="M 50,50 L 220,50 M 50,50 L 50,220 M 50,50 L 170,170" />
+    <path d="M 90,50 Q 90,90 50,90" />
+    <path d="M 140,50 Q 140,140 50,140" />
+    <path d="M 110,110 L 140,80 M 110,110 L 80,140" />
+    <circle cx="170" cy="170" r="3" fill="#bae6fd" />
+
+    <!-- Oben-Rechts Frostmuster -->
+    <path d="M 1550,50 L 1380,50 M 1550,50 L 1550,220 M 1550,50 L 1430,170" />
+    <path d="M 1510,50 Q 1510,90 1550,90" />
+    <path d="M 1460,50 Q 1460,140 1550,140" />
+    <path d="M 1490,110 L 1460,80 M 1490,110 L 1520,140" />
+    <circle cx="1430" cy="170" r="3" fill="#bae6fd" />
+
+    <!-- Unten-Links Frostmuster -->
+    <path d="M 50,950 L 220,950 M 50,950 L 50,780 M 50,950 L 170,830" />
+    <path d="M 90,950 Q 90,910 50,910" />
+    <path d="M 140,950 Q 140,860 50,860" />
+    <circle cx="170" cy="830" r="3" fill="#bae6fd" />
+
+    <!-- Unten-Rechts Frostmuster -->
+    <path d="M 1550,950 L 1380,950 M 1550,950 L 1550,780 M 1550,950 L 1430,830" />
+    <path d="M 1510,950 Q 1510,910 1550,910" />
+    <path d="M 1460,950 Q 1460,860 1550,860" />
+    <circle cx="1430" cy="830" r="3" fill="#bae6fd" />
+  </g>
+
+  <!-- 3. ZENTRALES 8-ECKIGES EISKRISTALL-MANDALA (STICH-ZIRKEL) -->
+  <circle cx="800" cy="500" r="330" fill="url(#frostCoreGlow)" />
+  <g transform="translate(800, 500)" stroke="url(#frostSilverGrad)" fill="none" opacity="0.55" filter="url(#frostGlow)">
+    <circle r="280" stroke-width="1.8" stroke-dasharray="14 6 2 6" />
+    <circle r="260" stroke-width="0.8" opacity="0.6" />
+
+    <!-- 8 Schneekristall-Hauptachsen -->
+    <path d="M 0,-250 L 0,250 M -250,0 L 250,0 M -176,-176 L 176,176 M -176,176 L 176,-176" stroke-width="1.5" />
+    
+    <!-- Kristall-Verzweigungen -->
+    <path d="M 0,-180 L -30,-210 M 0,-180 L 30,-210 M 0,-120 L -25,-145 M 0,-120 L 25,-145" stroke-width="1.2" />
+    <path d="M 0,180 L -30,210 M 0,180 L 30,210 M 0,120 L -25,145 M 0,120 L 25,145" stroke-width="1.2" />
+    <path d="M -180,0 L -210,-30 M -180,0 L -210,30 M -120,0 L -145,-25 M -120,0 L -145,25" stroke-width="1.2" />
+    <path d="M 180,0 L 210,-30 M 180,0 L 210,30 M 120,0 L 145,-25 M 120,0 L 145,25" stroke-width="1.2" />
+
+    <!-- Mittlerer Ring mit Frostdiamanten -->
+    <circle r="90" stroke-width="1.6" stroke-dasharray="6 6" />
+    <polygon points="0,-45 45,0 0,45 -45,0" stroke-width="1.4" fill="#38bdf8" fill-opacity="0.15" />
+    <circle r="12" fill="#ffffff" fill-opacity="0.5" />
+  </g>
+
+  <!-- 4. ARKTISCHE STERLINGSILBER-FIALEN (ECKBESCHLÄGE) -->
+  <g stroke="url(#frostSilverGrad)" fill="#071326" stroke-width="1.4" opacity="0.85">
+    <path d="M 45,110 L 45,55 Q 45,45 55,45 L 110,45" />
+    <path d="M 55,90 A 35,35 0 0,0 90,55" stroke-width="1.1" />
+    <circle cx="55" cy="55" r="4" fill="#38bdf8" />
+
+    <path d="M 1555,110 L 1555,55 Q 1555,45 1545,45 L 1490,45" />
+    <path d="M 1545,90 A 35,35 0 0,1 1510,55" stroke-width="1.1" />
+    <circle cx="1545" cy="55" r="4" fill="#38bdf8" />
+
+    <path d="M 45,890 L 45,945 Q 45,955 55,955 L 110,955" />
+    <path d="M 55,910 A 35,35 0 0,1 90,945" stroke-width="1.1" />
+    <circle cx="55" cy="945" r="4" fill="#38bdf8" />
+
+    <path d="M 1555,890 L 1555,945 Q 1555,955 1545,955 L 1490,955" />
+    <path d="M 1545,910 A 35,35 0 0,0 1510,945" stroke-width="1.1" />
+    <circle cx="1545" cy="945" r="4" fill="#38bdf8" />
+  </g>
+</svg>

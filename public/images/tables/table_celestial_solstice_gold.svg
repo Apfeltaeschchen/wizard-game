@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1600 1000" preserveAspectRatio="none">
+  <defs>
+    <!-- Kosmischer Sternenstaub & Lapislazuli Filter -->
+    <filter id="cosmicLapisDust" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65 0.65" numOctaves="3" result="noise" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.1   0 0 0 0 0.25   0 0 0 0 0.6  0 0 0 0.28 0" />
+    </filter>
+
+    <radialGradient id="solsticeSkyBg" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#19235e" />
+      <stop offset="35%" stop-color="#0e153b" />
+      <stop offset="70%" stop-color="#080c24" />
+      <stop offset="100%" stop-color="#030512" />
+    </radialGradient>
+
+    <!-- Polarlicht-Kernschein (Smaragdgrün, Polarviolett, Himmelsgold) -->
+    <radialGradient id="auroraCoreGlow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.3" />
+      <stop offset="35%" stop-color="#34d399" stop-opacity="0.2" />
+      <stop offset="65%" stop-color="#c084fc" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Reines 24k Sonnenwend-Gold -->
+    <linearGradient id="celestialGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="25%" stop-color="#fef08a" />
+      <stop offset="55%" stop-color="#fbbf24" />
+      <stop offset="85%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#92400e" />
+    </linearGradient>
+
+    <!-- Polarlicht-Wellenverlauf -->
+    <linearGradient id="auroraWaveRibbon" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0" />
+      <stop offset="30%" stop-color="#34d399" stop-opacity="0.22" />
+      <stop offset="60%" stop-color="#818cf8" stop-opacity="0.2" />
+      <stop offset="85%" stop-color="#c084fc" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- 1. KOSMISCHES LAPISLAZULI-FIRMAMENT -->
+  <rect width="1600" height="1000" fill="url(#solsticeSkyBg)" />
+  <rect width="1600" height="1000" filter="url(#cosmicLapisDust)" style="mix-blend-mode: screen;" />
+
+  <!-- 2. WOGENDE POLARLICHT-BÄNDER -->
+  <path d="M 0,250 Q 400,160 800,280 T 1600,210 L 1600,380 Q 1200,450 800,340 T 0,420 Z" fill="url(#auroraWaveRibbon)" opacity="0.65" />
+  <path d="M 0,650 Q 400,740 800,620 T 1600,690 L 1600,560 Q 1200,500 800,600 T 0,520 Z" fill="url(#auroraWaveRibbon)" opacity="0.45" />
+
+  <!-- 3. ZENTRALER STERN VON BETHLEHEM & ASTROLABIUM-ZIRKEL -->
+  <circle cx="800" cy="500" r="340" fill="url(#auroraCoreGlow)" />
+  <g transform="translate(800, 500)" stroke="url(#celestialGoldGrad)" fill="none" opacity="0.75">
+    <!-- Äußerer Tierkreiskranz mit Gradmarkierungen -->
+    <circle r="290" stroke-width="2.2" />
+    <circle r="275" stroke-width="0.8" stroke-dasharray="3 3" />
+    <circle r="260" stroke-width="1.4" stroke-dasharray="16 6 4 6" />
+
+    <!-- Ekliptik-Ellipsen des Armillars -->
+    <ellipse rx="240" ry="110" stroke-width="1.6" transform="rotate(-30)" />
+    <ellipse rx="240" ry="110" stroke-width="1.6" transform="rotate(30)" />
+
+    <!-- Innerer Koordinatenring -->
+    <circle r="140" stroke-width="1.8" />
+    <circle r="75" stroke-width="1.2" stroke-dasharray="6 6" />
+
+    <!-- Monumentaler 8-zackiger Stern von Bethlehem -->
+    <path d="M 0,-70 L 14,-14 L 70,0 L 14,14 L 0,70 L -14,14 L -70,0 L -14,-14 Z" stroke-width="1.8" fill="#fef08a" fill-opacity="0.35" />
+    <!-- Diagonale Nebenstrahlen -->
+    <path d="M -35,-35 L -8,-8 L 0,0 L -8,8 L -35,35 L 0,0 L 35,35 L 8,8 L 0,0 L 8,-8 L 35,-35 Z" stroke-width="1.2" fill="#ffffff" fill-opacity="0.25" />
+    <circle r="9" fill="#ffffff" />
+  </g>
+
+  <!-- 4. BAROCKE SONNENWEND-GOLDBORDÜRE MIT ENGELSSCHWINGEN-RELIEFS -->
+  <g stroke="url(#celestialGoldGrad)" fill="none" opacity="0.85">
+    <rect x="45" y="45" width="1510" height="910" rx="16" stroke-width="2.2" />
+    <rect x="58" y="58" width="1484" height="884" rx="12" stroke-width="1.0" opacity="0.5" />
+
+    <!-- Barocke Zierbögen oben & unten -->
+    <path d="M 650,45 Q 800,85 950,45" stroke-width="1.8" />
+    <path d="M 650,955 Q 800,915 950,955" stroke-width="1.8" />
+
+    <!-- Engelsflügel-Reliefs in den Ecken -->
+    <!-- Oben-Links -->
+    <g transform="translate(60, 60)" stroke-width="1.5" fill="#131b47" fill-opacity="0.6">
+      <path d="M 0,70 Q 25,25 70,0 Q 40,40 30,80 Z" />
+      <circle cx="15" cy="15" r="4.5" fill="#fef08a" />
+    </g>
+    <!-- Oben-Rechts -->
+    <g transform="translate(1540, 60)" stroke-width="1.5" fill="#131b47" fill-opacity="0.6">
+      <path d="M 0,70 Q -25,25 -70,0 Q -40,40 -30,80 Z" />
+      <circle cx="-15" cy="15" r="4.5" fill="#fef08a" />
+    </g>
+    <!-- Unten-Links -->
+    <g transform="translate(60, 940)" stroke-width="1.5" fill="#131b47" fill-opacity="0.6">
+      <path d="M 0,-70 Q 25,-25 70,0 Q 40,-40 30,-80 Z" />
+      <circle cx="15" cy="-15" r="4.5" fill="#fef08a" />
+    </g>
+    <!-- Unten-Rechts -->
+    <g transform="translate(1540, 940)" stroke-width="1.5" fill="#131b47" fill-opacity="0.6">
+      <path d="M 0,-70 Q -25,-25 -70,0 Q -40,-40 -30,-80 Z" />
+      <circle cx="-15" cy="-15" r="4.5" fill="#fef08a" />
+    </g>
+  </g>
+</svg>
