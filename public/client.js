@@ -2823,7 +2823,7 @@ const WizardAuth = (() => {
       const initial = (u.username || '?').charAt(0).toUpperCase();
       avatarShieldEl.className = `seat-avatar frame-${f}`;
       if (a && a.startsWith('icon_')) {
-        avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.png" class="seat-avatar-img" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+        avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.png" class="seat-avatar-img avatar-img-${a}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
       } else if (a && a.startsWith('wizard_')) {
         avatarShieldEl.innerHTML = `<img src="/images/avatars/${a}.svg" class="seat-avatar-img" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="${escapeHtml(u.username)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
       } else {
@@ -2991,7 +2991,12 @@ const WizardAuth = (() => {
       { id: 'astral_cosmos', name: 'Astral-Kosmos', isDefault: false, rarity: 'epic' },
       { id: 'dragon_scales', name: 'Drachenschuppen', isDefault: false, rarity: 'epic' },
       { id: 'fairy_grove', name: 'Feenhain', isDefault: false, rarity: 'rare' },
-      { id: 'shadow_flame', name: 'Schattenflamme', isDefault: false, rarity: 'legendary' }
+      { id: 'shadow_flame', name: 'Schattenflamme', isDefault: false, rarity: 'legendary' },
+      { id: 'yule_pine_ribbon', name: 'Festtags-Pergament & Rote Seide', isDefault: false, rarity: 'common' },
+      { id: 'frost_snowflake_filigree', name: 'Eiskristall-Mandala & Frostsilber', isDefault: false, rarity: 'rare' },
+      { id: 'nutcracker_regiment', name: 'Kaiserliche Samt-Tressen & Garde-Emblem', isDefault: false, rarity: 'epic' },
+      { id: 'candlelight_vigil', name: 'Geweihte Mistelranke & Sonnenwend-Licht', isDefault: false, rarity: 'epic' },
+      { id: 'celestial_solstice_gold', name: 'Stern von Bethlehem & Sonnenwend-Gold', isDefault: false, rarity: 'legendary' }
     ];
     populateSelect(cardBackSelect, cardBackItems, u.equipped_card_back || 'default', 'card_back');
 
@@ -3972,7 +3977,12 @@ function applyTableSkin(skinId) {
 function applyLobbyTheme(themeId) {
   const lobby = document.getElementById('lobby-screen');
   const waiting = document.getElementById('waiting-room-screen');
-  const themes = ['citadel_halls', 'haunted_graveyard', 'witch_hut', 'tavern_fireplace', 'astral_observatory', 'magma_forge', 'celestial_sanctum'];
+  const themes = [
+    'citadel_halls', 'haunted_graveyard', 'witch_hut', 'tavern_fireplace',
+    'astral_observatory', 'magma_forge', 'celestial_sanctum',
+    'yule_hearth_hall', 'winter_pine_forest', 'toy_workshop_vault',
+    'glacier_ice_palace', 'aurora_observatory_peak'
+  ];
   [lobby, waiting].forEach(el => {
     if (!el) return;
     themes.forEach(t => el.classList.remove(`theme-${t}`));
@@ -6554,7 +6564,12 @@ function openCardBackInspectModal(deckId) {
       pumpkin_king: 'Furchterregender Schnitzkürbis mit feurig glühendem Dämonengrinsen und Herbstlaub.',
       gravestone_runes: 'Verwitterter gotischer Schiefer mit uralten Moos-Totenkopfgravuren und Seelenleuchten.',
       dragon: 'Echte rote Lindwurmschuppen-Panzerung mit feuerfesten Goldbeschlägen und Schlitzauge.',
-      citadel_ancient: 'Das berühmte kobaltblaue Meisterstück der Hohen Zitadelle mit 30 Jahre Goldfiligran-Bordüren und Arkan-Kompass.'
+      citadel_ancient: 'Das berühmte kobaltblaue Meisterstück der Hohen Zitadelle mit 30 Jahre Goldfiligran-Bordüren und Arkan-Kompass.',
+      yule_pine_ribbon: 'Schweres, warmes Pergament mit eingeprägten Tannenzapfen-Reliefs, umwunden von rubinrotem Samtband und einer schlichten Siegellack-Prägung der Wintersonnenwende.',
+      frost_snowflake_filigree: 'Geschliffenes, mitternachtsblaues Gletschereis, gefasst in arktisches Sterlingsilber mit einem hypnotisch symmetrischen Eiskristall-Mandala.',
+      nutcracker_regiment: 'Königlicher karmesinroter Samt mit goldenen Husaren-Verschnürungen, gekreuzten Parade-Säbeln und dem imperialen Uhrwerk-Kronenwappen.',
+      candlelight_vigil: 'Uraltes schwarzes Mahagoni mit glimmenden Festtagskerzen, goldenen Mistelranken und dem geheimnisvollen Schein der längsten Winternacht.',
+      celestial_solstice_gold: 'Das legendäre Meisterstück der Himmels-Observatorien. Geschmiedet aus heiligem Sonnenwend-Gold und Polarlicht-Saphir, behütet von schwebenden Engelsflügeln und dem ewigen Stern.'
     };
 
     const rarNames = { common: 'Gewöhnlich', rare: 'Selten', epic: 'Episch', legendary: 'Legendär' };
@@ -6695,7 +6710,7 @@ function openPlayerDetailModal(data, source = 'table') {
       const f = data.equipped_avatar_frame || data.avatarFrame || 'none';
       avatarEl.className = `player-detail-avatar-large seat-avatar frame-${f}`;
       if (a && a.startsWith('icon_')) {
-        avatarEl.innerHTML = `<img src="/images/avatars/${a}.png" class="seat-avatar-img" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;" alt="${escapeHtml(name)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+        avatarEl.innerHTML = `<img src="/images/avatars/${a}.png" class="seat-avatar-img avatar-img-${a}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;" alt="${escapeHtml(name)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
       } else if (a && a.startsWith('wizard_')) {
         avatarEl.innerHTML = `<img src="/images/avatars/${a}.svg" class="seat-avatar-img" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;" alt="${escapeHtml(name)}" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
       } else {
@@ -7842,7 +7857,7 @@ function createPlayerWaitingItem(p, isHostUser) {
   let avatarVisualHtml = initial;
   if (p.avatarId) {
     if (p.avatarId.startsWith('icon_')) {
-      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+      avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img avatar-img-${p.avatarId}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
     } else if (p.avatarId.startsWith('wizard_')) {
       avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
     }
@@ -9713,7 +9728,7 @@ function renderOpponents() {
     let avatarVisualHtml = `<span class="seat-avatar-initial">${initial}</span>`;
     if (p.avatarId) {
       if (p.avatarId.startsWith('icon_')) {
-        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'seat-avatar-initial\\'>${initial}</span>';">`;
+        avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.png" alt="" class="seat-avatar-img avatar-img-${p.avatarId}" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'seat-avatar-initial\\'>${initial}</span>';">`;
       } else if (p.avatarId.startsWith('wizard_')) {
         avatarVisualHtml = `<img src="/images/avatars/${p.avatarId}.svg" alt="" class="seat-avatar-img" style="width:100%; height:100%; object-fit:cover; border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'seat-avatar-initial\\'>${initial}</span>';">`;
       }
@@ -11316,7 +11331,7 @@ function startMvpVoting(data, onDone) {
       const av = cand.avatarId || 'default';
       let imgHtml = initial;
       if (av.startsWith('icon_')) {
-        imgHtml = `<img src="/images/avatars/${av}.png" alt="" class="seat-avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
+        imgHtml = `<img src="/images/avatars/${av}.png" alt="" class="seat-avatar-img avatar-img-${av}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
       } else if (av.startsWith('wizard_')) {
         imgHtml = `<img src="/images/avatars/${av}.svg" alt="" class="seat-avatar-img" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.onerror=null; this.parentElement.innerText='${initial}';">`;
       }

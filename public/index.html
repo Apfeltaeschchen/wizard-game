@@ -7552,6 +7552,43 @@
       box-shadow: 0 0 18px rgba(239, 68, 68, 0.65) !important;
     }
 
+    /* Weihnachts-Sonderedition Kartenrücken */
+    .cardback-theme-yule_pine_ribbon,
+    .card.card-blind.cardback-theme-yule_pine_ribbon,
+    .card.card-blind .card-face-front.cardback-theme-yule_pine_ribbon {
+      background-image: url('/images/card_backs/back_yule_pine_ribbon.svg') !important;
+      border-color: #15803d !important;
+      box-shadow: 0 0 12px rgba(21, 128, 61, 0.5) !important;
+    }
+    .cardback-theme-frost_snowflake_filigree,
+    .card.card-blind.cardback-theme-frost_snowflake_filigree,
+    .card.card-blind .card-face-front.cardback-theme-frost_snowflake_filigree {
+      background-image: url('/images/card_backs/back_frost_snowflake_filigree.svg') !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
+    }
+    .cardback-theme-nutcracker_regiment,
+    .card.card-blind.cardback-theme-nutcracker_regiment,
+    .card.card-blind .card-face-front.cardback-theme-nutcracker_regiment {
+      background-image: url('/images/card_backs/back_nutcracker_regiment.svg') !important;
+      border-color: #e11d48 !important;
+      box-shadow: 0 0 18px rgba(225, 29, 72, 0.65) !important;
+    }
+    .cardback-theme-candlelight_vigil,
+    .card.card-blind.cardback-theme-candlelight_vigil,
+    .card.card-blind .card-face-front.cardback-theme-candlelight_vigil {
+      background-image: url('/images/card_backs/back_candlelight_vigil.svg') !important;
+      border-color: #fb923c !important;
+      box-shadow: 0 0 18px rgba(251, 146, 60, 0.65) !important;
+    }
+    .cardback-theme-celestial_solstice_gold,
+    .card.card-blind.cardback-theme-celestial_solstice_gold,
+    .card.card-blind .card-face-front.cardback-theme-celestial_solstice_gold {
+      background-image: url('/images/card_backs/back_celestial_solstice_gold.svg') !important;
+      border-color: #fbbf24 !important;
+      box-shadow: 0 0 22px rgba(251, 191, 36, 0.85) !important;
+    }
+
     /* =====================================================================
        VOLLWERTIGE ECHTE SPIELKARTEN-RÜCKSEITEN (.card.card-back)
        ===================================================================== */
@@ -7940,6 +7977,11 @@
     .lobby-theme-astral_observatory { background: url('/images/backgrounds/bg_astral_observatory.jpg'); }
     .lobby-theme-magma_forge { background: url('/images/backgrounds/bg_magma_forge.jpg'); }
     .lobby-theme-celestial_sanctum { background: url('/images/backgrounds/bg_celestial_sanctum.jpg'); }
+    .lobby-theme-yule_hearth_hall { background: url('/images/backgrounds/bg_yule_hearth_hall.jpg'); }
+    .lobby-theme-winter_pine_forest { background: url('/images/backgrounds/bg_winter_pine_forest.jpg'); }
+    .lobby-theme-toy_workshop_vault { background: url('/images/backgrounds/bg_toy_workshop_vault.jpg'); }
+    .lobby-theme-glacier_ice_palace { background: url('/images/backgrounds/bg_glacier_ice_palace.jpg'); }
+    .lobby-theme-aurora_observatory_peak { background: url('/images/backgrounds/bg_aurora_observatory_peak.jpg'); }
 
 
     .cosmetic-mini-title {
@@ -8501,6 +8543,147 @@
     }
     #lobby-screen.theme-celestial_sanctum, #waiting-room-screen.theme-celestial_sanctum {
       background: linear-gradient(180deg, rgba(20, 16, 5, 0.3) 0%, rgba(20, 16, 5, 0.75) 100%), url('/images/backgrounds/bg_celestial_sanctum.jpg') center center / cover no-repeat !important;
+    }
+
+    /* WEIHNACHTS-LOBBIES (5 SONDEREDITIONEN MIT MAGIE-VIGNETTE) */
+    #lobby-screen.theme-yule_hearth_hall, #waiting-room-screen.theme-yule_hearth_hall {
+      background: linear-gradient(180deg, rgba(24, 12, 6, 0.32) 0%, rgba(20, 10, 4, 0.78) 100%), url('/images/backgrounds/bg_yule_hearth_hall.jpg') center center / cover no-repeat !important;
+    }
+    #lobby-screen.theme-winter_pine_forest, #waiting-room-screen.theme-winter_pine_forest {
+      background: linear-gradient(180deg, rgba(4, 12, 24, 0.32) 0%, rgba(4, 12, 24, 0.78) 100%), url('/images/backgrounds/bg_winter_pine_forest.jpg') center center / cover no-repeat !important;
+    }
+    #lobby-screen.theme-toy_workshop_vault, #waiting-room-screen.theme-toy_workshop_vault {
+      background: linear-gradient(180deg, rgba(24, 8, 8, 0.32) 0%, rgba(24, 8, 8, 0.8) 100%), url('/images/backgrounds/bg_toy_workshop_vault.jpg') center center / cover no-repeat !important;
+    }
+    #lobby-screen.theme-glacier_ice_palace, #waiting-room-screen.theme-glacier_ice_palace {
+      background: linear-gradient(180deg, rgba(3, 20, 30, 0.32) 0%, rgba(3, 20, 30, 0.8) 100%), url('/images/backgrounds/bg_glacier_ice_palace.jpg') center center / cover no-repeat !important;
+    }
+    #lobby-screen.theme-aurora_observatory_peak, #waiting-room-screen.theme-aurora_observatory_peak {
+      background: linear-gradient(180deg, rgba(12, 4, 28, 0.28) 0%, rgba(12, 4, 28, 0.76) 100%), url('/images/backgrounds/bg_aurora_observatory_peak.jpg') center center / cover no-repeat !important;
+    }
+
+    /* ATMOSPHÄRISCHE CSS-AMBIENT-EFFEKTE FÜR WEIHNACHTS-LOBBIES */
+    #lobby-screen.theme-yule_hearth_hall::before, #waiting-room-screen.theme-yule_hearth_hall::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 65%, rgba(245, 158, 11, 0.18) 0%, rgba(234, 88, 12, 0.08) 40%, transparent 75%);
+      animation: hearthWarmthPulse 4.5s ease-in-out infinite;
+      z-index: 1;
+    }
+    @keyframes hearthWarmthPulse {
+      0%, 100% { opacity: 0.35; transform: scale(0.98); }
+      50% { opacity: 0.75; transform: scale(1.02); }
+    }
+
+    #lobby-screen.theme-winter_pine_forest::before, #waiting-room-screen.theme-winter_pine_forest::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: 
+        radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 80px 120px, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1.5px 1.5px at 150px 60px, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2.5px 2.5px at 230px 190px, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(2px 2px at 310px 90px, rgba(255, 255, 255, 0.75), transparent);
+      background-size: 380px 380px;
+      animation: gentleSnowFall 14s linear infinite;
+      opacity: 0.65;
+      z-index: 1;
+    }
+    @keyframes gentleSnowFall {
+      0% { background-position: 0 0; }
+      100% { background-position: 40px 380px; }
+    }
+
+    #lobby-screen.theme-toy_workshop_vault::before, #waiting-room-screen.theme-toy_workshop_vault::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 62% 40%, rgba(251, 191, 36, 0.15) 0%, rgba(180, 83, 9, 0.05) 50%, transparent 70%);
+      animation: workshopAmberBreathe 5s ease-in-out infinite;
+      z-index: 1;
+    }
+    @keyframes workshopAmberBreathe {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+
+    #lobby-screen.theme-glacier_ice_palace::before, #waiting-room-screen.theme-glacier_ice_palace::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(125deg, transparent 35%, rgba(56, 189, 248, 0.12) 50%, transparent 65%);
+      background-size: 200% 200%;
+      animation: frostPrismSweep 7.5s ease-in-out infinite;
+      z-index: 1;
+    }
+    @keyframes frostPrismSweep {
+      0%, 100% { background-position: 0% 0%; opacity: 0.3; }
+      50% { background-position: 100% 100%; opacity: 0.7; }
+    }
+
+    #lobby-screen.theme-aurora_observatory_peak::before, #waiting-room-screen.theme-aurora_observatory_peak::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 50% 15%, rgba(52, 211, 153, 0.2) 0%, rgba(168, 85, 247, 0.14) 45%, transparent 75%);
+      animation: auroraWavePulse 6.5s ease-in-out infinite;
+      z-index: 1;
+    }
+    @keyframes auroraWavePulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(0.95); }
+      50% { opacity: 0.85; transform: scaleY(1.05); }
+    }
+
+    /* ==========================================================================
+       WEIHNACHTS-AVATARE THEMEN & AMBIENT-EFFEKTE (AAA ATMOSPHÄRE)
+       ========================================================================== */
+    .seat-avatar-img.avatar-img-icon_yule_elf {
+      animation: elfMischiefGlint 6.5s ease-in-out infinite;
+    }
+    @keyframes elfMischiefGlint {
+      0%, 88%, 100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+      92% { filter: brightness(1.15) drop-shadow(0 0 6px rgba(245, 158, 11, 0.6)); }
+      96% { filter: brightness(1.05) drop-shadow(0 0 2px rgba(245, 158, 11, 0.3)); }
+    }
+
+    .seat-avatar-img.avatar-img-icon_frost_golem {
+      animation: golemFrostBreath 5.5s ease-in-out infinite;
+    }
+    @keyframes golemFrostBreath {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 2px rgba(56, 189, 248, 0.2)); }
+      50% { filter: brightness(1.12) drop-shadow(0 0 8px rgba(56, 189, 248, 0.65)); }
+    }
+
+    .seat-avatar-img.avatar-img-icon_nutcracker_general {
+      animation: nutcrackerHonorFlash 6.0s ease-in-out infinite;
+    }
+    @keyframes nutcrackerHonorFlash {
+      0%, 86%, 100% { filter: brightness(1) contrast(1); }
+      90% { filter: brightness(1.2) contrast(1.08) drop-shadow(0 0 8px rgba(251, 191, 36, 0.7)); }
+      94% { filter: brightness(1.05) contrast(1.02); }
+    }
+
+    .seat-avatar-img.avatar-img-icon_winter_queen {
+      animation: winterQueenAura 6.0s ease-in-out infinite;
+    }
+    @keyframes winterQueenAura {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 3px rgba(125, 211, 252, 0.3)); }
+      50% { filter: brightness(1.1) drop-shadow(0 0 10px rgba(56, 189, 248, 0.6)) drop-shadow(0 0 4px rgba(255, 255, 255, 0.5)); }
+    }
+
+    .seat-avatar-img.avatar-img-icon_santa_archmage {
+      animation: santaLegendaryRadiance 5.0s ease-in-out infinite;
+    }
+    @keyframes santaLegendaryRadiance {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 4px rgba(245, 158, 11, 0.3)); }
+      50% { filter: brightness(1.15) drop-shadow(0 0 12px rgba(251, 191, 36, 0.8)) drop-shadow(0 0 6px rgba(254, 240, 138, 0.6)); }
     }
 
     /* HALLOWEEN TISCH-SKIN (AAA VEKTOR-TEXTILES & PLASTISCHE TIEFE) */

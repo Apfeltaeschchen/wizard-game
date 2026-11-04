@@ -44,7 +44,13 @@ const COSMETICS_CATALOG = {
     { id: 'icon_forest_nymph', name: 'Waldnymphe', rarity: 'rare', image: '/images/avatars/icon_forest_nymph.png', lore: 'Geboren aus uraltem Moos und leuchtendem Feenstaub.' },
     { id: 'icon_necromancer', name: 'Nekromant', rarity: 'rare', image: '/images/avatars/icon_necromancer.png', lore: 'Spricht im Flüsterton mit den Seelen verblichener Kartenspieler.' },
     { id: 'icon_vampire', name: 'Vampir-Graf', rarity: 'epic', image: '/images/avatars/icon_vampire.png', lore: 'Ein edler Aristokrat aus den finsteren Gewölben der Nacht.' },
-    { id: 'icon_seer', name: 'Astralseherin', rarity: 'legendary', image: '/images/avatars/icon_seer.png', lore: 'Sieht jeden Stich voraus, noch bevor das Deck gemischt wird.' }
+    { id: 'icon_seer', name: 'Astralseherin', rarity: 'legendary', image: '/images/avatars/icon_seer.png', lore: 'Sieht jeden Stich voraus, noch bevor das Deck gemischt wird.' },
+    // Weihnachts-Sonderedition (Handgefertigte Festtags-Avatare)
+    { id: 'icon_yule_elf', name: 'Festtags-Wichtel', rarity: 'common', image: '/images/avatars/icon_yule_elf.png', lore: 'Ein flinker, schelmischer Werkstatt-Wichtel mit spitz zulaufenden Ohren und glöckchenbesetzter Filzmütze, der heimlich Karten unterm Tisch vertauscht.' },
+    { id: 'icon_frost_golem', name: 'Raureif-Wächter', rarity: 'rare', image: '/images/avatars/icon_frost_golem.png', lore: 'Erschaffen aus ewigem Gletschereis und uralten Felsrunen, um die schneebedeckten Tore der Zitadelle vor eisigen Schneestürmen zu schützen.' },
+    { id: 'icon_nutcracker_general', name: 'Kaiserlicher Nussknacker-General', rarity: 'epic', image: '/images/avatars/icon_nutcracker_general.png', lore: 'Zum Leben erweckt durch die alte Uhrwerk-Zauberei des Großmeisters, führt er die Zinnsoldaten-Garde mit eiserner Disziplin an.' },
+    { id: 'icon_winter_queen', name: 'Königin der Wintersonnenwende', rarity: 'epic', image: '/images/avatars/icon_winter_queen.png', lore: 'Ihre Berührung lässt Flüsse gefrieren und ihr Flüstern ruft den heulenden Nordwind über die Zinnen der Zitadelle.' },
+    { id: 'icon_santa_archmage', name: 'Klaus der Uralte, Erzmagier der Yule', rarity: 'legendary', image: '/images/avatars/icon_santa_archmage.png', lore: 'Ein sagenumwobener Großmeister der Zeitmagie, der in der längsten Nacht des Jahres auf einem feurigen Sternenschlitten durch alle Dimensionen reist.' }
   ],
 
   card_backs: [
@@ -64,7 +70,14 @@ const COSMETICS_CATALOG = {
 
     // Legendär (Legendary)
     { id: 'dragon', name: 'Drachenschuppe', rarity: 'legendary', lore: 'Echte rote Lindwurmschuppen-Panzerung mit feuerfesten Goldbeschlägen und Schlitzauge.' },
-    { id: 'citadel_ancient', name: 'Arkane Zitadelle (30 Jahre Jubiläums-Gold)', rarity: 'legendary', lore: 'Das berühmte kobaltblaue Meisterstück der Hohen Zitadelle mit echten Goldfiligran-Bordüren und Arkan-Kompass.' }
+    { id: 'citadel_ancient', name: 'Arkane Zitadelle (30 Jahre Jubiläums-Gold)', rarity: 'legendary', lore: 'Das berühmte kobaltblaue Meisterstück der Hohen Zitadelle mit echten Goldfiligran-Bordüren und Arkan-Kompass.' },
+
+    // Weihnachts-Sonderedition (Handgefertigte Festtags-Kartenrücken)
+    { id: 'yule_pine_ribbon', name: 'Festtags-Pergament & Rote Seide', rarity: 'common', lore: 'Schweres, warmes Pergament mit eingeprägten Tannenzapfen-Reliefs, umwunden von rubinrotem Samtband und einer schlichten Siegellack-Prägung der Wintersonnenwende.' },
+    { id: 'frost_snowflake_filigree', name: 'Eiskristall-Mandala & Frostsilber', rarity: 'rare', lore: 'Geschliffenes, mitternachtsblaues Gletschereis, gefasst in arktisches Sterlingsilber mit einem hypnotisch symmetrischen Eiskristall-Mandala.' },
+    { id: 'nutcracker_regiment', name: 'Kaiserliche Samt-Tressen & Garde-Emblem', rarity: 'epic', lore: 'Königlicher karmesinroter Samt mit goldenen Husaren-Verschnürungen, gekreuzten Parade-Säbeln und dem imperialen Uhrwerk-Kronenwappen.' },
+    { id: 'candlelight_vigil', name: 'Geweihte Mistelranke & Sonnenwend-Licht', rarity: 'epic', lore: 'Uraltes schwarzes Mahagoni mit glimmenden Festtagskerzen, goldenen Mistelranken und dem geheimnisvollen Schein der längsten Winternacht.' },
+    { id: 'celestial_solstice_gold', name: 'Stern von Bethlehem & Sonnenwend-Gold', rarity: 'legendary', lore: 'Das legendäre Meisterstück der Himmels-Observatorien. Geschmiedet aus heiligem Sonnenwend-Gold und Polarlicht-Saphir, behütet von schwebenden Engelsflügeln und dem ewigen Stern.' }
   ],
 
   table_skins: [
@@ -104,7 +117,13 @@ const COSMETICS_CATALOG = {
     { id: 'tavern_fireplace', name: 'Kaminfeuer-Taverne', rarity: 'rare', icon: '🍺', lore: 'Rustikales Holz, behagliche Wärme und das Knistern von Eichenbalken.' },
     { id: 'astral_observatory', name: 'Sternen-Observatorium', rarity: 'epic', icon: '🌌', lore: 'Ein endloser Blick in kreisende Galaxien und glühende Sternbilder.' },
     { id: 'magma_forge', name: 'Magmaschmiede der Zwerge', rarity: 'epic', icon: '🌋', lore: 'Glühender Basaltstein und fliegende Funken aus den Tiefen des Berges.' },
-    { id: 'celestial_sanctum', name: 'Himmlisches Sanktum', rarity: 'legendary', icon: '☀️', lore: 'Erhabener goldener Marmor, durchflutet von göttlichen Sonnenstrahlen.' }
+    { id: 'celestial_sanctum', name: 'Himmlisches Sanktum', rarity: 'legendary', icon: '☀️', lore: 'Erhabener goldener Marmor, durchflutet von göttlichen Sonnenstrahlen.' },
+    // Weihnachts-Sonderedition
+    { id: 'yule_hearth_hall', name: 'Kamin-Festsaal der Sonnenwende', rarity: 'common', icon: '🪵', lore: 'Eine behagliche Steinhalle mit prasselndem Kaminfeuer, duftenden Tannenzweigen und warmem Kerzenschein zur Wintersonnenwende.' },
+    { id: 'winter_pine_forest', name: 'Mondlicht-Nadelwald', rarity: 'rare', icon: '🌲', lore: 'Uralte, tief verschneite Tannen unter einem sternenklaren Nachthimmel, durchtanzt von schwebenden Irrlichtern.' },
+    { id: 'toy_workshop_vault', name: 'Werkstatt des Meister-Tüftlers', rarity: 'epic', icon: '⚙️', lore: 'Ein verwinkeltes Gewölbe voller mechanischer Nussknacker, goldener Zahnräder, Samtgeschenke und dampfender Magie-Modelle.' },
+    { id: 'glacier_ice_palace', name: 'Gotische Gletscher-Kathedrale', rarity: 'epic', icon: '💎', lore: 'Erhabene Fialen und Spitzbögen aus durchscheinendem Gletschereis, erhellt von magisch kalten blauen Flammen.' },
+    { id: 'aurora_observatory_peak', name: 'Polarlicht-Sternwarte', rarity: 'legendary', icon: '🌌', lore: 'Die höchste Zinne der Berg-Sternwarte unter gigantischen, wogenden Polarlichtern und dem leuchtenden Stern von Bethlehem.' }
   ],
 
   titles: [
