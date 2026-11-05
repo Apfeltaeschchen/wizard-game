@@ -1,78 +1,135 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <!-- Rustikales Eichenholz & Kaminfeuer Gradienten -->
-    <radialGradient id="hearthWoodRing" cx="30%" cy="30%" r="75%">
+    <!-- Rustikales Zirben- & Eichenholz -->
+    <radialGradient id="pineWoodBough" cx="30%" cy="30%" r="70%">
       <stop offset="0%" stop-color="#b45309"/>
-      <stop offset="35%" stop-color="#78350f"/>
-      <stop offset="70%" stop-color="#451a03"/>
+      <stop offset="40%" stop-color="#78350f"/>
+      <stop offset="75%" stop-color="#451a03"/>
       <stop offset="100%" stop-color="#1c0a03"/>
     </radialGradient>
-    <linearGradient id="pineNeedleGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#4ade80"/>
-      <stop offset="35%" stop-color="#15803d"/>
-      <stop offset="75%" stop-color="#166534"/>
+
+    <!-- Nadelgrün & Moos -->
+    <linearGradient id="deepPineNeedle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="30%" stop-color="#22c55e"/>
+      <stop offset="65%" stop-color="#15803d"/>
       <stop offset="100%" stop-color="#052e16"/>
     </linearGradient>
-    <radialGradient id="coalEmberGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#fef08a"/>
-      <stop offset="35%" stop-color="#f97316"/>
-      <stop offset="75%" stop-color="#ea580c"/>
-      <stop offset="100%" stop-color="#7c2d12"/>
+
+    <!-- Holz-Glut & Kaminfeuer -->
+    <radialGradient id="hearthEmberRadial" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#fef08a"/>
+      <stop offset="60%" stop-color="#f97316"/>
+      <stop offset="85%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#450a0a"/>
     </radialGradient>
+
     <filter id="hearthPineShadow" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.88"/>
-      <feDropShadow dx="0" dy="1.8" stdDeviation="2.2" flood-color="#b45309" flood-opacity="0.45"/>
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="1.8" stdDeviation="2.5" flood-color="#b45309" flood-opacity="0.5"/>
     </filter>
   </defs>
 
   <g filter="url(#hearthPineShadow)">
-    <!-- 1. Robuster Eichenholz-Reif (r=35.5, stroke 1.8px) & Hanfseil-Dotted Accent -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#hearthWoodRing)" stroke-width="1.8"/>
+    <!-- 1. 360° VERFLOCHTENER NATURKRANZ (Hauptast & Zweigbögen umschließen das Porträt) -->
+    <!-- Geschnitzter Holz-Grundring (r=35.5, Stärke 1.8px) -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#pineWoodBough)" stroke-width="2"/>
     <circle cx="50" cy="50" r="37.2" stroke="#d97706" stroke-width="0.8" stroke-dasharray="3 3"/>
 
-    <!-- 2. Tannenzweig-Bündel & Rinden-Relief Flanke Links -->
-    <g stroke="url(#pineNeedleGrad)" stroke-linecap="round" fill="none">
-      <!-- Äußerer Zweigbogen (bleibt strikt unter maxR 44.0) -->
-      <path d="M19,34 C14,30 11,36 9,42 C13,43 15,48 11,54 C15,55 18,60 20,66" stroke-width="1.2"/>
-      <!-- Nadelbüschel -->
-      <path d="M11,38 L8,36 M10,44 L7,43 M12,50 L9,51 M14,56 L11,58" stroke-width="0.8" stroke="#86efac"/>
-      <!-- Kleine Tannenzapfen-Schuppe -->
-      <polygon points="10,42 14,43 12,40" fill="#78350f" stroke="#451a03" stroke-width="0.3"/>
-      <polygon points="12,52 16,53 14,50" fill="#78350f" stroke="#451a03" stroke-width="0.3"/>
+    <!-- Dichte Nadelzweige ringsum (360° Natur-Silhouette, strikt außerhalb r=34.5, maximal bis r=45) -->
+    <!-- Quadrant Oben-Links -->
+    <path d="M30,20 Q22,17 18,24 Q24,25 32,24" stroke="url(#deepPineNeedle)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M22,18 L19,14 M25,20 L23,15 M20,22 L16,21 M27,23 L26,18" stroke="#86efac" stroke-width="0.8" stroke-linecap="round"/>
+
+    <!-- Quadrant Oben-Rechts -->
+    <path d="M70,20 Q78,17 82,24 Q76,25 68,24" stroke="url(#deepPineNeedle)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M78,18 L81,14 M75,20 L77,15 M80,22 L84,21 M73,23 L74,18" stroke="#86efac" stroke-width="0.8" stroke-linecap="round"/>
+
+    <!-- Quadrant Mitte-Links -->
+    <path d="M16,40 Q10,48 15,58 Q17,50 18,44" stroke="url(#deepPineNeedle)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12,45 L8,44 M12,50 L7,51 M14,54 L10,57" stroke="#4ade80" stroke-width="0.8" stroke-linecap="round"/>
+
+    <!-- Quadrant Mitte-Rechts -->
+    <path d="M84,40 Q90,48 85,58 Q83,50 82,44" stroke="url(#deepPineNeedle)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M88,45 L92,44 M88,50 L93,51 M86,54 L90,57" stroke="#4ade80" stroke-width="0.8" stroke-linecap="round"/>
+
+    <!-- Plastische Tannenzapfen auf 4 Uhr und 8 Uhr (asymmetrische Natur-Details) -->
+    <!-- Tannenzapfen links unten (8 Uhr, ca. x=23, y=75) -->
+    <g transform="translate(24, 73) rotate(-25)">
+      <ellipse cx="0" cy="0" rx="3.5" ry="5.5" fill="#451a03" stroke="#78350f" stroke-width="0.5"/>
+      <path d="M-2,-3 Q0,-1 2,-3 M-3,-1 Q0,1 3,-1 M-3,1 Q0,3 3,1 M-2,3 Q0,5 2,3" stroke="#b45309" stroke-width="0.7" fill="none"/>
+    </g>
+    <!-- Tannenzapfen rechts oben (2 Uhr, ca. x=77, y=28) -->
+    <g transform="translate(77, 28) rotate(35)">
+      <ellipse cx="0" cy="0" rx="3" ry="4.5" fill="#451a03" stroke="#78350f" stroke-width="0.5"/>
+      <path d="M-1.8,-2 Q0,-0.5 1.8,-2 M-2.2,0 Q0,1.5 2.2,0 M-1.8,2 Q0,3.5 1.8,2" stroke="#b45309" stroke-width="0.6" fill="none"/>
     </g>
 
-    <!-- Tannenzweig-Bündel & Rinden-Relief Flanke Rechts -->
-    <g stroke="url(#pineNeedleGrad)" stroke-linecap="round" fill="none">
-      <!-- Äußerer Zweigbogen -->
-      <path d="M81,34 C86,30 89,36 91,42 C87,43 85,48 89,54 C85,55 82,60 80,66" stroke-width="1.2"/>
-      <!-- Nadelbüschel -->
-      <path d="M89,38 L92,36 M90,44 L93,43 M88,50 L91,51 M86,56 L89,58" stroke-width="0.8" stroke="#86efac"/>
-      <!-- Tannenzapfen-Schuppe -->
-      <polygon points="90,42 86,43 88,40" fill="#78350f" stroke="#451a03" stroke-width="0.3"/>
-      <polygon points="88,52 84,53 86,50" fill="#78350f" stroke="#451a03" stroke-width="0.3"/>
-    </g>
+    <!-- 2. BASIS (6 Uhr): RUSTIKALE KAMINHOLZ-SCHEITE MIT KNISTERNDER GLUT (y=80 bis 93) -->
+    <!-- Hinteres Holzscheit -->
+    <path d="M37,87 L63,87 L61,92 L39,92 Z" fill="#291104" stroke="#78350f" stroke-width="0.6"/>
+    <!-- Gekreuztes vorderes Kaminholzscheit links -->
+    <path d="M36,83 L49,93 L46,95 L33,85 Z" fill="#451a03" stroke="#b45309" stroke-width="0.6"/>
+    <ellipse cx="34.5" cy="84" rx="2" ry="1.2" fill="#78350f" transform="rotate(-35 34.5 84)"/>
+    <!-- Gekreuztes vorderes Kaminholzscheit rechts -->
+    <path d="M64,83 L51,93 L54,95 L67,85 Z" fill="#451a03" stroke="#b45309" stroke-width="0.6"/>
+    <ellipse cx="65.5" cy="84" rx="2" ry="1.2" fill="#78350f" transform="rotate(35 65.5 84)"/>
 
-    <!-- 3. Unten: Rustikaler Holzknoten mit Hanfband (y=83 bis y=91, r~33.5 bis 41) -->
-    <polygon points="50,91 46,83 54,83" fill="#451a03" stroke="#b45309" stroke-width="0.6"/>
-    <!-- Hanfband-Schleife -->
-    <path d="M45,84 C48,87 52,87 55,84" stroke="#d97706" stroke-width="0.8" fill="none"/>
-    <circle cx="50" cy="85.5" r="1.1" fill="#78350f" stroke="#d97706" stroke-width="0.4"/>
+    <!-- Rustikale Hanfseil-Bindung im Zentrum der Scheite -->
+    <path d="M47,88 Q50,86 53,88 Q50,90 47,88 Z" fill="#b45309" stroke="#d97706" stroke-width="0.5"/>
+    <circle cx="50" cy="88" r="1.2" fill="#78350f" stroke="#f59e0b" stroke-width="0.4"/>
 
-    <!-- 4. Oben: Geschnitzter Holzstern mit glimmendem Kohlekern (y=7 bis y=15) -->
+    <!-- Glimmende Kaminglutkerne zwischen den Scheiten -->
+    <ellipse cx="50" cy="89" rx="3.5" ry="1.8" fill="url(#hearthEmberRadial)"/>
+    <ellipse cx="44" cy="90" rx="1.8" ry="1.2" fill="url(#hearthEmberRadial)"/>
+    <ellipse cx="56" cy="90" rx="1.8" ry="1.2" fill="url(#hearthEmberRadial)"/>
+
+    <!-- 3. APEX (12 Uhr): RUSTIKAL GESCHNITZTER HOLZSTERN (y=7 bis 15) -->
     <g transform="translate(50, 11)">
-      <!-- Geschnitzter Holzstern (Rückseite/Fassung) -->
-      <polygon points="0,-4 1.2,-1.2 4,0 1.2,1.2 0,4 -1.2,1.2 -4,0 -1.2,-1.2" fill="#451a03" stroke="#78350f" stroke-width="0.5"/>
-      <!-- Warmer Kohlenkern -->
-      <circle cx="0" cy="0" r="1.5" fill="url(#coalEmberGlow)" stroke="#ea580c" stroke-width="0.3"/>
-      <circle cx="0" cy="0" r="0.6" fill="#fef08a"/>
-
-      <!-- Periodischer Kaminglut-Puls alle 8s -->
-      <circle cx="0" cy="0" r="1.5" fill="#fef08a" opacity="0">
-        <animate attributeName="opacity" values="0; 0; 0.95; 0.2; 0.85; 0; 0"
-          keyTimes="0; 0.45; 0.50; 0.54; 0.58; 0.64; 1" dur="8s" repeatCount="indefinite"/>
-        <animate attributeName="r" values="1.2; 1.2; 2.5; 1.8; 2.3; 1.2; 1.2"
-          keyTimes="0; 0.45; 0.50; 0.54; 0.58; 0.64; 1" dur="8s" repeatCount="indefinite"/>
-      </circle>
+      <!-- Geschnitzte Zirbenholz-Rückseite -->
+      <polygon points="0,-4.5 1.3,-1.3 4.5,0 1.3,1.3 0,4.5 -1.3,1.3 -4.5,0 -1.3,-1.3" fill="#451a03" stroke="#b45309" stroke-width="0.6"/>
+      <polygon points="0,-3 0.9,-0.9 3,0 0.9,0.9 0,3 -0.9,0.9 -3,0 -0.9,-0.9" fill="#78350f" stroke="#f59e0b" stroke-width="0.4"/>
+      <circle cx="0" cy="0" r="1.3" fill="url(#hearthEmberRadial)"/>
+      <circle cx="0" cy="0" r="0.5" fill="#ffffff"/>
     </g>
+
+    <!-- 4. HYBRID-ANIMATION (8.0s Zyklus) -->
+    <!-- A) Dauer-Mikro-Glutatmen im Kaminholz (pulsierende Opazität) -->
+    <ellipse cx="50" cy="89" rx="4" ry="2" fill="#fef08a" opacity="0.3">
+      <animate attributeName="opacity" values="0.3; 0.75; 0.35; 0.8; 0.3" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="rx" values="3.5; 4.8; 3.6; 4.5; 3.5" dur="8s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <!-- B) Periodischer Glutfünckchen-Ausbruch (alle 8s steigen Fünkchen aus dem Holz empor) -->
+    <!-- Fünkchen 1 (steigt mittig auf) -->
+    <circle cx="50" cy="88" r="0.9" fill="#fef08a" opacity="0">
+      <animate attributeName="cy" values="88; 88; 77; 68; 60; 88"
+        keyTimes="0; 0.45; 0.52; 0.58; 0.65; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="cx" values="50; 50; 48; 51; 49; 50"
+        keyTimes="0; 0.45; 0.52; 0.58; 0.65; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0; 0; 0.95; 0.8; 0; 0"
+        keyTimes="0; 0.45; 0.48; 0.58; 0.66; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="0.8; 0.8; 1.2; 0.7; 0.4; 0.8"
+        keyTimes="0; 0.45; 0.48; 0.56; 0.65; 1" dur="8s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Fünkchen 2 (steigt rechts auf) -->
+    <circle cx="54" cy="89" r="0.7" fill="#f97316" opacity="0">
+      <animate attributeName="cy" values="89; 89; 80; 72; 65; 89"
+        keyTimes="0; 0.47; 0.54; 0.60; 0.67; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="cx" values="54; 54; 56; 55; 58; 54"
+        keyTimes="0; 0.47; 0.54; 0.60; 0.67; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0; 0; 0.9; 0.6; 0; 0"
+        keyTimes="0; 0.47; 0.50; 0.60; 0.68; 1" dur="8s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Fünkchen 3 (steigt links auf) -->
+    <circle cx="46" cy="89" r="0.7" fill="#fbbf24" opacity="0">
+      <animate attributeName="cy" values="89; 89; 79; 71; 63; 89"
+        keyTimes="0; 0.49; 0.55; 0.62; 0.69; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="cx" values="46; 46; 43; 45; 42; 46"
+        keyTimes="0; 0.49; 0.55; 0.62; 0.69; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0; 0; 0.85; 0.7; 0; 0"
+        keyTimes="0; 0.49; 0.52; 0.61; 0.70; 1" dur="8s" repeatCount="indefinite"/>
+    </circle>
   </g>
 </svg>

@@ -1,75 +1,134 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <!-- Tiefes gotisches Frost-Eisblau Gradient -->
+    <!-- Tiefes gotisches Kathedralen-Eisblau Gradient -->
     <radialGradient id="frostGothicRing" cx="30%" cy="30%" r="75%">
       <stop offset="0%" stop-color="#bae6fd"/>
-      <stop offset="30%" stop-color="#38bdf8"/>
+      <stop offset="35%" stop-color="#38bdf8"/>
       <stop offset="65%" stop-color="#0284c7"/>
       <stop offset="90%" stop-color="#0c4a6e"/>
       <stop offset="100%" stop-color="#082f49"/>
     </radialGradient>
-    <linearGradient id="frostSpireGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f0f9ff"/>
-      <stop offset="25%" stop-color="#7dd3fc"/>
-      <stop offset="65%" stop-color="#0284c7"/>
+
+    <linearGradient id="frostSpireGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#e0f2fe"/>
+      <stop offset="60%" stop-color="#38bdf8"/>
       <stop offset="100%" stop-color="#0369a1"/>
     </linearGradient>
+
     <linearGradient id="frostBellGrad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="35%" stop-color="#bae6fd"/>
       <stop offset="75%" stop-color="#38bdf8"/>
       <stop offset="100%" stop-color="#0284c7"/>
     </linearGradient>
+
     <filter id="frostGothicShadow" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.88"/>
-      <feDropShadow dx="0" dy="1.8" stdDeviation="2.8" flood-color="#0284c7" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="1.8" stdDeviation="2.8" flood-color="#0284c7" flood-opacity="0.6"/>
     </filter>
   </defs>
 
   <g filter="url(#frostGothicShadow)">
-    <!-- 1. Gotischer Eisring (r=35.5, stroke 1.8px) & Frost-Zierkreis -->
+    <!-- 1. GOTISCHER EIS-BASISREIF (r=35.5, Stärke 1.8px) & FILIGRANE KRISTALL-KERBUNG -->
     <circle cx="50" cy="50" r="35.5" stroke="url(#frostGothicRing)" stroke-width="1.8"/>
-    <circle cx="50" cy="50" r="37.2" stroke="#7dd3fc" stroke-width="0.8" stroke-dasharray="3 3"/>
+    <circle cx="50" cy="50" r="37.2" stroke="#7dd3fc" stroke-width="0.8" stroke-dasharray="2 3"/>
 
-    <!-- 2. Gotische Eiszapfen-Maßwerk-Flanken Links (maxR <= 43.8) -->
+    <!-- 2. FLANKEN: GOTISCHE STREBEPFEILER & MASSWERK-BÖGEN (außerhalb r=34.5) -->
+    <!-- Flanke Links: Zweiteiliger Maßwerk-Bogen mit Fialen -->
     <g stroke="url(#frostSpireGrad)" stroke-linecap="round" fill="none">
-      <path d="M19,34 C14,30 11,36 9,42 C13,43 15,48 11,54 C15,56 18,61 20,67" stroke-width="1.2"/>
-      <!-- Filigranes inneres Eis-Gespinst -->
-      <path d="M16,38 C12,42 12,48 15,52" stroke-width="0.7" stroke="#e0f2fe"/>
-      <polygon points="8,42 12,43 11,40" fill="#bae6fd" stroke="none"/>
-      <polygon points="10,54 14,53 12,56" fill="#bae6fd" stroke="none"/>
+      <!-- Äußere Pfeilerkante -->
+      <path d="M18,36 C13,32 10,40 8,48 C12,50 11,58 17,66" stroke-width="1.3"/>
+      <!-- Innere Dreipass-Verstrebung -->
+      <path d="M16,42 C12,45 13,52 17,56" stroke-width="0.7" stroke="#bae6fd"/>
+      <!-- Eiskristall-Krabbe auf der Pfeilernase -->
+      <polygon points="7,48 11,47 9,51" fill="#e0f2fe" stroke="#38bdf8" stroke-width="0.3"/>
     </g>
 
-    <!-- Gotische Eiszapfen-Maßwerk-Flanken Rechts -->
+    <!-- Flanke Rechts: Zweiteiliger Maßwerk-Bogen mit Fialen -->
     <g stroke="url(#frostSpireGrad)" stroke-linecap="round" fill="none">
-      <path d="M81,34 C86,30 89,36 91,42 C87,43 85,48 89,54 C85,56 82,61 80,67" stroke-width="1.2"/>
-      <!-- Filigranes inneres Eis-Gespinst -->
-      <path d="M84,38 C88,42 88,48 85,52" stroke-width="0.7" stroke="#e0f2fe"/>
-      <polygon points="92,42 88,43 89,40" fill="#bae6fd" stroke="none"/>
-      <polygon points="90,54 86,53 88,56" fill="#bae6fd" stroke="none"/>
+      <!-- Äußere Pfeilerkante -->
+      <path d="M82,36 C87,32 90,40 92,48 C88,50 89,58 83,66" stroke-width="1.3"/>
+      <!-- Innere Dreipass-Verstrebung -->
+      <path d="M84,42 C88,45 87,52 83,56" stroke-width="0.7" stroke="#bae6fd"/>
+      <!-- Eiskristall-Krabbe -->
+      <polygon points="93,48 89,47 91,51" fill="#e0f2fe" stroke="#38bdf8" stroke-width="0.3"/>
     </g>
 
-    <!-- 3. Unten: Gotischer Dreipass mit hängendem Eiskristall (y=83 bis y=91) -->
-    <polygon points="50,91 46,83 54,83" fill="#082f49" stroke="#7dd3fc" stroke-width="0.6"/>
-    <!-- Glänzendes Kristall-Juwel -->
-    <polygon points="50,89 48,85 50,83 52,85" fill="#f0f9ff" stroke="#38bdf8" stroke-width="0.3"/>
-    <circle cx="50" cy="85.5" r="0.6" fill="#ffffff"/>
+    <!-- 3. BASIS (6 Uhr): GESTAFFELTE HERABHÄNGENDE EISZAPFEN (y=84 bis 96) -->
+    <g fill="url(#frostSpireGrad)" stroke="#082f49" stroke-width="0.3">
+      <!-- Zentraler langer Eiszapfen (spitz bis y=96) -->
+      <polygon points="50,96 48.5,84 51.5,84"/>
+      <line x1="50" y1="84" x2="50" y2="95" stroke="#ffffff" stroke-width="0.4"/>
+      <!-- Flankierende Eiszapfen links -->
+      <polygon points="45,92 43.8,84.5 46.5,84.5"/>
+      <polygon points="40,89 39,85 41.5,85"/>
+      <!-- Flankierende Eiszapfen rechts -->
+      <polygon points="55,92 53.5,84.5 56.2,84.5"/>
+      <polygon points="60,89 58.5,85 61,85"/>
+    </g>
+    <!-- Zarter Raureif-Tropfen am mittleren Zapfen -->
+    <circle cx="50" cy="96" r="0.6" fill="#ffffff"/>
 
-    <!-- 4. Oben: Schwingende Raureif-Glocke im gotischen Maßwerk (y=7 bis y=15) -->
-    <g transform="translate(50, 11)">
-      <!-- Zarte Eiskrone über Aufhängung -->
-      <path d="M-3,-3.5 C-1.5,-4.5 1.5,-4.5 3,-3.5 C1.5,-2.5 -1.5,-2.5 -3,-3.5 Z" fill="#0c4a6e" stroke="#38bdf8" stroke-width="0.4"/>
-      
-      <!-- Schwingende Frostglocke alle 7.5s -->
-      <path d="M-2.5,-2 C-2.5,-3 2.5,-3 2.5,-2 C2.5,0.5 4,2 4.5,3 L-4.5,3 C-4,2 -2.5,0.5 -2.5,-2 Z" fill="url(#frostBellGrad)" stroke="#082f49" stroke-width="0.4"/>
-      <line x1="-4.5" y1="3" x2="4.5" y2="3" stroke="#f0f9ff" stroke-width="0.5"/>
-      <!-- Klöppel -->
-      <circle cx="0" cy="3.7" r="0.8" fill="#bae6fd" stroke="#0284c7" stroke-width="0.3"/>
+    <!-- 4. APEX (12 Uhr): GOTISCHER KATHEDRALEN-SPITZBOGEN MIT SCHWINGENDER GLOCKE (y=4 bis 16) -->
+    <!-- Gotischer Spitzgiebel & Fialen-Turm -->
+    <g stroke="url(#frostSpireGrad)" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <!-- Spitzbogen-Dachkanten bis y=4 -->
+      <path d="M42,16 C45,9 49,5 50,4 C51,5 55,9 58,16" stroke-width="1.2"/>
+      <!-- Kreuzblume / Fialenspitze ganz oben -->
+      <path d="M50,4 L50,1.5 M48.5,3 L51.5,3" stroke-width="0.7" stroke="#ffffff"/>
+      <!-- Gotisches Maßwerk-Auge im Giebelfeld -->
+      <circle cx="50" cy="7.5" r="1.3" stroke="#7dd3fc" stroke-width="0.5" fill="#082f49"/>
+    </g>
 
-      <!-- Aufblitzender Eisstern am Scheitelpunkt -->
-      <path d="M0,-3 L0.8,-0.8 L3,0 L0.8,0.8 L0,3 L-0.8,0.8 L-3,0 L-0.8,-0.8 Z" fill="#ffffff" opacity="0">
-        <animate attributeName="opacity" values="0; 0; 1; 0; 0" keyTimes="0; 0.18; 0.22; 0.28; 1" dur="7.5s" repeatCount="indefinite"/>
-        <animateTransform attributeName="transform" type="scale" values="0.5; 0.5; 1.3; 0.5; 0.5" keyTimes="0; 0.18; 0.22; 0.28; 1" dur="7.5s" repeatCount="indefinite"/>
+    <!-- Schwingende Frostglocke im Spitzbogen-Zentrum (Aufhängung bei x=50, y=9) -->
+    <g id="frostBellAssembly" transform="translate(50, 9)">
+      <!-- Pendel-Animation der Glocke alle 7.5s -->
+      <animateTransform attributeName="transform" type="rotate"
+        values="0; 0; 16; -13; 9; -5; 2; 0; 0"
+        keyTimes="0; 0.20; 0.26; 0.32; 0.38; 0.44; 0.50; 0.56; 1"
+        dur="7.5s" repeatCount="indefinite"/>
+
+      <!-- Glockenkörper -->
+      <path d="M-3,1 C-3,-0.5 3,-0.5 3,1 C3,3.5 4.5,5.5 5,6.5 L-5,6.5 C-4.5,5.5 -3,3.5 -3,1 Z"
+        fill="url(#frostBellGrad)" stroke="#082f49" stroke-width="0.4"/>
+      <!-- Glockenrand-Reif -->
+      <line x1="-5" y1="6.5" x2="5" y2="6.5" stroke="#f0f9ff" stroke-width="0.6"/>
+      <!-- Glockenklöppel -->
+      <circle cx="0" cy="7.3" r="0.9" fill="#e0f2fe" stroke="#0284c7" stroke-width="0.3"/>
+    </g>
+
+    <!-- 5. HYBRID-ANIMATION (7.5s Zyklus) -->
+    <!-- A) Dauer-Mikro: Zartes Raureif-Flimmern an den Turmfialen -->
+    <circle cx="50" cy="2" r="1.4" fill="#ffffff" opacity="0.3">
+      <animate attributeName="opacity" values="0.3; 0.8; 0.4; 0.85; 0.3" dur="7.5s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="1.2; 1.8; 1.3; 1.7; 1.2" dur="7.5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- B) Periodischer Peak: Glockenschlag mit Eiskristall-Schallwellen & Sternenblitz -->
+    <!-- Kristall-Schallwelle 1 (dehnt sich nach dem Glockenschlag kreisförmig aus) -->
+    <circle cx="50" cy="15" r="3" stroke="#bae6fd" stroke-width="0.6" fill="none" opacity="0">
+      <animate attributeName="r" values="3; 3; 12; 22; 25; 3"
+        keyTimes="0; 0.24; 0.34; 0.44; 0.50; 1" dur="7.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0; 0; 0.85; 0.4; 0; 0"
+        keyTimes="0; 0.24; 0.28; 0.42; 0.50; 1" dur="7.5s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Kristall-Schallwelle 2 -->
+    <circle cx="50" cy="15" r="3" stroke="#e0f2fe" stroke-width="0.5" fill="none" opacity="0">
+      <animate attributeName="r" values="3; 3; 8; 18; 21; 3"
+        keyTimes="0; 0.28; 0.36; 0.46; 0.52; 1" dur="7.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0; 0; 0.9; 0.3; 0; 0"
+        keyTimes="0; 0.28; 0.32; 0.44; 0.52; 1" dur="7.5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- Aufblitzender Froststern am Fialengiebel synchron zum Glockenanschlag -->
+    <g transform="translate(50, 4)">
+      <path d="M0,-3.5 L0.9,-0.9 L3.5,0 L0.9,0.9 L0,3.5 L-0.9,0.9 L-3.5,0 L-0.9,-0.9 Z" fill="#ffffff" opacity="0">
+        <animate attributeName="opacity" values="0; 0; 1; 0.2; 0.9; 0; 0"
+          keyTimes="0; 0.24; 0.27; 0.32; 0.37; 0.45; 1" dur="7.5s" repeatCount="indefinite"/>
+        <animateTransform attributeName="transform" type="scale"
+          values="0.5; 0.5; 1.4; 0.8; 1.3; 0.5; 0.5"
+          keyTimes="0; 0.24; 0.27; 0.32; 0.37; 0.45; 1" dur="7.5s" repeatCount="indefinite"/>
       </path>
     </g>
   </g>

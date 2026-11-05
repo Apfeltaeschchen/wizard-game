@@ -1,77 +1,138 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <!-- Karmesin-Samt & Goldkordel Gradienten -->
-    <radialGradient id="nutcrackerRedRing" cx="30%" cy="30%" r="75%">
+    <!-- Karmesinroter Gala-Samt Gradient -->
+    <radialGradient id="nutcrackerCrimsonVelvet" cx="30%" cy="30%" r="75%">
       <stop offset="0%" stop-color="#ef4444"/>
       <stop offset="35%" stop-color="#b91c1c"/>
       <stop offset="70%" stop-color="#7f1d1d"/>
       <stop offset="100%" stop-color="#450a0a"/>
     </radialGradient>
-    <linearGradient id="goldCordGrad" x1="0" y1="0" x2="1" y2="1">
+
+    <!-- Imperiales Garde-Gold Gradient -->
+    <linearGradient id="imperialGoldBraiding" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#fef08a"/>
-      <stop offset="35%" stop-color="#fbbf24"/>
-      <stop offset="75%" stop-color="#d97706"/>
+      <stop offset="30%" stop-color="#fbbf24"/>
+      <stop offset="70%" stop-color="#d97706"/>
       <stop offset="100%" stop-color="#78350f"/>
     </linearGradient>
+
+    <!-- Polierter Gala-Klingenstahl -->
+    <linearGradient id="sabreSteelPolish" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="35%" stop-color="#e2e8f0"/>
+      <stop offset="70%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+
     <radialGradient id="guardStarShine" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="40%" stop-color="#fef08a"/>
-      <stop offset="80%" stop-color="#fbbf24"/>
+      <stop offset="35%" stop-color="#fef08a"/>
+      <stop offset="75%" stop-color="#fbbf24"/>
       <stop offset="100%" stop-color="#b45309"/>
     </radialGradient>
+
     <filter id="nutcrackerShadow" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.9"/>
-      <feDropShadow dx="0" dy="1.8" stdDeviation="2.5" flood-color="#b91c1c" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="1.8" stdDeviation="2.8" flood-color="#b91c1c" flood-opacity="0.6"/>
     </filter>
   </defs>
 
   <g filter="url(#nutcrackerShadow)">
-    <!-- 1. Karmesinroter Samtreif (r=35.5, stroke 1.8px) & Goldene Husaren-Kordel -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#nutcrackerRedRing)" stroke-width="1.8"/>
-    <circle cx="50" cy="50" r="37.2" stroke="url(#goldCordGrad)" stroke-width="0.8" stroke-dasharray="3 2"/>
+    <!-- 1. GRUNDREIF: KARMESIN-SAMT MIT GESTICKTER GOLDKORDEL -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#nutcrackerCrimsonVelvet)" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="37.2" stroke="url(#imperialGoldBraiding)" stroke-width="0.8" stroke-dasharray="2 3"/>
 
-    <!-- 2. Gestaffelte Gold-Epauletten & Samtbänder Flanke Links (maxR <= 43.8) -->
-    <g stroke="url(#goldCordGrad)" stroke-linecap="round" fill="none">
-      <!-- Äußerer Samt-Schwung -->
-      <path d="M19,34 C14,30 11,36 9,42 C13,43 14,48 11,54 C14,56 17,61 19,67" stroke-width="1.3"/>
-      <!-- Epauletten-Fransen -->
-      <path d="M12,40 L8,42 M13,46 L9,48 M14,52 L10,54" stroke-width="0.8" stroke="#fef08a"/>
-      <!-- Goldene Knöpfe -->
-      <circle cx="13" cy="42" r="1.1" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.3"/>
-      <circle cx="14" cy="51" r="1.1" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.3"/>
+    <!-- 2. FLANKEN: MASSIVE IMPERIALE GOLD-EPAULETTEN MIT SAMTBÄNDERN & FRANSEN (außerhalb r=34.5) -->
+    <!-- Epaulette Flanke Links (massiv, stufenförmig geschichtet) -->
+    <g stroke="#78350f" stroke-width="0.3" fill="none">
+      <!-- Äußerer Samtschwung / Schulterpolster-Basis -->
+      <path d="M19,35 C13,31 8,38 7,46 C11,48 10,56 16,65" stroke="url(#nutcrackerCrimsonVelvet)" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- Goldene Wulst & Tressenleiste -->
+      <path d="M17,38 C12,42 11,50 15,58" stroke="url(#imperialGoldBraiding)" stroke-width="1.2"/>
+      
+      <!-- Goldene Hängende Fransen (Bouillons) -->
+      <line x1="8" y1="46" x2="5" y2="49" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" stroke-linecap="round"/>
+      <line x1="9" y1="51" x2="6" y2="54" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" stroke-linecap="round"/>
+      <line x1="11" y1="56" x2="8" y2="59" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" stroke-linecap="round"/>
+      <line x1="13" y1="61" x2="10" y2="64" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" stroke-linecap="round"/>
+
+      <!-- Polierte Gardeknöpfe auf der Epaulette -->
+      <circle cx="14" cy="42" r="1.3" fill="url(#guardStarShine)"/>
+      <circle cx="13" cy="52" r="1.3" fill="url(#guardStarShine)"/>
     </g>
 
-    <!-- Gestaffelte Gold-Epauletten & Samtbänder Flanke Rechts (maxR <= 43.8) -->
-    <g stroke="url(#goldCordGrad)" stroke-linecap="round" fill="none">
-      <!-- Äußerer Samt-Schwung -->
-      <path d="M81,34 C86,30 89,36 91,42 C87,43 86,48 89,54 C86,56 83,61 81,67" stroke-width="1.3"/>
-      <!-- Epauletten-Fransen -->
-      <path d="M88,40 L92,42 M87,46 L91,48 M86,52 L90,54" stroke-width="0.8" stroke="#fef08a"/>
-      <!-- Goldene Knöpfe -->
-      <circle cx="87" cy="42" r="1.1" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.3"/>
-      <circle cx="86" cy="51" r="1.1" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.3"/>
+    <!-- Epaulette Flanke Rechts -->
+    <g stroke="#78350f" stroke-width="0.3" fill="none">
+      <!-- Äußerer Samtschwung -->
+      <path d="M81,35 C87,31 92,38 93,46 C89,48 90,56 84,65" stroke="url(#nutcrackerCrimsonVelvet)" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- Goldene Wulst & Tressenleiste -->
+      <path d="M83,38 C88,42 89,50 85,58" stroke="url(#imperialGoldBraiding)" stroke-width="1.2"/>
+      
+      <!-- Fransen -->
+      <line x1="92" y1="46" x2="95" y2="49" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" stroke-linecap="round"/>
+      <line x1="91" y1="51" x2="94" y2="54" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" stroke-linecap="round"/>
+      <line x1="89" y1="56" x2="92" y2="59" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" stroke-linecap="round"/>
+      <line x1="87" y1="61" x2="90" y2="64" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" stroke-linecap="round"/>
+
+      <!-- Polierte Gardeknöpfe -->
+      <circle cx="86" cy="42" r="1.3" fill="url(#guardStarShine)"/>
+      <circle cx="87" cy="52" r="1.3" fill="url(#guardStarShine)"/>
     </g>
 
-    <!-- 3. Unten: Gekreuzte Säbelspitzen & Wappenschild (y=83 bis y=91) -->
-    <polygon points="50,91 46,83 54,83" fill="#450a0a" stroke="#fbbf24" stroke-width="0.6"/>
-    <!-- Goldener Gardestern unten -->
-    <polygon points="50,83 51,85 53,85.5 51.5,87 52,89 50,88 48,89 48.5,87 47,85.5 49,85" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.2"/>
+    <!-- 3. BASIS (6 Uhr): GEKREUZTE GALA-SÄBEL MIT GARDE-WAPPENSCHILD (y=80 bis 95) -->
+    <!-- Säbelklinge 1 (von links oben nach rechts unten) -->
+    <line x1="38" y1="82" x2="62" y2="95" stroke="url(#sabreSteelPolish)" stroke-width="1.3" stroke-linecap="round"/>
+    <!-- Säbelklinge 2 (von rechts oben nach links unten) -->
+    <line x1="62" y1="82" x2="38" y2="95" stroke="url(#sabreSteelPolish)" stroke-width="1.3" stroke-linecap="round"/>
+    <!-- Säbel-Körbe & Parierstangen -->
+    <circle cx="39" cy="82.5" r="1.4" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.3"/>
+    <circle cx="61" cy="82.5" r="1.4" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.3"/>
 
-    <!-- 4. Oben: Imperialer Nussknacker-Tschako mit Gardestern (y=7 bis y=15) -->
-    <g transform="translate(50, 11)">
-      <!-- Tschako-Haube (Karmesinrot mit Goldrand) -->
-      <path d="M-4.5,4 L-4,-1 C-4,-3 4,-3 4,-1 L4.5,4 Z" fill="url(#nutcrackerRedRing)" stroke="#78350f" stroke-width="0.4"/>
-      <!-- Goldene Stirnblende -->
-      <path d="M-4.5,3.5 C-2,2.5 2,2.5 4.5,3.5" stroke="url(#goldCordGrad)" stroke-width="0.7"/>
-      <!-- Weißer Federstutz links oben -->
-      <path d="M-2.5,-1 C-3,-4 -1.5,-4.5 -1.5,-1 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.3"/>
+    <!-- Zentraler imperialer Gardeschild über der Säbelkreuzung -->
+    <path d="M46,85 L54,85 L53,91 L50,93 L47,91 Z" fill="url(#nutcrackerCrimsonVelvet)" stroke="url(#imperialGoldBraiding)" stroke-width="0.6"/>
+    <!-- Kleiner Garde-Adler / Stern auf Schild -->
+    <polygon points="50,86.5 50.8,88.5 52.8,88.8 51.3,90 51.8,92 50,91 48.2,92 48.7,90 47.2,88.8 49.2,88.5" fill="url(#guardStarShine)"/>
 
-      <!-- Imperialer Gardestern im Zentrum -->
-      <polygon points="0,-1.5 0.8,0.2 2.5,0.5 1.2,1.8 1.6,3.5 0,2.6 -1.6,3.5 -1.2,1.8 -2.5,0.5 -0.8,0.2" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.3"/>
+    <!-- 4. APEX (12 Uhr): IMPERIALER NUSSKNACKER-TSCHAKO (y=4 bis 16) -->
+    <g transform="translate(50, 10)">
+      <!-- Weißer Parade-Federstutz links ragt bis y=4 empor -->
+      <path d="M-3,-2 C-4,-6 -2,-7 -1,-3 C0,-7 2,-6 1,-2 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.3"/>
+      
+      <!-- Tschako-Haube (Karmesinrot mit Goldtressen) -->
+      <path d="M-5,4 L-4.2,-1 C-4.2,-3 4.2,-3 4.2,-1 L5,4 Z" fill="url(#nutcrackerCrimsonVelvet)" stroke="#78350f" stroke-width="0.5"/>
+      <!-- Polierte Goldstirnblende -->
+      <path d="M-5,3.8 C-2,2.5 2,2.5 5,3.8" stroke="url(#imperialGoldBraiding)" stroke-width="0.9" fill="none"/>
+      <!-- Goldkordel-Schlaufe über Mütze -->
+      <path d="M-3.5,0 C-1,-1.5 1,-1.5 3.5,0" stroke="url(#imperialGoldBraiding)" stroke-width="0.6" fill="none"/>
+
+      <!-- Kaiserlicher Ordensstern im Zentrum des Tschakos -->
+      <polygon points="0,-1.8 0.9,0.2 2.7,0.5 1.3,1.9 1.8,3.6 0,2.7 -1.8,3.6 -1.3,1.9 -2.7,0.5 -0.9,0.2" fill="url(#guardStarShine)" stroke="#78350f" stroke-width="0.3"/>
       <circle cx="0" cy="1" r="0.6" fill="#ffffff"/>
+    </g>
 
-      <!-- Periodischer Ehrensalut-Sternenblitz alle 6.5s -->
-      <path d="M0,-2.5 L0.9,0.1 L3.5,1 L0.9,1.9 L0,4.5 L-0.9,1.9 L-3.5,1 L-0.9,0.1 Z" fill="#ffffff" opacity="0">
+    <!-- 5. HYBRID-ANIMATION (6.5s Zyklus) -->
+    <!-- A) Dauer-Mikro: Zartes Schimmern der Goldfransen -->
+    <circle cx="14" cy="42" r="1.8" fill="#fef08a" opacity="0.3">
+      <animate attributeName="opacity" values="0.3; 0.7; 0.25; 0.65; 0.3" dur="6.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="86" cy="42" r="1.8" fill="#fef08a" opacity="0.3">
+      <animate attributeName="opacity" values="0.3; 0.65; 0.3; 0.75; 0.3" dur="6.5s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- B) Periodischer Peak: Klingenstreif (Säbel-Glint) & Ordens-Salut -->
+    <!-- Säbelglint (Lichtstreif zischt über Klinge 1) -->
+    <line x1="38" y1="82" x2="48" y2="87.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0">
+      <animate attributeName="opacity" values="0; 0; 0.95; 0.4; 0; 0"
+        keyTimes="0; 0.35; 0.40; 0.44; 0.48; 1" dur="6.5s" repeatCount="indefinite"/>
+      <animate attributeName="x1" values="38; 38; 50; 56; 62; 38"
+        keyTimes="0; 0.35; 0.40; 0.44; 0.48; 1" dur="6.5s" repeatCount="indefinite"/>
+      <animate attributeName="y1" values="82; 82; 88.5; 92; 95; 82"
+        keyTimes="0; 0.35; 0.40; 0.44; 0.48; 1" dur="6.5s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- Aufblitzender Ehrensalut-Stern auf dem Tschako unmittelbar nach dem Klingenstreif -->
+    <g transform="translate(50, 11)">
+      <path d="M0,-3 L0.9,0.1 L3.5,1 L0.9,1.9 L0,4.5 L-0.9,1.9 L-3.5,1 L-0.9,0.1 Z" fill="#ffffff" opacity="0">
         <animate attributeName="opacity" values="0; 0; 1; 0.2; 0.9; 0; 0"
           keyTimes="0; 0.45; 0.50; 0.54; 0.58; 0.64; 1" dur="6.5s" repeatCount="indefinite"/>
         <animateTransform attributeName="transform" type="scale"
