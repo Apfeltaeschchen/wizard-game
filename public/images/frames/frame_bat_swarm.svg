@@ -1,66 +1,85 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <radialGradient id="batGothicRing" cx="30%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="#9333ea"/>
-      <stop offset="40%" stop-color="#581c87"/>
-      <stop offset="80%" stop-color="#2e1065"/>
-      <stop offset="100%" stop-color="#0f0728"/>
+    <!-- Vampirisches Zinn & Schattenschwarz Gradient -->
+    <radialGradient id="vampireBelfryIron" cx="30%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#a1a1aa"/>
+      <stop offset="30%" stop-color="#52525b"/>
+      <stop offset="70%" stop-color="#27272a"/>
+      <stop offset="100%" stop-color="#09090b"/>
     </radialGradient>
-    <linearGradient id="batWingGrad2" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#d8b4fe"/>
-      <stop offset="40%" stop-color="#9333ea"/>
-      <stop offset="80%" stop-color="#581c87"/>
-      <stop offset="100%" stop-color="#1e1b4b"/>
-    </linearGradient>
-    <filter id="batCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.85"/>
-      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#9333ea" flood-opacity="0.5"/>
+
+    <!-- Vampir-Blutkarmin -->
+    <radialGradient id="vampireBloodEye" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="35%" stop-color="#f43f5e"/>
+      <stop offset="75%" stop-color="#be123c"/>
+      <stop offset="100%" stop-color="#4c0519"/>
+    </radialGradient>
+
+    <filter id="batSwarmShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#71717a" flood-opacity="0.45"/>
     </filter>
   </defs>
 
-  <g filter="url(#batCalmShadow)">
-    <!-- 1. Schlanker gotischer Zierring (r=35.5, stroke 1.8px) -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#batGothicRing)" stroke-width="1.8"/>
-    <circle cx="50" cy="50" r="37.2" stroke="#a855f7" stroke-width="0.8" stroke-dasharray="3 3"/>
+  <g filter="url(#batSwarmShadow)">
+    <!-- 1. GOTISCHES SCHLOSSVERLIES-PORTAL (r=35.5, Stärke 1.8px) & DORNENREIF -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#vampireBelfryIron)" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="37.2" stroke="#4c0519" stroke-width="0.8" stroke-dasharray="2 3"/>
 
-    <!-- 2. PLASTISCHE GOTISCHE SPITZBÖGEN (Fassung bei r=33.0 mit subtiler 3D-Tiefe, Schwingen nach außen bis r=42.0) -->
-    <!-- Rankenartige Schwingen-Bögen Flanke Links -->
-    <path d="M19,34 C15,30 11,36 9,42 C13,43 15,48 11,54 C15,55 18,60 20,66" stroke="#7e22ce" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-    <!-- Rankenartige Schwingen-Bögen Flanke Rechts -->
-    <path d="M81,34 C85,30 89,36 91,42 C87,43 85,48 89,54 C85,55 82,60 80,66" stroke="#7e22ce" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-    
-    <!-- Unten: Zarte gotische Spitze mit Fassung bei r=33 (y=83) bis y=91 -->
-    <polygon points="50,91 47,83 53,83" fill="#3b0764" stroke="#a855f7" stroke-width="0.6"/>
-    <circle cx="50" cy="85" r="1.2" fill="#c084fc"/>
-
-    <!-- 3. ANIMIERTE FLEDERMAUS OBEN (y=8 bis y=15, schlägt alle 8s mit den Flügeln) -->
+    <!-- 2. APEX (12 Uhr): GROSSE LEITFLEDERMAUS MIT FLÜGELSCHLAG (y=5 bis 17) -->
+    <!-- Gruppe mit lokalem Dreh-/Skalierungszentrum bei (50, 11) -->
     <g transform="translate(50, 11)">
-      <!-- Fledermaus-Körper & Kopf -->
-      <ellipse cx="0" cy="0" rx="2" ry="3" fill="#1e1b4b" stroke="#7e22ce" stroke-width="0.5"/>
-      <!-- Ohren -->
-      <polygon points="-2,-2 -3,-5 -1,-3" fill="#3b0764"/>
-      <polygon points="2,-2 3,-5 1,-3" fill="#3b0764"/>
-      <!-- Leuchtende Augen -->
-      <circle cx="-0.8" cy="-1" r="0.4" fill="#fbcfe8"/>
-      <circle cx="0.8" cy="-1" r="0.4" fill="#fbcfe8"/>
-
-      <!-- Linker Flügel -->
       <g>
-        <path d="M-2,0 C-5,-4 -9,-2 -11,2 C-8,3 -6,6 -3,3 Z" fill="url(#batWingGrad2)" stroke="#1e1b4b" stroke-width="0.4"/>
-        <animateTransform attributeName="transform" type="rotate"
-          values="0 0,0; -30 0,0; 10 0,0; -30 0,0; 0 0,0; 0 0,0"
-          keyTimes="0; 0.03; 0.06; 0.09; 0.12; 1"
-          dur="8s" repeatCount="indefinite"/>
-      </g>
+        <!-- Periodischer Flügelschlag alle 7s -->
+        <animateTransform attributeName="transform" type="scale"
+          values="1 1; 1 1; 1.25 0.75; 0.85 1.25; 1.2 0.8; 1 1; 1 1"
+          keyTimes="0; 0.40; 0.45; 0.50; 0.55; 0.62; 1" dur="7s" repeatCount="indefinite"/>
 
-      <!-- Rechter Flügel -->
-      <g>
-        <path d="M2,0 C5,-4 9,-2 11,2 C8,3 6,6 3,3 Z" fill="url(#batWingGrad2)" stroke="#1e1b4b" stroke-width="0.4"/>
-        <animateTransform attributeName="transform" type="rotate"
-          values="0 0,0; 30 0,0; -10 0,0; 30 0,0; 0 0,0; 0 0,0"
-          keyTimes="0; 0.03; 0.06; 0.09; 0.12; 1"
-          dur="8s" repeatCount="indefinite"/>
+        <!-- Fledermaus-Schwinge Links -->
+        <path d="M-2,0 C-6,-5 -14,-7 -18,-2 C-14,2 -10,1 -6,4 C-4,6 -3,4 -2,0 Z"
+          fill="url(#vampireBelfryIron)" stroke="#09090b" stroke-width="0.4"/>
+        <!-- Fledermaus-Schwinge Rechts -->
+        <path d="M2,0 C6,-5 14,-7 18,-2 C14,2 10,1 6,4 C4,6 3,4 2,0 Z"
+          fill="url(#vampireBelfryIron)" stroke="#09090b" stroke-width="0.4"/>
+        <!-- Fledermaus-Körper & Ohren -->
+        <ellipse cx="0" cy="0" rx="2.5" ry="3.5" fill="#18181b" stroke="#09090b" stroke-width="0.3"/>
+        <polygon points="-1.8,-3 -2.8,-6 -0.8,-4" fill="#18181b"/>
+        <polygon points="1.8,-3 2.8,-6 0.8,-4" fill="#18181b"/>
+        <!-- Blutrote Fledermaus-Augen -->
+        <circle cx="-0.8" cy="-1" r="0.4" fill="url(#vampireBloodEye)"/>
+        <circle cx="0.8" cy="-1" r="0.4" fill="url(#vampireBloodEye)"/>
       </g>
     </g>
+
+    <!-- 3. ZWEI KLEINERE SCHATTENFLEDERMÄUSE AN DEN FLANKEN (10 Uhr und 4 Uhr) -->
+    <!-- Fledermaus links oben (10 Uhr, ca. x=23, y=26) -->
+    <g transform="translate(23, 26) rotate(-25)">
+      <path d="M-1,0 C-3,-3 -8,-4 -10,-1 C-7,1 -5,1 -3,2 Z" fill="#27272a"/>
+      <path d="M1,0 C3,-3 8,-4 10,-1 C7,1 5,1 3,2 Z" fill="#27272a"/>
+      <ellipse cx="0" cy="0" rx="1.5" ry="2" fill="#09090b"/>
+    </g>
+    <!-- Fledermaus rechts unten (4 Uhr, ca. x=77, y=74) -->
+    <g transform="translate(77, 74) rotate(35)">
+      <path d="M-1,0 C-3,-3 -8,-4 -10,-1 C-7,1 -5,1 -3,2 Z" fill="#27272a"/>
+      <path d="M1,0 C3,-3 8,-4 10,-1 C7,1 5,1 3,2 Z" fill="#27272a"/>
+      <ellipse cx="0" cy="0" rx="1.5" ry="2" fill="#09090b"/>
+    </g>
+
+    <!-- 4. BASIS (6 Uhr): SCHATTEN-ZINNE & VAMPIR-RELIQUIE (y=84 bis 94) -->
+    <path d="M45,85 L50,94 L55,85 L52,87 L48,87 Z" fill="url(#vampireBelfryIron)" stroke="#09090b" stroke-width="0.4"/>
+    <circle cx="50" cy="87.5" r="1.3" fill="url(#vampireBloodEye)" stroke="#09090b" stroke-width="0.3"/>
+
+    <!-- 5. HYBRID-ANIMATION (7.0s Zyklus) -->
+    <!-- A) Dauer-Mikro: Schwebender Spuknebel am unteren Reif -->
+    <ellipse cx="50" cy="88" rx="8" ry="3" fill="#4c0519" opacity="0.25">
+      <animate attributeName="opacity" values="0.2; 0.55; 0.22; 0.5; 0.2" dur="7s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <!-- B) Periodischer Peak (alle 7s): Blutroter Augenblitz & Schattenschwarm-Impuls -->
+    <circle cx="50" cy="10" r="3.5" fill="#f43f5e" opacity="0">
+      <animate attributeName="opacity" values="0; 0; 0.95; 0.2; 0.85; 0; 0"
+        keyTimes="0; 0.40; 0.45; 0.50; 0.55; 0.62; 1" dur="7s" repeatCount="indefinite"/>
+    </circle>
   </g>
 </svg>

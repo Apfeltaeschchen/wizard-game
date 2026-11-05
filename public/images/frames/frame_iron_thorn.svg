@@ -1,53 +1,82 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <linearGradient id="ironSteel" x1="0" y1="0" x2="1" y2="1">
+    <!-- Gehärteter Schwarzstahl & Hämatit Gradient -->
+    <linearGradient id="ironSteelHardened" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#cbd5e1"/>
-      <stop offset="35%" stop-color="#64748b"/>
-      <stop offset="75%" stop-color="#334155"/>
+      <stop offset="30%" stop-color="#64748b"/>
+      <stop offset="65%" stop-color="#334155"/>
+      <stop offset="90%" stop-color="#1e293b"/>
       <stop offset="100%" stop-color="#0f172a"/>
     </linearGradient>
+
+    <radialGradient id="sparkEmber" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#fef08a"/>
+      <stop offset="80%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </radialGradient>
+
     <filter id="ironCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.85"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#475569" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.2" flood-color="#475569" flood-opacity="0.5"/>
     </filter>
   </defs>
 
   <g filter="url(#ironCalmShadow)">
-    <!-- 1. Schlanker Schmiedeeisenreif (r=35.5, stroke 1.8px) -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#ironSteel)" stroke-width="1.8"/>
-    <circle cx="50" cy="50" r="37" stroke="#1e293b" stroke-width="0.8" stroke-dasharray="6 2"/>
+    <!-- 1. GEHÄMMERTER SCHWARZSTAHLREIF (r=35.5, Stärke 1.8px) & GEKERBTER AUSSENKRANZ -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#ironSteelHardened)" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="37.2" stroke="#1e293b" stroke-width="0.8" stroke-dasharray="4 2"/>
 
-    <!-- 2. PLASTISCHE DORNENRÄNKELEIN (Fassung bei r=33.0 mit subtiler 3D-Tiefe, Spitzen nach außen bis r=42.0) -->
-    <!-- Stachel Oben (12 Uhr): Startet bei r=33 (y=17) bis y=8 -->
-    <path d="M48,17 Q49,12 50,8 Q51,12 52,17 Z" fill="url(#ironSteel)" stroke="#0f172a" stroke-width="0.4"/>
-    <line x1="50" y1="8" x2="50" y2="17" stroke="#ffffff" stroke-width="0.4"/>
-    <path d="M43,18 Q38,15 34,11 Q40,14 45,17 Z" fill="url(#ironSteel)"/>
-    <path d="M57,18 Q62,15 66,11 Q60,14 55,17 Z" fill="url(#ironSteel)"/>
+    <!-- 2. AGGRESSIVE DORNEN & KEILE (Strikt von r=35.5 nach außen bis r=46) -->
+    <!-- Stachel Oben (12 Uhr): Doppelspitze bis y=6 -->
+    <path d="M47,15 L50,6 L53,15 Z" fill="url(#ironSteelHardened)" stroke="#0f172a" stroke-width="0.4"/>
+    <line x1="50" y1="6" x2="50" y2="15" stroke="#ffffff" stroke-width="0.4"/>
+    <path d="M42,17 L36,10 L45,15 Z" fill="url(#ironSteelHardened)"/>
+    <path d="M58,17 L64,10 L55,15 Z" fill="url(#ironSteelHardened)"/>
 
-    <!-- Dornen Rechts (3 Uhr): Startet bei r=33 (x=83) bis x=92 -->
-    <path d="M83,48 Q88,49 92,50 Q88,51 83,52 Z" fill="url(#ironSteel)" stroke="#0f172a" stroke-width="0.4"/>
-    <path d="M82,43 Q86,39 89,35 Q86,42 82,45 Z" fill="url(#ironSteel)"/>
-    <path d="M82,57 Q86,61 89,65 Q86,58 82,55 Z" fill="url(#ironSteel)"/>
+    <!-- Dornen Flanke Rechts (3 Uhr): Gruppe bis x=94 -->
+    <path d="M85,47 L94,50 L85,53 Z" fill="url(#ironSteelHardened)" stroke="#0f172a" stroke-width="0.4"/>
+    <path d="M83,41 L90,34 L85,45 Z" fill="url(#ironSteelHardened)"/>
+    <path d="M83,59 L90,66 L85,55 Z" fill="url(#ironSteelHardened)"/>
 
-    <!-- Dornen Unten (6 Uhr): Startet bei r=33 (y=83) bis y=92 -->
-    <path d="M48,83 Q49,88 50,92 Q51,88 52,83 Z" fill="url(#ironSteel)" stroke="#0f172a" stroke-width="0.4"/>
-    <path d="M43,82 Q38,85 34,89 Q40,86 45,83 Z" fill="url(#ironSteel)"/>
-    <path d="M57,82 Q62,85 66,89 Q60,86 55,83 Z" fill="url(#ironSteel)"/>
+    <!-- Dornen Unten (6 Uhr): Stachel bis y=94 -->
+    <path d="M47,85 L50,94 L53,85 Z" fill="url(#ironSteelHardened)" stroke="#0f172a" stroke-width="0.4"/>
+    <line x1="50" y1="85" x2="50" y2="94" stroke="#ffffff" stroke-width="0.4"/>
+    <path d="M42,83 L36,90 L45,85 Z" fill="url(#ironSteelHardened)"/>
+    <path d="M58,83 L64,90 L55,85 Z" fill="url(#ironSteelHardened)"/>
 
-    <!-- Dornen Links (9 Uhr): Startet bei r=33 (x=17) bis x=8 -->
-    <path d="M17,48 Q12,49 8,50 Q12,51 17,52 Z" fill="url(#ironSteel)" stroke="#0f172a" stroke-width="0.4"/>
-    <path d="M18,43 Q14,39 11,35 Q14,42 18,45 Z" fill="url(#ironSteel)"/>
-    <path d="M18,57 Q14,61 11,65 Q14,58 18,55 Z" fill="url(#ironSteel)"/>
+    <!-- Dornen Flanke Links (9 Uhr): Gruppe bis x=6 -->
+    <path d="M15,47 L6,50 L15,53 Z" fill="url(#ironSteelHardened)" stroke="#0f172a" stroke-width="0.4"/>
+    <path d="M17,41 L10,34 L15,45 Z" fill="url(#ironSteelHardened)"/>
+    <path d="M17,59 L10,66 L15,55 Z" fill="url(#ironSteelHardened)"/>
 
-    <!-- Diagonale feine Stachelspitzen (r=41) -->
-    <path d="M26,26 Q23,23 20,20 Q24,24 27,25 Z" fill="url(#ironSteel)"/>
-    <path d="M74,26 Q77,23 80,20 Q76,24 73,25 Z" fill="url(#ironSteel)"/>
-    <path d="M74,74 Q77,77 80,80 Q76,76 73,75 Z" fill="url(#ironSteel)"/>
-    <path d="M26,74 Q23,77 20,80 Q24,76 27,75 Z" fill="url(#ironSteel)"/>
+    <!-- Diagonale scharfe Grat-Spitzen (45°, r=43) -->
+    <path d="M26,26 L19,19 L27,24 Z" fill="url(#ironSteelHardened)"/>
+    <path d="M74,26 L81,19 L73,24 Z" fill="url(#ironSteelHardened)"/>
+    <path d="M74,74 L81,81 L73,76 Z" fill="url(#ironSteelHardened)"/>
+    <path d="M26,74 L19,81 L27,76 Z" fill="url(#ironSteelHardened)"/>
 
-    <!-- 3. PERIODISCHES STAHL-AUFBLITZEN (thornGlint alle 8s) -->
-    <circle cx="50" cy="8" r="2" fill="#ffffff" opacity="0">
-      <animate attributeName="opacity" values="0; 0; 0.9; 0; 0" keyTimes="0; 0.4; 0.44; 0.48; 1" dur="8s" repeatCount="indefinite"/>
+    <!-- 3. HYBRID-ANIMATION (8.0s Zyklus) -->
+    <!-- A) Dauer-Mikro: Kaltes Stahl-Glimmen an den Kanten -->
+    <circle cx="50" cy="7" r="1.4" fill="#cbd5e1" opacity="0.3">
+      <animate attributeName="opacity" values="0.25; 0.65; 0.3; 0.7; 0.25" dur="8s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- B) Periodischer Peak (alle 8s): Zischender Klingen-Glint & Schmiedefunken Oben -->
+    <!-- Glint-Streif über obere Spitze -->
+    <line x1="44" y1="14" x2="56" y2="8" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0">
+      <animate attributeName="opacity" values="0; 0; 0.95; 0.2; 0; 0"
+        keyTimes="0; 0.40; 0.44; 0.48; 0.52; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="x1" values="44; 44; 48; 54; 58; 44"
+        keyTimes="0; 0.40; 0.43; 0.46; 0.49; 1" dur="8s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- Aufsteigende Funken -->
+    <circle cx="50" cy="6" r="0.8" fill="url(#sparkEmber)" opacity="0">
+      <animate attributeName="cy" values="6; 6; 2; 0; 6"
+        keyTimes="0; 0.42; 0.47; 0.52; 1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0; 0; 0.95; 0; 0"
+        keyTimes="0; 0.42; 0.45; 0.52; 1" dur="8s" repeatCount="indefinite"/>
     </circle>
   </g>
 </svg>

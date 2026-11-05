@@ -65,40 +65,44 @@
     <!-- 3. FLANKEN: AUFFÄCHERNDE ENGELSFLÜGEL (Ruhen behütend eingeklappt, fächern sich alle 6s auf!) -->
     <!-- Linker Flügel (Drehpunkt bei Basis x=36, y=82) -->
     <g id="leftAngelWing" transform="translate(36, 82)">
-      <!-- Flügel fächert sich alle 6s majestätisch nach oben/außen auf (Rotation von 0° auf -14°) -->
-      <animateTransform attributeName="transform" type="rotate"
-        values="0; 0; -14; -15; -12; 0; 0"
-        keyTimes="0; 0.44; 0.50; 0.54; 0.60; 0.68; 1" dur="6.0s" repeatCount="indefinite"/>
+      <g>
+        <!-- Flügel fächert sich alle 6s majestätisch nach oben/außen auf (Rotation von 0° auf -11°) -->
+        <animateTransform attributeName="transform" type="rotate"
+          values="0; 0; -11; -12; -9; 0; 0"
+          keyTimes="0; 0.44; 0.50; 0.54; 0.60; 0.68; 1" dur="6.0s" repeatCount="indefinite"/>
 
-      <!-- Dreistufig gefiederte Engelsflügel-Schwinge -->
-      <!-- Äußere Hauptschwungfeder -->
-      <path d="M-1,-2 C-14,-15 -25,-32 -22,-50 C-18,-45 -14,-35 -10,-28 C-8,-18 -4,-8 0,0 Z"
-        fill="url(#angelWingFeathers)" stroke="#713f12" stroke-width="0.4"/>
-      <!-- Mittlere Schwungfeder -->
-      <path d="M-2,-4 C-12,-16 -18,-28 -16,-40 C-13,-36 -10,-28 -7,-22 C-5,-14 -3,-6 0,0 Z"
-        fill="#ffffff" stroke="#ca8a04" stroke-width="0.3"/>
-      <!-- Innere zarte Daunenfeder -->
-      <path d="M-1,-6 C-7,-16 -11,-24 -9,-30 C-7,-26 -5,-20 -3,-14 C-2,-10 -1,-4 0,0 Z"
-        fill="#fef9c3" stroke="#eab308" stroke-width="0.3"/>
+        <!-- Dreistufig gefiederte Engelsflügel-Schwinge links -->
+        <!-- Äußere Hauptschwungfeder (schmiegt sich von y=82 bis y=18 außen um r=35.5) -->
+        <path d="M0,0 C-14,-4 -22,-16 -22,-32 C-22,-44 -14,-56 0,-64 C-28,-57 -32,-42 -31,-32 C-30,-17 -22,-7 0,0 Z"
+          fill="url(#angelWingFeathers)" stroke="#713f12" stroke-width="0.4"/>
+        <!-- Mittlere Schwungfeder -->
+        <path d="M0,-2 C-12,-8 -18,-20 -18,-32 C-18,-42 -12,-50 0,-56 C-22,-50 -26,-38 -25,-30 C-24,-18 -16,-8 0,-2 Z"
+          fill="#ffffff" stroke="#ca8a04" stroke-width="0.3"/>
+        <!-- Innere Daunenfeder -->
+        <path d="M0,-4 C-8,-12 -14,-22 -14,-32 C-14,-40 -8,-46 0,-50 C-16,-44 -18,-34 -17,-28 C-16,-18 -10,-10 0,-4 Z"
+          fill="#fef9c3" stroke="#eab308" stroke-width="0.3"/>
+      </g>
     </g>
 
     <!-- Rechter Flügel (Drehpunkt bei Basis x=64, y=82) -->
     <g id="rightAngelWing" transform="translate(64, 82)">
-      <!-- Flügel fächert sich synchron auf (Rotation von 0° auf +14°) -->
-      <animateTransform attributeName="transform" type="rotate"
-        values="0; 0; 14; 15; 12; 0; 0"
-        keyTimes="0; 0.44; 0.50; 0.54; 0.60; 0.68; 1" dur="6.0s" repeatCount="indefinite"/>
+      <g>
+        <!-- Flügel fächert sich synchron auf (Rotation von 0° auf +11°) -->
+        <animateTransform attributeName="transform" type="rotate"
+          values="0; 0; 11; 12; 9; 0; 0"
+          keyTimes="0; 0.44; 0.50; 0.54; 0.60; 0.68; 1" dur="6.0s" repeatCount="indefinite"/>
 
-      <!-- Dreistufig gefiederte Engelsflügel-Schwinge rechts -->
-      <!-- Äußere Hauptschwungfeder -->
-      <path d="M1,-2 C14,-15 25,-32 22,-50 C18,-45 14,-35 10,-28 C8,-18 4,-8 0,0 Z"
-        fill="url(#angelWingFeathers)" stroke="#713f12" stroke-width="0.4"/>
-      <!-- Mittlere Schwungfeder -->
-      <path d="M2,-4 C12,-16 18,-28 16,-40 C13,-36 10,-28 7,-22 C5,-14 3,-6 0,0 Z"
-        fill="#ffffff" stroke="#ca8a04" stroke-width="0.3"/>
-      <!-- Innere Daunenfeder -->
-      <path d="M1,-6 C7,-16 11,-24 9,-30 C7,-26 5,-20 3,-14 C2,-10 1,-4 0,0 Z"
-        fill="#fef9c3" stroke="#eab308" stroke-width="0.3"/>
+        <!-- Dreistufig gefiederte Engelsflügel-Schwinge rechts -->
+        <!-- Äußere Hauptschwungfeder -->
+        <path d="M0,0 C14,-4 22,-16 22,-32 C22,-44 14,-56 0,-64 C28,-57 32,-42 31,-32 C30,-17 22,-7 0,0 Z"
+          fill="url(#angelWingFeathers)" stroke="#713f12" stroke-width="0.4"/>
+        <!-- Mittlere Schwungfeder -->
+        <path d="M0,-2 C12,-8 18,-20 18,-32 C18,-42 12,-50 0,-56 C22,-50 26,-38 25,-30 C24,-18 16,-8 0,-2 Z"
+          fill="#ffffff" stroke="#ca8a04" stroke-width="0.3"/>
+        <!-- Innere Daunenfeder -->
+        <path d="M0,-4 C8,-12 14,-22 14,-32 C14,-40 8,-46 0,-50 C16,-44 18,-34 17,-28 C17,-18 10,-10 0,-4 Z"
+          fill="#fef9c3" stroke="#eab308" stroke-width="0.3"/>
+      </g>
     </g>
 
     <!-- 4. APEX (12 Uhr): MONUMENTALER 8-ZACKIGER STERN VON BETHLEHEM (y=2 bis 16) -->

@@ -1,69 +1,106 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <radialGradient id="voidRingGrad" cx="30%" cy="30%" r="70%">
+    <!-- Tiefes Nether-Obsidian & Purpur Gradient -->
+    <radialGradient id="voidObsidianRing" cx="30%" cy="30%" r="75%">
       <stop offset="0%" stop-color="#c084fc"/>
-      <stop offset="40%" stop-color="#7e22ce"/>
-      <stop offset="80%" stop-color="#3b0764"/>
-      <stop offset="100%" stop-color="#18022b"/>
+      <stop offset="30%" stop-color="#7e22ce"/>
+      <stop offset="65%" stop-color="#3b0764"/>
+      <stop offset="90%" stop-color="#1e0538"/>
+      <stop offset="100%" stop-color="#090214"/>
     </radialGradient>
-    <linearGradient id="crystalFacet" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f5d0fe"/>
-      <stop offset="40%" stop-color="#d8b4fe"/>
-      <stop offset="80%" stop-color="#9333ea"/>
+
+    <!-- Strahlende Astral-Monolithen -->
+    <linearGradient id="astralPrismGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="30%" stop-color="#f0abfc"/>
+      <stop offset="70%" stop-color="#a855f7"/>
       <stop offset="100%" stop-color="#4c1d95"/>
     </linearGradient>
-    <filter id="voidCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.85"/>
-      <feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#a855f7" flood-opacity="0.5"/>
+
+    <radialGradient id="netherEyeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="35%" stop-color="#f0abfc"/>
+      <stop offset="75%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#581c87"/>
+    </radialGradient>
+
+    <filter id="voidCrystalShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="3.0" flood-color="#a855f7" flood-opacity="0.65"/>
     </filter>
   </defs>
 
-  <g filter="url(#voidCalmShadow)">
-    <!-- 1. Schlanker Astralreif (r=35.5, stroke 1.8px) -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#voidRingGrad)" stroke-width="1.8"/>
-    <circle cx="50" cy="50" r="37.2" stroke="#c084fc" stroke-width="0.8" stroke-dasharray="2 4"/>
+  <g filter="url(#voidCrystalShadow)">
+    <!-- 1. OBSIDIAN-DÄMONENREIF (r=35.5, Stärke 2.0px) & ASTRAL-KERBUNG -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#voidObsidianRing)" stroke-width="2"/>
+    <circle cx="50" cy="50" r="37.4" stroke="#a855f7" stroke-width="0.8" stroke-dasharray="3 3"/>
 
-    <!-- 2. PLASTISCHE ASTRALKRISTALLE (Facetten ragen dezent bis r=32.5 für 3D-Tiefe, Außenkristalle bis r=42.0) -->
-    <!-- Kristallgruppe Oben (12 Uhr) -->
-    <g>
-      <polygon points="50,8 47,13 50,18 53,13" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="50" y1="8" x2="50" y2="18" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="44,11 41,15 46,18 48,14" fill="url(#crystalFacet)"/>
-      <polygon points="56,11 59,15 54,18 52,14" fill="url(#crystalFacet)"/>
-      <!-- Periodischer Prisma-Glanz alle 7s -->
-      <polygon points="50,8 47,13 50,18 53,13" fill="#ffffff" opacity="0">
-        <animate attributeName="opacity" values="0; 0; 0.85; 0; 0" keyTimes="0; 0.3; 0.34; 0.38; 1" dur="7s" repeatCount="indefinite"/>
-      </polygon>
+    <!-- 2. APEX (11 Uhr und 1 Uhr): ZWEI SCHWEBENDE ASTRAL-MONOLITHEN (vgl. User-Referenz 2) -->
+    <!-- Monolith Links Oben (11 Uhr, bei x=32, y=14) -->
+    <g transform="translate(32, 14)">
+      <!-- Sachte Schwebung auf und ab -->
+      <g>
+        <animateTransform attributeName="transform" type="translate"
+          values="0 0; 0 -2.5; 0 0" dur="3.0s" repeatCount="indefinite"/>
+        <!-- Geschliffenes Okkult-Kristallprisma -->
+        <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="url(#astralPrismGrad)" stroke="#3b0764" stroke-width="0.4"/>
+        <line x1="0" y1="-7" x2="0" y2="7" stroke="#ffffff" stroke-width="0.3"/>
+        <circle cx="0" cy="0" r="1.1" fill="url(#netherEyeGlow)"/>
+      </g>
     </g>
 
-    <!-- Kristallgruppe Rechts (3 Uhr) -->
-    <g>
-      <polygon points="92,50 87,47 82,50 87,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="92" y1="50" x2="82" y2="50" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="89,44 85,41 82,46 86,48" fill="url(#crystalFacet)"/>
-      <polygon points="89,56 85,59 82,54 86,52" fill="url(#crystalFacet)"/>
+    <!-- Monolith Rechts Oben (1 Uhr, bei x=68, y=14) -->
+    <g transform="translate(68, 14)">
+      <g>
+        <animateTransform attributeName="transform" type="translate"
+          values="0 0; 0 -2.5; 0 0" dur="3.2s" repeatCount="indefinite"/>
+        <!-- Geschliffenes Okkult-Kristallprisma -->
+        <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="url(#astralPrismGrad)" stroke="#3b0764" stroke-width="0.4"/>
+        <line x1="0" y1="-7" x2="0" y2="7" stroke="#ffffff" stroke-width="0.3"/>
+        <circle cx="0" cy="0" r="1.1" fill="url(#netherEyeGlow)"/>
+      </g>
     </g>
 
-    <!-- Kristallgruppe Unten (6 Uhr) -->
-    <g>
-      <polygon points="50,92 47,87 50,82 53,87" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="50" y1="92" x2="50" y2="82" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="44,89 41,85 46,82 48,86" fill="url(#crystalFacet)"/>
-      <polygon points="56,89 59,85 54,82 52,86" fill="url(#crystalFacet)"/>
+    <!-- 3. ZWEI MÄCHTIGE FLANKEN-KRISTALLE (9 Uhr und 3 Uhr) -->
+    <!-- Kristall Links (9 Uhr, ca. x=8, y=50) -->
+    <g transform="translate(8, 50)">
+      <polygon points="0,-6 4,0 0,6 -4,0" fill="url(#astralPrismGrad)" stroke="#3b0764" stroke-width="0.4"/>
+      <circle cx="0" cy="0" r="1" fill="#ffffff"/>
+    </g>
+    <!-- Kristall Rechts (3 Uhr, ca. x=92, y=50) -->
+    <g transform="translate(92, 50)">
+      <polygon points="0,-6 4,0 0,6 -4,0" fill="url(#astralPrismGrad)" stroke="#3b0764" stroke-width="0.4"/>
+      <circle cx="0" cy="0" r="1" fill="#ffffff"/>
     </g>
 
-    <!-- Kristallgruppe Links (9 Uhr) -->
-    <g>
-      <polygon points="8,50 13,47 18,50 13,53" fill="url(#crystalFacet)" stroke="#2e1065" stroke-width="0.4"/>
-      <line x1="8" y1="50" x2="18" y2="50" stroke="#ffffff" stroke-width="0.5"/>
-      <polygon points="11,44 15,41 18,46 14,48" fill="url(#crystalFacet)"/>
-      <polygon points="11,56 15,59 18,54 14,52" fill="url(#crystalFacet)"/>
-    </g>
+    <!-- 4. BASIS (6 Uhr): NETHER-SIEGELSTEIN MIT RUNENAUGE (y=84 bis 95) -->
+    <polygon points="50,95 44,85 56,85" fill="url(#voidObsidianRing)" stroke="#a855f7" stroke-width="0.5"/>
+    <circle cx="50" cy="88" r="1.5" fill="url(#netherEyeGlow)"/>
+    <circle cx="50" cy="88" r="0.5" fill="#ffffff"/>
 
-    <!-- Diagonale schwebende Minisplitter außen (r=41) -->
-    <circle cx="21" cy="21" r="1.2" fill="#e9d5ff"/>
-    <circle cx="79" cy="21" r="1.2" fill="#e9d5ff"/>
-    <circle cx="79" cy="79" r="1.2" fill="#e9d5ff"/>
-    <circle cx="21" cy="79" r="1.2" fill="#e9d5ff"/>
+    <!-- 5. HYBRID-ANIMATION (6.0s Zyklus) -->
+    <!-- A) Dauer-Mikro: Sanfter violetter Astralnebel um die Monolithen -->
+    <circle cx="32" cy="14" r="3.5" fill="#c084fc" opacity="0.3">
+      <animate attributeName="opacity" values="0.25; 0.65; 0.3; 0.7; 0.25" dur="3.0s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="68" cy="14" r="3.5" fill="#c084fc" opacity="0.3">
+      <animate attributeName="opacity" values="0.25; 0.65; 0.3; 0.7; 0.25" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- B) Periodischer Peak (alle 6s): Gewaltsamer Dimensionsbruch & Astral-Lichtbögen -->
+    <!-- Lichtbogen zwischen Monolith 1 und 2 -->
+    <line x1="32" y1="14" x2="68" y2="14" stroke="#ffffff" stroke-width="1.6" stroke-dasharray="3 2" opacity="0">
+      <animate attributeName="opacity" values="0; 0; 0.95; 0.3; 0.9; 0; 0"
+        keyTimes="0; 0.42; 0.48; 0.53; 0.58; 0.65; 1" dur="6.0s" repeatCount="indefinite"/>
+    </line>
+
+    <!-- Dimensionsauge zündet Lichtexplosion -->
+    <circle cx="50" cy="14" r="4" fill="#ffffff" opacity="0">
+      <animate attributeName="opacity" values="0; 0; 1; 0.2; 0.95; 0; 0"
+        keyTimes="0; 0.44; 0.49; 0.54; 0.59; 0.66; 1" dur="6.0s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="scale"
+        values="0.4; 0.4; 1.5; 0.8; 1.3; 0.4; 0.4"
+        keyTimes="0; 0.44; 0.49; 0.54; 0.59; 0.66; 1" dur="6.0s" repeatCount="indefinite"/>
+    </circle>
   </g>
 </svg>

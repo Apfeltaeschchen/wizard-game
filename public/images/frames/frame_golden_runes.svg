@@ -1,49 +1,92 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <radialGradient id="solarRuneRing" cx="35%" cy="30%" r="70%">
+    <!-- Kosmisches Sonnen-Astrolabium Gold Gradient -->
+    <radialGradient id="solarAstrolabeGold" cx="30%" cy="30%" r="75%">
       <stop offset="0%" stop-color="#fffbeb"/>
-      <stop offset="35%" stop-color="#fbbf24"/>
-      <stop offset="70%" stop-color="#d97706"/>
-      <stop offset="100%" stop-color="#78350f"/>
+      <stop offset="35%" stop-color="#fde047"/>
+      <stop offset="70%" stop-color="#f59e0b"/>
+      <stop offset="90%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#451a03"/>
     </radialGradient>
+
+    <radialGradient id="runeSealGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="35%" stop-color="#fef08a"/>
+      <stop offset="75%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </radialGradient>
+
     <filter id="runeCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.8"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#fbbf24" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.85"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#f59e0b" flood-opacity="0.5"/>
     </filter>
   </defs>
 
   <g filter="url(#runeCalmShadow)">
-    <!-- 1. Schlanker Sonnenreif (r=35.5, Strich 1.8px) -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#solarRuneRing)" stroke-width="1.8"/>
-    <circle cx="50" cy="50" r="37.2" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="2 4"/>
+    <!-- 1. ASTROLABIUM-DOPPELRING MIT GRADUIERUNGEN (r=35.5 und r=37.5) -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#solarAstrolabeGold)" stroke-width="1.8"/>
+    <circle cx="50" cy="50" r="37.5" stroke="#f59e0b" stroke-width="0.8" stroke-dasharray="1 3"/>
 
-    <!-- 2. PLASTISCHE SONNENFLARE-SPITZEN (Fassung bei r=33.0 mit subtiler 3D-Tiefe, Spitzen nach außen bis r=42.0) -->
-    <!-- Sonnenstrahl Oben (12 Uhr): Startet bei r=33 (y=17) mit feiner Spitze nach y=8 -->
-    <path d="M48,17 L50,8 L52,17 Z" fill="url(#solarRuneRing)" stroke="#78350f" stroke-width="0.4"/>
-    <line x1="50" y1="17" x2="50" y2="9" stroke="#ffffff" stroke-width="0.4"/>
+    <!-- 2. VIER SONNENFLARE-SPITZEN AUF DEN HAUPTACHSEN (reichen bis r=45) -->
+    <!-- Flare Oben (12 Uhr): Bis y=5 -->
+    <polygon points="50,5 47,15 53,15" fill="url(#solarAstrolabeGold)" stroke="#78350f" stroke-width="0.3"/>
+    <line x1="50" y1="5" x2="50" y2="15" stroke="#ffffff" stroke-width="0.4"/>
 
-    <!-- Sonnenstrahl Rechts (3 Uhr): Startet bei r=33 (x=83) bis x=92 -->
-    <path d="M83,48 L92,50 L83,52 Z" fill="url(#solarRuneRing)" stroke="#78350f" stroke-width="0.4"/>
-    <!-- Sonnenstrahl Unten (6 Uhr): Startet bei r=33 (y=83) bis y=92 -->
-    <path d="M48,83 L50,92 L52,83 Z" fill="url(#solarRuneRing)" stroke="#78350f" stroke-width="0.4"/>
-    <!-- Sonnenstrahl Links (9 Uhr): Startet bei r=33 (x=17) bis x=8 -->
-    <path d="M17,48 L8,50 L17,52 Z" fill="url(#solarRuneRing)" stroke="#78350f" stroke-width="0.4"/>
+    <!-- Flare Rechts (3 Uhr): Bis x=95 -->
+    <polygon points="95,50 85,47 85,53" fill="url(#solarAstrolabeGold)" stroke="#78350f" stroke-width="0.3"/>
+    <line x1="95" y1="50" x2="85" y2="50" stroke="#ffffff" stroke-width="0.4"/>
 
-    <!-- 4 arkane Runen-Glyphen dezent auf dem Reif/Außenbereich -->
-    <g stroke="#fef08a" stroke-width="0.8" stroke-linecap="round">
-      <!-- Algiz oben -->
-      <path d="M50,14 L50,18 M48,16 L50,14 L52,16"/>
-      <!-- Sowilo rechts -->
-      <path d="M86,48 L84,50 L86,52 L84,54"/>
-      <!-- Tiwaz unten -->
-      <path d="M50,86 L50,82 M48,84 L50,86 L52,84"/>
-      <!-- Ansuz links -->
-      <path d="M14,46 L14,54 M14,48 L16,50 M14,51 L16,53"/>
+    <!-- Flare Unten (6 Uhr): Bis y=95 -->
+    <polygon points="50,95 47,85 53,85" fill="url(#solarAstrolabeGold)" stroke="#78350f" stroke-width="0.3"/>
+    <line x1="50" y1="95" x2="50" y2="85" stroke="#ffffff" stroke-width="0.4"/>
+
+    <!-- Flare Links (9 Uhr): Bis x=5 -->
+    <polygon points="5,50 15,47 15,53" fill="url(#solarAstrolabeGold)" stroke="#78350f" stroke-width="0.3"/>
+    <line x1="5" y1="50" x2="15" y2="50" stroke="#ffffff" stroke-width="0.4"/>
+
+    <!-- 3. VIER ECHTE MAGISCHE RUNEN-SIEGEL (Algiz, Sowilo, Tiwaz, Ansuz) -->
+    <!-- Algiz Oben (Schutz-Rune bei y=14) -->
+    <g stroke="#ffffff" stroke-width="0.9" stroke-linecap="round">
+      <path d="M50,11 L50,16 M47.5,13 L50,11 L52.5,13"/>
+    </g>
+    <!-- Sowilo Rechts (Sonnenkraft-Rune bei x=86) -->
+    <g stroke="#ffffff" stroke-width="0.9" stroke-linecap="round">
+      <path d="M87,47 L85,49 L87,51 L85,53"/>
+    </g>
+    <!-- Tiwaz Unten (Sieges-Rune bei y=86) -->
+    <g stroke="#ffffff" stroke-width="0.9" stroke-linecap="round">
+      <path d="M50,89 L50,84 M47.5,86 L50,89 L52.5,86"/>
+    </g>
+    <!-- Ansuz Links (Erkenntnis-Rune bei x=14) -->
+    <g stroke="#ffffff" stroke-width="0.9" stroke-linecap="round">
+      <path d="M13,47 L13,53 M13,48.5 L15.5,50 M13,50.5 L15.5,52"/>
     </g>
 
-    <!-- 3. PERIODISCHE RUNEN-ERLEUCHTUNG (alle 8s flammen die 4 Runen golden auf) -->
-    <circle cx="50" cy="50" r="35.5" stroke="#fffbeb" stroke-width="2.2" opacity="0">
-      <animate attributeName="opacity" values="0; 0; 0.95; 0; 0" keyTimes="0; 0.35; 0.4; 0.45; 1" dur="8s" repeatCount="indefinite"/>
+    <!-- 4. HYBRID-ANIMATION (7.0s Zyklus) -->
+    <!-- A) Dauer-Mikro: Sanftes Atmen der 4 Runen-Siegel -->
+    <circle cx="50" cy="13.5" r="2.5" fill="url(#runeSealGlow)" opacity="0.25">
+      <animate attributeName="opacity" values="0.2; 0.6; 0.25; 0.65; 0.2" dur="7s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="86" cy="50" r="2.5" fill="url(#runeSealGlow)" opacity="0.25">
+      <animate attributeName="opacity" values="0.2; 0.6; 0.25; 0.65; 0.2" dur="7s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="50" cy="86.5" r="2.5" fill="url(#runeSealGlow)" opacity="0.25">
+      <animate attributeName="opacity" values="0.2; 0.6; 0.25; 0.65; 0.2" dur="7s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="14" cy="50" r="2.5" fill="url(#runeSealGlow)" opacity="0.25">
+      <animate attributeName="opacity" values="0.2; 0.6; 0.25; 0.65; 0.2" dur="7s" repeatCount="indefinite"/>
+    </circle>
+
+    <!-- B) Periodischer Peak (alle 7s): Rotierende Sonnenflare-Welle im Uhrzeigersinn entfacht alle 4 Runen -->
+    <!-- Umlaufender Sonnenblitz -->
+    <circle cx="50" cy="50" r="35.5" stroke="#ffffff" stroke-width="2.2" opacity="0">
+      <animate attributeName="opacity" values="0; 0; 0.95; 0.3; 0.9; 0; 0"
+        keyTimes="0; 0.40; 0.46; 0.52; 0.58; 0.64; 1" dur="7s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Spitzen-Flash Algiz Oben -->
+    <circle cx="50" cy="5" r="3" fill="#ffffff" opacity="0">
+      <animate attributeName="opacity" values="0; 0; 1; 0; 0"
+        keyTimes="0; 0.45; 0.48; 0.54; 1" dur="7s" repeatCount="indefinite"/>
     </circle>
   </g>
 </svg>

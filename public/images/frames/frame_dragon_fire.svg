@@ -1,53 +1,105 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <linearGradient id="dragonBasalt" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0%" stop-color="#1c1917"/>
-      <stop offset="40%" stop-color="#7f1d1d"/>
-      <stop offset="80%" stop-color="#dc2626"/>
-      <stop offset="100%" stop-color="#f97316"/>
+    <!-- Gehärteter Basalt & Drachenschuppen Gradient -->
+    <radialGradient id="dragonBasaltRing" cx="30%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#441a1a"/>
+      <stop offset="35%" stop-color="#2a0d0d"/>
+      <stop offset="70%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#0a0505"/>
+    </radialGradient>
+
+    <!-- Züngelndes Magmafeuer -->
+    <linearGradient id="infernalFlameGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#7f1d1d"/>
+      <stop offset="35%" stop-color="#dc2626"/>
+      <stop offset="70%" stop-color="#f97316"/>
+      <stop offset="90%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#ffffff"/>
     </linearGradient>
-    <linearGradient id="dragonFlameSpurt" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0%" stop-color="#ea580c"/>
-      <stop offset="60%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#fef08a"/>
-    </linearGradient>
-    <filter id="fireCalmShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.85"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#ea580c" flood-opacity="0.5"/>
+
+    <radialGradient id="dragonEyeGlow" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#fef08a"/>
+      <stop offset="80%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </radialGradient>
+
+    <filter id="dragonFireShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.9"/>
+      <feDropShadow dx="0" dy="1.8" stdDeviation="2.8" flood-color="#ea580c" flood-opacity="0.6"/>
     </filter>
   </defs>
 
-  <g filter="url(#fireCalmShadow)">
-    <!-- 1. Schlanker Basalt-Drachenreif (r=35.5, stroke 1.8px) -->
-    <circle cx="50" cy="50" r="35.5" stroke="url(#dragonBasalt)" stroke-width="1.8"/>
-    <circle cx="50" cy="50" r="37" stroke="#ea580c" stroke-width="0.8" stroke-dasharray="4 2"/>
+  <g filter="url(#dragonFireShadow)">
+    <!-- 1. GESCHUPPTER BASALT-DRACHENREIF (r=35.5, Stärke 2.0px) -->
+    <circle cx="50" cy="50" r="35.5" stroke="url(#dragonBasaltRing)" stroke-width="2"/>
+    <circle cx="50" cy="50" r="37.2" stroke="#dc2626" stroke-width="0.8" stroke-dasharray="3 2"/>
 
-    <!-- 2. PLASTISCHE DRACHENSPORNE & FLAMMENZÜNGLEIN (Fassung bei r=33.0 mit subtiler 3D-Tiefe, Zungen nach außen bis r=42.0) -->
-    <!-- Zarte Flamme Oben (12 Uhr): Startet bei r=33 (y=17) mit Bogen nach y=8 -->
-    <path d="M47,17 Q45,12 50,8 Q55,12 53,17 Q50,15 47,17 Z" fill="url(#dragonFlameSpurt)"/>
-    <path d="M43,18 Q38,15 34,11 Q41,14 45,17 Z" fill="url(#dragonFlameSpurt)"/>
-    <path d="M57,18 Q62,15 66,11 Q59,14 55,17 Z" fill="url(#dragonFlameSpurt)"/>
+    <!-- 2. FLANKEN: ZÜNGELNDE FEUERWIRBEL (strikt außerhalb r=34.5 bis max r=45) -->
+    <!-- Feuerwirbel Links -->
+    <g fill="url(#infernalFlameGrad)" stroke="#450a0a" stroke-width="0.3">
+      <!-- 9 Uhr -->
+      <path d="M15,48 Q7,45 5,50 Q7,56 15,53 Q12,50 15,48 Z"/>
+      <path d="M17,40 Q10,36 8,42 Q13,44 17,42 Z"/>
+      <path d="M17,58 Q10,64 8,58 Q13,56 17,58 Z"/>
+    </g>
 
-    <!-- Flammen Flanke Rechts: Startet bei r=33 (x=83) bis x=92 -->
-    <path d="M83,47 Q88,45 92,50 Q88,55 83,53 Z" fill="url(#dragonFlameSpurt)"/>
-    <!-- Flammen Unten (6 Uhr): Startet bei r=33 (y=83) bis y=92 -->
-    <path d="M47,83 Q45,88 50,92 Q55,88 53,83 Z" fill="url(#dragonFlameSpurt)"/>
-    <!-- Flammen Flanke Links: Startet bei r=33 (x=17) bis x=8 -->
-    <path d="M17,47 Q12,45 8,50 Q12,55 17,53 Z" fill="url(#dragonFlameSpurt)"/>
+    <!-- Feuerwirbel Rechts -->
+    <g fill="url(#infernalFlameGrad)" stroke="#450a0a" stroke-width="0.3">
+      <!-- 3 Uhr -->
+      <path d="M85,48 Q93,45 95,50 Q93,56 85,53 Q88,50 85,48 Z"/>
+      <path d="M83,40 Q90,36 92,42 Q87,44 83,42 Z"/>
+      <path d="M83,58 Q90,64 92,58 Q87,56 83,58 Z"/>
+    </g>
 
-    <!-- 3. PERIODISCHES GLUT-AUFFLACKERN & FUNKENSPRÜHEN (alle 6s) -->
-    <!-- Obere Flamme flammt kurz auf -->
-    <path d="M48,17 Q44,12 50,8 Q56,12 52,17 Z" fill="#fffbeb" opacity="0">
-      <animate attributeName="opacity" values="0; 0; 0.95; 0.4; 0" keyTimes="0; 0.4; 0.45; 0.5; 1" dur="6s" repeatCount="indefinite"/>
-    </path>
-    <!-- Aufsteigende Funken -->
-    <circle cx="49" cy="8" r="0.8" fill="#fef08a" opacity="0">
-      <animate attributeName="cy" values="8; 4; 2" keyTimes="0; 0.5; 1" dur="6s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0; 1; 0" keyTimes="0; 0.45; 0.55" dur="6s" repeatCount="indefinite"/>
+    <!-- 3. BASIS (6 Uhr): BASALTKRALLEN UM GLÜHENDE MAGMA-SPHÄRE (y=82 bis 95) -->
+    <circle cx="50" cy="88" r="3.5" fill="url(#dragonEyeGlow)" stroke="#7f1d1d" stroke-width="0.4"/>
+    <!-- Greifende Basaltkrallen links & rechts -->
+    <path d="M43,84 C46,88 47,93 45,95 C43,92 42,88 43,84 Z" fill="url(#dragonBasaltRing)" stroke="#7f1d1d" stroke-width="0.3"/>
+    <path d="M57,84 C54,88 53,93 55,95 C57,92 58,88 57,84 Z" fill="url(#dragonBasaltRing)" stroke="#7f1d1d" stroke-width="0.3"/>
+
+    <!-- 4. APEX (12 Uhr): GEZACKTER DRACHENKOPF-KAMM (y=4 bis 16) -->
+    <g transform="translate(50, 10)">
+      <!-- Basalt-Kammkamm gezackt bis y=4 -->
+      <path d="M-6,5 L-4,0 L-2,-5 L0,-6 L2,-5 L4,0 L6,5 Z" fill="url(#dragonBasaltRing)" stroke="#7f1d1d" stroke-width="0.5"/>
+      <!-- Glühender Schuppengrat mittig -->
+      <polygon points="0,-6 -1.2,1 0,4 1.2,1" fill="url(#infernalFlameGrad)"/>
+      <!-- Glühende Drachenaugen -->
+      <circle cx="-2.5" cy="0" r="0.6" fill="url(#dragonEyeGlow)"/>
+      <circle cx="2.5" cy="0" r="0.6" fill="url(#dragonEyeGlow)"/>
+    </g>
+
+    <!-- 5. HYBRID-ANIMATION (6.5s Zyklus) -->
+    <!-- A) Dauer-Mikro: Lebendig loderndes Flammen-Flackern an den Flanken -->
+    <circle cx="50" cy="88" r="4.2" fill="#ea580c" opacity="0.3">
+      <animate attributeName="opacity" values="0.25; 0.65; 0.3; 0.7; 0.25" dur="1.8s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="3.8; 4.6; 4.0; 4.8; 3.8" dur="1.8s" repeatCount="indefinite"/>
     </circle>
-    <circle cx="52" cy="9" r="0.8" fill="#f97316" opacity="0">
-      <animate attributeName="cy" values="9; 5; 3" keyTimes="0; 0.5; 1" dur="6s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0; 1; 0" keyTimes="0; 0.46; 0.56" dur="6s" repeatCount="indefinite"/>
+
+    <!-- B) Periodischer Peak (alle 6.5s): Gewaltiger Magma-Feuerstoß & Funkenregen Oben -->
+    <!-- Magma-Feuerstoß aus dem Drachenkamm -->
+    <g transform="translate(50, 4)">
+      <path d="M0,-5 Q2,-1 4,1 Q0,0 -4,1 Q-2,-1 0,-5 Z" fill="#ffffff" opacity="0">
+        <animate attributeName="opacity" values="0; 0; 0.95; 0.3; 0.9; 0; 0"
+          keyTimes="0; 0.40; 0.45; 0.50; 0.55; 0.62; 1" dur="6.5s" repeatCount="indefinite"/>
+        <animateTransform attributeName="transform" type="scale"
+          values="0.4; 0.4; 1.5; 0.8; 1.4; 0.4; 0.4"
+          keyTimes="0; 0.40; 0.45; 0.50; 0.55; 0.62; 1" dur="6.5s" repeatCount="indefinite"/>
+      </path>
+    </g>
+
+    <!-- Aufsteigende Funken -->
+    <circle cx="48" cy="4" r="0.8" fill="#fef08a" opacity="0">
+      <animate attributeName="cy" values="4; 4; -1; -4; 4"
+        keyTimes="0; 0.42; 0.48; 0.56; 1" dur="6.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0; 0; 0.95; 0; 0"
+        keyTimes="0; 0.42; 0.46; 0.56; 1" dur="6.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="52" cy="5" r="0.8" fill="#f97316" opacity="0">
+      <animate attributeName="cy" values="5; 5; 0; -3; 5"
+        keyTimes="0; 0.44; 0.50; 0.58; 1" dur="6.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0; 0; 0.95; 0; 0"
+        keyTimes="0; 0.44; 0.48; 0.58; 1" dur="6.5s" repeatCount="indefinite"/>
     </circle>
   </g>
 </svg>
