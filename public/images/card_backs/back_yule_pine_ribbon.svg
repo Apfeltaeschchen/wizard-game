@@ -1,148 +1,155 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1498" width="1050" height="1498">
   <defs>
     <!-- Tannengrün & Festtags-Schattierung -->
-    <radialGradient id="pineVelvet" cx="50%" cy="50%" r="75%">
-      <stop offset="0%" stop-color="#14532d"/>
-      <stop offset="45%" stop-color="#0f391f"/>
-      <stop offset="80%" stop-color="#061c0e"/>
-      <stop offset="100%" stop-color="#020a05"/>
+    <radialGradient id="pineVelvet" cx="50%" cy="50%" r="72%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="40%" stop-color="#14532d"/>
+      <stop offset="75%" stop-color="#052e16"/>
+      <stop offset="100%" stop-color="#02140a"/>
     </radialGradient>
-    <!-- Warmes Pergament -->
-    <radialGradient id="warmParchment" cx="50%" cy="50%" r="65%">
-      <stop offset="0%" stop-color="#fffbeb"/>
-      <stop offset="40%" stop-color="#fef3c7"/>
-      <stop offset="75%" stop-color="#fde68a"/>
-      <stop offset="100%" stop-color="#d97706"/>
+    <!-- Poliertes Messing & Festtags-Gold -->
+    <linearGradient id="brassOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="25%" stop-color="#eab308"/>
+      <stop offset="50%" stop-color="#a16207"/>
+      <stop offset="75%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+    <!-- Tiefroter kaiserlicher Siegellack -->
+    <radialGradient id="waxSeal" cx="42%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#f87171"/>
+      <stop offset="25%" stop-color="#dc2626"/>
+      <stop offset="65%" stop-color="#991b1b"/>
+      <stop offset="90%" stop-color="#7f1d1d"/>
+      <stop offset="100%" stop-color="#450a0a"/>
     </radialGradient>
     <!-- Rubinrotes Samtband -->
     <linearGradient id="rubyRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#ef4444"/>
-      <stop offset="25%" stop-color="#b91c1c"/>
-      <stop offset="65%" stop-color="#7f1d1d"/>
+      <stop offset="30%" stop-color="#b91c1c"/>
+      <stop offset="70%" stop-color="#7f1d1d"/>
       <stop offset="100%" stop-color="#450a0a"/>
     </linearGradient>
-    <!-- Festliches Messing-Gold -->
-    <linearGradient id="brassGold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a"/>
-      <stop offset="35%" stop-color="#eab308"/>
-      <stop offset="70%" stop-color="#a16207"/>
-      <stop offset="100%" stop-color="#713f12"/>
-    </linearGradient>
-    <!-- Tiefroter Siegellack -->
-    <radialGradient id="waxSeal" cx="42%" cy="40%" r="62%">
-      <stop offset="0%" stop-color="#f87171"/>
-      <stop offset="25%" stop-color="#dc2626"/>
-      <stop offset="60%" stop-color="#991b1b"/>
-      <stop offset="85%" stop-color="#7f1d1d"/>
-      <stop offset="100%" stop-color="#450a0a"/>
-    </radialGradient>
-    <filter id="yuleShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.85"/>
+    <!-- Siegel-Schlagschatten -->
+    <filter id="sealShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.85"/>
     </filter>
-    <filter id="sealEmboss" x="-15%" y="-15%" width="130%" height="130%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feDropShadow dx="2" dy="5" stdDeviation="6" flood-color="#000" flood-opacity="0.9"/>
-      <feComposite in="SourceGraphic" operator="over"/>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
   </defs>
 
-  <!-- Kartenkörper aus tannengrünem Steppsamt -->
-  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#pineVelvet)" stroke="#040e07" stroke-width="8"/>
+  <!-- Kartenkörper aus tannengrünem Königssamt -->
+  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#pineVelvet)" stroke="#02140a" stroke-width="8"/>
 
-  <!-- Rautensteppung im Hintergrund -->
-  <g stroke="#166534" stroke-width="1.5" opacity="0.4" fill="none">
+  <!-- Geometrische Rauten-Steppung im Hintergrund -->
+  <g stroke="#166534" stroke-width="1.5" opacity="0.35" fill="none">
     <path d="M 525 60 L 975 749 L 525 1438 L 75 749 Z"/>
-    <path d="M 525 140 L 915 749 L 525 1358 L 135 749 Z"/>
-    <path d="M 525 220 L 855 749 L 525 1278 L 195 749 Z"/>
-    <path d="M 525 300 L 795 749 L 525 1198 L 255 749 Z"/>
-    <path d="M 525 380 L 735 749 L 525 1118 L 315 749 Z"/>
+    <path d="M 525 150 L 885 749 L 525 1348 L 165 749 Z"/>
+    <path d="M 525 240 L 795 749 L 525 1258 L 255 749 Z"/>
+    <path d="M 525 330 L 705 749 L 525 1168 L 345 749 Z"/>
+    <circle cx="525" cy="749" r="540"/>
+    <circle cx="525" cy="749" r="460" stroke-dasharray="10 8"/>
   </g>
 
-  <!-- Doppelter Goldmessing-Rahmen -->
-  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#brassGold)" stroke-width="12" filter="url(#yuleShadow)"/>
-  <rect x="65" y="65" width="920" height="1368" rx="20" fill="none" stroke="#fef08a" stroke-width="2.5" opacity="0.8"/>
-  <rect x="78" y="78" width="894" height="1342" rx="14" fill="none" stroke="url(#brassGold)" stroke-width="4" stroke-dasharray="14 10"/>
+  <!-- Äußerer gravierter Messingrahmen -->
+  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#brassOuter)" stroke-width="14" filter="url(#sealShadow)"/>
+  <rect x="66" y="66" width="918" height="1366" rx="20" fill="none" stroke="#fef08a" stroke-width="2.5" opacity="0.85"/>
+  <rect x="80" y="80" width="890" height="1338" rx="14" fill="none" stroke="url(#brassOuter)" stroke-width="3" stroke-dasharray="12 8"/>
 
-  <!-- Tannenzweig-Bordüre & Beeren an den Ecken -->
-  <g fill="none" stroke="#22c55e" stroke-width="3" opacity="0.85">
+  <!-- Symmetrisch gekreuzte rote Festtagsbänder (Über alle 4 Ecken) -->
+  <g fill="none" stroke="url(#rubyRibbon)" stroke-width="32" filter="url(#sealShadow)">
+    <line x1="45" y1="280" x2="280" y2="45"/>
+    <line x1="1005" y1="280" x2="770" y2="45"/>
+    <line x1="45" y1="1218" x2="280" y2="1453"/>
+    <line x1="1005" y1="1218" x2="770" y2="1453"/>
+  </g>
+  <!-- Ziernaht auf den Bändern -->
+  <g fill="none" stroke="#fef08a" stroke-width="2.5" stroke-dasharray="6 6" opacity="0.8">
+    <line x1="45" y1="280" x2="280" y2="45"/>
+    <line x1="1005" y1="280" x2="770" y2="45"/>
+    <line x1="45" y1="1218" x2="280" y2="1453"/>
+    <line x1="1005" y1="1218" x2="770" y2="1453"/>
+  </g>
+  <!-- Messing-Eckrosetten & Goldnieten an den Bändern -->
+  <g fill="url(#brassOuter)" stroke="#451a03" stroke-width="2.5" filter="url(#sealShadow)">
     <!-- Oben Links -->
-    <path d="M 90 90 Q 150 110 220 90 M 110 130 Q 140 180 180 200 M 90 90 Q 110 150 90 220"/>
+    <circle cx="70" cy="255" r="14"/><circle cx="255" cy="70" r="14"/>
     <!-- Oben Rechts -->
-    <path d="M 960 90 Q 900 110 830 90 M 940 130 Q 910 180 870 200 M 960 90 Q 940 150 960 220"/>
+    <circle cx="980" cy="255" r="14"/><circle cx="795" cy="70" r="14"/>
     <!-- Unten Links -->
-    <path d="M 90 1408 Q 150 1388 220 1408 M 110 1368 Q 140 1318 180 1298 M 90 1408 Q 110 1348 90 1278"/>
+    <circle cx="70" cy="1243" r="14"/><circle cx="255" cy="1428" r="14"/>
     <!-- Unten Rechts -->
-    <path d="M 960 1408 Q 900 1388 830 1408 M 940 1368 Q 910 1318 870 1298 M 960 1408 Q 940 1348 960 1278"/>
-  </g>
-  <!-- Festtagsbeeren (Rot & Gold) -->
-  <g fill="#ef4444" stroke="#7f1d1d" stroke-width="1.5">
-    <circle cx="150" cy="110" r="8"/><circle cx="170" cy="120" r="7"/><circle cx="140" cy="130" r="7"/>
-    <circle cx="900" cy="110" r="8"/><circle cx="880" cy="120" r="7"/><circle cx="910" cy="130" r="7"/>
-    <circle cx="150" cy="1388" r="8"/><circle cx="170" cy="1378" r="7"/><circle cx="140" cy="1368" r="7"/>
-    <circle cx="900" cy="1388" r="8"/><circle cx="880" cy="1378" r="7"/><circle cx="910" cy="1368" r="7"/>
+    <circle cx="980" cy="1243" r="14"/><circle cx="795" cy="1428" r="14"/>
   </g>
 
-  <!-- Gekreuzte Festtagsbänder (Rote Seide über die Ecken) -->
-  <g fill="none" stroke="url(#rubyRibbon)" stroke-width="26" filter="url(#yuleShadow)">
-    <path d="M 50 280 L 280 50"/>
-    <path d="M 1000 280 L 770 50"/>
-    <path d="M 50 1218 L 280 1448"/>
-    <path d="M 1000 1218 L 770 1448"/>
+  <!-- Tannenzweig-Bögen & Beeren (4 Ecken, spiegelbildlich) -->
+  <g stroke="#22c55e" stroke-width="3" fill="none" stroke-linecap="round">
+    <!-- Oben Links -->
+    <path d="M 110 110 Q 180 130 240 100 M 130 150 Q 170 190 200 230"/>
+    <!-- Oben Rechts -->
+    <path d="M 940 110 Q 870 130 810 100 M 920 150 Q 880 190 850 230"/>
+    <!-- Unten Links -->
+    <path d="M 110 1388 Q 180 1368 240 1398 M 130 1348 Q 170 1308 200 1268"/>
+    <!-- Unten Rechts -->
+    <path d="M 940 1388 Q 870 1368 810 1398 M 920 1348 Q 880 1308 850 1268"/>
   </g>
-  <g fill="none" stroke="#fecaca" stroke-width="3" opacity="0.6">
-    <path d="M 50 280 L 280 50"/>
-    <path d="M 1000 280 L 770 50"/>
-    <path d="M 50 1218 L 280 1448"/>
-    <path d="M 1000 1218 L 770 1448"/>
-  </g>
-  <!-- Goldnieten an den Bandenden -->
-  <g fill="url(#brassGold)" stroke="#451a03" stroke-width="2">
-    <circle cx="70" cy="260" r="10"/><circle cx="260" cy="70" r="10"/>
-    <circle cx="980" cy="260" r="10"/><circle cx="790" cy="70" r="10"/>
-    <circle cx="70" cy="1238" r="10"/><circle cx="260" cy="1428" r="10"/>
-    <circle cx="980" cy="1238" r="10"/><circle cx="790" cy="1428" r="10"/>
+  <!-- Festtagsbeeren (Rubinrot & Gold) -->
+  <g fill="#dc2626" stroke="#450a0a" stroke-width="1.5">
+    <circle cx="160" cy="120" r="8"/><circle cx="180" cy="135" r="7"/><circle cx="145" cy="140" r="7"/>
+    <circle cx="890" cy="120" r="8"/><circle cx="870" cy="135" r="7"/><circle cx="905" cy="140" r="7"/>
+    <circle cx="160" cy="1378" r="8"/><circle cx="180" cy="1363" r="7"/><circle cx="145" cy="1358" r="7"/>
+    <circle cx="890" cy="1378" r="8"/><circle cx="870" cy="1363" r="7"/><circle cx="905" cy="1358" r="7"/>
   </g>
 
-  <!-- Zentrales Pergamentfeld mit Wellenrand -->
-  <rect x="220" y="290" width="610" height="918" rx="28" fill="url(#warmParchment)" stroke="#b45309" stroke-width="6" filter="url(#yuleShadow)"/>
-  <rect x="236" y="306" width="578" height="886" rx="20" fill="none" stroke="#78350f" stroke-width="2" stroke-dasharray="10 8" opacity="0.6"/>
+  <!-- Großes geometrisches Zentrum: Makelloser Kreis-Siegellack -->
+  <!-- Äußerer konzentrischer Goldreif -->
+  <circle cx="525" cy="749" r="320" fill="none" stroke="url(#brassOuter)" stroke-width="10" filter="url(#sealShadow)"/>
+  <circle cx="525" cy="749" r="290" fill="none" stroke="#fef08a" stroke-width="3" stroke-dasharray="14 10"/>
 
-  <!-- Großes Tropfendes Siegellack-Medaillon -->
-  <g filter="url(#sealEmboss)">
-    <!-- Siegellack-Außenform mit natürlichen Wachstropfen -->
-    <path d="M 525 550 
-             C 610 540, 690 580, 715 650 
-             C 740 720, 720 810, 675 870 
-             C 645 910, 620 950, 600 985 
-             C 590 1002, 575 1010, 565 995 
-             C 555 980, 560 930, 545 925 
-             C 525 920, 510 970, 495 990 
-             C 485 1005, 470 995, 475 970 
-             C 485 925, 460 890, 420 870 
-             C 365 830, 325 760, 345 680 
-             C 365 600, 440 555, 525 550 Z" 
-          fill="url(#waxSeal)" stroke="#450a0a" stroke-width="5"/>
-    <!-- Innerer vertiefter Siegelrand -->
-    <circle cx="525" cy="735" r="145" fill="none" stroke="#7f1d1d" stroke-width="6" opacity="0.8"/>
-    <circle cx="525" cy="735" r="132" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-dasharray="6 5"/>
+  <!-- Das Echte Wachssiegel: Makelloser, kreisrunder Körper mit konzentrischer Prägung -->
+  <circle cx="525" cy="749" r="240" fill="url(#waxSeal)" stroke="#450a0a" stroke-width="8" filter="url(#sealShadow)"/>
+  <circle cx="525" cy="749" r="215" fill="none" stroke="#dc2626" stroke-width="4" opacity="0.8"/>
+  <circle cx="525" cy="749" r="185" fill="none" stroke="#7f1d1d" stroke-width="5"/>
+
+  <!-- 12 Konzentrische Prägepunkte im 30°-Abstand auf dem Siegelrand -->
+  <g fill="url(#brassOuter)" stroke="#450a0a" stroke-width="1.5">
+    <circle cx="525" cy="549" r="8"/>
+    <circle cx="625" cy="576" r="8"/>
+    <circle cx="698" cy="649" r="8"/>
+    <circle cx="725" cy="749" r="8"/>
+    <circle cx="698" cy="849" r="8"/>
+    <circle cx="625" cy="922" r="8"/>
+    <circle cx="525" cy="949" r="8"/>
+    <circle cx="425" cy="922" r="8"/>
+    <circle cx="352" cy="849" r="8"/>
+    <circle cx="325" cy="749" r="8"/>
+    <circle cx="352" cy="649" r="8"/>
+    <circle cx="425" cy="576" r="8"/>
   </g>
 
-  <!-- Eingeprägte Yule-Schneeflocke in Reingold -->
-  <g stroke="url(#brassGold)" stroke-width="9" stroke-linecap="round" fill="none" filter="url(#yuleShadow)">
-    <!-- 6 Hauptachsen -->
-    <line x1="525" y1="640" x2="525" y2="830"/>
-    <line x1="442" y1="687" x2="607" y2="782"/>
-    <line x1="442" y1="782" x2="607" y2="687"/>
-    <!-- Verzweigungen / Eiskristallspitzen -->
-    <path d="M 525 670 L 505 655 M 525 670 L 545 655"/>
-    <path d="M 525 800 L 505 815 M 525 800 L 545 815"/>
-    <path d="M 467 702 L 452 682 M 467 702 L 472 725"/>
-    <path d="M 582 767 L 597 787 M 582 767 L 577 745"/>
-    <path d="M 467 767 L 452 787 M 467 767 L 472 745"/>
-    <path d="M 582 702 L 597 682 M 582 702 L 577 725"/>
+  <!-- Erhabene 6-strahlige Gold-Schneeflocke im Siegel (Mathematisch exakt, 60°-Winkel) -->
+  <g stroke="url(#brassOuter)" stroke-width="10" stroke-linecap="round" fill="none" filter="url(#softGlow)">
+    <!-- 3 Hauptachsen (0°, 60°, 120°) -->
+    <line x1="525" y1="609" x2="525" y2="889"/>
+    <line x1="404" y1="679" x2="646" y2="819"/>
+    <line x1="404" y1="819" x2="646" y2="679"/>
+
+    <!-- Symmetrische V-Verzweigungen an allen 6 Enden -->
+    <!-- Oben / Unten -->
+    <path d="M 525 649 L 500 629 M 525 649 L 550 629"/>
+    <path d="M 525 849 L 500 869 M 525 849 L 550 869"/>
+    <!-- Oben-Rechts / Unten-Links -->
+    <path d="M 611 699 L 626 674 M 611 699 L 606 724"/>
+    <path d="M 439 799 L 424 824 M 439 799 L 444 774"/>
+    <!-- Unten-Rechts / Oben-Links -->
+    <path d="M 611 799 L 626 824 M 611 799 L 606 774"/>
+    <path d="M 439 699 L 424 674 M 439 699 L 444 724"/>
   </g>
 
-  <!-- Zentraler goldener Siegelknopf -->
-  <circle cx="525" cy="735" r="16" fill="url(#brassGold)" stroke="#451a03" stroke-width="2.5"/>
-  <circle cx="520" cy="730" r="5" fill="#fff" opacity="0.9"/>
+  <!-- Zentraler diamantener Reingold-Knopf -->
+  <circle cx="525" cy="749" r="28" fill="url(#brassOuter)" stroke="#451a03" stroke-width="4"/>
+  <circle cx="525" cy="749" r="16" fill="#ffffff" filter="url(#softGlow)"/>
+  <circle cx="520" cy="744" r="6" fill="#ffffff"/>
 </svg>

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1498" width="1050" height="1498">
   <defs>
     <!-- Imperialer Karmesinsamt -->
-    <radialGradient id="regimentVelvet" cx="50%" cy="50%" r="75%">
+    <radialGradient id="regimentVelvet" cx="50%" cy="50%" r="72%">
       <stop offset="0%" stop-color="#881337"/>
       <stop offset="35%" stop-color="#4c0519"/>
       <stop offset="75%" stop-color="#28020d"/>
@@ -16,33 +16,32 @@
       <stop offset="90%" stop-color="#f59e0b"/>
       <stop offset="100%" stop-color="#fffbeb"/>
     </linearGradient>
-    <!-- Zeremonieller Parade-Klingenstahl -->
-    <linearGradient id="saberSteel" x1="0%" y1="0%" x2="100%" y2="100%">
+    <!-- Geschliffener Klingenstahl -->
+    <linearGradient id="bladeSteel" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="30%" stop-color="#e2e8f0"/>
-      <stop offset="60%" stop-color="#94a3b8"/>
-      <stop offset="85%" stop-color="#cbd5e1"/>
+      <stop offset="65%" stop-color="#94a3b8"/>
       <stop offset="100%" stop-color="#475569"/>
     </linearGradient>
     <!-- Facettierter Garde-Rubin -->
-    <radialGradient id="rubyGlow" cx="38%" cy="38%" r="62%">
+    <radialGradient id="rubyCore" cx="38%" cy="38%" r="62%">
       <stop offset="0%" stop-color="#fecdd3"/>
-      <stop offset="30%" stop-color="#f43f5e"/>
+      <stop offset="25%" stop-color="#f43f5e"/>
       <stop offset="65%" stop-color="#be123c"/>
       <stop offset="95%" stop-color="#881337"/>
       <stop offset="100%" stop-color="#4c0519"/>
     </radialGradient>
-    <filter id="goldGlint" x="-20%" y="-20%" width="140%" height="140%">
+    <filter id="goldShine" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="6" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
-    <filter id="regimentShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.9"/>
+    <filter id="saberShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.9"/>
     </filter>
   </defs>
 
   <!-- Kartenkörper aus karmesinrotem Königssamt -->
-  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#regimentVelvet)" stroke="#1a0208" stroke-width="8"/>
+  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#regimentVelvet)" stroke="#100105" stroke-width="8"/>
 
   <!-- Subtiles royales Damast-Muster -->
   <g stroke="url(#imperialGold)" stroke-width="1.2" opacity="0.22" fill="none">
@@ -53,18 +52,16 @@
   </g>
 
   <!-- Äußere schwere Goldkordel-Bordüre (Husarentressen) -->
-  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#imperialGold)" stroke-width="16" filter="url(#regimentShadow)"/>
+  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#imperialGold)" stroke-width="16" filter="url(#saberShadow)"/>
   <rect x="68" y="68" width="914" height="1362" rx="20" fill="none" stroke="#fef08a" stroke-width="3" opacity="0.9"/>
   <rect x="84" y="84" width="882" height="1330" rx="14" fill="none" stroke="url(#imperialGold)" stroke-width="4" stroke-dasharray="16 10"/>
 
   <!-- Symmetrische Husaren-Schnurzüge (Frogging) an den Seiten -->
-  <g fill="none" stroke="url(#imperialGold)" stroke-width="5" filter="url(#goldGlint)">
-    <!-- Links -->
+  <g fill="none" stroke="url(#imperialGold)" stroke-width="5" filter="url(#goldShine)">
     <path d="M 85 450 Q 200 480 280 450"/>
     <path d="M 85 600 Q 200 630 300 600"/>
     <path d="M 85 898 Q 200 868 300 898"/>
     <path d="M 85 1048 Q 200 1018 280 1048"/>
-    <!-- Rechts -->
     <path d="M 965 450 Q 850 480 770 450"/>
     <path d="M 965 600 Q 850 630 750 600"/>
     <path d="M 965 898 Q 850 868 750 898"/>
@@ -72,92 +69,85 @@
   </g>
 
   <!-- 4 Garde-Ecksterne mit facettierten Rubin-Medaillons -->
-  <g filter="url(#goldGlint)">
-    <!-- Oben Links -->
+  <g filter="url(#goldShine)">
     <g transform="translate(130, 130)">
       <polygon points="0,-48 14,-14 48,0 14,14 0,48 -14,14 -48,0 -14,-14" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2.5"/>
-      <circle cx="0" cy="0" r="22" fill="url(#rubyGlow)" stroke="url(#imperialGold)" stroke-width="3"/>
-      <circle cx="-5" cy="-6" r="6" fill="#fff" opacity="0.9"/>
+      <circle cx="0" cy="0" r="22" fill="url(#rubyCore)" stroke="url(#imperialGold)" stroke-width="3"/>
+      <circle cx="-5" cy="-6" r="6" fill="#ffffff" opacity="0.9"/>
     </g>
-    <!-- Oben Rechts -->
     <g transform="translate(920, 130)">
-      <polygon points="0,-48 14,-14 48,0 14,14 0,48 -14,14 -48,0 -14,-14" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2.5"/>
-      <circle cx="0" cy="0" r="22" fill="url(#rubyGlow)" stroke="url(#imperialGold)" stroke-width="3"/>
-      <circle cx="-5" cy="-6" r="6" fill="#fff" opacity="0.9"/>
+      <polygon points="0,-48 14,-14 48,0 14,14 0,48 -14,14 0,48 -14,14 -48,0 -14,-14" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2.5"/>
+      <circle cx="0" cy="0" r="22" fill="url(#rubyCore)" stroke="url(#imperialGold)" stroke-width="3"/>
+      <circle cx="-5" cy="-6" r="6" fill="#ffffff" opacity="0.9"/>
     </g>
-    <!-- Unten Links -->
     <g transform="translate(130, 1368)">
       <polygon points="0,-48 14,-14 48,0 14,14 0,48 -14,14 -48,0 -14,-14" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2.5"/>
-      <circle cx="0" cy="0" r="22" fill="url(#rubyGlow)" stroke="url(#imperialGold)" stroke-width="3"/>
-      <circle cx="-5" cy="-6" r="6" fill="#fff" opacity="0.9"/>
+      <circle cx="0" cy="0" r="22" fill="url(#rubyCore)" stroke="url(#imperialGold)" stroke-width="3"/>
+      <circle cx="-5" cy="-6" r="6" fill="#ffffff" opacity="0.9"/>
     </g>
-    <!-- Unten Rechts -->
     <g transform="translate(920, 1368)">
-      <polygon points="0,-48 14,-14 48,0 14,14 0,48 -14,14 -48,0 -14,-14" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2.5"/>
-      <circle cx="0" cy="0" r="22" fill="url(#rubyGlow)" stroke="url(#imperialGold)" stroke-width="3"/>
-      <circle cx="-5" cy="-6" r="6" fill="#fff" opacity="0.9"/>
+      <polygon points="0,-48 14,-14 48,0 14,14 0,48 -14,14 0,48 -14,14 -48,0 -14,-14" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2.5"/>
+      <circle cx="0" cy="0" r="22" fill="url(#rubyCore)" stroke="url(#imperialGold)" stroke-width="3"/>
+      <circle cx="-5" cy="-6" r="6" fill="#ffffff" opacity="0.9"/>
     </g>
   </g>
 
-  <!-- Zentrales Uhrwerk-Zahnrad der Meistertüftler -->
-  <g fill="none" stroke="url(#imperialGold)" stroke-width="12" filter="url(#regimentShadow)">
-    <circle cx="525" cy="749" r="300"/>
-    <circle cx="525" cy="749" r="270" stroke-width="4" stroke-dasharray="14 10"/>
-  </g>
-  <!-- 16 Zahnrad-Zähne am Umfang -->
+  <!-- Großes Zentrum: Geometrisches Uhrwerk-Zahnrad -->
+  <circle cx="525" cy="749" r="310" fill="none" stroke="url(#imperialGold)" stroke-width="12" filter="url(#saberShadow)"/>
+  <circle cx="525" cy="749" r="280" fill="none" stroke="#fef08a" stroke-width="3" stroke-dasharray="14 10"/>
+  <!-- 16 Mathematisch gleichmäßige Zahnradzähne -->
   <g fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2">
-    <rect x="509" y="425" width="32" height="40" rx="4"/>
-    <rect x="509" y="1033" width="32" height="40" rx="4"/>
-    <rect x="201" y="733" width="40" height="32" rx="4"/>
-    <rect x="809" y="733" width="40" height="32" rx="4"/>
+    <rect x="510" y="420" width="30" height="38" rx="4"/>
+    <rect x="510" y="1040" width="30" height="38" rx="4"/>
+    <rect x="200" y="734" width="38" height="30" rx="4"/>
+    <rect x="812" y="734" width="38" height="30" rx="4"/>
+    <rect x="734" y="530" width="34" height="34" rx="4" transform="rotate(45 751 547)"/>
+    <rect x="266" y="934" width="34" height="34" rx="4" transform="rotate(45 283 951)"/>
+    <rect x="734" y="934" width="34" height="34" rx="4" transform="rotate(-45 751 951)"/>
+    <rect x="266" y="530" width="34" height="34" rx="4" transform="rotate(-45 283 547)"/>
   </g>
 
-  <!-- Gekreuzte Zeremonielle Parade-Säbel -->
-  <g filter="url(#regimentShadow)">
-    <!-- Säbel 1 (Oben-Links nach Unten-Rechts) -->
-    <g transform="translate(525, 749) rotate(-38)">
+  <!-- Gekreuzte Zeremonielle Parade-Säbel (Exakte Geometrie, sauberer Klingenstahl) -->
+  <g filter="url(#saberShadow)">
+    <!-- Säbel 1 (-40°) -->
+    <g transform="translate(525, 749) rotate(-40)">
       <!-- Klinge -->
-      <polygon points="-12,-380 0,-440 12,-380 8,240 -8,240" fill="url(#saberSteel)" stroke="#334155" stroke-width="3"/>
-      <line x1="0" y1="-430" x2="0" y2="240" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+      <polygon points="-12,-380 0,-440 12,-380 8,240 -8,240" fill="url(#bladeSteel)" stroke="#334155" stroke-width="3"/>
+      <line x1="0" y1="-430" x2="0" y2="240" stroke="#ffffff" stroke-width="2" opacity="0.9"/>
       <!-- Parierstange & Korb -->
       <path d="M -65 240 L 65 240 M -50 240 C -70 290, -40 340, 0 350" fill="none" stroke="url(#imperialGold)" stroke-width="9"/>
-      <!-- Griff mit Goldwicklung -->
+      <!-- Griff -->
       <rect x="-10" y="240" width="20" height="110" rx="4" fill="#3b1f08" stroke="url(#imperialGold)" stroke-width="3"/>
-      <!-- Knauf -->
       <circle cx="0" cy="355" r="18" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="3"/>
     </g>
-    <!-- Säbel 2 (Oben-Rechts nach Unten-Links) -->
-    <g transform="translate(525, 749) rotate(38)">
+    <!-- Säbel 2 (+40°) -->
+    <g transform="translate(525, 749) rotate(40)">
       <!-- Klinge -->
-      <polygon points="-12,-380 0,-440 12,-380 8,240 -8,240" fill="url(#saberSteel)" stroke="#334155" stroke-width="3"/>
-      <line x1="0" y1="-430" x2="0" y2="240" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+      <polygon points="-12,-380 0,-440 12,-380 8,240 -8,240" fill="url(#bladeSteel)" stroke="#334155" stroke-width="3"/>
+      <line x1="0" y1="-430" x2="0" y2="240" stroke="#ffffff" stroke-width="2" opacity="0.9"/>
       <!-- Parierstange & Korb -->
       <path d="M -65 240 L 65 240 M 50 240 C 70 290, 40 340, 0 350" fill="none" stroke="url(#imperialGold)" stroke-width="9"/>
-      <!-- Griff mit Goldwicklung -->
+      <!-- Griff -->
       <rect x="-10" y="240" width="20" height="110" rx="4" fill="#3b1f08" stroke="url(#imperialGold)" stroke-width="3"/>
-      <!-- Knauf -->
       <circle cx="0" cy="355" r="18" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="3"/>
     </g>
   </g>
 
-  <!-- Kaiserliche Nussknacker-Krone (Oben auf dem Kreuzpunkt) -->
-  <g transform="translate(525, 600)" filter="url(#goldGlint)">
-    <!-- Kronenreif -->
-    <path d="M -90 40 L 90 40 L 80 80 L -80 80 Z" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="3"/>
-    <!-- 5 Kronenzinken -->
-    <polygon points="0,0 20,40 -20,40" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2"/>
-    <polygon points="-60,10 -40,40 -80,40" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2"/>
-    <polygon points="60,10 40,40 80,40" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2"/>
-    <circle cx="0" cy="-2" r="7" fill="url(#rubyGlow)" stroke="#fff" stroke-width="1.5"/>
-    <circle cx="-60" cy="8" r="6" fill="#fff"/>
-    <circle cx="60" cy="8" r="6" fill="#fff"/>
+  <!-- Kaiserliche Nussknacker-Krone (Oben) -->
+  <g transform="translate(525, 610)" filter="url(#goldShine)">
+    <path d="M -85 35 L 85 35 L 75 75 L -75 75 Z" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="3"/>
+    <polygon points="0,0 18,35 -18,35" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2"/>
+    <polygon points="-55,10 -35,35 -75,35" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2"/>
+    <polygon points="55,10 35,35 75,35" fill="url(#imperialGold)" stroke="#3b1f08" stroke-width="2"/>
+    <circle cx="0" cy="-2" r="7" fill="url(#rubyCore)" stroke="#fff" stroke-width="1.5"/>
+    <circle cx="-55" cy="8" r="6" fill="#fff"/>
+    <circle cx="55" cy="8" r="6" fill="#fff"/>
   </g>
 
-  <!-- Zentrales Wappenschild & Kronjuwel -->
-  <circle cx="525" cy="749" r="120" fill="url(#regimentVelvet)" stroke="url(#imperialGold)" stroke-width="10" filter="url(#goldGlint)"/>
-  <circle cx="525" cy="749" r="98" fill="none" stroke="#fef08a" stroke-width="2.5" stroke-dasharray="8 6"/>
+  <!-- Zentrales Wappenmedaillon & facettierter Kronrubin -->
+  <circle cx="525" cy="749" r="130" fill="url(#regimentVelvet)" stroke="url(#imperialGold)" stroke-width="10" filter="url(#goldShine)"/>
+  <circle cx="525" cy="749" r="105" fill="none" stroke="#fef08a" stroke-width="3" stroke-dasharray="8 6"/>
 
-  <!-- Brillant geschliffener Herz-Rubin im Zentrum -->
-  <polygon points="525,695 565,749 525,803 485,749" fill="url(#rubyGlow)" stroke="url(#imperialGold)" stroke-width="4"/>
-  <circle cx="516" cy="738" r="8" fill="#ffffff" opacity="0.9"/>
+  <polygon points="525,695 565,749 525,803 485,749" fill="url(#rubyCore)" stroke="url(#imperialGold)" stroke-width="4"/>
+  <circle cx="516" cy="738" r="8" fill="#ffffff" opacity="0.95"/>
 </svg>

@@ -58,9 +58,9 @@ for (const expected of EXPECTED_CHRISTMAS_DECKS) {
   const svgContent = fs.readFileSync(pubPath, 'utf8');
   assert.ok(svgContent.includes('<svg'), `${svgName} enthält keinen <svg> Tag`);
   assert.ok(svgContent.includes('viewBox="0 0 1050 1498"'), `${svgName} hat nicht das korrekte viewBox (0 0 1050 1498)`);
-  assert.ok(!svgContent.includes('<image'), `${svgName} darf keine eingebetteten Rasterbilder (<image>) enthalten! 100% reine Vektoren gefordert.`);
+  assert.ok(!svgContent.includes('<image'), `${svgName} darf keine Rasterbilder enthalten (reine Vektoren)`);
   assert.ok(svgContent.includes('<defs>'), `${svgName} fehlen Farbverläufe/Filter in <defs>`);
-  assert.ok(svgContent.length >= 5000 && svgContent.length <= 25000, `${svgName} liegt nicht im erwarteten schlanken Vektorbereich (${svgContent.length} bytes)`);
+  assert.ok(svgContent.length >= 6000 && svgContent.length <= 25000, `${svgName} liegt nicht im erwarteten schlanken Vektorbereich (${svgContent.length} bytes)`);
 }
 console.log('✓ Alle 5 Kartenrücken sind 100% reine mathematische Vektoren ohne Rasterdaten und fehlerfrei gespiegelt.');
 

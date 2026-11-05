@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1498" width="1050" height="1498">
   <defs>
     <!-- Tiefes Mahagoni & Obsidianglanz -->
-    <radialGradient id="mahoganyWood" cx="50%" cy="50%" r="75%">
+    <radialGradient id="mahoganyBase" cx="50%" cy="50%" r="72%">
       <stop offset="0%" stop-color="#451a03"/>
       <stop offset="35%" stop-color="#270e02"/>
-      <stop offset="70%" stop-color="#120601"/>
+      <stop offset="75%" stop-color="#120601"/>
       <stop offset="100%" stop-color="#050100"/>
     </radialGradient>
-    <!-- Altgold & Antikmessing -->
+    <!-- Antik-Messing & Barockgold -->
     <linearGradient id="antiqueBrass" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#fef08a"/>
       <stop offset="25%" stop-color="#eab308"/>
@@ -15,12 +15,19 @@
       <stop offset="85%" stop-color="#854d0e"/>
       <stop offset="100%" stop-color="#451a03"/>
     </linearGradient>
-    <!-- Lodernde Sonnenwend-Flamme -->
-    <radialGradient id="solsticeFire" cx="50%" cy="65%" r="65%">
+    <!-- Kerzenwachs (Elfenbein / Bienenwachs) -->
+    <linearGradient id="waxPillar" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="20%" stop-color="#fef08a"/>
-      <stop offset="50%" stop-color="#f97316"/>
-      <stop offset="80%" stop-color="#dc2626"/>
+      <stop offset="30%" stop-color="#fef3c7"/>
+      <stop offset="70%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <!-- Kerzenflamme (Warmes Schichtfeuer) -->
+    <radialGradient id="flameGlow" cx="50%" cy="75%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#fef08a"/>
+      <stop offset="55%" stop-color="#f97316"/>
+      <stop offset="85%" stop-color="#dc2626"/>
       <stop offset="100%" stop-color="#7f1d1d"/>
     </radialGradient>
     <!-- Schimmernde Perlenbeeren -->
@@ -30,46 +37,40 @@
       <stop offset="75%" stop-color="#cbd5e1"/>
       <stop offset="100%" stop-color="#64748b"/>
     </radialGradient>
-    <filter id="candleGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
+    <filter id="candleAura" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
-    <filter id="mahoganyShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.92"/>
+    <filter id="candleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.9"/>
     </filter>
   </defs>
 
   <!-- Kartenkörper aus tiefem Mahagoniholz -->
-  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#mahoganyWood)" stroke="#050100" stroke-width="8"/>
+  <rect x="15" y="15" width="1020" height="1468" rx="42" fill="url(#mahoganyBase)" stroke="#050100" stroke-width="8"/>
 
-  <!-- Feine Jahresringe & Holzmaserung im Hintergrund -->
+  <!-- Jahresringe & feine Holzmaserung im Hintergrund -->
   <g stroke="#78350f" stroke-width="1.2" opacity="0.3" fill="none">
     <ellipse cx="525" cy="749" rx="450" ry="650"/>
-    <ellipse cx="525" cy="749" rx="380" ry="560"/>
-    <ellipse cx="525" cy="749" rx="300" ry="460"/>
-    <ellipse cx="525" cy="749" rx="220" ry="340"/>
-    <line x1="120" y1="200" x2="160" y2="1300" stroke-dasharray="20 12"/>
-    <line x1="930" y1="200" x2="890" y2="1300" stroke-dasharray="20 12"/>
+    <ellipse cx="525" cy="749" rx="370" ry="540"/>
+    <ellipse cx="525" cy="749" rx="290" ry="430"/>
+    <ellipse cx="525" cy="749" rx="210" ry="320"/>
   </g>
 
-  <!-- Äußerer Rahmen aus gechastem Antik-Messing -->
-  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#antiqueBrass)" stroke-width="14" filter="url(#mahoganyShadow)"/>
+  <!-- Äußerer Rahmen aus antikem Barock-Messing -->
+  <rect x="45" y="45" width="960" height="1408" rx="30" fill="none" stroke="url(#antiqueBrass)" stroke-width="14" filter="url(#candleShadow)"/>
   <rect x="66" y="66" width="918" height="1366" rx="20" fill="none" stroke="#fde047" stroke-width="2.5" opacity="0.85"/>
   <rect x="80" y="80" width="890" height="1338" rx="14" fill="none" stroke="url(#antiqueBrass)" stroke-width="3" stroke-dasharray="14 10"/>
 
-  <!-- Geschwungene goldene Mistelranken entlang der Bordüre -->
-  <g fill="none" stroke="url(#antiqueBrass)" stroke-width="6" stroke-linecap="round" filter="url(#candleGlow)">
-    <!-- Oben Links -->
+  <!-- Geschwungene Mistelranken entlang der Bordüre -->
+  <g fill="none" stroke="url(#antiqueBrass)" stroke-width="6" stroke-linecap="round">
     <path d="M 85 240 Q 180 180 200 85 M 120 150 Q 210 130 250 85"/>
-    <!-- Oben Rechts -->
     <path d="M 965 240 Q 870 180 850 85 M 930 150 Q 840 130 800 85"/>
-    <!-- Unten Links -->
     <path d="M 85 1258 Q 180 1318 200 1413 M 120 1348 Q 210 1368 250 1413"/>
-    <!-- Unten Rechts -->
     <path d="M 965 1258 Q 870 1318 850 1413 M 930 1348 Q 840 1368 800 1413"/>
   </g>
 
-  <!-- Schimmernde Mistel-Perlenbeeren -->
+  <!-- Mistel-Perlenbeeren -->
   <g fill="url(#pearlBerry)" stroke="#334155" stroke-width="1.5">
     <circle cx="150" cy="140" r="10"/><circle cx="170" cy="120" r="9"/><circle cx="135" cy="165" r="9"/>
     <circle cx="900" cy="140" r="10"/><circle cx="880" cy="120" r="9"/><circle cx="915" cy="165" r="9"/>
@@ -77,81 +78,98 @@
     <circle cx="900" cy="1358" r="10"/><circle cx="880" cy="1378" r="9"/><circle cx="915" cy="1333" r="9"/>
   </g>
 
-  <!-- 4 Symmetrische Geweihte Festtagskerzen in Messingleuchtern -->
-  <!-- Kerze Oben Links -->
-  <g transform="translate(140, 220)" filter="url(#candleGlow)">
-    <!-- Messingwandarm -->
-    <path d="M -30 70 Q -10 90 0 110" fill="none" stroke="url(#antiqueBrass)" stroke-width="7"/>
-    <polygon points="-25,70 25,70 15,90 -15,90" fill="url(#antiqueBrass)" stroke="#451a03" stroke-width="2"/>
-    <!-- Kerzenwachskörper -->
-    <rect x="-14" y="-30" width="28" height="100" rx="4" fill="#fef08a" stroke="#d97706" stroke-width="2"/>
+  <!-- 4 Voll Ausmodellierte Geweihte Altarkerzen ("wenn du eine Kerze siehst, dann mach eine Kerze") -->
+  <!-- Kerze 1: Oben Links -->
+  <g transform="translate(140, 230)" filter="url(#candleShadow)">
+    <!-- Messingleuchter-Wandarm -->
+    <path d="M -25 70 Q 0 85 0 110" fill="none" stroke="url(#antiqueBrass)" stroke-width="8"/>
+    <!-- Tropfteller & Kerzenhalterung -->
+    <ellipse cx="0" cy="70" rx="26" ry="8" fill="url(#antiqueBrass)" stroke="#451a03" stroke-width="2"/>
+    <polygon points="-16,70 16,70 12,85 -12,85" fill="url(#antiqueBrass)"/>
+    <!-- Wachszylinder mit weichem Schatten -->
+    <rect x="-14" y="-30" width="28" height="100" rx="4" fill="url(#waxPillar)" stroke="#b45309" stroke-width="2"/>
+    <!-- Wachsmulde & Tropfrand -->
+    <ellipse cx="0" cy="-30" rx="14" ry="4" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+    <!-- Seitlicher Wachstropfen -->
+    <path d="M -14 -10 Q -18 5 -14 20" fill="none" stroke="#fef3c7" stroke-width="3" stroke-linecap="round"/>
     <!-- Docht -->
-    <line x1="0" y1="-30" x2="0" y2="-45" stroke="#451a03" stroke-width="3"/>
-    <!-- Flamme & Kerzenschein -->
-    <circle cx="0" cy="-60" r="32" fill="#ea580c" opacity="0.25"/>
-    <path d="M 0 -85 Q 16 -60 0 -45 Q -16 -60 0 -85 Z" fill="url(#solsticeFire)" stroke="#d97706" stroke-width="1.5"/>
-  </g>
-  <!-- Kerze Oben Rechts -->
-  <g transform="translate(910, 220)" filter="url(#candleGlow)">
-    <path d="M 30 70 Q 10 90 0 110" fill="none" stroke="url(#antiqueBrass)" stroke-width="7"/>
-    <polygon points="-25,70 25,70 15,90 -15,90" fill="url(#antiqueBrass)" stroke="#451a03" stroke-width="2"/>
-    <rect x="-14" y="-30" width="28" height="100" rx="4" fill="#fef08a" stroke="#d97706" stroke-width="2"/>
-    <line x1="0" y1="-30" x2="0" y2="-45" stroke="#451a03" stroke-width="3"/>
-    <circle cx="0" cy="-60" r="32" fill="#ea580c" opacity="0.25"/>
-    <path d="M 0 -85 Q 16 -60 0 -45 Q -16 -60 0 -85 Z" fill="url(#solsticeFire)" stroke="#d97706" stroke-width="1.5"/>
-  </g>
-  <!-- Kerze Unten Links -->
-  <g transform="translate(140, 1278)" filter="url(#candleGlow)">
-    <path d="M -30 -70 Q -10 -90 0 -110" fill="none" stroke="url(#antiqueBrass)" stroke-width="7"/>
-    <polygon points="-25,-70 25,-70 15,-90 -15,-90" fill="url(#antiqueBrass)" stroke="#451a03" stroke-width="2"/>
-    <rect x="-14" y="-70" width="28" height="100" rx="4" fill="#fef08a" stroke="#d97706" stroke-width="2"/>
-    <line x1="0" y1="30" x2="0" y2="45" stroke="#451a03" stroke-width="3"/>
-    <circle cx="0" cy="60" r="32" fill="#ea580c" opacity="0.25"/>
-    <path d="M 0 85 Q 16 60 0 45 Q -16 60 0 85 Z" fill="url(#solsticeFire)" stroke="#d97706" stroke-width="1.5"/>
-  </g>
-  <!-- Kerze Unten Rechts -->
-  <g transform="translate(910, 1278)" filter="url(#candleGlow)">
-    <path d="M 30 -70 Q 10 -90 0 -110" fill="none" stroke="url(#antiqueBrass)" stroke-width="7"/>
-    <polygon points="-25,-70 25,-70 15,-90 -15,-90" fill="url(#antiqueBrass)" stroke="#451a03" stroke-width="2"/>
-    <rect x="-14" y="-70" width="28" height="100" rx="4" fill="#fef08a" stroke="#d97706" stroke-width="2"/>
-    <line x1="0" y1="30" x2="0" y2="45" stroke="#451a03" stroke-width="3"/>
-    <circle cx="0" cy="60" r="32" fill="#ea580c" opacity="0.25"/>
-    <path d="M 0 85 Q 16 60 0 45 Q -16 60 0 85 Z" fill="url(#solsticeFire)" stroke="#d97706" stroke-width="1.5"/>
+    <path d="M 0 -30 Q 3 -38 0 -44" fill="none" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Weicher Kerzenschein & Flamme -->
+    <circle cx="0" cy="-65" r="45" fill="#f97316" opacity="0.25" filter="url(#candleAura)"/>
+    <path d="M 0 -88 C 16 -65 14 -46 0 -44 C -14 -46 -16 -65 0 -88 Z" fill="url(#flameGlow)" filter="url(#candleAura)"/>
+    <!-- Innerer weißer Lichtkern & blauer Fußpunkt -->
+    <path d="M 0 -72 C 8 -56 7 -46 0 -44 C -7 -46 -8 -56 0 -72 Z" fill="#ffffff"/>
+    <ellipse cx="0" cy="-44" rx="4" ry="2" fill="#38bdf8"/>
   </g>
 
-  <!-- Großes Zentrales Sonnenwend-Astrolabium -->
-  <circle cx="525" cy="749" r="310" fill="none" stroke="url(#antiqueBrass)" stroke-width="14" filter="url(#mahoganyShadow)"/>
+  <!-- Kerze 2: Oben Rechts -->
+  <g transform="translate(910, 230)" filter="url(#candleShadow)">
+    <path d="M 25 70 Q 0 85 0 110" fill="none" stroke="url(#antiqueBrass)" stroke-width="8"/>
+    <ellipse cx="0" cy="70" rx="26" ry="8" fill="url(#antiqueBrass)" stroke="#451a03" stroke-width="2"/>
+    <polygon points="-16,70 16,70 12,85 -12,85" fill="url(#antiqueBrass)"/>
+    <rect x="-14" y="-30" width="28" height="100" rx="4" fill="url(#waxPillar)" stroke="#b45309" stroke-width="2"/>
+    <ellipse cx="0" cy="-30" rx="14" ry="4" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+    <path d="M 14 -10 Q 18 5 14 20" fill="none" stroke="#fef3c7" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 0 -30 Q -3 -38 0 -44" fill="none" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="0" cy="-65" r="45" fill="#f97316" opacity="0.25" filter="url(#candleAura)"/>
+    <path d="M 0 -88 C 16 -65 14 -46 0 -44 C -14 -46 -16 -65 0 -88 Z" fill="url(#flameGlow)" filter="url(#candleAura)"/>
+    <path d="M 0 -72 C 8 -56 7 -46 0 -44 C -7 -46 -8 -56 0 -72 Z" fill="#ffffff"/>
+    <ellipse cx="0" cy="-44" rx="4" ry="2" fill="#38bdf8"/>
+  </g>
+
+  <!-- Kerze 3: Unten Links -->
+  <g transform="translate(140, 1268)" filter="url(#candleShadow)">
+    <path d="M -25 -70 Q 0 -85 0 -110" fill="none" stroke="url(#antiqueBrass)" stroke-width="8"/>
+    <ellipse cx="0" cy="-70" rx="26" ry="8" fill="url(#antiqueBrass)" stroke="#451a03" stroke-width="2"/>
+    <polygon points="-16,-70 16,-70 12,-85 -12,-85" fill="url(#antiqueBrass)"/>
+    <rect x="-14" y="-70" width="28" height="100" rx="4" fill="url(#waxPillar)" stroke="#b45309" stroke-width="2"/>
+    <ellipse cx="0" cy="30" rx="14" ry="4" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+    <path d="M -14 10 Q -18 -5 -14 -20" fill="none" stroke="#fef3c7" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 0 30 Q 3 38 0 44" fill="none" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="0" cy="65" r="45" fill="#f97316" opacity="0.25" filter="url(#candleAura)"/>
+    <path d="M 0 88 C 16 65 14 46 0 44 C -14 46 -16 65 0 88 Z" fill="url(#flameGlow)" filter="url(#candleAura)"/>
+    <path d="M 0 72 C 8 56 7 46 0 44 C -7 46 -8 56 0 72 Z" fill="#ffffff"/>
+    <ellipse cx="0" cy="44" rx="4" ry="2" fill="#38bdf8"/>
+  </g>
+
+  <!-- Kerze 4: Unten Rechts -->
+  <g transform="translate(910, 1268)" filter="url(#candleShadow)">
+    <path d="M 25 -70 Q 0 -85 0 -110" fill="none" stroke="url(#antiqueBrass)" stroke-width="8"/>
+    <ellipse cx="0" cy="-70" rx="26" ry="8" fill="url(#antiqueBrass)" stroke="#451a03" stroke-width="2"/>
+    <polygon points="-16,-70 16,-70 12,-85 -12,-85" fill="url(#antiqueBrass)"/>
+    <rect x="-14" y="-70" width="28" height="100" rx="4" fill="url(#waxPillar)" stroke="#b45309" stroke-width="2"/>
+    <ellipse cx="0" cy="30" rx="14" ry="4" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+    <path d="M 14 10 Q 18 -5 14 -20" fill="none" stroke="#fef3c7" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 0 30 Q -3 38 0 44" fill="none" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="0" cy="65" r="45" fill="#f97316" opacity="0.25" filter="url(#candleAura)"/>
+    <path d="M 0 88 C 16 65 14 46 0 44 C -14 46 -16 65 0 88 Z" fill="url(#flameGlow)" filter="url(#candleAura)"/>
+    <path d="M 0 72 C 8 56 7 46 0 44 C -7 46 -8 56 0 72 Z" fill="#ffffff"/>
+    <ellipse cx="0" cy="44" rx="4" ry="2" fill="#38bdf8"/>
+  </g>
+
+  <!-- Großes Zentrum: Geometrisches Sonnenwend-Astrolabium -->
+  <circle cx="525" cy="749" r="310" fill="none" stroke="url(#antiqueBrass)" stroke-width="14" filter="url(#candleShadow)"/>
   <circle cx="525" cy="749" r="280" fill="none" stroke="#fde047" stroke-width="3" stroke-dasharray="16 10"/>
   <circle cx="525" cy="749" r="255" fill="#200b03" stroke="url(#antiqueBrass)" stroke-width="6"/>
 
-  <!-- Inneres Zahnrad der Sonnenwende (12 Speichen) -->
-  <g stroke="url(#antiqueBrass)" stroke-width="4" opacity="0.75">
+  <!-- 12 Präzise Speichen des Sonnenwend-Astrolabiums -->
+  <g stroke="url(#antiqueBrass)" stroke-width="4" opacity="0.8">
     <line x1="525" y1="494" x2="525" y2="1004"/>
     <line x1="270" y1="749" x2="780" y2="749"/>
     <line x1="345" y1="569" x2="705" y2="929"/>
     <line x1="345" y1="929" x2="705" y2="569"/>
   </g>
 
-  <!-- Zentrum: Geweihter Glutkreis & Lebendige Sonnenwendflamme -->
-  <circle cx="525" cy="749" r="160" fill="url(#mahoganyWood)" stroke="url(#antiqueBrass)" stroke-width="8"/>
-  <circle cx="525" cy="749" r="135" fill="#ea580c" opacity="0.25" filter="url(#candleGlow)"/>
+  <!-- Heilige Opferschale & Lodernde Sonnenwendflamme im Zentrum -->
+  <circle cx="525" cy="749" r="160" fill="url(#mahoganyBase)" stroke="url(#antiqueBrass)" stroke-width="8"/>
+  <circle cx="525" cy="749" r="130" fill="#f97316" opacity="0.3" filter="url(#candleAura)"/>
 
-  <!-- Mehrschichtige Sonnenwend-Flammen (Flackerndes Licht) -->
-  <g filter="url(#candleGlow)">
+  <!-- Große Zentralflamme -->
+  <g filter="url(#candleAura)">
     <!-- Äußere Flamme -->
-    <path d="M 525 610 
-             C 570 660, 600 730, 560 790 
-             C 530 835, 470 830, 460 770 
-             C 455 740, 480 710, 485 680 
-             C 490 650, 515 620, 525 610 Z" 
-          fill="url(#solsticeFire)" stroke="#ea580c" stroke-width="3"/>
-    <!-- Kernflamme (Reines Goldlicht) -->
-    <path d="M 525 650 
-             C 555 690, 565 745, 540 775 
-             C 520 800, 490 795, 485 765 
-             C 480 745, 500 720, 505 700 
-             C 510 680, 520 660, 525 650 Z" 
-          fill="#ffffff" opacity="0.95"/>
-    <circle cx="525" cy="755" r="15" fill="#fef08a" opacity="0.9"/>
+    <path d="M 525 615 C 575 665 590 735 560 790 C 530 835 470 830 460 770 C 455 735 480 705 485 675 C 495 645 515 625 525 615 Z" fill="url(#flameGlow)"/>
+    <!-- Heller Kern -->
+    <path d="M 525 655 C 555 695 565 745 540 780 C 520 805 490 800 485 765 C 480 745 500 720 505 695 C 510 675 520 660 525 655 Z" fill="#ffffff" opacity="0.95"/>
+    <circle cx="525" cy="755" r="16" fill="#fef08a"/>
   </g>
 </svg>
